@@ -1,85 +1,227 @@
--- Tabela de Turmas (Enhanced Context)
+-- schema.sql
+-- SCAE: Multi-Tenant + LGPD compliance
+
+-- ====================================
+-- TENANTS (Escolas)
+-- ====================================
+DROP TABLE IF EXISTS tenants;
+CREATE TABLE tenants (
+    id TEXT PRIMARY KEY,               -- Slug da escola (ex: cem03-taguatinga)
+    nome_escola TEXT NOT NULL,
+    dominio_email TEXT,                -- Para validação de login admin (ex: @edu.se.df.gov.br)
+    cor_primaria TEXT DEFAULT '#000000',
+    cor_secundaria TEXT DEFAULT '#ffffff',
+    tts_ativado BOOLEAN DEFAULT 1,
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ====================================
+-- CONSENTIMENTOS (LGPD)
+-- ====================================
+DROP TABLE IF EXISTS consentimentos;
+CREATE TABLE consentimentos (
+    id TEXT PRIMARY KEY,               -- UUID
+    tenant_id TEXT NOT NULL,
+    termo_versao TEXT NOT NULL,        -- Versão do termo aceito
+    base_legal TEXT NOT NULL,          -- Ex: 'consentimento', 'obrigacao_legal', 'execucao_contrato', 'interesse_legitimo'
+    finalidade_coleta TEXT NOT NULL,
+    prazo_retencao_meses INTEGER NOT NULL,
+    data_aceite DATETIME DEFAULT CURRENT_TIMESTAMP,
+    revogado BOOLEAN DEFAULT 0,
+    data_revogacao DATETIME,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+-- ====================================
+-- USUÁRIOS (Admin/Portaria/Coordenação)
+-- ====================================
+DROP TABLE IF EXISTS usuarios;
+CREATE TABLE usuarios (
+    email TEXT NOT NULL,
+    tenant_id TEXT NOT NULL,
+    nome_completo TEXT NOT NULL,
+    papel TEXT NOT NULL CHECK(papel IN ('ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTARIA', 'VISUALIZACAO')),
+    ativo BOOLEAN DEFAULT 1,
+    
+    -- LGPD / Tracking
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao DATETIME,
+    data_exclusao DATETIME,
+    
+    PRIMARY KEY (email, tenant_id),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+-- ====================================
+-- TURMAS
+-- ====================================
 DROP TABLE IF EXISTS turmas;
 CREATE TABLE turmas (
-  id TEXT PRIMARY KEY, -- Ex: "3ª A - Matutino" (Composite Key for compatibility)
-  ano_letivo INTEGER, -- Ex: 2026
-  serie TEXT, -- Ex: "1ª", "2ª", "3ª"
-  letra TEXT, -- Ex: "A", "B", "C"
-  turno TEXT, -- Ex: "Matutino", "Vespertino"
-  sala TEXT, -- Local físico (Opcional)
-  criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    id TEXT NOT NULL,                  -- Ex: "3A-2026"
+    tenant_id TEXT NOT NULL,
+    ano_letivo INTEGER NOT NULL,
+    serie TEXT,
+    letra TEXT,
+    turno TEXT,
+    
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (id, tenant_id),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
 );
 
--- Tabela de Alunos (Essential Data)
+-- ====================================
+-- ALUNOS
+-- ====================================
 DROP TABLE IF EXISTS alunos;
 CREATE TABLE alunos (
-  matricula TEXT PRIMARY KEY, -- Identificador Único
-  nome_completo TEXT NOT NULL, -- Identificação Básica
-  turma_id TEXT, -- Vínculo com a Turma
-  status TEXT DEFAULT 'ATIVO', -- ATIVO/INATIVO (Controle de Acesso)
-  sincronizado INTEGER DEFAULT 0, -- 0: Pendente, 1: Sincronizado
-  FOREIGN KEY (turma_id) REFERENCES turmas(id)
+    matricula TEXT NOT NULL,           -- Código SIGE
+    tenant_id TEXT NOT NULL,
+    nome_completo TEXT,                -- NULL se anonimizado
+    turma_id TEXT,
+    status TEXT DEFAULT 'ATIVO',
+    
+    -- LGPD Columns
+    id_consentimento TEXT,
+    base_legal TEXT NOT NULL,
+    finalidade_coleta TEXT NOT NULL,
+    prazo_retencao_meses INTEGER NOT NULL,
+    data_anonimizacao DATETIME,
+    anonimizado BOOLEAN DEFAULT 0,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao DATETIME,
+    data_exclusao DATETIME,
+    
+    PRIMARY KEY (matricula, tenant_id),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    FOREIGN KEY (turma_id, tenant_id) REFERENCES turmas(id, tenant_id),
+    FOREIGN KEY (id_consentimento) REFERENCES consentimentos(id)
+);
+CREATE INDEX idx_alunos_turma ON alunos(turma_id, tenant_id);
+CREATE INDEX idx_alunos_status ON alunos(status, tenant_id);
+
+-- ====================================
+-- RESPONSÁVEIS
+-- ====================================
+DROP TABLE IF EXISTS responsaveis;
+CREATE TABLE responsaveis (
+    id TEXT NOT NULL,                  -- UUID
+    tenant_id TEXT NOT NULL,
+    nome_completo TEXT,                -- NULL se anonimizado
+    telefone TEXT,                     -- NULL se anonimizado
+    email TEXT,                        -- NULL se anonimizado
+    fcm_token TEXT,
+    
+    -- LGPD Columns
+    id_consentimento TEXT,
+    base_legal TEXT NOT NULL,
+    finalidade_coleta TEXT NOT NULL,
+    prazo_retencao_meses INTEGER NOT NULL,
+    data_anonimizacao DATETIME,
+    anonimizado BOOLEAN DEFAULT 0,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao DATETIME,
+    data_exclusao DATETIME,
+    
+    PRIMARY KEY (id, tenant_id),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    FOREIGN KEY (id_consentimento) REFERENCES consentimentos(id)
 );
 
--- Tabela de Registros de Acesso (Audit Trail)
+-- ====================================
+-- VÍNCULOS RESPONSAVEL <-> ALUNO
+-- ====================================
+DROP TABLE IF EXISTS vinculos_responsavel_aluno;
+CREATE TABLE vinculos_responsavel_aluno (
+    responsavel_id TEXT NOT NULL,
+    aluno_matricula TEXT NOT NULL,
+    tenant_id TEXT NOT NULL,
+    data_vinculo DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (responsavel_id, aluno_matricula, tenant_id),
+    FOREIGN KEY (responsavel_id, tenant_id) REFERENCES responsaveis(id, tenant_id),
+    FOREIGN KEY (aluno_matricula, tenant_id) REFERENCES alunos(matricula, tenant_id)
+);
+
+-- ====================================
+-- REGISTROS DE ACESSO (PORTARIA)
+-- ====================================
 DROP TABLE IF EXISTS registros_acesso;
 CREATE TABLE registros_acesso (
-  id TEXT PRIMARY KEY,
-  aluno_matricula TEXT NOT NULL,
-  tipo_movimentacao TEXT CHECK(tipo_movimentacao IN ('ENTRADA', 'SAIDA')) NOT NULL,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-  sincronizado INTEGER DEFAULT 0, -- 0: Pendente, 1: Sincronizado
-  autorizado_por TEXT, -- Quem liberou, se manual (Accountability)
-  metodo_validacao TEXT -- QR Code, Manual, etc
+    id TEXT NOT NULL,                  -- UUID do evento (gerado no tablet para idempotência)
+    tenant_id TEXT NOT NULL,
+    aluno_matricula TEXT NOT NULL,
+    tipo_movimentacao TEXT NOT NULL CHECK(tipo_movimentacao IN ('ENTRADA', 'SAIDA')),
+    metodo_leitura TEXT NOT NULL DEFAULT 'qr_celular', -- qr_celular, qr_carteirinha, manual
+    timestamp_acesso DATETIME NOT NULL,
+    sincronizado BOOLEAN DEFAULT 1,
+    
+    -- LGPD Columns
+    prazo_retencao_meses INTEGER NOT NULL,
+    data_anonimizacao DATETIME,
+    anonimizado BOOLEAN DEFAULT 0,
+    
+    PRIMARY KEY (id, tenant_id),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    FOREIGN KEY (aluno_matricula, tenant_id) REFERENCES alunos(matricula, tenant_id)
 );
-
--- Tabela de Fila de Pendências (Para Delezões e Ações Offline)
-DROP TABLE IF EXISTS fila_pendencias;
-CREATE TABLE fila_pendencias (
-  id TEXT PRIMARY KEY,
-  acao TEXT NOT NULL, -- 'DELETE', 'UPDATE'
-  colecao TEXT NOT NULL, -- 'alunos', 'turmas'
-  dado_id TEXT NOT NULL,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-
+CREATE INDEX idx_registros_acesso_aluno ON registros_acesso(aluno_matricula, tenant_id);
+CREATE INDEX idx_registros_acesso_data ON registros_acesso(timestamp_acesso DESC, tenant_id);
 
 -- ====================================
--- AUDITORIA E USUÁRIOS
+-- ALERTAS DE EVASÃO
 -- ====================================
+DROP TABLE IF EXISTS alertas_evasao;
+CREATE TABLE alertas_evasao (
+    id TEXT NOT NULL,                  -- UUID
+    tenant_id TEXT NOT NULL,
+    aluno_matricula TEXT NOT NULL,
+    motivo TEXT NOT NULL,
+    status TEXT DEFAULT 'PENDENTE' CHECK(status IN ('PENDENTE', 'EM_ANALISE', 'RESOLVIDO')),
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_resolucao DATETIME,
+    
+    PRIMARY KEY (id, tenant_id),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    FOREIGN KEY (aluno_matricula, tenant_id) REFERENCES alunos(matricula, tenant_id)
+);
+CREATE INDEX idx_alertas_evasao_aluno ON alertas_evasao(aluno_matricula, tenant_id);
+CREATE INDEX idx_alertas_evasao_status ON alertas_evasao(status, tenant_id);
 
--- Logs de Auditoria
-CREATE TABLE IF NOT EXISTS logs_auditoria (
-    id TEXT PRIMARY KEY,
-    timestamp TEXT NOT NULL,
+-- ====================================
+-- LOGS DE AUDITORIA
+-- ====================================
+DROP TABLE IF EXISTS logs_auditoria;
+CREATE TABLE logs_auditoria (
+    id TEXT NOT NULL,                  -- UUID
+    tenant_id TEXT NOT NULL,
     usuario_email TEXT NOT NULL,
     acao TEXT NOT NULL,
     entidade_tipo TEXT NOT NULL,
     entidade_id TEXT,
-    dados_anteriores TEXT,
-    dados_novos TEXT,
+    dados_anteriores TEXT,             -- JSON
+    dados_novos TEXT,                  -- JSON
     ip_address TEXT,
     user_agent TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (id, tenant_id),
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
 );
+CREATE INDEX idx_logs_timestamp ON logs_auditoria(data_criacao DESC, tenant_id);
+CREATE INDEX idx_logs_usuario ON logs_auditoria(usuario_email, tenant_id);
 
-CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs_auditoria(timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_logs_usuario ON logs_auditoria(usuario_email);
-CREATE INDEX IF NOT EXISTS idx_logs_acao ON logs_auditoria(acao);
-CREATE INDEX IF NOT EXISTS idx_logs_entidade ON logs_auditoria(entidade_tipo, entidade_id);
-
--- Usuários e Controle de Acesso (RBAC)
-CREATE TABLE IF NOT EXISTS usuarios (
-    email TEXT PRIMARY KEY,
-    nome_completo TEXT NOT NULL,
-    papel TEXT NOT NULL CHECK(papel IN ('ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTARIA', 'VISUALIZACAO')),
-    role TEXT, -- Legacy/Compatibility (Optional)
-    ativo BOOLEAN DEFAULT 1,
-    criado_por TEXT,
-    criado_em TEXT DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TEXT DEFAULT CURRENT_TIMESTAMP
+-- ====================================
+-- FILA OFFLINE (RESERVADO PARA SINCRONIZAÇÃO)
+-- ====================================
+DROP TABLE IF EXISTS fila_pendencias;
+CREATE TABLE fila_pendencias (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    acao TEXT NOT NULL,                -- 'DELETE', 'UPDATE'
+    colecao TEXT NOT NULL,             -- 'alunos', 'turmas'
+    dado_id TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_usuarios_papel ON usuarios(papel);
-CREATE INDEX IF NOT EXISTS idx_usuarios_ativo ON usuarios(ativo);

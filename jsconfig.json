@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@tenant/*": [
+                "./src/tenant/*"
+            ],
+            "@funcionalidades/*": [
+                "./src/funcionalidades/*"
+            ],
+            "@compartilhado/*": [
+                "./src/compartilhado/*"
+            ],
+            "@configuracoes/*": [
+                "./src/configuracoes/*"
+            ],
+            "@principal/*": [
+                "./src/principal/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
