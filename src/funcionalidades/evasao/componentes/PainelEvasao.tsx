@@ -1,24 +1,19 @@
 ﻿import { useState, useMemo } from 'react';
 import { usarEvasao } from '../hooks/usarEvasao';
-import { AlertaEvasao } from '../types/evasao.tipos';
+import { AlertaEvasao, StatusEvasao } from '../types/evasao.tipos';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
+import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import {
     Activity,
     AlertCircle,
     CheckCircle2,
-    ChevronRight,
     Search,
-    TrendingDown,
-    User,
-    Calendar,
-    Phone,
-    Mail,
     Clock,
     Zap,
     History,
-    MoreVertical,
-    Target,
-    Filter
+    Filter,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -32,20 +27,29 @@ export default function PainelEvasao() {
         rodarMotorEvasao
     } = usarEvasao();
 
-    const [idAlertaAtivo, definirIdAlertaAtivo] = useState<string | null>(null);
     const [pesquisa, definirPesquisa] = useState('');
+    const [filtroStatus, definirFiltroStatus] = useState<StatusEvasao | 'TODOS'>('TODOS');
+    const [paginaAtual, definirPaginaAtual] = useState(1);
+    const itensPorPagina = 10;
+
+    // Modal state for viewing absences
+    const [alertaFaltasAtivo, definirAlertaFaltasAtivo] = useState<AlertaEvasao | null>(null);
 
     // Dados Filtrados
     const alertasFiltrados = useMemo(() => {
-        return alertas.filter(a =>
-            a.aluno_nome?.toLowerCase().includes(pesquisa.toLowerCase()) ||
-            a.aluno_matricula.includes(pesquisa)
-        );
-    }, [alertas, pesquisa]);
+        return alertas.filter(a => {
+            const matchNome = a.aluno_nome?.toLowerCase().includes(pesquisa.toLowerCase()) ||
+                a.aluno_matricula.includes(pesquisa);
+            const matchStatus = filtroStatus === 'TODOS' ? true : a.status === filtroStatus;
+            return matchNome && matchStatus;
+        });
+    }, [alertas, pesquisa, filtroStatus]);
 
-    const alertaAtivo = useMemo(() =>
-        alertas.find(a => a.id === idAlertaAtivo),
-        [alertas, idAlertaAtivo]
+    // Paginação
+    const totalPaginas = Math.ceil(alertasFiltrados.length / itensPorPagina) || 1;
+    const paginados = alertasFiltrados.slice(
+        (paginaAtual - 1) * itensPorPagina,
+        paginaAtual * itensPorPagina
     );
 
     // Métricas Quick Look
@@ -58,285 +62,274 @@ export default function PainelEvasao() {
 
     return (
         <LayoutAdministrativo
-            titulo="Evasion Command Center"
-            subtitulo="Monitoramento estratégico e preventivo de alunos em risco."
+            titulo="Gestão de Evasão"
+            subtitulo="Monitoramento estratégico e controle preditivo contra evasão escolar."
             acoes={
                 <button
                     onClick={rodarMotorEvasao}
                     disabled={processando || carregando}
-                    className="flex items-center gap-2 bg-rose-600 text-white px-5 py-2.5 rounded-xl hover:bg-rose-700 transition font-bold shadow-lg shadow-rose-600/20 hover:scale-105 active:scale-95 border border-white/10 text-sm"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm disabled:opacity-50 text-sm font-medium"
                 >
-                    <Zap size={18} className={processando ? "animate-pulse" : ""} />
-                    {processando ? "Sincronizando..." : "Executar Motor"}
+                    <Zap size={16} className={processando ? "animate-pulse" : ""} />
+                    {processando ? "Processando..." : "Executar Análise"}
                 </button>
             }
         >
-            <div className="flex flex-col h-[calc(100vh-250px)] gap-6">
+            <div className="space-y-6 animate-fade-in">
 
-                {/* Métricas Padronizadas (Cards Suaves) */}
+                {/* Métricas Padronizadas */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <CardMetrica
-                        label="Ativos Monitorados"
+                        label="Total de Alertas"
                         valor={metricas.total}
-                        sub="Volume Total"
-                        icon={<Activity className="text-indigo-600" size={20} />}
-                        cor="bg-white border-2 border-indigo-100 shadow-sm"
+                        icon={<Activity className="text-gray-500" size={20} />}
                     />
                     <CardMetrica
-                        label="Casos Críticos"
+                        label="Críticos (Pendentes)"
                         valor={metricas.criticos}
-                        sub="Ação Inmediata"
                         icon={<AlertCircle className="text-rose-500" size={20} />}
-                        cor="bg-white border-2 border-rose-100 shadow-sm"
                     />
                     <CardMetrica
-                        label="Em Tratativa"
+                        label="Em Análise"
                         valor={metricas.emTratativa}
-                        sub="Acompanhamento"
                         icon={<Clock className="text-amber-500" size={20} />}
-                        cor="bg-white border-2 border-amber-100 shadow-sm"
                     />
                     <CardMetrica
-                        label="Retidos"
+                        label="Casos Resolvidos"
                         valor={metricas.resolvidos}
-                        sub="Fidelizados"
                         icon={<CheckCircle2 className="text-emerald-500" size={20} />}
-                        cor="bg-white border-2 border-emerald-100 shadow-sm"
                     />
                 </div>
 
-                {/* Main Viewport */}
-                <div className="flex-1 flex gap-6 overflow-hidden">
-
-                    {/* Lista Lateral (Light & Clean) */}
-                    <div className="w-80 flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                            <div className="relative group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-all" size={16} />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar aluno..."
-                                    className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-100 placeholder:text-slate-300 uppercase tracking-widest transition-all"
-                                    value={pesquisa}
-                                    onChange={(e) => definirPesquisa(e.target.value)}
-                                />
-                            </div>
+                {/* Filtros e Busca */}
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div className="flex w-full md:w-auto gap-4 flex-col sm:flex-row">
+                        <div className="relative w-full sm:w-80">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Buscar por aluno ou matrícula..."
+                                value={pesquisa}
+                                onChange={(e) => {
+                                    definirPesquisa(e.target.value);
+                                    definirPaginaAtual(1);
+                                }}
+                                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-md text-sm outline-none transition-colors"
+                            />
                         </div>
-
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                            {alertasFiltrados.map(alerta => (
-                                <button
-                                    key={alerta.id}
-                                    onClick={() => definirIdAlertaAtivo(alerta.id)}
-                                    className={`w-full p-4 rounded-2xl transition-all flex items-start gap-3 text-left group ${idAlertaAtivo === alerta.id
-                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                                            : 'hover:bg-slate-50 text-slate-600'
-                                        }`}
-                                >
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border-2 ${idAlertaAtivo === alerta.id ? 'border-white/20 bg-white/10' : 'border-slate-100 bg-slate-50'
-                                        }`}>
-                                        <User size={18} className={idAlertaAtivo === alerta.id ? 'text-white' : 'text-slate-400'} />
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-[11px] font-black uppercase tracking-widest truncate leading-tight">
-                                            {alerta.aluno_nome}
-                                        </p>
-                                        <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 opacity-60 ${idAlertaAtivo === alerta.id ? 'text-white' : 'text-slate-400'
-                                            }`}>
-                                            {alerta.turma_nome}
-                                        </p>
-                                    </div>
-                                    {idAlertaAtivo === alerta.id && <ChevronRight size={14} className="shrink-0 mt-1" />}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Stage de Trabalho (Dossiê) */}
-                    <div className="flex-1 bg-white border border-slate-200 rounded-3xl flex flex-col overflow-hidden shadow-sm">
-                        {alertaAtivo ? (
-                            <div className="flex flex-col h-full animate-fade-in">
-                                {/* Dossiê Header */}
-                                <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-20 h-20 bg-white rounded-3xl border-2 border-slate-100 flex items-center justify-center text-indigo-600 shadow-sm relative group overflow-hidden">
-                                            <User size={32} />
-                                            <div className={`absolute bottom-0 left-0 right-0 h-1 ${alertaAtivo.status === 'PENDENTE' ? 'bg-rose-500' :
-                                                    alertaAtivo.status === 'EM_ANALISE' ? 'bg-amber-500' : 'bg-emerald-500'
-                                                }`} />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-[0.2em] ${alertaAtivo.status === 'PENDENTE' ? 'bg-rose-100 text-rose-600 border border-rose-200' :
-                                                        alertaAtivo.status === 'EM_ANALISE' ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'
-                                                    }`}>
-                                                    {alertaAtivo.status}
-                                                </span>
-                                                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Matrícula {alertaAtivo.aluno_matricula}</span>
-                                            </div>
-                                            <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase leading-tight">{alertaAtivo.aluno_nome}</h2>
-                                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                                Unidade Escolar SCAE • Turma {alertaAtivo.turma_nome}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-2">
-                                        <button className="p-3 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-all">
-                                            <MoreVertical size={20} />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Dossiê Content */}
-                                <div className="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                                        {/* Detalhes do Risco */}
-                                        <div className="space-y-6">
-                                            <h4 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">
-                                                <Filter size={14} /> Análise do Motor
-                                            </h4>
-                                            <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-8 relative overflow-hidden group">
-                                                <TrendingDown className="absolute -right-6 -bottom-6 text-indigo-500 opacity-[0.03] group-hover:scale-110 transition-transform duration-700" size={160} />
-                                                <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
-                                                    "{alertaAtivo.motivo}"
-                                                </p>
-                                                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                    <span>Data da Ocorrência</span>
-                                                    <span className="text-slate-600">
-                                                        {format(parseISO(alertaAtivo.data_criacao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Ações Técnicas */}
-                                        <div className="space-y-6">
-                                            <h4 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">
-                                                <Activity size={14} /> Protocolo de Contato
-                                            </h4>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                <BotaoAcaoRapida icon={<Phone size={16} />} label="Ligar p/ Família" />
-                                                <BotaoAcaoRapida icon={<Mail size={16} />} label="Enviar E-mail" />
-                                                <BotaoAcaoRapida icon={<Calendar size={16} />} label="Agendar Reunião" />
-                                                <BotaoAcaoRapida icon={<History size={16} />} label="Visualizar Faltas" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Histórico Técnico */}
-                                    <div className="space-y-6">
-                                        <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Relatórios de Intervenção</h4>
-                                        <div className="space-y-4">
-                                            <TimelineStep
-                                                title="Alerta Crítico Gerado"
-                                                desc="O sistema identificou um padrão de ausência acima do threshold configurado."
-                                                time="HOJE, 09:30"
-                                                ativo
-                                            />
-                                            <TimelineStep
-                                                title="Revisão Cadastral"
-                                                desc="Dados de contato e endereço verificados para início da tratativa."
-                                                time="28/02/2026"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Dossiê Footer */}
-                                <div className="p-8 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/20">
-                                    <button
-                                        onClick={() => definirIdAlertaAtivo(null)}
-                                        className="px-6 py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
-                                    >
-                                        Fechar Vista
-                                    </button>
-
-                                    {alertaAtivo.status === 'PENDENTE' && (
-                                        <button
-                                            onClick={() => tratarAlerta(alertaAtivo.id, 'EM_ANALISE')}
-                                            className="px-8 py-3 bg-amber-500 text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all"
-                                        >
-                                            Iniciar Tratativa
-                                        </button>
-                                    )}
-
-                                    {alertaAtivo.status === 'EM_ANALISE' && (
-                                        <button
-                                            onClick={() => tratarAlerta(alertaAtivo.id, 'RESOLVIDO')}
-                                            className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 transition-all"
-                                        >
-                                            Finalizar Caso
-                                        </button>
-                                    )}
-
-                                    {alertaAtivo.status === 'RESOLVIDO' && (
-                                        <button
-                                            onClick={() => tratarAlerta(alertaAtivo.id, 'EM_ANALISE')}
-                                            className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-indigo-600/20 hover:scale-105 active:scale-95 transition-all"
-                                        >
-                                            Reabrir Investigação
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center p-20 animate-fade-in opacity-40">
-                                <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-8 border border-slate-200 shadow-sm">
-                                    <Target size={40} className="text-slate-300" />
-                                </div>
-                                <h3 className="text-lg font-black text-slate-700 uppercase tracking-[0.3em] mb-3">Linha Verde de Monitoramento</h3>
-                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest max-w-xs leading-relaxed">
-                                    Selecione um registro na linha do tempo para carregar o dossiê de inteligência e iniciar os protocolos de retenção.
-                                </p>
-                            </div>
-                        )}
+                        <select
+                            value={filtroStatus}
+                            onChange={(e) => {
+                                definirFiltroStatus(e.target.value as StatusEvasao | 'TODOS');
+                                definirPaginaAtual(1);
+                            }}
+                            className="bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-md text-sm px-3 py-2 outline-none transition-colors"
+                        >
+                            <option value="TODOS">Todos os Status</option>
+                            <option value="PENDENTE">A Fazer</option>
+                            <option value="EM_ANALISE">Em Análise</option>
+                            <option value="RESOLVIDO">Resolvido</option>
+                        </select>
                     </div>
                 </div>
+
+                {/* Tabela de Alertas */}
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr className="bg-gray-50 border-b border-gray-200">
+                                    <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Aluno</th>
+                                    <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Turma</th>
+                                    <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Motivo do Risco</th>
+                                    <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Data do Alerta</th>
+                                    <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Status</th>
+                                    <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Ações Rápidas</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {paginados.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="py-16 text-center text-gray-500">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
+                                                    <AlertCircle size={32} className="text-gray-400" />
+                                                </div>
+                                                <p className="text-lg font-bold text-gray-800">Nenhum registro encontrado</p>
+                                                <p className="text-sm text-gray-500 mt-1">Tente alterar os filtros ou rode a análise novamente.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    paginados.map((alerta) => (
+                                        <tr key={alerta.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="py-3 px-6">
+                                                <div className="flex flex-col">
+                                                    <span className="font-semibold text-gray-900 text-sm">{alerta.aluno_nome}</span>
+                                                    <span className="text-xs text-gray-500">{alerta.aluno_matricula}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-6 text-sm text-gray-600">{alerta.turma_nome}</td>
+                                            <td className="py-3 px-6 text-sm text-gray-600 max-w-xs truncate" title={alerta.motivo}>
+                                                {alerta.motivo}
+                                            </td>
+                                            <td className="py-3 px-6 text-sm text-gray-600">
+                                                {format(parseISO(alerta.data_criacao), "dd/MM/yyyy", { locale: ptBR })}
+                                            </td>
+                                            <td className="py-3 px-6 text-center">
+                                                <BadgeStatus status={alerta.status} />
+                                            </td>
+                                            <td className="py-3 px-6 text-right">
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <select
+                                                        value={alerta.status}
+                                                        onChange={(e) => tratarAlerta(alerta.id, e.target.value as StatusEvasao)}
+                                                        className="text-xs border border-gray-200 rounded px-2 py-1.5 bg-white text-gray-700 outline-none hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors cursor-pointer"
+                                                    >
+                                                        <option value="PENDENTE">Pendente</option>
+                                                        <option value="EM_ANALISE">Em Análise</option>
+                                                        <option value="RESOLVIDO">Resolvido</option>
+                                                    </select>
+
+                                                    <button
+                                                        onClick={() => definirAlertaFaltasAtivo(alerta)}
+                                                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded transition-colors"
+                                                        title="Visualizar Histórico de Faltas"
+                                                    >
+                                                        <History size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Paginação */}
+                {totalPaginas > 1 && (
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                        <span className="text-sm text-gray-500">
+                            Mostrando página <span className="font-semibold text-gray-900">{paginaAtual}</span> de <span className="font-semibold text-gray-900">{totalPaginas}</span>
+                        </span>
+                        <div className="flex gap-1.5">
+                            <button
+                                onClick={() => definirPaginaAtual(Math.max(1, paginaAtual - 1))}
+                                disabled={paginaAtual === 1}
+                                className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                            >
+                                <ChevronLeft size={16} />
+                            </button>
+                            <button
+                                onClick={() => definirPaginaAtual(Math.min(totalPaginas, paginaAtual + 1))}
+                                disabled={paginaAtual === totalPaginas}
+                                className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                            >
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
+
+            {/* Modal de Histórico de Faltas */}
+            <ModalUniversal
+                estaAberto={!!alertaFaltasAtivo}
+                aoFechar={() => definirAlertaFaltasAtivo(null)}
+                titulo={`Histórico de Faltas`}
+            >
+                {alertaFaltasAtivo && (
+                    <div className="p-6 space-y-6">
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900">{alertaFaltasAtivo.aluno_nome}</h3>
+                            <p className="text-sm text-gray-500">Matrícula: {alertaFaltasAtivo.aluno_matricula}</p>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-100 text-blue-800 p-4 rounded-lg flex items-start gap-3">
+                            <Filter size={20} className="shrink-0 mt-0.5 text-blue-600" />
+                            <div>
+                                <h4 className="font-semibold text-sm">Resumo do Risco Predito</h4>
+                                <p className="text-sm mt-1">{alertaFaltasAtivo.motivo}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 className="text-sm font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">Registro Detalhado (Últimos Dias)</h4>
+                            <div className="space-y-3">
+                                {/* Placeholders indicando os dias de ausência para compor o histórico */}
+                                <div className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-rose-500"></div>
+                                        <span className="text-sm font-medium text-gray-700">Falta Integral</span>
+                                    </div>
+                                    <span className="text-xs text-gray-500">{format(new Date(), "dd/MM/yyyy")}</span>
+                                </div>
+                                <div className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-rose-500"></div>
+                                        <span className="text-sm font-medium text-gray-700">Falta Integral</span>
+                                    </div>
+                                    <span className="text-xs text-gray-500">{format(new Date(Date.now() - 86400000 * 2), "dd/MM/yyyy")}</span>
+                                </div>
+                                <div className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                        <span className="text-sm font-medium text-gray-700">Entrada Tardia (Atraso)</span>
+                                    </div>
+                                    <span className="text-xs text-gray-500">{format(new Date(Date.now() - 86400000 * 5), "dd/MM/yyyy")}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4 border-t border-gray-100">
+                            <button
+                                onClick={() => definirAlertaFaltasAtivo(null)}
+                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                            >
+                                Fechar Histórico
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </ModalUniversal>
         </LayoutAdministrativo>
     )
 }
 
-function CardMetrica({ label, valor, sub, icon, cor }: { label: string, valor: number, sub: string, icon: React.ReactNode, cor: string }) {
+function CardMetrica({ label, valor, icon }: { label: string, valor: number, icon: React.ReactNode }) {
     return (
-        <div className={`p-6 rounded-3xl flex items-center gap-5 transition-all hover:scale-[1.02] ${cor}`}>
-            <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-indigo-600 shrink-0">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center shrink-0 border border-gray-100">
                 {icon}
             </div>
             <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none mb-2">{label}</p>
-                <p className="text-3xl font-black text-slate-800 leading-none">{valor}</p>
-                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-300 mt-1">{sub}</p>
+                <p className="text-sm text-gray-500 font-medium">{label}</p>
+                <p className="text-2xl font-bold text-gray-900 leading-tight">{valor}</p>
             </div>
         </div>
     );
 }
 
-function BotaoAcaoRapida({ icon, label }: { icon: React.ReactNode, label: string }) {
+function BadgeStatus({ status }: { status: StatusEvasao }) {
+    if (status === 'PENDENTE') {
+        return (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200">
+                <div className="w-1.5 h-1.5 rounded-full bg-rose-600"></div> Pendente
+            </span>
+        );
+    }
+    if (status === 'EM_ANALISE') {
+        return (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Em Análise
+            </span>
+        );
+    }
     return (
-        <button className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:border-indigo-400 hover:text-indigo-600 transition-all group shadow-sm">
-            <div className="text-slate-300 group-hover:text-indigo-500 transition-colors">
-                {icon}
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
-        </button>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-600"></div> Resolvido
+        </span>
     );
 }
-
-function TimelineStep({ title, desc, time, ativo = false }: { title: string, desc: string, time: string, ativo?: boolean }) {
-    return (
-        <div className="flex gap-4 relative pl-8 before:absolute before:left-[11px] before:top-2 before:bottom-0 before:w-px before:bg-slate-100">
-            <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-4 border-white shadow-sm ring-1 transition-all ${ativo ? 'bg-indigo-600 ring-indigo-100' : 'bg-slate-300 ring-slate-100'
-                }`} />
-            <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                    <p className={`text-[11px] font-black uppercase tracking-widest ${ativo ? 'text-indigo-600' : 'text-slate-600'}`}>{title}</p>
-                    <span className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter">{time}</span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-medium leading-relaxed max-w-md">{desc}</p>
-            </div>
-        </div>
-    );
-}
-

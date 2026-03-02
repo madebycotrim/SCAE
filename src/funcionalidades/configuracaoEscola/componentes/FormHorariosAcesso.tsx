@@ -68,8 +68,20 @@ export default function FormHorariosAcesso() {
         for (let i = 0; i < janelas.length; i++) {
             const j = janelas[i];
             if (j.horaInicio >= j.horaFim) {
-                toast.error(`Janela ${i + 1}: Hora de início deve ser anterior à hora de fim.`);
+                toast.error(`A Janela ${i + 1} deve ter a hora de início anterior à hora de fim.`);
                 return;
+            }
+        }
+
+        // Validação de sobreposição
+        for (let i = 0; i < janelas.length; i++) {
+            for (let k = i + 1; k < janelas.length; k++) {
+                const j1 = janelas[i];
+                const j2 = janelas[k];
+                if ((j1.horaInicio < j2.horaFim) && (j1.horaFim > j2.horaInicio)) {
+                    toast.error(`A Janela ${i + 1} e a Janela ${k + 1} estão sobrepostas. Ajuste os horários para evitar conflitos no motor de acesso.`);
+                    return;
+                }
             }
         }
 
@@ -78,7 +90,7 @@ export default function FormHorariosAcesso() {
             await salvar(janelas);
             toast.success('Horários salvos com sucesso!');
         } catch (e) {
-            toast.error('Erro ao salvar horários: ' + (e.message || 'Tente novamente'));
+            toast.error('Erro ao salvar horários: ' + (e instanceof Error ? e.message : 'Tente novamente'));
         } finally {
             definirSalvando(false);
         }
@@ -250,7 +262,7 @@ export default function FormHorariosAcesso() {
                                     return (
                                         <div
                                             key={i}
-                                            className={`absolute top-1 bottom-1 rounded-md flex items-center justify-center text-[10px] font-medium text-white px-2 overflow-hidden shadow-sm ${janela.tipoAcesso === 'ENTRADA' ? 'bg-emerald-500' : 'bg-rose-500'
+                                            className={`absolute top-1 bottom-1 rounded-md flex items-center justify-center text-[10px] font-medium text-white px-2 overflow-hidden shadow-sm ${janela.tipoAcesso === 'ENTRADA' ? 'bg-emerald-500/90' : 'bg-rose-500/90'
                                                 }`}
                                             style={{ left: `${inicio}%`, width: `${largura}%` }}
                                             title={`${janela.descricao || 'Janela'}: ${janela.horaInicio} - ${janela.horaFim}`}

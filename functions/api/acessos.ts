@@ -62,7 +62,7 @@ async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> 
         const data = searchParams.get('data');
         const desde = searchParams.get('desde');
 
-        let query = "SELECT * FROM registros_acesso WHERE tenant_id = ?";
+        let query = "SELECT id, tenant_id, aluno_matricula, tipo_movimentacao, metodo_leitura as metodo_validacao, timestamp_acesso as timestamp, sincronizado, prazo_retencao_meses FROM registros_acesso WHERE tenant_id = ?";
         const params: (string | number)[] = [tenantId];
 
         if (data) {

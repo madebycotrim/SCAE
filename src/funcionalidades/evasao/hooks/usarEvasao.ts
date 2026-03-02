@@ -4,6 +4,7 @@ import { AlertaEvasao, StatusEvasao } from '../types/evasao.tipos';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
+import { usarTenant } from '@tenant/provedorTenant';
 
 const log = criarRegistrador('Evasao');
 
@@ -12,6 +13,7 @@ const log = criarRegistrador('Evasao');
  * Lida com a busca de alertas, processamento do motor e atualizações de status via Kanban.
  */
 export function usarEvasao() {
+    const { id: tenantId } = usarTenant();
     const { adicionarNotificacao } = usarNotificacoes();
     const [alertas, definirAlertas] = useState<AlertaEvasao[]>([]);
     const [carregando, definirCarregando] = useState(true);
@@ -62,7 +64,7 @@ export function usarEvasao() {
                     ? `O motor identificou ${resultado.gerados} novos alunos em risco de evasão.`
                     : 'A varredura foi concluída. Nenhum novo risco crítico detectado.',
                 tipo: resultado.gerados > 0 ? 'warning' : 'success',
-                link: '/administrativo/evasao'
+                link: `/${tenantId}/admin/evasao`
             });
 
             await buscarAlertas(); // Recarrega após processar

@@ -23,12 +23,14 @@ import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import type { UsuarioLocal, PapelUsuario } from '@compartilhado/types/bancoLocal.tipos';
 import { api } from '@compartilhado/servicos/api';
+import { usarTenant } from '@tenant/provedorTenant';
 
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
 
 import FormUsuarioModal from './FormUsuarioModal';
 
 export default function Usuarios() {
+    const { id: tenantId } = usarTenant();
     const { adicionarNotificacao } = usarNotificacoes();
     const { usuarioAtual } = usarAutenticacao();
     const [usuarios, definirUsuarios] = useState([]);
@@ -67,7 +69,7 @@ export default function Usuarios() {
                 ativo: dados.ativo,
                 pendente: !usuarioEmEdicao,
                 nome_completo: usuarioEmEdicao?.nome_completo || dados.email.split('@')[0],
-                criado_em: usuarioEmEdicao?.criado_em || new Date().toISOString(),
+                // Removed criado_em to prevent D1 schema errors during sync
                 atualizado_em: new Date().toISOString()
             };
 
@@ -79,7 +81,7 @@ export default function Usuarios() {
                     titulo: 'Segurança: Novo Usuário',
                     mensagem: `Um novo usuário (${novoUsuario.email}) foi criado com o papel de ${novoUsuario.papel}.`,
                     tipo: 'info',
-                    link: '/administrativo/usuarios'
+                    link: `/${tenantId}/admin/usuarios`
                 });
             }
 
@@ -113,7 +115,7 @@ export default function Usuarios() {
                         papel: usuarioAtualizado.papel || (usuarioAtualizado as any).role,
                         ativo: usuarioAtualizado.ativo,
                         criado_por: (usuarioAtualizado as any).criado_por,
-                        criado_em: usuarioAtualizado.criado_em
+                        // Removed criado_em to prevent D1 schema errors during sync
                     };
                     await api.enviar('/usuarios', payload);
                 } catch (e) {
