@@ -63,14 +63,14 @@ export default function SelectComBusca({ options, value, onChange, placeholder =
                 width: coords.width,
                 zIndex: 9999
             }}
-            className="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="bg-white rounded shadow-md border border-gray-200 overflow-hidden"
         >
-            <div className="p-2 border-b border-slate-50 bg-slate-50/50">
+            <div className="p-2 border-b border-gray-100 bg-gray-50">
                 <div className="relative">
-                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"
-                        className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 placeholder:text-slate-300"
+                        className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder:text-gray-400"
                         placeholder="Filtrar opções..."
                         value={termo}
                         onChange={(e) => definirTermo(e.target.value)}
@@ -79,7 +79,7 @@ export default function SelectComBusca({ options, value, onChange, placeholder =
                 </div>
             </div>
 
-            <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+            <div className="max-h-60 overflow-y-auto p-1 py-1">
                 {opcoesFiltradas.length > 0 ? (
                     opcoesFiltradas.map((opcao) => (
                         <button
@@ -90,16 +90,16 @@ export default function SelectComBusca({ options, value, onChange, placeholder =
                                 definirAberto(false);
                                 definirTermo('');
                             }}
-                            className={`w-full text-left px-4 py-3 rounded-lg flex items-center justify-between group transition-colors
-                                ${value === opcao.value ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}
+                            className={`w-full text-left px-3 py-2 rounded flex items-center justify-between group transition-colors text-sm
+                                ${value === opcao.value ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'}
                             `}
                         >
-                            <span className="font-bold text-sm">{opcao.label}</span>
-                            {value === opcao.value && <Check size={16} className="text-indigo-600" />}
+                            <span>{opcao.label}</span>
+                            {value === opcao.value && <Check size={16} className="text-blue-600" />}
                         </button>
                     ))
                 ) : (
-                    <div className="p-4 text-center text-slate-400 text-sm font-medium">
+                    <div className="p-4 text-center text-gray-500 text-sm">
                         Nenhuma opção encontrada.
                     </div>
                 )}
@@ -109,19 +109,19 @@ export default function SelectComBusca({ options, value, onChange, placeholder =
 
     return (
         <div className="relative" ref={containerRef}>
-            {label && <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{label}</label>}
+            {label && <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{label}</label>}
 
             <button
                 type="button"
                 onClick={() => definirAberto(!aberto)}
-                className={`w-full bg-slate-50 border-2 rounded-xl py-3 px-4 flex items-center justify-between transition-all
-                    ${aberto ? 'border-indigo-500 ring-4 ring-indigo-500/10 bg-white' : 'border-slate-200 hover:border-indigo-300 hover:bg-white'}
+                className={`w-full bg-white border rounded h-10 px-3 flex items-center justify-between transition-colors
+                    ${aberto ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-300 hover:border-gray-400'}
                 `}
             >
-                <span className={`text-base font-bold ${opcaoSelecionada ? 'text-slate-700' : 'text-slate-400'}`}>
+                <span className={`text-sm font-medium ${opcaoSelecionada ? 'text-gray-900' : 'text-gray-400'}`}>
                     {opcaoSelecionada ? opcaoSelecionada.label : placeholder}
                 </span>
-                <ChevronDown size={20} className={`text-slate-400 transition-transform duration-300 ${aberto ? 'rotate-180 text-indigo-500' : ''}`} />
+                <ChevronDown size={16} className={`text-gray-400 transition-transform ${aberto ? 'rotate-180 text-blue-500' : ''}`} />
             </button>
 
             {aberto && createPortal(dropdownContent, document.body)}
