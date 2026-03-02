@@ -4,7 +4,7 @@
  * POST: UPSERT turma (id + tenant_id)
  * DELETE: Remover turma por ID
  */
-import type { ContextoSCAE, PayloadCriacaoTurma } from '../types/ambiente';
+import type { ContextoSCAE, PayloadCriacaoTurma } from '../tipos/ambiente';
 
 async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -12,7 +12,7 @@ async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
         const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT * FROM turmas WHERE tenant_id = ? ORDER BY id"
+            "SELECT id, tenant_id, serie, letra, turno, ano_letivo, data_criacao as criado_em FROM turmas WHERE tenant_id = ? ORDER BY id"
         ).bind(tenantId).all();
 
         return Response.json(results);

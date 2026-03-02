@@ -3,7 +3,7 @@
  * POST: Sincronizar registros offline â†’ D1
  * GET: Buscar registros recentes por data/desde/limite
  */
-import type { ContextoSCAE, PayloadRegistroAcesso, ResultadoSincronizacao } from '../types/ambiente';
+import type { ContextoSCAE, PayloadRegistroAcesso, ResultadoSincronizacao } from '../tipos/ambiente';
 
 async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Response> {
     try {

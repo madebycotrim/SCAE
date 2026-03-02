@@ -1,4 +1,5 @@
-﻿import { useState, useMemo } from 'react';
+﻿import { useState, useMemo, useEffect } from 'react';
+import type { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
 import { usarEvasao } from '../hooks/usarEvasao';
 import { AlertaEvasao, StatusEvasao } from '../types/evasao.tipos';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
@@ -24,7 +25,8 @@ export default function PainelEvasao() {
         carregando,
         processando,
         tratarAlerta,
-        rodarMotorEvasao
+        rodarMotorEvasao,
+        buscarHistoricoFaltas
     } = usarEvasao();
 
     const [pesquisa, definirPesquisa] = useState('');
@@ -34,6 +36,22 @@ export default function PainelEvasao() {
 
     // Modal state for viewing absences
     const [alertaFaltasAtivo, definirAlertaFaltasAtivo] = useState<AlertaEvasao | null>(null);
+    const [historicoAtivo, definirHistoricoAtivo] = useState<RegistroAcessoLocal[]>([]);
+    const [carregandoHistorico, definirCarregandoHistorico] = useState(false);
+
+    useEffect(() => {
+        const carregarHistorico = async () => {
+            if (alertaFaltasAtivo) {
+                definirCarregandoHistorico(true);
+                const dados = await buscarHistoricoFaltas(alertaFaltasAtivo.aluno_matricula);
+                definirHistoricoAtivo(dados);
+                definirCarregandoHistorico(false);
+            } else {
+                definirHistoricoAtivo([]);
+            }
+        };
+        carregarHistorico();
+    }, [alertaFaltasAtivo, buscarHistoricoFaltas]);
 
     // Dados Filtrados
     const alertasFiltrados = useMemo(() => {
@@ -236,7 +254,7 @@ export default function PainelEvasao() {
 
             {/* Modal de Histórico de Faltas */}
             <ModalUniversal
-                estaAberto={!!alertaFaltasAtivo}
+                aberto={!!alertaFaltasAtivo}
                 aoFechar={() => definirAlertaFaltasAtivo(null)}
                 titulo={`Histórico de Faltas`}
             >
@@ -256,30 +274,29 @@ export default function PainelEvasao() {
                         </div>
 
                         <div>
-                            <h4 className="text-sm font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">Registro Detalhado (Últimos Dias)</h4>
-                            <div className="space-y-3">
-                                {/* Placeholders indicando os dias de ausência para compor o histórico */}
-                                <div className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-2 rounded-full bg-rose-500"></div>
-                                        <span className="text-sm font-medium text-gray-700">Falta Integral</span>
+                            <h4 className="text-sm font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">Registro Detalhado (Acessos Recentes)</h4>
+                            <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                                {carregandoHistorico ? (
+                                    <div className="text-center py-4 text-sm text-gray-500">Buscando histórico de acessos...</div>
+                                ) : historicoAtivo.length === 0 ? (
+                                    <div className="text-center py-4 text-sm text-gray-500 bg-gray-50 rounded border border-gray-100">
+                                        Nenhum registro de acesso eletrônico/manual encontrado para este aluno nos últimos dias.
                                     </div>
-                                    <span className="text-xs text-gray-500">{format(new Date(), "dd/MM/yyyy")}</span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-2 rounded-full bg-rose-500"></div>
-                                        <span className="text-sm font-medium text-gray-700">Falta Integral</span>
-                                    </div>
-                                    <span className="text-xs text-gray-500">{format(new Date(Date.now() - 86400000 * 2), "dd/MM/yyyy")}</span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                                        <span className="text-sm font-medium text-gray-700">Entrada Tardia (Atraso)</span>
-                                    </div>
-                                    <span className="text-xs text-gray-500">{format(new Date(Date.now() - 86400000 * 5), "dd/MM/yyyy")}</span>
-                                </div>
+                                ) : (
+                                    historicoAtivo.map(registro => (
+                                        <div key={registro.id} className="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-2 h-2 rounded-full ${registro.tipo_movimentacao === 'ENTRADA' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-medium text-gray-700">{registro.tipo_movimentacao}</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-sm font-mono text-gray-600">
+                                                {format(parseISO(registro.timestamp), "dd/MM/yyyy • HH:mm", { locale: ptBR })}
+                                            </span>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
 

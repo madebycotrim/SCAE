@@ -3,7 +3,7 @@
  * POST: Receber batch de logs do frontend
  * GET: Buscar logs (Smart Sync â€” desde timestamp)
  */
-import type { ContextoSCAE, LogAuditoriaDB, ResultadoSincronizacao } from '../types/ambiente';
+import type { ContextoSCAE, LogAuditoriaDB, ResultadoSincronizacao } from '../tipos/ambiente';
 
 async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Response> {
     try {

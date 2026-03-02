@@ -4,7 +4,7 @@
  * POST: UPSERT aluno (matrícula + tenant_id)
  * DELETE: Remover aluno por matrícula
  */
-import type { ContextoSCAE, PayloadCriacaoAluno } from '../types/ambiente';
+import type { ContextoSCAE, PayloadCriacaoAluno } from '../tipos/ambiente';
 
 async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -12,7 +12,7 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
         const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT * FROM alunos WHERE tenant_id = ?"
+            "SELECT matricula, tenant_id, nome_completo, turma_id, status, base_legal, finalidade_coleta, prazo_retencao_meses, data_anonimizacao, anonimizado, data_criacao as criado_em, data_atualizacao, data_exclusao FROM alunos WHERE tenant_id = ?"
         ).bind(tenantId).all();
 
         return Response.json(results);

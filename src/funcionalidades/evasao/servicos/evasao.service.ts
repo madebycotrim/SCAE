@@ -1,5 +1,7 @@
 ﻿import { api } from '@compartilhado/servicos/api';
 import { AlertaEvasao, StatusEvasao } from '../types/evasao.tipos';
+import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
+import type { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
 const registrar = criarRegistrador('ServicoEvasao');
@@ -36,6 +38,16 @@ export const evasaoService = {
         } catch (erro) {
             registrar.warn('Endpoint /evasao indisponível ou retornando HTML. Utilizando Fallback Mocks em memória.');
             return [...mockAlertasMemoria];
+        }
+    },
+
+    buscarHistoricoFaltas: async (matricula: string): Promise<RegistroAcessoLocal[]> => {
+        try {
+            const historico = await bancoLocal.obterHistoricoAcessoAluno(matricula);
+            return historico;
+        } catch (erro) {
+            registrar.error(`Erro ao buscar histórico de faltas do aluno ${matricula}`, erro);
+            return [];
         }
     },
 

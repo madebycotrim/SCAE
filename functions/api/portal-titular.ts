@@ -4,7 +4,7 @@
  * Operações: Auth (via telefone+matricula), Exportar Dados, Ver Timeline, Revogar.
  */
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
-import type { ContextoSCAE, PayloadAutenticacaoPortal } from '../types/ambiente';
+import type { ContextoSCAE, PayloadAutenticacaoPortal } from '../tipos/ambiente';
 
 /**
  * Obtém a chave secreta JWT do ambiente.

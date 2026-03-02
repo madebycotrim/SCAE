@@ -86,6 +86,7 @@ export function usarEvasao() {
         processando,
         tratarAlerta,
         rodarMotorEvasao,
-        recarregar: buscarAlertas
+        recarregar: buscarAlertas,
+        buscarHistoricoFaltas: evasaoService.buscarHistoricoFaltas
     };
 }

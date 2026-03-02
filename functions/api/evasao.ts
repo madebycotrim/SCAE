@@ -6,8 +6,8 @@
  * PATCH /api/evasao/:id â†’ Atualiza o status de acompanhamento
  * POST /api/evasao/processar â†’ Roda a engine varrendo o tenant por ausências
  */
-import { gerarScaeUuid } from '../utils/uuid';
-import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../types/ambiente';
+import { gerarScaeUuid } from '../utilitarios/uuid';
+import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../tipos/ambiente';
 
 export async function onRequest(contexto: ContextoSCAE): Promise<Response> {
     const tenantId = contexto.request.headers.get('X-Tenant-ID');

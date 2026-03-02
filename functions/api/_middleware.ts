@@ -3,7 +3,7 @@
  * Valida JWT Firebase via JWKS (jose) e impõe restrição de domínio.
  */
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import type { ContextoSCAE, DadosTokenFirebase } from '../types/ambiente';
+import type { ContextoSCAE, DadosTokenFirebase } from '../tipos/ambiente';
 
 const ID_PROJETO_FIREBASE = 'scae-b7f8c';
 

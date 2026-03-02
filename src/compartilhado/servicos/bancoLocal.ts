@@ -302,6 +302,15 @@ export const bancoLocal = {
             });
     },
 
+    // Buscar histórico de acesso de um aluno específico (ordem decrescente)
+    obterHistoricoAcessoAluno: async (matricula: string) => {
+        const banco = await iniciarBanco();
+        const registros = await banco.getAllFromIndex('registros_acesso', 'aluno_matricula', matricula);
+        // IDB Indexes de strings não garantem ordem decrescente de tempo se o índice não é composto, 
+        // então ordenamos em memória (geralmente poucos registros por aluno)
+        return registros.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    },
+
     // --- Usuários e Permissões ---
     listarUsuarios: async () => {
         const banco = await iniciarBanco();

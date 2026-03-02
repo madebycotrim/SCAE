@@ -4,7 +4,7 @@
  * POST: UPSERT usuário (email + tenant_id)
  * DELETE: Remover usuário por email
  */
-import type { ContextoSCAE, PayloadCriacaoUsuario } from '../types/ambiente';
+import type { ContextoSCAE, PayloadCriacaoUsuario } from '../tipos/ambiente';
 
 async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -12,7 +12,7 @@ async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response>
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
         const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT * FROM usuarios WHERE tenant_id = ?"
+            "SELECT email, tenant_id, nome_completo, papel, ativo, data_criacao as criado_em, data_atualizacao as atualizado_em, data_exclusao FROM usuarios WHERE tenant_id = ?"
         ).bind(tenantId).all();
         return Response.json(results);
     } catch (erro) {

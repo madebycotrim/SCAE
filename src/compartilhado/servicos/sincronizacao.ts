@@ -90,7 +90,14 @@ export const servicoSincronizacao = {
 
             let enviadosCount = 0;
             if (naoSincronizados.length > 0) {
-                const resposta = await api.enviar<Array<{ id: string; status: string }>>('/acessos', naoSincronizados);
+                // Adaptar nomes das colunas da IndexedDB para o backend
+                const payloadFinal = naoSincronizados.map(r => ({
+                    ...r,
+                    timestamp_acesso: r.timestamp,
+                    metodo_leitura: (r as any).metodo_validacao || 'manual'
+                }));
+
+                const resposta = await api.enviar<Array<{ id: string; status: string }>>('/acessos', payloadFinal);
                 const idsSincronizados = resposta
                     .filter(r => r.status === 'sincronizado')
                     .map(r => r.id);
@@ -187,8 +194,8 @@ export const servicoSincronizacao = {
                             papel: u.papel || u.role || 'VISUALIZACAO',
                             ativo: u.ativo,
                             criado_por: u.criado_por,
-                            criado_em: u.criado_em,
-                            atualizado_em: u.atualizado_em
+                            data_criacao: u.criado_em || new Date().toISOString(),
+                            data_atualizacao: u.atualizado_em || new Date().toISOString()
                         };
                         await api.enviar('/usuarios', payload);
                     } catch (e) {
