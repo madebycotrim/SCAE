@@ -10,6 +10,7 @@ import { alunoServico } from '../servicos/aluno.servico';
 import { Aluno } from '../types/aluno';
 
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
+import { usarTenant } from '@tenant/provedorTenant';
 
 import ListaAlunos from './ListaAlunos';
 import FormAlunoModal from './FormAlunoModal';
@@ -21,6 +22,7 @@ import PromocaoLoteModal from './PromocaoLoteModal';
  */
 export default function Alunos() {
     const { adicionarNotificacao } = usarNotificacoes();
+    const tenant = usarTenant();
     // --- Dados e Estado Inicial ---
     const { dados, carregando, recarregar } = usarConsulta(
         ['alunos-e-turmas'],
@@ -121,7 +123,7 @@ export default function Alunos() {
             titulo: 'Importação Concluída',
             mensagem: `Processados ${resultado.total} registros. Sucessos: ${resultado.sucessos}, Falhas: ${resultado.erros}.`,
             tipo: resultado.erros > 0 ? 'warning' : 'success',
-            link: '/administrativo/alunos'
+            link: `/${tenant.id}/admin/alunos`
         });
 
         if (resultado.sucessos > 0) recarregar();
@@ -163,7 +165,7 @@ export default function Alunos() {
     return (
         <LayoutAdministrativo titulo="Gestão de Alunos" subtitulo="Cadastro e controle de matrículas" acoes={AcoesHeader}>
             {/* Toolbar de Filtros - Flat Design */}
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-col lg:flex-row gap-4 sticky top-4 z-20">
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20">
                 <div className="relative flex-1 group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={18} />
                     <input
@@ -171,19 +173,19 @@ export default function Alunos() {
                         placeholder="Buscar aluno por nome ou matrícula..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full pl-11 pr-4 py-2 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all placeholder:text-gray-400"
+                        className="w-full pl-11 pr-4 h-10 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all placeholder:text-gray-400"
                     />
                 </div>
 
                 <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
-                    <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 h-10">
+                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 h-10">
                         {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                             <button
                                 key={ano}
                                 onClick={() => definirFiltroAnoLetivo(ano)}
-                                className={`px-4 h-full rounded-md text-sm font-black transition-all outline-none focus:outline-none focus:ring-0 ${filtroAnoLetivo === ano
-                                    ? 'bg-white text-indigo-700 shadow-lg shadow-slate-200/50 ring-2 ring-slate-100'
-                                    : 'text-slate-500 hover:text-slate-900'
+                                className={`px-4 h-full rounded text-sm font-medium transition-colors outline-none cursor-pointer flex items-center justify-center ${filtroAnoLetivo === ano
+                                    ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
+                                    : 'text-gray-600 hover:text-gray-900'
                                     }`}
                             >
                                 {ano}
@@ -193,17 +195,17 @@ export default function Alunos() {
 
                     <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
 
-                    <div className="flex items-center bg-slate-100 p-1.5 rounded-xl border-2 border-slate-300 h-12">
+                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 h-10 overflow-x-auto">
                         {(['ativos', 'inativos', 'todos'] as const).map((status) => (
                             <button
                                 key={status}
                                 onClick={() => definirFiltroStatus(status)}
-                                className={`px-4 h-full rounded-lg text-[10px] font-black uppercase tracking-tight transition-all outline-none focus:outline-none focus:ring-0 ${filtroStatus === status
-                                    ? 'bg-slate-950 text-white shadow-md scale-[1.03]'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                className={`px-4 h-full rounded text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors outline-none cursor-pointer flex items-center justify-center ${filtroStatus === status
+                                    ? 'bg-gray-800 text-white shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                                     }`}
                             >
-                                {status === 'ativos' ? 'Matriculados' : status === 'inativos' ? 'Saída/Inativos' : 'Todos'}
+                                {status === 'ativos' ? 'Matriculados' : status === 'inativos' ? 'Inativos' : 'Todos'}
                             </button>
                         ))}
                     </div>
@@ -211,18 +213,18 @@ export default function Alunos() {
                     <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
 
                     <div className="relative group min-w-[220px] flex-1">
-                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900 group-focus-within:text-indigo-600 transition-colors" size={16} />
+                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={16} />
                         <select
                             value={filtroTurma}
                             onChange={(e) => definirFiltroTurma(e.target.value)}
-                            className="w-full pl-12 pr-10 h-12 bg-white border-2 border-slate-300 rounded-xl text-sm font-black text-slate-900 outline-none focus:border-indigo-600 appearance-none cursor-pointer hover:border-slate-400 transition-all"
+                            className="w-full pl-11 pr-10 h-10 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none appearance-none cursor-pointer transition-all text-gray-700"
                         >
                             <option value="">Todas as Turmas</option>
                             {turmas.filter((t: any) => t.ano_letivo.toString() === filtroAnoLetivo).map((t: any) => (
                                 <option key={t.id} value={t.id}>{t.id}</option>
                             ))}
                         </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-900 group-focus-within:text-indigo-600 transition-colors">
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-blue-600 transition-colors">
                             <ChevronDown size={14} />
                         </div>
                     </div>

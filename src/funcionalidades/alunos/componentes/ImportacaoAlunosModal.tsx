@@ -72,17 +72,17 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
             {!resultado ? (
                 <div className="space-y-6">
                     {/* Seletor de Método (Abas) Discreto */}
-                    <div className="flex p-1 bg-slate-100 rounded-lg border border-slate-200">
+                    <div className="flex p-1 bg-gray-100 rounded border border-gray-200">
                         <button
                             onClick={() => definirAbaAtiva('arquivo')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-colors ${abaAtiva === 'arquivo' ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-sm text-sm font-semibold transition-colors ${abaAtiva === 'arquivo' ? 'bg-white text-blue-700 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             <FileSpreadsheet size={16} />
                             Arquivo Excel
                         </button>
                         <button
                             onClick={() => definirAbaAtiva('colar')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-colors ${abaAtiva === 'colar' ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-sm text-sm font-semibold transition-colors ${abaAtiva === 'colar' ? 'bg-white text-blue-700 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             <Clipboard size={16} />
                             Colagem Rápida
@@ -91,7 +91,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
 
                     {abaAtiva === 'arquivo' ? (
                         <div className="space-y-4">
-                            <div className="relative group overflow-hidden border-2 border-dashed border-slate-300 rounded-lg p-10 text-center hover:border-indigo-400 hover:bg-slate-50 transition-colors cursor-pointer">
+                            <div className="relative group overflow-hidden border border-dashed border-gray-300 rounded p-8 text-center hover:border-blue-500 hover:bg-gray-50 transition-colors cursor-pointer bg-white">
                                 <input
                                     type="file"
                                     accept=".xlsx, .xls, .csv"
@@ -100,20 +100,20 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                     disabled={importando}
                                 />
                                 <div className="flex flex-col items-center">
-                                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                        <Upload size={24} />
+                                    <div className="w-10 h-10 bg-blue-50 text-blue-600 border border-blue-100 rounded flex items-center justify-center mb-3">
+                                        <Upload size={20} />
                                     </div>
-                                    <h4 className="font-semibold text-slate-800 text-base">Arraste ou Clique para fazer upload</h4>
-                                    <p className="text-sm font-medium text-slate-500 mt-1">Suporta .xlsx, .xls e .csv</p>
+                                    <h4 className="font-semibold text-gray-800 text-sm">Arraste ou Clique para fazer upload</h4>
+                                    <p className="text-xs text-gray-500 mt-1">Suporta .xlsx, .xls e .csv</p>
                                 </div>
                             </div>
 
-                            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100 flex items-start gap-3">
-                                <Info size={20} className="text-blue-500 shrink-0 mt-0.5" />
+                            <div className="bg-gray-50 rounded p-4 border border-gray-200 flex items-start gap-3">
+                                <Info size={16} className="text-gray-500 shrink-0 mt-0.5" />
                                 <div>
-                                    <p className="text-sm font-semibold text-blue-900 mb-1">Dica de Formatação</p>
-                                    <p className="text-sm text-blue-800">
-                                        O arquivo deve conter as colunas <span className="font-bold">NOME</span>, <span className="font-bold">MATRICULA</span> e <span className="font-bold">TURMA</span>.
+                                    <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Dica de Formatação</p>
+                                    <p className="text-sm text-gray-600">
+                                        O arquivo deve conter as colunas <span className="font-bold text-gray-900">NOME</span>, <span className="font-bold text-gray-900">MATRICULA</span> e <span className="font-bold text-gray-900">TURMA</span>.
                                     </p>
                                 </div>
                             </div>
@@ -122,12 +122,12 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                         <div className="space-y-4">
                             <div className="relative">
                                 <textarea
-                                    className="w-full h-48 p-4 bg-white border border-slate-300 rounded-lg text-sm text-slate-700 focus:outline-none focus:border-indigo-500 transition-colors placeholder:text-slate-400 resize-none font-mono shadow-sm"
-                                    placeholder="Dica: Selecione os dados no Excel, copie e cole aqui diretamente..."
+                                    className="w-full h-48 p-4 bg-white border border-gray-300 rounded text-sm text-gray-700 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors placeholder:text-gray-400 resize-none font-mono"
+                                    placeholder="Dica: Selecione os dados no Excel, copie e cole aqui..."
                                     value={textoColado}
                                     onChange={(e) => definirTextoColado(e.target.value)}
                                 />
-                                <div className="absolute right-3 bottom-3 text-xs font-semibold text-slate-400 pointer-events-none">
+                                <div className="absolute right-3 bottom-3 text-xs font-semibold text-gray-400 pointer-events-none">
                                     {textoColado.length > 0 ? `${textoColado.split('\n').length} linhas` : ''}
                                 </div>
                             </div>
@@ -135,7 +135,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                             <button
                                 onClick={processarColagem}
                                 disabled={importando || !textoColado.trim()}
-                                className="w-full py-2.5 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:bg-indigo-600 shadow-sm"
+                                className="w-full h-10 bg-blue-600 text-white rounded font-semibold text-sm uppercase tracking-wider hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:bg-gray-400"
                             >
                                 {importando ? 'Processando registros...' : 'Processar Agora'}
                                 {!importando && <ChevronRight size={16} />}

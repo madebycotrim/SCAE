@@ -13,13 +13,14 @@ interface SelectComBuscaProps {
     onChange: (value: string | number) => void;
     placeholder?: string;
     label?: string;
+    className?: string;
 }
 
 /**
  * Componente de seleção customizado com busca integrada.
  * Utiliza portais para evitar problemas de overflow/z-index.
  */
-export function SelectComBusca({ options, value, onChange, placeholder = "Selecione...", label }: SelectComBuscaProps) {
+export function SelectComBusca({ options, value, onChange, placeholder = "Selecione...", label, className }: SelectComBuscaProps) {
     const [aberto, definirAberto] = useState(false);
     const [termo, definirTermo] = useState('');
     const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
@@ -130,14 +131,14 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
             <button
                 type="button"
                 onClick={() => definirAberto(!aberto)}
-                className={`w-full px-4 h-12 bg-white border-2 border-slate-300 rounded-xl text-sm font-bold flex items-center justify-between transition-colors shadow-sm focus:outline-none
-                    ${aberto ? 'border-indigo-600 ring-2 ring-indigo-50' : 'hover:border-slate-400 focus:border-indigo-600'}
+                className={className || `w-full px-4 h-12 bg-white border-2 border-slate-300 rounded-xl text-sm font-bold flex items-center justify-between transition-colors shadow-sm focus:outline-none focus:border-indigo-600 hover:border-slate-400
+                    ${aberto ? 'border-indigo-600 ring-2 ring-indigo-50' : ''}
                 `}
             >
-                <span className={`block truncate ${opcaoSelecionada ? 'text-slate-950 font-black' : 'text-slate-400'}`}>
+                <span className={`block truncate ${className ? '' : (opcaoSelecionada ? 'text-slate-950 font-black' : 'text-slate-400')}`}>
                     {opcaoSelecionada ? opcaoSelecionada.label : placeholder}
                 </span>
-                <ChevronDown size={18} className={`text-slate-900 flex-shrink-0 ml-1 transition-transform duration-200 ${aberto ? 'rotate-180 text-indigo-600' : ''}`} />
+                <ChevronDown size={className ? 16 : 18} className={`flex-shrink-0 ml-1 transition-transform duration-200 ${className ? '' : 'text-slate-900'} ${aberto ? (className ? 'rotate-180' : 'rotate-180 text-indigo-600') : ''}`} />
             </button>
 
             {aberto && createPortal(dropdownContent, document.body)}

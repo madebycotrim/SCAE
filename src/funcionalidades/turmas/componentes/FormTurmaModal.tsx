@@ -50,14 +50,14 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
             subtitulo={etapa === 1 ? "Identidade e Turno da Classe" : "Parâmetros de Gestão e Localização"}
             aoFechar={aoFechar}
         >
-            <div className="flex flex-col h-full min-h-[460px]">
+            <div className="flex flex-col">
                 {/* Indicador de Etapa - Contraste Reforçado */}
                 <div className="flex items-center justify-center gap-2 mb-8">
                     <div className={`h-2 rounded transition-colors duration-200 ${etapa === 1 ? 'w-12 bg-blue-600' : 'w-4 bg-gray-200'}`}></div>
                     <div className={`h-2 rounded transition-colors duration-200 ${etapa === 2 ? 'w-12 bg-blue-600' : 'w-4 bg-gray-200'}`}></div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-1">
+                <div className="flex-1 px-1">
                     {etapa === 1 ? (
                         <div className="space-y-6">
                             {/* Série */}

@@ -41,7 +41,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
             subtitulo={aluno ? `Editando dados do aluno ${aluno.nome_completo}` : "Preencha os dados abaixo para cadastrá-lo em uma das turmas."}
             aoFechar={aoFechar}
         >
-            <div className="space-y-6 min-h-[400px]">
+            <div className="space-y-6">
                 {/* Nome Completo - Foco em Legibilidade */}
                 <div>
                     <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Nome Completo do Aluno</label>
@@ -79,6 +79,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                 value={dadosFormulario.turma_id}
                                 onChange={(valor) => definirDadosFormulario({ ...dadosFormulario, turma_id: valor as string })}
                                 placeholder="Selecione a turma..."
+                                className={`w-full px-3 h-10 bg-white border border-gray-300 rounded text-sm font-medium focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors flex items-center justify-between ${dadosFormulario.turma_id ? 'text-gray-900' : 'text-gray-400'}`}
                             />
                         </div>
                     </div>

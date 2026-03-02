@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import { format } from 'date-fns';
+import { usarTenant } from '@tenant/provedorTenant';
 import { usarTipoAcesso } from '../hooks/usarTipoAcesso';
 import { usarPortariaWorker } from '../hooks/usarPortariaWorker';
 import { TIPO_ACESSO } from '../types/portaria.tipos';
@@ -25,6 +26,7 @@ const log = criarRegistrador('Portaria');
 
 export default function LeitorPortaria() {
     const navigate = useNavigate();
+    const tenant = usarTenant();
     const { usuarioAtual } = usarAutenticacao();
     const scannerRef = useRef(null);
     const tipoAcessoAtual = usarTipoAcesso();
@@ -142,7 +144,7 @@ export default function LeitorPortaria() {
         };
     }, [processarCodigo]);
 
-    const fechar = () => navigate('/painel');
+    const fechar = () => navigate(`/${tenant.id}/admin/painel`);
 
     return (
         <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col overflow-hidden text-slate-900 font-sans">

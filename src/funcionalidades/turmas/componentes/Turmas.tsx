@@ -24,12 +24,14 @@ import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 const log = criarRegistrador('Turmas');
 import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 import { Registrador } from '@compartilhado/servicos/auditoria';
+import { usarTenant } from '@tenant/provedorTenant';
 
 import FormTurmaModal from './FormTurmaModal';
 
 export default function Turmas() {
     const navegar = useNavigate();
     const { podeAcessar } = usarPermissoes();
+    const tenant = usarTenant();
     const { dados, carregando, recarregar: carregarTurmas } = usarConsulta(
         ['turmas-com-contagem'],
         async () => {
@@ -222,7 +224,7 @@ export default function Turmas() {
         <LayoutAdministrativo titulo="Gestão de Turmas" subtitulo="Administração de classes e turnos" acoes={AcoesHeader}>
 
             {/* Toolbar de Filtros - Flat Design */}
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-col lg:flex-row gap-4 sticky top-4 z-20">
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20">
                 <div className="relative flex-1 group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={18} />
                     <input
@@ -230,17 +232,17 @@ export default function Turmas() {
                         placeholder="Pesquisar por série, letra ou turno..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full pl-11 pr-4 py-2 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all placeholder:text-gray-400"
+                        className="w-full pl-11 pr-4 h-10 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all placeholder:text-gray-400"
                     />
                 </div>
 
                 <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
-                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200">
+                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 h-10">
                         {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                             <button
                                 key={ano}
                                 onClick={() => definirFiltroAnoLetivo(ano)}
-                                className={`px-4 py-1.5 rounded text-sm font-medium transition-colors outline-none cursor-pointer ${filtroAnoLetivo === ano
+                                className={`px-4 h-full rounded text-sm font-medium transition-colors outline-none cursor-pointer flex items-center justify-center ${filtroAnoLetivo === ano
                                     ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
                                     : 'text-gray-600 hover:text-gray-900'
                                     }`}
@@ -252,12 +254,12 @@ export default function Turmas() {
 
                     <div className="hidden md:block h-6 w-px bg-gray-200 mx-1"></div>
 
-                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 overflow-x-auto">
+                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 overflow-x-auto h-10">
                         {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => (
                             <button
                                 key={filtro}
                                 onClick={() => definirFiltroTurno(filtro)}
-                                className={`px-4 py-1.5 rounded text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors outline-none cursor-pointer ${filtroTurno === filtro
+                                className={`px-4 h-full rounded text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors outline-none cursor-pointer flex items-center justify-center ${filtroTurno === filtro
                                     ? 'bg-gray-800 text-white shadow-sm'
                                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
                                     }`}
@@ -314,7 +316,7 @@ export default function Turmas() {
                                             <tr
                                                 key={turma.id}
                                                 className="hover:bg-gray-50 transition-colors cursor-pointer"
-                                                onClick={() => navegar(`/pedagogico/alunos?turma=${turma.id}`)}
+                                                onClick={() => navegar(`/${tenant.id}/admin/alunos?turma=${turma.id}`)}
                                             >
                                                 <td className="py-4 px-4">
                                                     <div className="flex items-center gap-3">
