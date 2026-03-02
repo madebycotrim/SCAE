@@ -8,7 +8,7 @@ import { TIPO_ACESSO } from '../types/portaria.tipos';
  * 13:01 - 22:00 -> SAIDA
  * Outros -> INDEFINIDO
  */
-export function useTipoAcesso() {
+export function usarTipoAcesso() {
     const [tipo, setTipo] = useState<string>(TIPO_ACESSO.INDEFINIDO);
 
     useEffect(() => {

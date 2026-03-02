@@ -29,7 +29,7 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
     const [notificacoes, definirNotificacoes] = useState<Notificacao[]>([]);
     const [naoLidas, definirNaoLidas] = useState(0);
 
-    // Carregar notificaÃ§Ãµes do localStorage ao iniciar
+    // Carregar notificações do localStorage ao iniciar
     useEffect(() => {
         const salvas = localStorage.getItem('notificacoes');
         if (salvas) {
@@ -37,7 +37,7 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
                 const parsed = JSON.parse(salvas);
                 definirNotificacoes(parsed);
             } catch (e) {
-                log.error('Erro ao carregar notificaÃ§Ãµes', e);
+                log.error('Erro ao carregar notificações', e);
             }
         }
     }, []);
@@ -55,7 +55,7 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
 
         const nova = {
             id: crypto.randomUUID(),
-            titulo: conteudo.titulo || 'NotificaÃ§Ã£o',
+            titulo: conteudo.titulo || 'Notificação',
             mensagem: conteudo.mensagem || '',
             tipo: conteudo.tipo || 'info', // info, success, warning, error
             link: conteudo.link || null,
@@ -63,7 +63,8 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
             timestamp: new Date().toISOString()
         };
 
-        definirNotificacoes(prev => [nova, ...prev]);
+        definirNotificacoes(anterior => [nova, ...anterior
+        ]);
 
         // Tocar som suave se desejar (opcional)
     };
@@ -79,7 +80,8 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
     };
 
     const removerNotificacao = (id: string) => {
-        definirNotificacoes(prev => prev.filter(n => n.id !== id));
+        definirNotificacoes(anterior => anterior.filter
+            (n => n.id !== id));
     };
 
     const limparTodas = () => {
@@ -103,10 +105,10 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
     );
 }
 
-export function useNotificacoes() {
+export function usarNotificacoes() {
     const context = useContext(ContextoNotificacoes);
     if (!context) {
-        throw new Error('useNotificacoes deve ser usado dentro de um ProvedorNotificacoes');
+        throw new Error('usarNotificacoes deve ser usado dentro de um ProvedorNotificacoes');
     }
     return context;
 }

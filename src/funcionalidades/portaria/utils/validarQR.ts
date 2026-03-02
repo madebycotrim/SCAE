@@ -1,3 +1,7 @@
+import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+
+const log = criarRegistrador('Portaria:Validador');
+
 /**
  * Utilitários para validação de QR Code usando ECDSA P-256.
  */
@@ -24,13 +28,13 @@ export async function obterChavePublica(): Promise<CryptoKey> {
 
         return await importarJWK(data.jwk);
     } catch (e) {
-        console.error('Erro ao obter chave pública, usando fallback', e);
+        log.error('Erro ao obter chave pública, usando fallback', e);
         // Em produção, o fallback deve ser uma chave válida embutida
         throw new Error('Chave pública não disponível');
     }
 }
 
-async function importarJWK(jwk: any): Promise<CryptoKey> {
+async function importarJWK(jwk: JsonWebKey): Promise<CryptoKey> {
     return await window.crypto.subtle.importKey(
         'jwk',
         jwk,

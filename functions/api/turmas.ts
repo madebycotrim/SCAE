@@ -30,7 +30,7 @@ async function processarCriacaoTurma(contexto: ContextoSCAE): Promise<Response> 
         const { id, serie, letra, turno, ano_letivo, criado_em }: PayloadCriacaoTurma = await contexto.request.json();
 
         if (!id) {
-            return new Response("ID da turma obrigatÃ³rio", { status: 400 });
+            return new Response("ID da turma obrigatório", { status: 400 });
         }
 
         // UPSERT
@@ -59,7 +59,7 @@ async function processarRemocaoTurma(contexto: ContextoSCAE): Promise<Response> 
         const id = url.searchParams.get("id");
 
         if (!id) {
-            return new Response("ID da turma obrigatÃ³rio", { status: 400 });
+            return new Response("ID da turma obrigatório", { status: 400 });
         }
 
         await contexto.env.DB_SCAE.prepare(
@@ -73,7 +73,7 @@ async function processarRemocaoTurma(contexto: ContextoSCAE): Promise<Response> 
     }
 }
 
-// ExportaÃ§Ãµes com Alias para o Framework
+// Exportações com Alias para o Framework
 export {
     processarBuscaTurmas as onRequestGet,
     processarCriacaoTurma as onRequestPost,

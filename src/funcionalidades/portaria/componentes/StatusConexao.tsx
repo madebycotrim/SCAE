@@ -1,23 +1,19 @@
-/**
+﻿/**
  * StatusConexao — indicador online/offline no canto superior do tablet.
  * Puxando a contagem de registros pendentes automaticamente do IndexedDB
  */
 import { useState, useEffect } from 'react';
 import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { dbFluxoLocal } from '../servicos/filaOffline.service';
 import { ehDescompassoInaceitavel } from '../servicos/clockDrift.service';
 import { usarTenant } from '@tenant/provedorTenant';
+import { usarPortariaWorker } from '../hooks/usarPortariaWorker';
 
 export function StatusConexao() {
     const { id: tenantId } = usarTenant();
     const [online, definirOnline] = useState(navigator.onLine);
 
-    // Lê a fila do indexedDB em tempo real (via Dexie Observable)
-    const pendentes = useLiveQuery(
-        () => dbFluxoLocal.acessosPendentes.where({ tenantId, sincronizado: false }).count(),
-        [tenantId]
-    ) || 0;
+    const { statusWorker } = usarPortariaWorker();
+    const pendentes = statusWorker.pendentes;
 
     const relogioQuebrado = ehDescompassoInaceitavel();
 
@@ -35,31 +31,29 @@ export function StatusConexao() {
     }, []);
 
     return (
-        <div className="fixed top-4 right-4 z-40 flex flex-col items-end gap-2">
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
             <div className={`
-                flex items-center gap-2 px-4 py-2 rounded-full
-                border backdrop-blur-sm text-xs font-bold uppercase tracking-wider
-                transition-all duration-300
-                ${online
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                    : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                }
+                flex items-center gap-2 px-4 py-2 rounded-lg border bg-white shadow-sm
+                text-xs font-semibold transition-colors duration-300
+                ${online ? 'border-emerald-200 text-emerald-700' : 'border-rose-200 text-rose-700'}
             `}>
-                {online ? <Wifi size={14} /> : <WifiOff size={14} />}
-                <span>{online ? 'ONLINE' : 'OFFLINE'}</span>
+                <div className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
+                {online ? <Wifi size={14} className="text-emerald-600" /> : <WifiOff size={14} className="text-rose-600" />}
+                <span>{online ? 'Online' : 'Offline'}</span>
                 {!online && pendentes > 0 && (
-                    <span className="ml-1 px-2 py-0.5 bg-rose-500/20 rounded-full text-[10px]">
-                        {pendentes} pendente{pendentes > 1 ? 's' : ''}
+                    <span className="ml-1 px-1.5 py-0.5 bg-rose-50 rounded text-[10px] text-rose-600 font-bold border border-rose-100">
+                        {pendentes} pendentes
                     </span>
                 )}
             </div>
 
             {relogioQuebrado && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider shadow-lg">
-                    <AlertTriangle size={14} />
-                    Relógio do Sistema Incorreto
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-rose-200 text-rose-700 text-xs font-semibold shadow-sm animate-pulse">
+                    <AlertTriangle size={14} className="text-rose-600" />
+                    Relógio Desincronizado
                 </div>
             )}
         </div>
     );
 }
+

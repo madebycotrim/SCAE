@@ -1,6 +1,6 @@
 ﻿/**
- * Tela de AutenticaÃ§Ã£o para o Portal do Titular (LGPD)
- * Exige apenas MatrÃ­cula e Telefone vÃ¡lido vinculado ao aluno (cadastrado no quiosque ou online).
+ * Tela de Autenticação para o Portal do Titular (LGPD)
+ * Exige apenas Matrícula e Telefone válido vinculado ao aluno (cadastrado no quiosque ou online).
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +20,7 @@ export default function TelaLoginPortal() {
     const [telefone, definirTelefone] = useState('');
     const [carregando, definirCarregando] = useState(false);
 
-    // MÃ¡scara Simples de Telefone (11) 99999-9999
+    // Máscara Simples de Telefone (11) 99999-9999
     const formatarTelefone = (valor: string) => {
         const d = valor.replace(/\\D/g, '');
         if (d.length <= 2) return d;
@@ -32,7 +32,7 @@ export default function TelaLoginPortal() {
         e.preventDefault();
 
         if (matricula.trim() === '' || telefone.trim().length < 14) {
-            toast.error('Preencha a matrÃ­cula e o telefone completo.');
+            toast.error('Preencha a matrícula e o telefone completo.');
             return;
         }
 
@@ -42,8 +42,8 @@ export default function TelaLoginPortal() {
             toast.success('Identidade confirmada.');
             navegar(`/${slugEscola}/portal-titular/painel`);
         } catch (error) {
-            toast.error('Credenciais invÃ¡lidas. Verifique com a secretaria.');
-            log.error('Falha na autenticaÃ§Ã£o do portal do titular', error);
+            toast.error('Credenciais inválidas. Verifique com a secretaria.');
+            log.error('Falha na autenticação do portal do titular', error);
         } finally {
             definirCarregando(false);
         }
@@ -64,7 +64,7 @@ export default function TelaLoginPortal() {
                 <p className="text-slate-500 font-medium text-sm mt-1">{nomeEscola}</p>
                 <div className="mt-3 inline-block bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">
                     <p className="text-[10px] uppercase font-bold text-indigo-700 tracking-wider">
-                        Acesso Restrito: Pais e ResponsÃ¡veis
+                        Acesso Restrito: Pais e Responsáveis
                     </p>
                 </div>
             </div>
@@ -75,13 +75,13 @@ export default function TelaLoginPortal() {
                 <div className="space-y-4 mb-8">
                     <div>
                         <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">
-                            MatrÃ­cula do Aluno
+                            Matrícula do Aluno
                         </label>
                         <input
                             type="text"
                             value={matricula}
                             onChange={e => definirMatricula(e.target.value.replace(/\\D/g, ''))} // Numeric
-                            placeholder="Apenas nÃºmeros ex: 12345"
+                            placeholder="Apenas números ex: 12345"
                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
                             required
                         />
@@ -128,7 +128,7 @@ export default function TelaLoginPortal() {
                         className="w-full flex items-center justify-center gap-2 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700 font-bold py-3 border border-slate-200 rounded-xl transition-colors"
                     >
                         <ArrowLeft size={16} />
-                        Voltar ao InÃ­cio
+                        Voltar ao Início
                     </button>
                 </div>
 
@@ -136,9 +136,10 @@ export default function TelaLoginPortal() {
 
             {/* Footer */}
             <p className="text-center text-xs text-slate-400 mt-8 max-w-xs leading-relaxed">
-                Este ambiente Ã© protegido pelos termos da Lei Geral de ProteÃ§Ã£o de Dados (Art 18. Lei NÂº 13.709/2018).
+                Este ambiente é protegido pelos termos da Lei Geral de Proteção de Dados (Art 18. Lei Nº 13.709/2018).
             </p>
 
         </div>
     );
 }
+

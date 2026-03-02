@@ -16,10 +16,10 @@ interface AuthContextType {
 const ContextoAutenticacao = createContext<AuthContextType | undefined>(undefined);
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useAutenticacao() {
+export function usarAutenticacao() {
     const contexto = useContext(ContextoAutenticacao);
     if (contexto === undefined) {
-        throw new Error('useAutenticacao deve ser usado dentro de ProvedorAutenticacao');
+        throw new Error('usarAutenticacao deve ser usado dentro de ProvedorAutenticacao');
     }
     return contexto;
 }
@@ -31,12 +31,12 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
     useEffect(() => {
         const cancelarInscricao = onAuthStateChanged(autenticacao, async (usuario) => {
             if (usuario) {
-                // Atualiza token se necessÃ¡rio
+                // Atualiza token se necessário
                 const token = await usuario.getIdToken();
                 (usuario as unknown as Record<string, unknown>).token = token;
 
                 // ðŸ”„ Auto-Sync ao Login
-                log.info('UsuÃ¡rio autenticado. Iniciando sincronizaÃ§Ã£o automÃ¡tica...');
+                log.info('Usuário autenticado. Iniciando sincronização automática...');
                 servicoSincronizacao.sincronizarTudo().catch(e => log.warn('Erro na auto-sync', e));
             }
             definirUsuarioAtual(usuario);
@@ -48,7 +48,7 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
 
     const entrar = (parametros = {}) => {
         const provedor = new GoogleAuthProvider();
-        // Opcional: ForÃ§ar seleÃ§Ã£o de conta e permitir restriÃ§Ã£o de domÃ­nio
+        // Opcional: Forçar seleção de conta e permitir restrição de domínio
         provedor.setCustomParameters({
             prompt: 'select_account',
             ...parametros

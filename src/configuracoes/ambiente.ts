@@ -15,6 +15,10 @@ export const AMBIENTE = {
     /** Ambiente atual */
     ambiente: import.meta.env.VITE_AMBIENTE || 'development',
 
+    /** Propriedades White Label da plataforma */
+    nomeFornecedor: import.meta.env.VITE_NOME_FORNECEDOR ?? 'fornecedora de tecnologia',
+    nomeEmpresa: import.meta.env.VITE_NOME_EMPRESA ?? '',
+
     /** Flags de desenvolvimento */
     ehDesenvolvimento: import.meta.env.DEV,
     ehProducao: import.meta.env.PROD,

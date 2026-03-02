@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { useConsulta } from '@compartilhado/hooks/useConsulta';
+import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
 
@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('Relatorios');
+import { Registrador } from '@compartilhado/servicos/auditoria';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -28,12 +29,12 @@ import * as XLSX from 'xlsx';
 
 export default function Relatorios() {
 
-    const [filtros, setFiltros] = useState({
+    const [filtros, definirFiltros] = useState({
         dataInicio: subDays(new Date(), 7).toISOString().split('T')[0],
         dataFim: new Date().toISOString().split('T')[0],
         turma: 'Todas'
     });
-    const { dados: turmasDisponiveis = [], carregando } = useConsulta(
+    const { dados: turmasDisponiveis = [], carregando } = usarConsulta(
         ['turmas-relatorios'],
         async () => {
             const banco = await bancoLocal.iniciarBanco();
@@ -78,7 +79,7 @@ export default function Relatorios() {
                 matricula: r.matricula,
                 turma: aluno ? aluno.turma_id : '-',
                 tipo: r.tipo === 'entrada' ? 'ENTRADA' : 'SAÃDA',
-                sincronizado: r.sincronizado ? 'Sim' : 'NÃ£o'
+                sincronizado: r.sincronizado ? 'Sim' : 'Não'
             };
         });
     };
@@ -86,20 +87,20 @@ export default function Relatorios() {
     const gerarPDF = (dados, titulo) => {
         const doc = new jsPDF();
 
-        // CabeÃ§alho
+        // Cabeçalho
         doc.setFontSize(18);
         doc.text("SEEDF - Sistema de Controle de Acesso Escolar", 14, 20);
         doc.setFontSize(14);
         doc.text(titulo, 14, 30);
         doc.setFontSize(10);
         doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 38);
-        doc.text(`PerÃ­odo: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 44);
+        doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 44);
         doc.text(`Turma: ${filtros.turma}`, 14, 50);
 
         // Tabela
         autoTable(doc, {
             startY: 56,
-            head: [['Data/Hora', 'Nome do Aluno', 'MatrÃ­cula', 'Turma', 'Tipo', 'Sync']],
+            head: [['Data/Hora', 'Nome do Aluno', 'Matrícula', 'Turma', 'Tipo', 'Sync']],
             body: dados.map(d => [d.data, d.nome, d.matricula, d.turma, d.tipo, d.sincronizado]),
             theme: 'striped',
             headStyles: { fillColor: [79, 70, 229] } // Indigo 600
@@ -109,7 +110,7 @@ export default function Relatorios() {
     };
 
     const gerarRelatorio = async (tipo) => {
-        const toastId = toast.loading(`Processando relatÃ³rio: ${tipo}...`);
+        const toastId = toast.loading(`Processando relatório: ${tipo}...`);
         try {
             const banco = await bancoLocal.iniciarBanco();
             const [registros, alunos] = await Promise.all([
@@ -120,7 +121,7 @@ export default function Relatorios() {
             let dadosRelatorio = [];
             let colunas = [];
 
-            if (tipo === 'Risco de EvasÃ£o') {
+            if (tipo === 'Risco de Evasão') {
                 const trintaDiasAtras = subDays(new Date(), 30).toISOString();
                 const presencasPorAluno = {};
                 registros.forEach(r => {
@@ -140,13 +141,13 @@ export default function Relatorios() {
                     };
                 }).filter(d => d.status !== 'NORMAL' && (filtros.turma === 'Todas' || d.turma === filtros.turma));
                 dadosRelatorio.sort((a, b) => a.presencas_30d - b.presencas_30d);
-                colunas = [['Nome do Aluno', 'MatrÃ­cula', 'Turma', 'PresenÃ§as (30d)', 'Status']];
+                colunas = [['Nome do Aluno', 'Matrícula', 'Turma', 'Presenças (30d)', 'Status']];
 
                 const doc = new jsPDF();
                 doc.setFontSize(16);
-                doc.text("RelatÃ³rio de Risco de EvasÃ£o", 14, 20);
+                doc.text("Relatório de Risco de Evasão", 14, 20);
                 doc.setFontSize(10);
-                doc.text(`Alunos com baixa frequÃªncia nos Ãºltimos 30 dias.`, 14, 28);
+                doc.text(`Alunos com baixa frequência nos últimos 30 dias.`, 14, 28);
                 autoTable(doc, {
                     startY: 35,
                     head: colunas,
@@ -175,12 +176,12 @@ export default function Relatorios() {
                         total_presencas: presencaGlobal[aluno.matricula] || 0
                     }))
                     .sort((a, b) => a.nome.localeCompare(b.nome));
-                colunas = [['Nome do Aluno', 'MatrÃ­cula', 'Turma', 'Total PresenÃ§as (PerÃ­odo)']];
+                colunas = [['Nome do Aluno', 'Matrícula', 'Turma', 'Total Presenças (Período)']];
                 const doc = new jsPDF();
                 doc.setFontSize(16);
-                doc.text("Fechamento Mensal de FrequÃªncia", 14, 20);
+                doc.text("Fechamento Mensal de Frequência", 14, 20);
                 doc.setFontSize(10);
-                doc.text(`PerÃ­odo: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 28);
+                doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 28);
                 autoTable(doc, {
                     startY: 35,
                     head: colunas,
@@ -192,13 +193,21 @@ export default function Relatorios() {
             } else {
                 const dados = await obterDadosFiltrados();
                 if (dados.length === 0) throw new Error("Nenhum dado encontrado.");
-                gerarPDF(dados, `RelatÃ³rio de ${tipo}`);
+                gerarPDF(dados, `Relatório de ${tipo}`);
             }
 
-            toast.success('RelatÃ³rio gerado com sucesso!', { id: toastId });
+            // Registrar Auditoria (LGPD #8)
+            await Registrador.registrar(
+                'EXPORTAR_RELATORIO',
+                'relatorio',
+                tipo,
+                { filtros, formato: tipo.includes('XLSX') ? 'Excel' : 'PDF' }
+            );
+
+            toast.success('Relatório gerado com sucesso!', { id: toastId });
         } catch (e) {
-            log.error('Erro ao exportar relatÃ³rio', e);
-            toast.error(e.message || "Erro ao gerar relatÃ³rio.", { id: toastId });
+            log.error('Erro ao exportar relatório', e);
+            toast.error(e.message || "Erro ao gerar relatório.", { id: toastId });
         }
     };
 
@@ -206,39 +215,39 @@ export default function Relatorios() {
 
     return (
         <LayoutAdministrativo
-            titulo="Central de RelatÃ³rios"
-            subtitulo="AnÃ¡lise de dados e exportaÃ§Ã£o oficial"
+            titulo="Central de Relatórios"
+            subtitulo="Análise de dados e exportação oficial"
             acoes={null}
         >
-            <div className="space-y-8 animate-[fade-in_0.5s_ease-out]">
-
-
-                {/* ConteÃºdo Principal e Filtros */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Grade de RelatÃ³rios */}
+            <div className="space-y-6 pb-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Grade de Relatórios */}
                     <div className="lg:col-span-2">
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
-                                { title: "FrequÃªncia DiÃ¡ria", desc: "RelatÃ³rio detalhado de entradas e saÃ­das do dia atual.", icon: Calendar, color: "emerald", action: () => gerarRelatorio('FrequÃªncia DiÃ¡ria') },
-                                { title: "Fechamento Mensal", desc: "Consolidado de presenÃ§a do mÃªs para a secretaria.", icon: FileSpreadsheet, color: "blue", action: () => gerarRelatorio('Fechamento Mensal') },
-                                { title: "Risco de EvasÃ£o", desc: "Alunos com baixo Ã­ndice de frequÃªncia (30 dias).", icon: PieChart, color: "amber", action: () => gerarRelatorio('Risco de EvasÃ£o') },
-                                { title: "Log de Auditoria", desc: "HistÃ³rico completo de aÃ§Ãµes e seguranÃ§a.", icon: Table, color: "slate", action: () => gerarRelatorio('Log de Auditoria') }
+                                { title: "Frequência Diária", desc: "Relatório detalhado de entradas e saídas do dia atual.", icon: Calendar, color: "text-emerald-600 bg-emerald-50", action: () => gerarRelatorio('Frequência Diária') },
+                                { title: "Fechamento Mensal", desc: "Consolidado de presença do mês para a secretaria.", icon: FileSpreadsheet, color: "text-blue-600 bg-blue-50", action: () => gerarRelatorio('Fechamento Mensal') },
+                                { title: "Risco de Evasão", desc: "Alunos com baixo índice de frequência (30 dias).", icon: PieChart, color: "text-amber-600 bg-amber-50", action: () => gerarRelatorio('Risco de Evasão') },
+                                { title: "Log de Auditoria", desc: "Histórico completo de ações e segurança.", icon: Table, color: "text-slate-600 bg-slate-50", action: () => gerarRelatorio('Log de Auditoria') }
                             ].map((item, idx) => (
                                 <button
                                     key={idx}
                                     onClick={item.action}
                                     disabled={carregando}
-                                    className="flex flex-col items-start p-6 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left group w-full disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden relative"
+                                    className="bg-white rounded-xl border border-slate-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all text-left flex flex-col h-full disabled:opacity-50 disabled:cursor-not-allowed group"
                                 >
-                                    <div className={`absolute inset-0 bg-${item.color}-50/0 group-hover:bg-${item.color}-50/30 transition-colors duration-300`}></div>
-                                    <div className={`p-3 rounded-2xl bg-${item.color}-50 text-${item.color}-600 mb-4 group-hover:scale-110 group-hover:bg-white group-hover:shadow-md transition-all relative z-10`}>
-                                        <item.icon size={24} />
+                                    <div className="flex gap-4 mb-4">
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}>
+                                            <item.icon size={20} strokeWidth={2} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-base font-semibold text-slate-800 mb-1">{item.title}</h3>
+                                            <p className="text-sm text-slate-500 leading-snug">{item.desc}</p>
+                                        </div>
                                     </div>
-                                    <h3 className="text-lg font-black text-slate-800 mb-2 relative z-10">{item.title}</h3>
-                                    <p className="text-sm font-medium text-slate-500 mb-6 flex-1 relative z-10">{item.desc}</p>
-                                    <div className={`mt-auto flex items-center gap-2 text-xs font-black uppercase tracking-wide text-${item.color}-600 group-hover:gap-3 transition-all relative z-10`}>
-                                        <Download size={16} /> Baixar PDF
+                                    <div className="mt-auto pt-4 flex items-center gap-2 text-sm font-medium text-indigo-600 group-hover:text-indigo-700 transition-colors">
+                                        <Download size={16} />
+                                        <span>Exportar Documento</span>
                                     </div>
                                 </button>
                             ))}
@@ -246,43 +255,62 @@ export default function Relatorios() {
                     </div>
 
                     {/* Barra Lateral de Filtros */}
-                    <div className="h-fit space-y-6">
-                        <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm sticky top-6">
-                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-6 flex items-center gap-2">
-                                <Filter size={16} /> Filtros de AnÃ¡lise
+                    <div className="h-fit space-y-4">
+                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm sticky top-6">
+                            <h3 className="text-base font-semibold text-slate-800 mb-6 flex items-center gap-2">
+                                <Filter size={18} className="text-slate-400" />
+                                Filtros de Análise
                             </h3>
 
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-2">PerÃ­odo</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <input
-                                            type="date"
-                                            value={filtros.dataInicio}
-                                            onChange={(e) => setFiltros({ ...filtros, dataInicio: e.target.value })}
-                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                        />
-                                        <input
-                                            type="date"
-                                            value={filtros.dataFim}
-                                            onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value })}
-                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                        />
+                                    <label className="block text-sm font-medium text-slate-700 mb-3">Período de Extração</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Início</label>
+                                            <input
+                                                type="date"
+                                                value={filtros.dataInicio}
+                                                onChange={(e) => definirFiltros({ ...filtros, dataInicio: e.target.value })}
+                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Fim</label>
+                                            <input
+                                                type="date"
+                                                value={filtros.dataFim}
+                                                onChange={(e) => definirFiltros({ ...filtros, dataFim: e.target.value })}
+                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
+
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Turma</label>
-                                    <select
-                                        value={filtros.turma}
-                                        onChange={(e) => setFiltros({ ...filtros, turma: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    >
-                                        <option value="Todas">Todas as Turmas</option>
-                                        {turmasDisponiveis.map(t => (
-                                            <option key={t} value={t}>{t}</option>
-                                        ))}
-                                    </select>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Unidade / Turma</label>
+                                    <div className="relative">
+                                        <select
+                                            value={filtros.turma}
+                                            onChange={(e) => definirFiltros({ ...filtros, turma: e.target.value })}
+                                            className="w-full pl-9 pr-8 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors shadow-sm appearance-none"
+                                        >
+                                            <option value="Todas">Todas as Turmas</option>
+                                            {(turmasDisponiveis || []).map(t => (
+                                                <option key={t} value={t}>{t}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                            <PieChart size={16} />
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <div className="mt-6 p-4 bg-slate-50 rounded-md border border-slate-200">
+                                <p className="text-sm text-slate-600 leading-snug">
+                                    <strong className="text-slate-800">Dica:</strong> Escolha um período menor para exportações mais rápidas e relatórios direcionados.
+                                </p>
                             </div>
                         </div>
                     </div>

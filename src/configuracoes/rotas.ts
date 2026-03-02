@@ -24,6 +24,16 @@ export const PaginaHorarios = lazy(() => import('@funcionalidades/configuracaoEs
 export const PaginaEvasao = lazy(() => import('@funcionalidades/evasao/componentes/PainelEvasao'));
 export const PaginaLoginPortal = lazy(() => import('@funcionalidades/portal-titular/componentes/TelaLoginPortal'));
 export const PaginaPainelTitular = lazy(() => import('@funcionalidades/portal-titular/componentes/PainelTitular'));
+export const PaginaTermosUso = lazy(() => import('@compartilhado/paginas/TermosUso'));
+export const PaginaPoliticaPrivacidade = lazy(() => import('@compartilhado/paginas/PoliticaPrivacidade'));
+
+// --- AGM (Root Mestre) ---
+export const PaginaLoginAGM = lazy(() => import('@funcionalidades/agm/componentes/LoginAGM'));
+export const PaginaPainelAGM = lazy(() => import('@funcionalidades/agm/componentes/PainelAGM'));
+export const PaginaEscolasAGM = lazy(() => import('@funcionalidades/agm/componentes/PaginaEscolasAGM').then(m => ({ default: m.PaginaEscolasAGM })));
+export const PaginaUsuariosAGM = lazy(() => import('@funcionalidades/agm/componentes/PaginaUsuariosAGM').then(m => ({ default: m.PaginaUsuariosAGM })));
+export const PaginaLogsAGM = lazy(() => import('@funcionalidades/agm/componentes/PaginaLogsAGM').then(m => ({ default: m.PaginaLogsAGM })));
+export const LayoutAGM = lazy(() => import('@funcionalidades/agm/componentes/LayoutAGM').then(m => ({ default: m.LayoutAGM })));
 
 /**
  * Rotas do painel administrativo (desktop/mobile).

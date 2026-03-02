@@ -37,14 +37,14 @@ export default function ModalUniversal({
     };
 
     const cores = {
-        indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-100', ring: 'ring-indigo-100' },
-        blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100', ring: 'ring-blue-100' },
-        red: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100', ring: 'ring-red-100' },
-        emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100', ring: 'ring-emerald-100' },
-        amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100', ring: 'ring-amber-100' },
-        rose: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100', ring: 'ring-rose-100' },
-        violet: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-100', ring: 'ring-violet-100' },
-        slate: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-100', ring: 'ring-slate-100' }
+        indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-100', ring: 'border-indigo-200' },
+        blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100', ring: 'border-blue-200' },
+        red: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100', ring: 'border-red-200' },
+        emerald: { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-100', ring: 'border-green-200' },
+        amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100', ring: 'border-amber-200' },
+        rose: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100', ring: 'border-rose-200' },
+        violet: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-100', ring: 'border-violet-200' },
+        slate: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-100', ring: 'border-gray-200' }
     };
 
     const tema = cores[cor] || cores.indigo;

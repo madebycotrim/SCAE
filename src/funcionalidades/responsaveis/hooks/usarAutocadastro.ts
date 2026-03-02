@@ -1,6 +1,6 @@
 ﻿/**
- * Hook de autocadastro de responsÃ¡veis.
- * Vincula responsÃ¡vel ao aluno via cÃ³digo + dados pessoais.
+ * Hook de autocadastro de responsáveis.
+ * Vincula responsável ao aluno via código + dados pessoais.
  */
 import { useState } from 'react';
 import { responsaveisApi } from '../servicos/responsaveis.api';
@@ -12,7 +12,7 @@ interface RetornoAutocadastro {
     erro: string | null;
 }
 
-export function useAutocadastro(): RetornoAutocadastro {
+export function usarAutocadastro(): RetornoAutocadastro {
     const [status, definirStatus] = useState<StatusVinculo>(STATUS_VINCULO.AGUARDANDO);
     const [erro, definirErro] = useState<string | null>(null);
 
@@ -30,7 +30,7 @@ export function useAutocadastro(): RetornoAutocadastro {
 
             definirStatus(STATUS_VINCULO.VINCULADO);
         } catch (e: unknown) {
-            const mensagem = e instanceof Error ? e.message : 'CÃ³digo invÃ¡lido. Verifique com a escola.';
+            const mensagem = e instanceof Error ? e.message : 'Código inválido. Verifique com a escola.';
             definirErro(mensagem);
             definirStatus(STATUS_VINCULO.ERRO);
         }

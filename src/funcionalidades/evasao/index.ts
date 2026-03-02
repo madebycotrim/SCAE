@@ -1,4 +1,4 @@
 ﻿export * from './types/evasao.tipos';
-export { useEvasao } from './hooks/useEvasao';
+export { usarEvasao } from './hooks/usarEvasao';
 import PainelEvasao from './componentes/PainelEvasao';
 export { PainelEvasao };

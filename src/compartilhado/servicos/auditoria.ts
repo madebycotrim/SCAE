@@ -79,16 +79,21 @@ export const Registrador = {
             const usuario = autenticacao.currentUser;
             const emailUsuario = usuario ? usuario.email : 'sistema@anonimo';
 
+            // Mascarar dados sensíveis antes de registrar/logar
+            const detalhesMascarados = { ...detalhes };
+            if (detalhesMascarados.cpf) detalhesMascarados.cpf = registradorInterno.mascarar(detalhesMascarados.cpf as string, 'cpf');
+            if (detalhesMascarados.email) detalhesMascarados.email = registradorInterno.mascarar(detalhesMascarados.email as string, 'email');
+
             await registrarAuditoria({
                 usuarioEmail: emailUsuario || 'sistema@sem-email',
                 acao,
                 entidadeTipo,
                 entidadeId,
                 dadosAnteriores,
-                dadosNovos: detalhes
+                dadosNovos: detalhesMascarados
             });
 
-            registradorInterno.info(`${acao} registrado para ${emailUsuario}`);
+            registradorInterno.info(`${acao} registrado para ${registradorInterno.mascarar(emailUsuario || '', 'email')}`);
         } catch (erro) {
             registradorInterno.error('Erro fatal ao registrar log', erro);
         }

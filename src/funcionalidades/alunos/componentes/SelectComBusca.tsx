@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Search, Check } from 'lucide-react';
 
@@ -128,3 +128,4 @@ export default function SelectComBusca({ options, value, onChange, placeholder =
         </div>
     );
 }
+

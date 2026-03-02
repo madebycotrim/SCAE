@@ -1,12 +1,12 @@
 ﻿/**
- * API de portaria â€” endpoints de registro de acesso.
+ * API de portaria — endpoints de registro de acesso.
  *
  * @module portaria/servicos/portaria.api
  */
 import { api } from '@compartilhado/servicos/api';
 
 /**
- * Registra um acesso (entrada/saÃ­da) no backend.
+ * Registra um acesso (entrada/saída) no backend.
  *
  * @param {import('../types/portaria.tipos').RegistroAcesso} registro
  * @returns {Promise<Object>}
@@ -18,7 +18,7 @@ export async function registrarAcesso(registro: import('@compartilhado/types/ban
 /**
  * Busca dados de um aluno pelo QR Code lido.
  *
- * @param {string} qrCode - ConteÃºdo do QR Code (matrÃ­cula ou cÃ³digo)
+ * @param {string} qrCode - Conteúdo do QR Code (matrícula ou código)
  * @returns {Promise<Object>} Dados do aluno
  */
 export async function buscarAlunoPorQRCode(qrCode: string): Promise<import('@compartilhado/types/bancoLocal.tipos').AlunoLocal | null> {

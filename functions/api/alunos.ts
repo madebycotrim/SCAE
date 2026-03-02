@@ -1,8 +1,8 @@
 ﻿/**
  * Worker CRUD de Alunos.
  * GET: Todos os alunos ativos do tenant
- * POST: UPSERT aluno (matrÃ­cula + tenant_id)
- * DELETE: Remover aluno por matrÃ­cula
+ * POST: UPSERT aluno (matrícula + tenant_id)
+ * DELETE: Remover aluno por matrícula
  */
 import type { ContextoSCAE, PayloadCriacaoAluno } from '../types/ambiente';
 
@@ -30,7 +30,7 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
         const { matricula, nome_completo, turma_id, status }: PayloadCriacaoAluno = await contexto.request.json();
 
         if (!matricula || !nome_completo) {
-            return new Response("Campos obrigatÃ³rios ausentes", { status: 400 });
+            return new Response("Campos obrigatórios ausentes", { status: 400 });
         }
 
         // UPSERT: Inserir ou Atualizar
@@ -58,7 +58,7 @@ async function processarRemocaoAluno(contexto: ContextoSCAE): Promise<Response> 
         const matricula = url.searchParams.get("matricula");
 
         if (!matricula) {
-            return new Response("MatrÃ­cula obrigatÃ³ria", { status: 400 });
+            return new Response("Matrícula obrigatória", { status: 400 });
         }
 
         await contexto.env.DB_SCAE.prepare(
@@ -72,7 +72,7 @@ async function processarRemocaoAluno(contexto: ContextoSCAE): Promise<Response> 
     }
 }
 
-// ExportaÃ§Ãµes com Alias para o Framework
+// Exportações com Alias para o Framework
 export {
     processarBuscaAlunos as onRequestGet,
     processarCriacaoAluno as onRequestPost,

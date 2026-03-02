@@ -1,3 +1,3 @@
 ﻿export { configuracaoApi } from './servicos/configuracao.api';
-export { useHorariosEscola } from './hooks/useHorariosEscola';
+export { usarHorariosEscola } from './hooks/usarHorariosEscola';
 export { TIPO_ACESSO_HORARIO } from './types/configuracao.tipos';

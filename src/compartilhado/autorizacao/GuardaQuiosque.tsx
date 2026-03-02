@@ -4,10 +4,10 @@
  * Redireciona para login da escola com slug.
  */
 import { Outlet, Navigate, useParams } from 'react-router-dom';
-import { useAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 
-export default function GuardaQuiosque() {
-    const { usuarioAtual } = useAutenticacao();
+export default function GuardaQuiosque({ children }: { children?: React.ReactNode }) {
+    const { usuarioAtual } = usarAutenticacao();
     const { slugEscola } = useParams();
 
     // Sem sessão ativa → redirecionar para login da escola
@@ -16,5 +16,5 @@ export default function GuardaQuiosque() {
     }
 
     // Sessão ativa → renderizar conteúdo do quiosque
-    return <Outlet />;
+    return children || <Outlet />;
 }

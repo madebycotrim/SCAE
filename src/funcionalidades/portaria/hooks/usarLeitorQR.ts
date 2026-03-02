@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+
+const log = criarRegistrador('Portaria:LeitorQR');
 
 /**
  * Hook para gerenciar o ciclo de vida do leitor de QR Code HTML5.
@@ -33,12 +36,12 @@ export function usarLeitorQR(
             (texto) => aoDecodificar(texto, parar, retomar),
             undefined // Ignorar erros de scan contínuo
         ).catch(e => {
-            console.error('Falha ao iniciar câmera', e);
+            log.error('Falha ao iniciar câmera', e);
         });
 
         return () => {
             if (leitor.isScanning) {
-                leitor.stop().catch(e => console.warn('Erro ao parar leitor', e));
+                leitor.stop().catch(e => log.warn('Erro ao parar leitor', e));
             }
         };
     }, [idElemento, aoDecodificar]);

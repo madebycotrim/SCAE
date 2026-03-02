@@ -13,6 +13,10 @@ export interface ConfiguracaoEscola {
     corSecundaria: string;
     ttsAtivado: boolean;
     logoUrl?: string;
+    tipoEscola?: 'publica' | 'privada';
+    foro?: string;
+    nomeDPO?: string;
+    emailDPO?: string;
 }
 
 const TenantContext = createContext<ConfiguracaoEscola | null>(null);
@@ -28,12 +32,15 @@ export function ProvedorTenant({ children }: { children: ReactNode }) {
             // Sem slug na URL — fallback para config padrão em desenvolvimento
             if (import.meta.env.DEV) {
                 const configPadrao: ConfiguracaoEscola = {
-                    id: 'padrao',
-                    nomeEscola: 'SCAE',
-                    dominioEmail: null,
+                    id: 'cem03-taguatinga',
+                    nomeEscola: 'CEM 03 de Taguatinga',
+                    dominioEmail: 'edu.se.df.gov.br',
                     corPrimaria: '#6366f1',
                     corSecundaria: '#4f46e5',
-                    ttsAtivado: true
+                    ttsAtivado: true,
+                    logoUrl: '/logos/cem03.png',
+                    tipoEscola: 'publica',
+                    foro: 'Brasília/DF'
                 };
                 sessionStorage.setItem('tenant_id', configPadrao.id);
                 definirConfig(configPadrao);
@@ -66,11 +73,13 @@ export function ProvedorTenant({ children }: { children: ReactNode }) {
                 if (import.meta.env.DEV) {
                     const configPadrao: ConfiguracaoEscola = {
                         id: slug,
-                        nomeEscola: 'SCAE',
-                        dominioEmail: null,
+                        nomeEscola: (slug === 'cem03-taguatinga' || slug === 'cem03' || slug === 'padrao') ? 'CEM 03 de Taguatinga' : 'SCAE',
+                        dominioEmail: 'edu.se.df.gov.br',
                         corPrimaria: '#6366f1',
                         corSecundaria: '#4f46e5',
-                        ttsAtivado: true
+                        ttsAtivado: true,
+                        tipoEscola: 'publica',
+                        foro: 'Brasília/DF'
                     };
                     sessionStorage.setItem('tenant_id', configPadrao.id);
                     definirConfig(configPadrao);

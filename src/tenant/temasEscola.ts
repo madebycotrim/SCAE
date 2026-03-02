@@ -7,13 +7,13 @@
  */
 
 export const TEMAS_PADRAO = {
-    padrao: {
+    'cem03-taguatinga': {
         corPrimaria: '#6366f1',
         corSecundaria: '#4f46e5',
         corAcento: '#818cf8',
         fonteBase: 'Outfit, sans-serif',
         raio: '1rem',
-        nomeExibicao: 'SCAE',
+        nomeExibicao: 'CEM 03 de Taguatinga',
     },
 };
 

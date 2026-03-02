@@ -6,8 +6,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * @param buscar - Função assíncrona que retorna os dados
  * @param opcoes - Opções extras (staleTime, etc - Reservado para compatibilidade)
  */
-export function useConsulta<T = any>(
-    chaves: any[],
+export function usarConsulta<T = any>(
+    chaves: unknown[],
     buscar: () => Promise<T>,
     opcoes?: { staleTime?: number; refetchInterval?: number }
 ) {
@@ -42,7 +42,7 @@ export function useConsulta<T = any>(
         montado.current = true;
         carregar();
 
-        let intervalo: any;
+        let intervalo: ReturnType<typeof setInterval> | undefined;
         if (opcoes?.refetchInterval) {
             intervalo = setInterval(carregar, opcoes.refetchInterval);
         }

@@ -6,6 +6,7 @@ export interface DadosAluno {
     matricula: string;
     nome_completo: string;
     turma_id: string;
+    foto?: string;
 }
 
 export interface CachePortaria {

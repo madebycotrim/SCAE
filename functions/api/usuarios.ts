@@ -1,8 +1,8 @@
 ﻿/**
- * Worker CRUD de UsuÃ¡rios (RBAC).
- * GET: Todos os usuÃ¡rios do tenant
- * POST: UPSERT usuÃ¡rio (email + tenant_id)
- * DELETE: Remover usuÃ¡rio por email
+ * Worker CRUD de Usuários (RBAC).
+ * GET: Todos os usuários do tenant
+ * POST: UPSERT usuário (email + tenant_id)
+ * DELETE: Remover usuário por email
  */
 import type { ContextoSCAE, PayloadCriacaoUsuario } from '../types/ambiente';
 
@@ -28,9 +28,9 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
 
         const usuario: PayloadCriacaoUsuario = await contexto.request.json();
 
-        // ValidaÃ§Ã£o bÃ¡sica
+        // Validação básica
         if (!usuario.email) {
-            return new Response("Email obrigatÃ³rio", { status: 400 });
+            return new Response("Email obrigatório", { status: 400 });
         }
 
         // Tenta inserir ou atualizar
@@ -53,7 +53,7 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
             usuario.atualizado_em || new Date().toISOString()
         ).run();
 
-        return new Response("UsuÃ¡rio salvo/atualizado", { status: 200 });
+        return new Response("Usuário salvo/atualizado", { status: 200 });
     } catch (erro) {
         const mensagem = erro instanceof Error ? erro.message : 'Erro interno';
         return new Response(mensagem, { status: 500 });
@@ -69,14 +69,14 @@ async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response
         const email = url.searchParams.get("email");
 
         if (!email) {
-            return new Response("Email obrigatÃ³rio", { status: 400 });
+            return new Response("Email obrigatório", { status: 400 });
         }
 
         await contexto.env.DB_SCAE.prepare(
             "DELETE FROM usuarios WHERE email = ? AND tenant_id = ?"
         ).bind(email, tenantId).run();
 
-        return new Response("UsuÃ¡rio removido", { status: 200 });
+        return new Response("Usuário removido", { status: 200 });
     } catch (erro) {
         const mensagem = erro instanceof Error ? erro.message : 'Erro interno';
         return new Response(mensagem, { status: 500 });

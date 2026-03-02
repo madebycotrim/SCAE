@@ -86,8 +86,7 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
                 <div className="relative">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
-                        type="text"
-                        className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 placeholder:text-slate-300"
+                        className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-indigo-500 placeholder:text-slate-300 transition-colors"
                         placeholder="Filtrar opções..."
                         value={termo}
                         onChange={(e) => definirTermo(e.target.value)}
@@ -111,8 +110,8 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
                                 ${value === opcao.value ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}
                             `}
                         >
-                            <span className="font-bold text-sm">{opcao.label}</span>
-                            {value === opcao.value && <Check size={16} className="text-indigo-600" />}
+                            <span className="font-black text-sm">{opcao.label}</span>
+                            {value === opcao.value && <Check size={16} className="text-indigo-700" />}
                         </button>
                     ))
                 ) : (
@@ -126,19 +125,19 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
 
     return (
         <div className="relative" ref={containerRef}>
-            {label && <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{label}</label>}
+            {label ? <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{label}</label> : null}
 
             <button
                 type="button"
                 onClick={() => definirAberto(!aberto)}
-                className={`w-full bg-slate-50 border-2 rounded-xl py-3 px-4 flex items-center justify-between transition-all
-                    ${aberto ? 'border-indigo-500 ring-4 ring-indigo-500/10 bg-white' : 'border-slate-200 hover:border-indigo-300 hover:bg-white'}
+                className={`w-full px-4 h-12 bg-white border-2 border-slate-300 rounded-xl text-sm font-bold flex items-center justify-between transition-colors shadow-sm focus:outline-none
+                    ${aberto ? 'border-indigo-600 ring-2 ring-indigo-50' : 'hover:border-slate-400 focus:border-indigo-600'}
                 `}
             >
-                <span className={`text-base font-bold ${opcaoSelecionada ? 'text-slate-700' : 'text-slate-400'}`}>
+                <span className={`block truncate ${opcaoSelecionada ? 'text-slate-950 font-black' : 'text-slate-400'}`}>
                     {opcaoSelecionada ? opcaoSelecionada.label : placeholder}
                 </span>
-                <ChevronDown size={20} className={`text-slate-400 transition-transform duration-300 ${aberto ? 'rotate-180 text-indigo-500' : ''}`} />
+                <ChevronDown size={18} className={`text-slate-900 flex-shrink-0 ml-1 transition-transform duration-200 ${aberto ? 'rotate-180 text-indigo-600' : ''}`} />
             </button>
 
             {aberto && createPortal(dropdownContent, document.body)}

@@ -20,7 +20,7 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
 
         for (const registro of registros) {
             try {
-                // IDEMPOTÃŠNCIA: Usar INSERT OR IGNORE.
+                // IDEMPOTÊNCIA: Usar INSERT OR IGNORE.
                 await contexto.env.DB_SCAE.prepare(
                     `INSERT OR IGNORE INTO registros_acesso 
                     (id, tenant_id, aluno_matricula, tipo_movimentacao, metodo_leitura, timestamp_acesso, sincronizado, prazo_retencao_meses) 
@@ -85,7 +85,7 @@ async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> 
     }
 }
 
-// ExportaÃ§Ãµes com Alias para o Framework
+// Exportações com Alias para o Framework
 export {
     processarSincronizacaoAcessos as onRequestPost,
     processarBuscaAcessos as onRequestGet

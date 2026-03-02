@@ -1,10 +1,10 @@
 ﻿/**
- * API Central para o Motor de EvasÃ£o Escolar.
- * Implementa a detecÃ§Ã£o de alunos ausentes consecutivamente (Art 70 ECA).
+ * API Central para o Motor de Evasão Escolar.
+ * Implementa a detecção de alunos ausentes consecutivamente (Art 70 ECA).
  *
  * GET /api/evasao â†’ Retorna a lista de alertas agrupadas por turma
  * PATCH /api/evasao/:id â†’ Atualiza o status de acompanhamento
- * POST /api/evasao/processar â†’ Roda a engine varrendo o tenant por ausÃªncias
+ * POST /api/evasao/processar â†’ Roda a engine varrendo o tenant por ausências
  */
 import { gerarScaeUuid } from '../utils/uuid';
 import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../types/ambiente';
@@ -29,7 +29,7 @@ export async function onRequest(contexto: ContextoSCAE): Promise<Response> {
             return await processarMotorEvasao(contexto.env.DB_SCAE, tenantId);
         }
 
-        // 2. ATUALIZAÃ‡ÃƒO DO STATUS DO KANBAN DE EVASÃƒO
+        // 2. ATUALIZAÇÃO DO STATUS DO KANBAN DE EVASÃO
         if (method === 'PATCH') {
             const pathParts = path.split('/');
             const alertaId = pathParts[pathParts.length - 1];
@@ -39,7 +39,7 @@ export async function onRequest(contexto: ContextoSCAE): Promise<Response> {
             return await atualizarStatusAlerta(contexto, contexto.env.DB_SCAE, tenantId, alertaId);
         }
 
-        // 3. LISTAGEM DO PAINEL GERENCIAL DE EVASÃƒO
+        // 3. LISTAGEM DO PAINEL GERENCIAL DE EVASÃO
         if (method === 'GET') {
             const { results } = await contexto.env.DB_SCAE.prepare(`
                 SELECT 
@@ -73,7 +73,7 @@ export async function onRequest(contexto: ContextoSCAE): Promise<Response> {
             });
         }
 
-        return new Response(JSON.stringify({ error: 'MÃ©todo nÃ£o permitido' }), { status: 405 });
+        return new Response(JSON.stringify({ error: 'Método não permitido' }), { status: 405 });
 
     } catch (error) {
         const mensagem = error instanceof Error ? error.message : 'Erro interno';
@@ -86,14 +86,14 @@ export async function onRequest(contexto: ContextoSCAE): Promise<Response> {
 }
 
 /**
- * Atualiza o status da tratativa da coordenaÃ§Ã£o com a familia do aluno em risco.
+ * Atualiza o status da tratativa da coordenação com a familia do aluno em risco.
  */
 async function atualizarStatusAlerta(contexto: ContextoSCAE, db: D1Database, tenantId: string, alertaId: string): Promise<Response> {
     try {
         const dados: PayloadAtualizacaoAlerta = await contexto.request.json();
 
         if (!dados.status || !['PENDENTE', 'EM_ANALISE', 'RESOLVIDO'].includes(dados.status)) {
-            return new Response(JSON.stringify({ error: 'Status invÃ¡lido' }), { status: 400 });
+            return new Response(JSON.stringify({ error: 'Status inválido' }), { status: 400 });
         }
 
         const query = dados.status === 'RESOLVIDO'
@@ -110,17 +110,17 @@ async function atualizarStatusAlerta(contexto: ContextoSCAE, db: D1Database, ten
             headers: { 'Content-Type': 'application/json' }
         });
     } catch {
-        return new Response(JSON.stringify({ error: 'JSON invÃ¡lido' }), { status: 400 });
+        return new Response(JSON.stringify({ error: 'JSON inválido' }), { status: 400 });
     }
 }
 
 /**
- * Scaneia os alunos e verifica os registros para aplicar regras de evasÃ£o contÃ­nua.
- * Regra: Alunos ausentes por 3 dias letivos (aproximadamente simulado checando ausÃªncia de registro nas Ãºltimas 72h)
+ * Scaneia os alunos e verifica os registros para aplicar regras de evasão contínua.
+ * Regra: Alunos ausentes por 3 dias letivos (aproximadamente simulado checando ausência de registro nas últimas 72h)
  */
 async function processarMotorEvasao(db: D1Database, tenantId: string): Promise<Response> {
     try {
-        // 1. Localizar Estudantes NÃ£o Anonimizados (Ativos)
+        // 1. Localizar Estudantes Não Anonimizados (Ativos)
         const alunosResp = await db.prepare(`
             SELECT matricula, nome_completo 
             FROM alunos 
@@ -135,7 +135,7 @@ async function processarMotorEvasao(db: D1Database, tenantId: string): Promise<R
         let alertasGerados = 0;
 
         for (const aluno of alunosAtivos) {
-            // Verificar a existencia de UM Ãºnico pulso de log nos Ãºltimos 3 dias
+            // Verificar a existencia de UM único pulso de log nos últimos 3 dias
             const acessoRecente = await db.prepare(`
                 SELECT id FROM registros_acesso 
                 WHERE aluno_matricula = ? AND tenant_id = ? 
@@ -144,7 +144,7 @@ async function processarMotorEvasao(db: D1Database, tenantId: string): Promise<R
             `).bind(aluno.matricula, tenantId).first();
 
             if (!acessoRecente) {
-                // Aluno nÃ£o registrou acesso nos Ãºltimos 3 dias!
+                // Aluno não registrou acesso nos últimos 3 dias!
 
                 // Verificar se JÃ EXISTE um alerta PENDENTE ou EM ANÃLISE aberto
                 const alertaAtivo = await db.prepare(`
@@ -154,11 +154,11 @@ async function processarMotorEvasao(db: D1Database, tenantId: string): Promise<R
                 `).bind(aluno.matricula, tenantId).first();
 
                 if (!alertaAtivo) {
-                    // Novo caso de Risco (EvasÃ£o Detectada)
+                    // Novo caso de Risco (Evasão Detectada)
                     const alertaId = gerarScaeUuid();
                     await db.prepare(`
                         INSERT INTO alertas_evasao(id, tenant_id, aluno_matricula, motivo, status)
-                        VALUES (?, ?, ?, 'Sem registro de acesso nos Ãºltimos 3 dias', 'PENDENTE')
+                        VALUES (?, ?, ?, 'Sem registro de acesso nos últimos 3 dias', 'PENDENTE')
                     `).bind(alertaId, tenantId, aluno.matricula).run();
 
                     alertasGerados++;
@@ -169,14 +169,14 @@ async function processarMotorEvasao(db: D1Database, tenantId: string): Promise<R
         return new Response(JSON.stringify({
             success: true,
             gerados: alertasGerados,
-            mensagem: `VerificaÃ§Ã£o completa. ${alertasGerados} novos alertas emitidos.`
+            mensagem: `Verificação completa. ${alertasGerados} novos alertas emitidos.`
         }), {
             headers: { 'Content-Type': 'application/json' }
         });
 
     } catch (error) {
         const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
-        console.error('Falha no motor de EvasÃ£o:', mensagem);
-        return new Response(JSON.stringify({ error: 'Erro processando EvasÃ£o' }), { status: 500 });
+        console.error('Falha no motor de Evasão:', mensagem);
+        return new Response(JSON.stringify({ error: 'Erro processando Evasão' }), { status: 500 });
     }
 }

@@ -27,12 +27,12 @@ export const iniciarBanco = async (): Promise<IDBPDatabase<EsquemaSCAE>> => {
             if (!banco.objectStoreNames.contains('alunos')) {
                 const store = banco.createObjectStore('alunos', { keyPath: 'matricula' });
                 store.createIndex('turma_id', 'turma_id');
-                store.createIndex('status', 'status');
+                store.createIndex('ativo', 'ativo');
                 store.createIndex('sincronizado', 'sincronizado');
             } else {
                 const store = transaction.objectStore('alunos');
                 if (!store.indexNames.contains('turma_id')) store.createIndex('turma_id', 'turma_id');
-                if (!store.indexNames.contains('status')) store.createIndex('status', 'status');
+                if (!store.indexNames.contains('ativo')) store.createIndex('ativo', 'ativo');
                 if (!store.indexNames.contains('sincronizado')) store.createIndex('sincronizado', 'sincronizado');
             }
 
@@ -51,7 +51,7 @@ export const iniciarBanco = async (): Promise<IDBPDatabase<EsquemaSCAE>> => {
                 if (!store.indexNames.contains('sincronizado')) store.createIndex('sincronizado', 'sincronizado');
             }
 
-            // --- 4. Fila de PendÃªncias ---
+            // --- 4. Fila de Pendências ---
             if (!banco.objectStoreNames.contains('fila_pendencias')) {
                 const store = banco.createObjectStore('fila_pendencias', { keyPath: 'id' });
                 store.createIndex('colecao', 'colecao');
@@ -81,7 +81,7 @@ export const iniciarBanco = async (): Promise<IDBPDatabase<EsquemaSCAE>> => {
                 if (!store.indexNames.contains('sincronizado')) store.createIndex('sincronizado', 'sincronizado');
             }
 
-            // --- 6. UsuÃ¡rios ---
+            // --- 6. Usuários ---
             if (!banco.objectStoreNames.contains('usuarios')) {
                 const store = banco.createObjectStore('usuarios', { keyPath: 'email' });
                 store.createIndex('papel', 'papel');
@@ -98,7 +98,7 @@ export const iniciarBanco = async (): Promise<IDBPDatabase<EsquemaSCAE>> => {
 export const bancoLocal = {
     iniciarBanco,
 
-    // --- Fila de PendÃªncias (Offline Support) ---
+    // --- Fila de Pendências (Offline Support) ---
     adicionarPendencia: async (acao: string, colecao: string, dadoId: string, dadosExtras: Record<string, unknown> | null = null) => {
         const banco = await iniciarBanco();
         await banco.put('fila_pendencias', {
@@ -148,7 +148,7 @@ export const bancoLocal = {
         await transacao.done;
     },
 
-    // Salvar um Ãºnico aluno (uso local/offline)
+    // Salvar um único aluno (uso local/offline)
     salvarAluno: async (aluno: AlunoLocal) => {
         const banco = await iniciarBanco();
         await banco.put('alunos', { ...aluno, sincronizado: 0 }); // Marca como pendente
@@ -209,7 +209,7 @@ export const bancoLocal = {
             aluno.nome_completo.toLowerCase().includes(termoLower)
         );
 
-        // Ordenar por relevÃ¢ncia (nome comeÃ§a com o termo primeiro)
+        // Ordenar por relevância (nome começa com o termo primeiro)
         resultados.sort((a, b) => {
             const aNomeStart = a.nome_completo.toLowerCase().startsWith(termoLower);
             const bNomeStart = b.nome_completo.toLowerCase().startsWith(termoLower);
@@ -230,14 +230,14 @@ export const bancoLocal = {
 
     contarAlunosPorTurma: async (turmaId: string) => {
         const banco = await iniciarBanco();
-        // countFromIndex Ã© muito mais rÃ¡pido que getAll + filter
+        // countFromIndex é muito mais rápido que getAll + filter
         return await banco.countFromIndex('alunos', 'turma_id', turmaId);
     },
 
     // Registros
     salvarRegistro: async (registro: Omit<RegistroAcessoLocal, 'sincronizado'>) => {
         const banco = await iniciarBanco();
-        // Usar 0 para false, 1 para true para indexaÃ§Ã£o robusta
+        // Usar 0 para false, 1 para true para indexação robusta
         await banco.put('registros_acesso', { ...registro, sincronizado: 0 });
     },
 
@@ -260,25 +260,25 @@ export const bancoLocal = {
         await transacao.done;
     },
 
-    // v2.5 - EvacuaÃ§Ã£o e Painel (OTIMIZADO)
+    // v2.5 - Evacuação e Painel (OTIMIZADO)
     listarAlunosPresentes: async () => {
         const banco = await iniciarBanco();
 
-        // OtimizaÃ§Ã£o: Buscar apenas registros de "hoje" usando Ã­ndice
-        // Isso evita ler todo o histÃ³rico de acessos (milhares de registros)
+        // Otimização: Buscar apenas registros de "hoje" usando índice
+        // Isso evita ler todo o histórico de acessos (milhares de registros)
         const inicioDoDia = new Date();
         inicioDoDia.setHours(0, 0, 0, 0);
         const range = IDBKeyRange.lowerBound(inicioDoDia.toISOString());
 
         const registrosHoje = await banco.getAllFromIndex('registros_acesso', 'timestamp', range);
 
-        // Se nÃ£o houver registros hoje, retorna vazio rÃ¡pido
+        // Se não houver registros hoje, retorna vazio rápido
         if (registrosHoje.length === 0) return [];
 
         const alunos = await banco.getAll('alunos');
         const mapaAlunos = new Map(alunos.map(a => [a.matricula, a]));
 
-        // Agrupar registros por matrÃ­cula para encontrar o Ãºltimo movimento
+        // Agrupar registros por matrícula para encontrar o último movimento
         const ultimosMovimentos: Record<string, RegistroAcessoLocal> = {};
 
         registrosHoje.forEach(registro => {
@@ -288,7 +288,7 @@ export const bancoLocal = {
             }
         });
 
-        // Filtrar apenas quem teve ENTRADA como Ãºltimo movimento
+        // Filtrar apenas quem teve ENTRADA como último movimento
         return Object.values(ultimosMovimentos)
             .filter(r => r.tipo_movimentacao === 'ENTRADA')
             .map(r => {
@@ -302,7 +302,7 @@ export const bancoLocal = {
             });
     },
 
-    // --- UsuÃ¡rios e PermissÃµes ---
+    // --- Usuários e Permissões ---
     listarUsuarios: async () => {
         const banco = await iniciarBanco();
         return await banco.getAll('usuarios');
@@ -365,7 +365,7 @@ export const bancoLocal = {
         const hoje = new Date();
         const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1); // 1o dia do mes atual
 
-        // Se precisar de mais histÃ³rico para grÃ¡ficos (ex: ultimos 30 dias corridos)
+        // Se precisar de mais histórico para gráficos (ex: ultimos 30 dias corridos)
         const trintaDiasAtras = new Date();
         trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
 

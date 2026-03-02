@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Dashboard interna do Titular de Dados.
  * Exibe a Timeline (ECA), opções DPO (Baixar JSON e Descadastrar).
  */
@@ -188,3 +188,4 @@ export default function PainelTitular() {
         </div>
     )
 }
+

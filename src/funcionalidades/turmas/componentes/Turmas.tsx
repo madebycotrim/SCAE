@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react';
-import { useConsulta } from '@compartilhado/hooks/useConsulta';
-import { usePermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
+import { useNavigate } from 'react-router-dom';
+import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
@@ -22,11 +22,15 @@ import toast from 'react-hot-toast';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('Turmas');
+import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 
+import FormTurmaModal from './FormTurmaModal';
+
 export default function Turmas() {
-    const { podeAcessar } = usePermissoes();
-    const { dados, carregando, recarregar: carregarTurmas } = useConsulta(
+    const navegar = useNavigate();
+    const { podeAcessar } = usarPermissoes();
+    const { dados, carregando, recarregar: carregarTurmas } = usarConsulta(
         ['turmas-com-contagem'],
         async () => {
             const banco = await bancoLocal.iniciarBanco();
@@ -51,38 +55,60 @@ export default function Turmas() {
     const [modalAberto, definirModalAberto] = useState(false);
     const [turmaEmEdicao, definirTurmaEmEdicao] = useState(null);
     const [termoBusca, definirTermoBusca] = useState('');
-    const [filtroTurno, definirFiltroTurno] = useState('TODOS'); // 'TODOS', 'Matutino', 'Vespertino', 'Noturno'
-
-    // Form states
-    const [serieTurma, definirSerieTurma] = useState(''); // "1", "2", "3"
-    const [letraTurma, definirLetraTurma] = useState(''); // "A", "B", ...
-    const [turno, definirTurno] = useState('Matutino');
-    const [anoLetivo, definirAnoLetivo] = useState(new Date().getFullYear().toString());
+    const [filtroTurno, definirFiltroTurno] = useState('TODOS');
+    const [filtroAnoLetivo, definirFiltroAnoLetivo] = useState(new Date().getFullYear().toString());
 
     // Mapeamento de Cores por Turno
     const CORES_TURNO = {
-        'Matutino': { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', gradient: 'from-amber-400 to-orange-500' },
-        'Vespertino': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200', gradient: 'from-blue-400 to-indigo-500' },
-        'Noturno': { bg: 'bg-violet-100', text: 'text-violet-700', border: 'border-violet-200', gradient: 'from-violet-400 to-purple-500' },
-        'Integral': { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200', gradient: 'from-emerald-400 to-teal-500' }
+        'Matutino': {
+            bg: 'bg-orange-50',
+            text: 'text-orange-700',
+            border: 'border-orange-200',
+            indicator: 'bg-orange-600',
+            gradient: 'from-orange-600 to-amber-600'
+        },
+        'Vespertino': {
+            bg: 'bg-sky-50',
+            text: 'text-sky-700',
+            border: 'border-sky-200',
+            indicator: 'bg-sky-600',
+            gradient: 'from-sky-600 to-indigo-600'
+        },
+        'Noturno': {
+            bg: 'bg-indigo-50',
+            text: 'text-indigo-700',
+            border: 'border-indigo-200',
+            indicator: 'bg-indigo-700',
+            gradient: 'from-indigo-700 to-violet-700'
+        },
+        'Integral': {
+            bg: 'bg-emerald-50',
+            text: 'text-emerald-700',
+            border: 'border-emerald-200',
+            indicator: 'bg-emerald-600',
+            gradient: 'from-emerald-600 to-teal-600'
+        }
     };
 
+    const salvarTurma = async (dadosTurma: any) => {
+        const { serie, letra, turno, ano_letivo, lotacao_maxima } = dadosTurma;
 
-
-    const salvarTurma = async () => {
-        if (!serieTurma || !letraTurma || !turno) {
-            toast.error('Preencha todos os campos obrigatÃ³rios.');
+        if (!serie || !letra || !turno) {
+            toast.error('Preencha os campos obrigatórios.');
             return;
         }
 
-        const idTurma = `${serieTurma}Âº ${letraTurma}`;
+        const idTurma = `${serie}º ${letra} - ${turno} - ${ano_letivo}`;
 
         const novaTurma = {
             id: idTurma,
-            serie: serieTurma,
-            letra: letraTurma,
+            serie,
+            letra,
             turno,
-            ano_letivo: parseInt(anoLetivo),
+            ano_letivo,
+            lotacao_maxima,
+            professor_regente: dadosTurma.professor_regente,
+            sala: dadosTurma.sala,
             criado_em: turmaEmEdicao ? turmaEmEdicao.criado_em : new Date().toISOString(),
             atualizado_em: new Date().toISOString()
         };
@@ -90,13 +116,16 @@ export default function Turmas() {
         try {
             const banco = await bancoLocal.iniciarBanco();
 
-            // Verificar duplicidade na criaÃ§Ã£o
             if (!turmaEmEdicao) {
                 const existente = await banco.get('turmas', idTurma);
                 if (existente) {
-                    toast.error('Esta turma jÃ¡ existe!');
+                    toast.error('Esta turma já existe!');
                     return;
                 }
+            }
+
+            if (turmaEmEdicao && turmaEmEdicao.id !== idTurma) {
+                await banco.delete('turmas', turmaEmEdicao.id);
             }
 
             await banco.put('turmas', novaTurma);
@@ -109,17 +138,18 @@ export default function Turmas() {
                 }
             }
 
-            // Log de Auditoria
             const acaoLog = turmaEmEdicao ? 'TURMA_EDITAR' : 'TURMA_CRIAR';
             await Registrador.registrar(acaoLog, 'turma', idTurma, {
                 ano_letivo: novaTurma.ano_letivo,
-                turno: novaTurma.turno
+                turno: novaTurma.turno,
+                lotacao_maxima: novaTurma.lotacao_maxima,
+                professor_regente: novaTurma.professor_regente,
+                sala: novaTurma.sala
             });
 
             toast.success(turmaEmEdicao ? 'Turma atualizada!' : 'Turma criada com sucesso!');
             definirModalAberto(false);
             carregarTurmas();
-            limparForm();
         } catch (erro) {
             log.error('Erro ao salvar', erro);
             toast.error('Falha ao salvar turma.');
@@ -141,7 +171,6 @@ export default function Turmas() {
                 }
             }
 
-            // Log de Auditoria
             await Registrador.registrar('TURMA_EXCLUIR', 'turma', id, {});
 
             toast.success('Turma removida.');
@@ -154,36 +183,24 @@ export default function Turmas() {
 
     const abrirEdicao = (turma) => {
         definirTurmaEmEdicao(turma);
-        definirSerieTurma(turma.id.split('Âº')[0]);
-        definirLetraTurma(turma.letra);
-        definirTurno(turma.turno);
-        definirAnoLetivo(turma.ano_letivo.toString());
         definirModalAberto(true);
     };
 
     const abrirNovo = () => {
-        limparForm();
+        definirTurmaEmEdicao(null);
         definirModalAberto(true);
     };
 
-    const limparForm = () => {
-        definirTurmaEmEdicao(null);
-        definirSerieTurma('');
-        definirLetraTurma('');
-        definirTurno('Matutino');
-        definirAnoLetivo(new Date().getFullYear().toString());
-    };
-
-    // Filtragem
     const turmasFiltradas = turmas.filter(t => {
         const matchBusca = t.id.toLowerCase().includes(termoBusca.toLowerCase());
         const matchTurno = filtroTurno === 'TODOS' || t.turno === filtroTurno;
-        return matchBusca && matchTurno;
+        const matchAno = t.ano_letivo.toString() === filtroAnoLetivo;
+        return matchBusca && matchTurno && matchAno;
     });
 
     if (!podeAcessar('turmas', 'visualizar')) {
         return (
-            <LayoutAdministrativo titulo="GestÃ£o de Turmas" subtitulo="" acoes={null}>
+            <LayoutAdministrativo titulo="Gestão de Turmas" subtitulo="" acoes={null}>
                 <div className="flex justify-center items-center h-64">
                     <p className="text-slate-500">Acesso negado.</p>
                 </div>
@@ -194,42 +211,61 @@ export default function Turmas() {
     const AcoesHeader = (
         <button
             onClick={abrirNovo}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition font-bold shadow-lg shadow-indigo-600/20 hover:scale-105 active:scale-95 border border-white/10"
+            className="group flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm"
         >
-            <Plus size={20} />
-            <span className="hidden sm:inline">Nova Turma</span>
+            <Plus size={18} />
+            <span>Nova Turma</span>
         </button>
     );
 
     return (
-        <LayoutAdministrativo titulo="GestÃ£o de Turmas" subtitulo="AdministraÃ§Ã£o de classes e turnos" acoes={AcoesHeader}>
+        <LayoutAdministrativo titulo="Gestão de Turmas" subtitulo="Administração de classes e turnos" acoes={AcoesHeader}>
 
-            {/* Toolbar de Filtros */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-8 flex flex-col md:flex-row gap-4 sticky top-0 z-20">
+            {/* Toolbar de Filtros - Flat Design */}
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-col lg:flex-row gap-4 sticky top-4 z-20">
                 <div className="relative flex-1 group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="Buscar turma (ex: 1Âº A)..."
+                        placeholder="Pesquisar por série, letra ou turno..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all placeholder:text-slate-400 shadow-sm"
+                        className="w-full pl-11 pr-4 py-2 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all placeholder:text-gray-400"
                     />
                 </div>
 
-                <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 custom-scrollbar">
-                    {['TODOS', 'Matutino', 'Vespertino', 'Noturno'].map((filtro) => (
-                        <button
-                            key={filtro}
-                            onClick={() => definirFiltroTurno(filtro)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${filtroTurno === filtro
-                                ? 'bg-slate-800 text-white border-slate-800 shadow-md'
-                                : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
-                                }`}
-                        >
-                            {filtro === 'TODOS' ? 'Todos' : filtro}
-                        </button>
-                    ))}
+                <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
+                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200">
+                        {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
+                            <button
+                                key={ano}
+                                onClick={() => definirFiltroAnoLetivo(ano)}
+                                className={`px-4 py-1.5 rounded text-sm font-medium transition-colors outline-none cursor-pointer ${filtroAnoLetivo === ano
+                                    ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
+                                    : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                            >
+                                {ano}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="hidden md:block h-6 w-px bg-gray-200 mx-1"></div>
+
+                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 overflow-x-auto">
+                        {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => (
+                            <button
+                                key={filtro}
+                                onClick={() => definirFiltroTurno(filtro)}
+                                className={`px-4 py-1.5 rounded text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors outline-none cursor-pointer ${filtroTurno === filtro
+                                    ? 'bg-gray-800 text-white shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                                    }`}
+                            >
+                                {filtro === 'TODOS' ? 'Todos os Turnos' : filtro}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -237,192 +273,136 @@ export default function Turmas() {
             {carregando ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
                     {[...Array(8)].map((_, i) => (
-                        <div key={i} className="h-48 bg-slate-100/50 rounded-3xl"></div>
+                        <div key={i} className="h-48 bg-slate-100/50 rounded-xl"></div>
                     ))}
                 </div>
             ) : turmasFiltradas.length === 0 ? (
-                <div className="bg-white rounded-3xl border border-slate-100 p-20 text-center animate-fade-in">
-                    <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 mx-auto shadow-sm border border-slate-100">
-                        <BookOpen size={40} className="text-slate-300" />
+                <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto border border-gray-200">
+                        <BookOpen size={24} className="text-gray-500" />
                     </div>
-                    <h3 className="text-xl font-black text-slate-700 mb-2">Nenhuma turma encontrada</h3>
-                    <p className="text-slate-400 max-w-xs mx-auto text-sm font-medium">
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">Nenhuma turma encontrada</h3>
+                    <p className="text-gray-500 max-w-sm mx-auto text-sm">
                         Tente ajustar seus filtros ou cadastre uma nova turma.
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-slide-up">
-                    {turmasFiltradas.map((turma, index) => {
-                        const cores = CORES_TURNO[turma.turno] || CORES_TURNO['Matutino'];
+                <div className="space-y-6">
+                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr className="bg-gray-50 border-b border-gray-200">
+                                        <th className="py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Turma</th>
+                                        <th className="py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Professor Regente</th>
+                                        <th className="py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Sala</th>
+                                        <th className="py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Turno</th>
+                                        <th className="py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Ocupação / Vagas</th>
+                                        <th className="py-3 px-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {turmasFiltradas.length > 0 ? turmasFiltradas.map((turma) => {
+                                        const lotacao = turma.lotacao_maxima || 40;
+                                        const totalAlunos = turma.totalAlunos || 0;
+                                        const ocupacao = (totalAlunos / lotacao) * 100;
+                                        const turnoInfo = CORES_TURNO[turma.turno as keyof typeof CORES_TURNO] || {
+                                            bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200', indicator: 'bg-gray-500'
+                                        };
 
-                        return (
-                            <div
-                                key={turma.id}
-                                className="group relative bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-                            >
-                                {/* Header Colorido */}
-                                <div className={`h-24 bg-gradient-to-br ${cores.gradient} relative p-4 flex justify-between items-start`}>
-                                    <div className="bg-white/20 backdrop-blur-md rounded-lg px-2.5 py-1 text-[10px] font-black uppercase text-white tracking-wider border border-white/10 shadow-sm">
-                                        {turma.turno}
-                                    </div>
-
-                                    {/* Menu Actions (Hover) */}
-                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => abrirEdicao(turma)}
-                                            className="p-1.5 bg-white/20 hover:bg-white/40 rounded-lg text-white transition backdrop-blur-md"
-                                        >
-                                            <Edit2 size={14} />
-                                        </button>
-                                        <button
-                                            onClick={() => excluirTurma(turma.id)}
-                                            className="p-1.5 bg-white/20 hover:bg-rose-500/80 rounded-lg text-white transition backdrop-blur-md"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-
-                                    {/* Big Letter BG */}
-                                    <span className="absolute -bottom-4 -right-2 text-[100px] font-black text-white/20 leading-none select-none pointer-events-none">
-                                        {turma.letra}
-                                    </span>
-                                </div>
-
-                                <div className="p-6 relative">
-                                    <div className="absolute -top-10 left-6">
-                                        <div className="w-16 h-16 bg-white rounded-2xl p-1 shadow-lg ring-1 ring-black/5">
-                                            <div className="w-full h-full bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
-                                                <span className="text-2xl font-black text-slate-800">{turma.id.split('Âº')[0]}Âº</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-8">
-                                        <h3 className="text-xl font-black text-slate-800 leading-tight mb-1">
-                                            Turma {turma.letra}
-                                        </h3>
-                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-5">
-                                            Ano Letivo {turma.ano_letivo}
-                                        </p>
-
-                                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 mb-4">
-                                            <div className="p-2 bg-white rounded-lg shadow-sm text-indigo-500">
-                                                <Users size={18} />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-bold text-slate-500 uppercase">Alunos</p>
-                                                <p className="text-lg font-black text-slate-800">{turma.totalAlunos || 0}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <button className="w-full py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center gap-2 group/btn">
-                                        Ver Detalhes
-                                        <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
+                                        return (
+                                            <tr
+                                                key={turma.id}
+                                                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                                onClick={() => navegar(`/pedagogico/alunos?turma=${turma.id}`)}
+                                            >
+                                                <td className="py-4 px-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600 font-bold border border-gray-200 shrink-0">
+                                                            {turma.serie}
+                                                        </div>
+                                                        <span className="font-semibold text-gray-900">{turma.serie}º {turma.letra}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-gray-900">{turma.professor_regente || 'Não definido'}</span>
+                                                        <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Ano Letivo {turma.ano_letivo}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-4">
+                                                    <span className="text-sm font-medium text-gray-900 bg-gray-100 border border-gray-200 px-2 py-1 rounded">
+                                                        {turma.sala || '-'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-4">
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wider border ${turnoInfo.bg} ${turnoInfo.text} ${turnoInfo.border}`}>
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${turnoInfo.indicator}`}></div>
+                                                        {turma.turno}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-4 text-sm">
+                                                    <div className="flex flex-col gap-1.5 min-w-[140px]">
+                                                        <div className="flex items-center justify-between text-[11px] font-semibold uppercase">
+                                                            <span className={ocupacao >= 100 ? 'text-red-700' : 'text-gray-900'}>
+                                                                {totalAlunos} / {lotacao}
+                                                            </span>
+                                                            <span className={ocupacao >= 90 ? 'text-amber-700' : 'text-gray-600'}>
+                                                                {Math.round(ocupacao)}%
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full rounded-full transition-all duration-300 ${ocupacao >= 100 ? 'bg-red-600' :
+                                                                    ocupacao >= 85 ? 'bg-amber-500' :
+                                                                        'bg-blue-600'
+                                                                    }`}
+                                                                style={{ width: `${Math.min(ocupacao, 100)}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-4 text-right">
+                                                    <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                                                        <button
+                                                            onClick={() => abrirEdicao(turma)}
+                                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded transition-colors"
+                                                            title="Editar Turma"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => excluirTurma(turma.id)}
+                                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded transition-colors"
+                                                            title="Excluir Turma"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    }) : (
+                                        <tr>
+                                            <td colSpan={5} className="py-8 text-center text-slate-500 text-sm">Nenhuma turma encontrada com os filtros atuais.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* Modal Criar/Editar */}
+            {/* Modal de Turma Padronizado */}
             {modalAberto && (
-                <ModalUniversal
-                    titulo={turmaEmEdicao ? "Editar InformaÃ§Ãµes da Turma" : "Criar Nova Turma"}
-                    subtitulo={turmaEmEdicao ? `Alterando dados da turma ${turmaEmEdicao.id}` : "Defina a sÃ©rie, turno e letra para criar uma nova turma."}
-
+                <FormTurmaModal
+                    turma={turmaEmEdicao}
                     aoFechar={() => definirModalAberto(false)}
-                >
-                    <div className="space-y-6">
-
-                        {/* SÃ©rie (Ano) */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">SÃ©rie</label>
-                            <div className="grid grid-cols-3 gap-3">
-                                {['1', '2', '3'].map((s) => (
-                                    <button
-                                        key={s}
-                                        onClick={() => !turmaEmEdicao && definirSerieTurma(s)}
-                                        disabled={!!turmaEmEdicao}
-                                        className={`
-                                            h-16 rounded-xl border-2 text-xl font-black transition-all flex items-center justify-center gap-1
-                                            ${serieTurma === s
-                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-md transform scale-[1.02]'
-                                                : 'bg-white border-slate-200 text-slate-500 hover:border-indigo-200 hover:text-indigo-600 hover:bg-slate-50'}
-                                            ${turmaEmEdicao ? 'opacity-50 cursor-not-allowed' : ''}
-                                        `}
-                                    >
-                                        {s}Âº <span className="text-xs font-bold opacity-60 mt-1">ANO</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Turno */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Turno</label>
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                                {['Matutino', 'Vespertino', 'Noturno', 'Integral'].map((t) => (
-                                    <button
-                                        key={t}
-                                        onClick={() => definirTurno(t)}
-                                        className={`
-                                            h-14 rounded-xl border-2 text-sm font-bold transition-all flex items-center justify-center gap-2
-                                            ${turno === t
-                                                ? 'bg-white border-indigo-600 text-indigo-700 shadow-sm ring-1 ring-indigo-500/10'
-                                                : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300'}
-                                        `}
-                                    >
-                                        {t}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Letra da Turma */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Turma (Letra)</label>
-                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                                {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].map((l) => (
-                                    <button
-                                        key={l}
-                                        onClick={() => !turmaEmEdicao && definirLetraTurma(l)}
-                                        disabled={!!turmaEmEdicao}
-                                        className={`
-                                            aspect-square rounded-xl border-2 text-sm font-black transition-all flex items-center justify-center
-                                            ${letraTurma === l
-                                                ? 'bg-slate-800 border-slate-800 text-white shadow-md transform scale-105'
-                                                : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-400 hover:text-indigo-600'}
-                                            ${turmaEmEdicao ? 'opacity-50 cursor-not-allowed' : ''}
-                                        `}
-                                    >
-                                        {l}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Footer AÃ§Ãµes */}
-                        <div className="flex gap-4 pt-6 mt-2 border-t border-slate-100">
-                            <button
-                                onClick={() => definirModalAberto(false)}
-                                className="flex-1 py-4 px-6 rounded-xl border border-transparent text-slate-500 font-bold hover:bg-slate-50 hover:text-slate-700 transition-all uppercase tracking-wide text-xs"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={salvarTurma}
-                                className="flex-[2] py-4 px-6 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-xl shadow-indigo-600/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 uppercase tracking-wide text-xs"
-                            >
-                                <BookOpen size={18} className="text-indigo-200" />
-                                {turmaEmEdicao ? 'Salvar AlteraÃ§Ãµes' : 'Criar Turma'}
-                            </button>
-                        </div>
-                    </div>
-                </ModalUniversal>
+                    aoSalvar={salvarTurma}
+                />
             )}
         </LayoutAdministrativo>
     );
 }
+

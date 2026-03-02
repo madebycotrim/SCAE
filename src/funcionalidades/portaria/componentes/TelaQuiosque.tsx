@@ -1,8 +1,8 @@
 ﻿/**
- * TelaQuiosque â€” Tela principal do tablet (fullscreen, sem navbar, sem menus).
+ * TelaQuiosque — Tela principal do tablet (fullscreen, sem navbar, sem menus).
  *
- * Integra com as restriÃ§Ãµes Offline-first: Html5Qrcode otimizado, TTS assÃ­ncrono,
- * Clock drift protection e GravaÃ§Ã£o persistente no IndexedDB.
+ * Integra com as restrições Offline-first: Html5Qrcode otimizado, TTS assíncrono,
+ * Clock drift protection e Gravação persistente no IndexedDB.
  */
 import { useState, useCallback, useEffect } from 'react';
 import type { DadosAluno } from '../servicos/cacheMemoria';
@@ -13,35 +13,38 @@ interface FeedbackAcesso {
     hora: string;
 }
 import { usarTenant } from '@tenant/provedorTenant';
-import { useAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import { useTipoAcesso } from '../hooks/useTipoAcesso';
-import { usarModoFila } from '../hooks/useModoFila';
-import { usarLeitorQR } from '../hooks/useLeitorQR';
+import { usarTipoAcesso } from '../hooks/usarTipoAcesso';
+import { usarModoFila } from '../hooks/usarModoFila';
+import { usarLeitorQR } from '../hooks/usarLeitorQR';
+import { usarPortariaWorker } from '../hooks/usarPortariaWorker';
 import { filaOffline, RegistroOffline } from '../servicos/filaOffline.service';
 import { ajustarTimestampLocal } from '../servicos/clockDrift.service';
 import { obterChavePublica, verificarAssinaturaECDSA } from '../utils/validarQR';
 import { anunciarNome } from '../utils/anunciarNome';
 import { buscarAlunoEmCache, alunoEstaRevogado } from '../servicos/cacheMemoria';
+import { Registrador, ACOES_AUDITORIA } from '@compartilhado/servicos/auditoria';
 import { TIPO_ACESSO, TipoAcesso } from '../types/portaria.tipos';
 import { StatusConexao } from './StatusConexao';
 import { format } from 'date-fns';
-import { ShieldCheck, UserX, ScanLine } from 'lucide-react';
+import { ShieldCheck, UserX, ScanLine, Zap, Clock } from 'lucide-react';
 
 const log = criarRegistrador('Quiosque');
 
 export default function TelaQuiosque() {
     const tenant = usarTenant();
-    const { usuarioAtual } = useAutenticacao();
-    const tipoAcessoAtual = useTipoAcesso();
+    const { usuarioAtual } = usarAutenticacao();
+    const tipoAcessoAtual = usarTipoAcesso();
     const confFila = usarModoFila();
+    const { acionarWorker, statusWorker } = usarPortariaWorker();
 
     const [ultimoAcesso, definirUltimoAcesso] = useState<FeedbackAcesso | null>(null);
     const [statusLeitura, definirStatusLeitura] = useState<'AGUARDANDO' | 'SUCESSO' | 'ERRO'>('AGUARDANDO');
 
     // Inicializa carregamento da PK ECDSA no boot do Tablet
     useEffect(() => {
-        obterChavePublica().catch(e => log.error('Falha ao obter chave pÃºblica', e));
+        obterChavePublica().catch(e => log.error('Falha ao obter chave pública', e));
     }, []);
 
     const processarDecodificacao = useCallback(async (
@@ -104,6 +107,7 @@ export default function TelaQuiosque() {
             };
 
             await filaOffline.enfileirarRegistro(logIdempotente);
+            acionarWorker(); // Acorda a thread de fundo (se pausada)
 
             if (confFila.ttsAtivado) {
                 anunciarNome(infoAluno.nome_completo);
@@ -137,6 +141,14 @@ export default function TelaQuiosque() {
             hora: format(Date.now(), 'HH:mm:ss')
         });
 
+        // Registrar Auditoria de Segurança (LGPD #8)
+        Registrador.registrar(
+            mensagem.includes('ECDSA') ? ACOES_AUDITORIA.QR_CODE_INVALIDO : ACOES_AUDITORIA.TENTATIVA_ACESSO_NEGADO,
+            'portaria',
+            'quiosque-tablet',
+            { mensagem }
+        );
+
         hookRestart(); // Retorna o funcionamento
 
         setTimeout(() => {
@@ -144,115 +156,170 @@ export default function TelaQuiosque() {
         }, confFila.duracaoFeedbackMs * 1.5); // Demora mais quando erra para porteiro ler
     }
 
-    // InstanciaÃ§Ã£o Pura (Sobe em Loop CÃ¢mera ao dar mount)
+    // Instanciação Pura (Sobe em Loop Câmera ao dar mount)
     usarLeitorQR('quiosque-camera', processarDecodificacao);
 
     return (
-        <div className="fixed inset-0 bg-slate-900 z-50 flex flex-col overflow-hidden text-white font-sans selection:bg-indigo-500/30">
+        <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col overflow-hidden text-slate-900 font-sans">
             <StatusConexao />
 
-            {/* Header Redux */}
-            <div className="h-16 border-b border-white/10 bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-6 z-20">
+            {/* Header / Top Bar */}
+            <div className="h-20 border-b border-slate-200 bg-white flex items-center justify-between px-8 z-20 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-lg font-black tracking-tight text-white uppercase">
-                        {tenant?.nomeEscola} | PORTARIA INTELIGENTE
-                    </h1>
+                    <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200">
+                        <ScanLine size={24} className="text-slate-700" />
+                    </div>
+                    <div>
+                        <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            {tenant?.nomeEscola || 'SCAE'} <span className="text-slate-400 font-medium">| Quiosque de Autoatendimento</span>
+                        </h1>
+                        <p className="text-xs font-medium text-slate-500 mt-0.5">Terminal de Controle de Fluxo</p>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-sm ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                <div className="flex items-center gap-6">
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-bold uppercase transition-colors ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                         : tipoAcessoAtual === TIPO_ACESSO.SAIDA
-                            ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                            : 'bg-slate-700/50 border-slate-600/20 text-slate-400'
+                            ? 'bg-rose-50 border-rose-200 text-rose-700'
+                            : 'bg-slate-100 border-slate-200 text-slate-600'
                         }`}>
-                        {tipoAcessoAtual === TIPO_ACESSO.ENTRADA && 'ðŸŸ¢ ENTRADA'}
-                        {tipoAcessoAtual === TIPO_ACESSO.SAIDA && 'ðŸ”´ SAÃDA'}
-                        {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'â¸ FORA DO HORÃRIO'}
+                        <div className={`w-2 h-2 rounded-full animate-pulse ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                        {tipoAcessoAtual === TIPO_ACESSO.ENTRADA && 'Modo Entrada'}
+                        {tipoAcessoAtual === TIPO_ACESSO.SAIDA && 'Modo Saída'}
+                        {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'Modo Off-Fluxo'}
                     </div>
 
-                    <div className="text-right hidden sm:block">
-                        <p className="text-sm font-bold text-white leading-tight">{usuarioAtual?.email}</p>
-                        <p className="text-[10px] text-slate-500 uppercase">Operador</p>
+                    <div className="text-right hidden sm:block border-l border-slate-200 pl-6">
+                        <p className="text-sm font-semibold text-slate-800 leading-tight">{usuarioAtual?.email?.split('@')[0]}</p>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            Operador Logado
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col md:flex-row relative">
-                <div className="flex-1 bg-black relative flex items-center justify-center p-4">
-                    <div className="relative w-full max-w-md aspect-square bg-slate-900 rounded-lg border-2 border-slate-700 overflow-hidden ring-1 ring-white/5">
+            {/* Main Tablet Content Area */}
+            <div className="flex-1 flex flex-col lg:flex-row relative p-8 gap-8 max-w-[1400px] mx-auto w-full">
 
-                        {/* DOM Element p/ Sensor Camera injetado pelo Hook */}
-                        <div id="quiosque-camera" className="w-full h-full bg-black"></div>
+                {/* Scanner Section */}
+                <div className="flex-[3] bg-white rounded-3xl border border-slate-200 flex flex-col items-center justify-center p-8 overflow-hidden shadow-sm">
+                    <h2 className="text-xl font-semibold text-slate-800 mb-8 flex items-center gap-2">
+                        <ScanLine size={24} className="text-indigo-600" /> Leitor de Crachá
+                    </h2>
 
-                        {/* Overlay DinÃ¡mico */}
-                        <div className="absolute inset-0 pointer-events-none">
+                    {/* Target Frame */}
+                    <div className="relative w-full max-w-2xl aspect-[4/3] bg-black rounded-2xl border border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
+
+                        {/* DOM Element p/ Sensor Camera */}
+                        <div id="quiosque-camera" className="w-full h-full object-cover"></div>
+
+                        {/* Overlay Clearer */}
+                        <div className="absolute inset-0 pointer-events-none z-10">
                             {confFila.animacoesAtivadas && statusLeitura === 'AGUARDANDO' && (
-                                <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.5)] animate-[varredura_2s_infinite]"></div>
+                                <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500/80 shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-[varredura_2.2s_infinite]"></div>
                             )}
 
                             {statusLeitura !== 'AGUARDANDO' && (
-                                <div className={`absolute inset-0 flex flex-col items-center justify-center transition-all z-10 
+                                <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity z-20 
                                     ${confFila.animacoesAtivadas ? 'duration-300' : 'duration-0'} 
-                                    ${statusLeitura === 'SUCESSO' ? 'bg-emerald-600' : 'bg-rose-600'}
+                                    ${statusLeitura === 'SUCESSO' ? 'bg-emerald-500/95' : 'bg-rose-500/95'}
                                     `}>
-                                    <div className="p-6 rounded-full bg-white mb-4">
+                                    <div className="w-32 h-32 rounded-full bg-white flex items-center justify-center mb-6 shadow-lg animate-bounce">
                                         {statusLeitura === 'SUCESSO'
-                                            ? <ShieldCheck size={48} className="text-emerald-600 drop-shadow-lg" />
-                                            : <UserX size={48} className="text-rose-600 drop-shadow-lg" />
+                                            ? <ShieldCheck size={64} className="text-emerald-600" />
+                                            : <UserX size={64} className="text-rose-600" />
                                         }
                                     </div>
-                                    <h2 className="text-4xl font-black text-white uppercase tracking-tight mb-2">
-                                        {statusLeitura === 'SUCESSO' ? 'LIBERADO' : 'NEGADO'}
+                                    <h2 className="text-4xl font-bold text-white mb-2">
+                                        {statusLeitura === 'SUCESSO' ? 'Acesso Liberado' : 'Acesso Negado'}
                                     </h2>
+                                    <p className="text-white/90 text-lg font-medium">
+                                        {ultimoAcesso?.mensagem || 'Processando...'}
+                                    </p>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Historico Lateral */}
-                <div className="w-full md:w-96 bg-slate-800 border-l border-white/5 p-6 flex flex-col">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                        <ScanLine size={14} className="text-amber-400" />
-                        Ãšltimos Eventos
+                {/* Event Sidebar Utility Style */}
+                <div className="w-full lg:w-[450px] bg-white rounded-3xl border border-slate-200 p-8 flex flex-col gap-8 shadow-sm">
+                    <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-3 pb-4 border-b border-slate-100">
+                        <Zap size={20} className="text-amber-500" />
+                        Registro de Atividade
                     </h3>
 
-                    {ultimoAcesso ? (
-                        <div className="flex-1 flex flex-col animate-in fade-in zoom-in duration-300">
-                            {ultimoAcesso.aluno && (
-                                <div className="bg-slate-700/50 rounded-lg p-6 border border-white/5 mb-6 text-center shadow-lg">
-                                    <h2 className="text-xl font-bold text-white mb-1">{ultimoAcesso.aluno.nome_completo}</h2>
-                                    <p className="text-slate-400 font-mono text-sm mb-4">{ultimoAcesso.aluno.matricula}</p>
-                                    <div className="inline-block bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-lg text-xs font-bold border border-indigo-500/30">
-                                        Turma {ultimoAcesso.aluno.turma_id}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        {ultimoAcesso ? (
+                            <div className="space-y-8 animate-fade-in">
+                                {ultimoAcesso.aluno && (
+                                    <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 text-center relative overflow-hidden">
+                                        <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-white border-4 border-slate-100 flex items-center justify-center overflow-hidden shadow-sm">
+                                            {ultimoAcesso.aluno.foto ? (
+                                                <img src={ultimoAcesso.aluno.foto} alt="Foto Aluno" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-5xl font-bold text-slate-300">
+                                                    {ultimoAcesso.aluno.nome_completo?.[0] || '?'}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <h2 className="text-xl font-bold text-slate-900 mb-1 leading-tight">
+                                            {ultimoAcesso.aluno.nome_completo}
+                                        </h2>
+                                        <p className="text-sm font-medium text-slate-500 mb-6">
+                                            Matrícula: {ultimoAcesso.aluno.matricula}
+                                        </p>
+
+                                        <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-lg text-sm font-semibold border border-indigo-100">
+                                            <ShieldCheck size={16} /> Turma {ultimoAcesso.aluno.turma_id}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="space-y-3">
+                                    <div className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${statusLeitura === 'SUCESSO' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</span>
+                                        <div className={`text-sm font-bold flex items-center gap-2 ${statusLeitura === 'SUCESSO' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                            {statusLeitura === 'SUCESSO' ? <ShieldCheck size={18} /> : <UserX size={18} />}
+                                            {ultimoAcesso.mensagem}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Horário</span>
+                                        <div className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                            <Clock size={16} className="text-slate-400" />
+                                            {ultimoAcesso.hora}
+                                        </div>
                                     </div>
                                 </div>
-                            )}
-
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl border border-white/5">
-                                    <span className="text-sm text-slate-400">Mensagem</span>
-                                    <span className={`text-sm font-bold ${statusLeitura === 'SUCESSO' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                        {ultimoAcesso.mensagem}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl border border-white/5">
-                                    <span className="text-sm text-slate-400">HorÃ¡rio Local</span>
-                                    <span className="text-sm font-bold text-white font-mono">{ultimoAcesso.hora}</span>
-                                </div>
                             </div>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-6 opacity-60">
+                                <div className="w-24 h-24 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center">
+                                    <ScanLine size={40} className="text-slate-300" />
+                                </div>
+                                <p className="text-sm font-medium text-center">
+                                    Aguardando aproximação<br />do crachá...
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Device Status Info */}
+                    <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            <span className="text-xs font-semibold text-slate-500">Terminal Operante</span>
                         </div>
-                    ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-slate-600 gap-4 opacity-50">
-                            <ScanLine size={48} strokeWidth={1} />
-                            <p className="text-sm font-medium text-center">
-                                Aproxime o QR Code
-                            </p>
-                        </div>
-                    )}
+                        <p className="text-xs text-slate-400 font-medium">
+                            {statusWorker.pendentes > 0 ? `Sincronizando: ${statusWorker.pendentes}` : 'Sincronizado'}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
+

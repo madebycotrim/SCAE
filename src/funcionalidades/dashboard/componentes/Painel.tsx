@@ -1,8 +1,10 @@
-﻿import { useState, useMemo } from 'react';
-import { useConsulta } from '@compartilhado/hooks/useConsulta';
-import { useAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+﻿import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
+import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
+import { AlunoLocal } from '@compartilhado/types/bancoLocal.tipos';
+import { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
 import {
     Users,
     Clock,
@@ -15,6 +17,7 @@ import {
     LogIn
 } from 'lucide-react';
 import { Line, Doughnut } from 'react-chartjs-2';
+import { useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
@@ -52,87 +55,92 @@ interface PropsCardEstatistica {
     titulo: string;
     valor: string | number;
     subtitulo?: string;
-    icone: React.ComponentType<{ size?: number; className?: string }>;
+    icone: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
     cor: string;
     tendencia?: number;
     inverterTendencia?: boolean;
 }
 
 const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }: PropsCardEstatistica) => (
-    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
-        <div className={`absolute top-0 right-0 p-8 opacity-[0.03] transform translate-x-1/4 -translate-y-1/4`}>
-            <Icone size={120} />
-        </div>
-
-        <div className="flex justify-between items-start mb-4 relative z-10">
-            <div className={`p-3.5 rounded-2xl bg-${cor}-50 text-${cor}-600 bg-opacity-60 ring-1 ring-${cor}-100 shadow-sm`}>
-                <Icone size={24} />
+    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex justify-between items-start mb-4">
+            <div className={`w-10 h-10 rounded-lg bg-${cor}-100 flex items-center justify-center text-${cor}-600`}>
+                <Icone size={20} />
             </div>
             {tendencia !== undefined && (
                 <div className={`
-                    flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-full 
+                    flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full
                     ${(inverterTendencia ? tendencia < 0 : tendencia > 0)
-                        ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
-                        : 'bg-rose-50 text-rose-600 ring-1 ring-rose-100'}
+                        ? 'bg-emerald-50 text-emerald-600'
+                        : 'bg-rose-50 text-rose-600'}
                 `}>
                     {tendencia > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                     {Math.abs(tendencia)}%
                 </div>
             )}
         </div>
-        <div className="relative z-10">
-            <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">{titulo}</h3>
-            <p className="text-3xl font-black text-slate-800 tracking-tight mb-2">{valor}</p>
-            <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full bg-${cor}-400`}></span>
-                {subtitulo}
-            </p>
+        <div>
+            <h3 className="text-slate-500 text-sm font-medium mb-1">{titulo}</h3>
+            <p className="text-3xl font-bold text-slate-900 tracking-tight">{valor}</p>
+            {subtitulo && (
+                <p className="text-xs text-slate-400 mt-2">{subtitulo}</p>
+            )}
         </div>
     </div>
 );
 
 const LiveAccessFeed = ({ registros, alunos }) => {
     return (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm h-full flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wide">
-                    <Activity size={16} className="text-indigo-500" />
-                    Feed em Tempo Real
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm h-full flex flex-col overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <Activity size={18} className="text-indigo-600" />
+                    Feed de Acessos
                 </h3>
-                <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
+                <div className="flex items-center gap-2 px-2.5 py-1 bg-emerald-50 rounded-full border border-emerald-100">
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase">Ao Vivo</span>
+                </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
+
+            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                 {registros.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-48 text-center p-6">
-                        <p className="text-slate-400 text-sm">Nenhuma atividade recente.</p>
+                    <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                        <Activity size={32} className="text-slate-200 mb-3" />
+                        <p className="text-sm text-slate-400">Nenhum registro de acesso recente.</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-slate-50">
+                    <div className="space-y-1">
                         {registros.slice(0, 15).map((reg) => {
                             const aluno = alunos.find(a => a.matricula === reg.aluno_matricula);
                             const isEntrada = reg.tipo_movimentacao === 'ENTRADA';
                             return (
-                                <div key={reg.id} className="p-3 hover:bg-slate-50 transition-colors flex items-center gap-3 animate-slide-in-right">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${isEntrada ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
-                                        {isEntrada ? <LogIn size={14} /> : <LogOut size={14} />}
+                                <div key={reg.id} className="p-3 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isEntrada ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                                        {isEntrada ? <LogIn size={16} /> : <LogOut size={16} />}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-bold text-slate-700 truncate">{aluno?.nome_completo || 'Desconhecido'}</p>
-                                        <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                                            {reg.aluno_matricula} â€¢ {aluno?.turma_id || '-'}
+                                        <p className="text-sm font-semibold text-slate-800 truncate">{aluno?.nome_completo || 'Aluno não identificado'}</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">
+                                            {reg.aluno_matricula} • {aluno?.turma_id || 'Sem turma'}
                                         </p>
                                     </div>
-                                    <span className="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                                        {format(parseISO(reg.timestamp), 'HH:mm')}
-                                    </span>
+                                    <div className="text-right whitespace-nowrap">
+                                        <span className="text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-2 py-1 rounded">
+                                            {format(parseISO(reg.timestamp), 'HH:mm')}
+                                        </span>
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
                 )}
+            </div>
+            <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
+                <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Ver Histórico Completo</button>
             </div>
         </div>
     );
@@ -140,8 +148,8 @@ const LiveAccessFeed = ({ registros, alunos }) => {
 
 
 export default function Painel() {
-    const { usuarioAtual } = useAutenticacao();
-    const { dados: estatisticasRaw, carregando } = useConsulta(
+    const { usuarioAtual } = usarAutenticacao();
+    const { dados: estatisticasRaw, carregando } = usarConsulta(
         ['estatisticas-dashboard'],
         async () => {
             const dados = await bancoLocal.obterDadosDashboard();
@@ -149,7 +157,7 @@ export default function Painel() {
             const pendentes = await banco.countFromIndex('registros_acesso', 'sincronizado', 0);
             return { ...dados, pendencias: pendentes };
         },
-        { refetchInterval: 15000, staleTime: 14000 } // Refetch a cada 15s como no cÃ³digo original
+        { refetchInterval: 15000, staleTime: 14000 } // Refetch a cada 15s como no código original
     );
 
     const calcularEstatisticas = (dados) => {
@@ -187,7 +195,7 @@ export default function Painel() {
             }
         });
 
-        // HistÃ³rico 7 dias
+        // Histórico 7 dias
         const historico = Array.from({ length: 7 }).map((_, i) => {
             const d = subDays(new Date(), 6 - i);
             const dStr = format(d, 'yyyy-MM-dd');
@@ -203,7 +211,7 @@ export default function Painel() {
             saidasHoje,
             alunosRisco: [],
             historicoPresenca: historico,
-            registrosRecentes: registros.slice().sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 50),
+            registrosRecentes: registros.slice().sort((a: RegistroAcessoLocal, b: RegistroAcessoLocal) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 50),
             pendenciasSync: pendencias || 0,
             alunos: alunos
         };
@@ -215,7 +223,7 @@ export default function Painel() {
     const dataLine = {
         labels: estatisticas.historicoPresenca.map(h => h.data),
         datasets: [{
-            label: 'PresenÃ§a',
+            label: 'Presença',
             data: estatisticas.historicoPresenca.map(h => h.total),
             borderColor: '#6366f1',
             backgroundColor: (context) => {
@@ -231,11 +239,11 @@ export default function Painel() {
     };
 
     return (
-        <LayoutAdministrativo titulo="Centro de Comando" subtitulo="Monitoramento EstratÃ©gico em Tempo Real" acoes={null}>
-            <div className="space-y-6 pb-10 animate-fade-in">
+        <LayoutAdministrativo titulo="Centro de Comando" subtitulo="Monitoramento Estratégico em Tempo Real" acoes={null}>
+            <div className="space-y-6 pb-8">
 
                 {/* Top Row: KPIs importantes */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <CardEstatistica
                         titulo="Alunos Presentes"
                         valor={estatisticas.presentesHoje}
@@ -247,14 +255,14 @@ export default function Painel() {
                     <CardEstatistica
                         titulo="Atrasos Identificados"
                         valor={estatisticas.atrasosHoje}
-                        subtitulo="Chegadas fora do horÃ¡rio"
+                        subtitulo="Chegadas fora do horário"
                         icone={Clock}
                         cor="amber"
                         tendencia={-5}
                         inverterTendencia
                     />
                     <CardEstatistica
-                        titulo="SaÃ­das Antecipadas"
+                        titulo="Saídas Antecipadas"
                         valor={estatisticas.saidasHoje}
                         subtitulo="Alunos que deixaram a escola"
                         icone={LogOut}
@@ -269,45 +277,59 @@ export default function Painel() {
                     />
                 </div>
 
-                {/* Main Content Grid: 3 Columns (2 for content, 1 for sidebar) */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
+                {/* Main Content Grid: 3 Columns (2 for chart, 1 for feed) */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     {/* Left Column (2/3) */}
-                    <div className="lg:col-span-2 space-y-6">
-
+                    <div className="lg:col-span-2">
                         {/* Chart Section */}
-                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-full min-h-[420px]">
                             <div className="flex justify-between items-center mb-6">
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-lg">Fluxo de FrequÃªncia</h3>
-                                    <p className="text-sm text-slate-500">Comparativo dos Ãºltimos 7 dias</p>
+                                    <h3 className="font-semibold text-slate-800 text-base mb-1">Fluxo de Frequência</h3>
+                                    <p className="text-sm text-slate-500">Comparativo dos últimos 7 dias</p>
                                 </div>
-                                <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
                                     <TrendingUp size={20} />
                                 </div>
                             </div>
-                            <div className="h-64">
-                                <Line data={dataLine} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }} />
+                            <div className="flex-1 w-full min-h-[320px] relative">
+                                <Line data={dataLine} options={{
+                                    maintainAspectRatio: false,
+                                    responsive: true,
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: {
+                                            backgroundColor: '#1e293b',
+                                            titleFont: { family: 'inherit', weight: 600, size: 12 },
+                                            bodyFont: { family: 'inherit', size: 12 },
+                                            padding: 12,
+                                            cornerRadius: 8,
+                                            displayColors: false
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            grid: { color: '#f1f5f9' },
+                                            ticks: { font: { family: 'inherit', size: 11 }, color: '#64748b' }
+                                        },
+                                        x: {
+                                            grid: { display: false },
+                                            ticks: { font: { family: 'inherit', size: 11 }, color: '#64748b' }
+                                        }
+                                    }
+                                }} />
                             </div>
                         </div>
-
-
-
                     </div>
 
-                    {/* Right Column (1/3) - Sidebar like */}
-                    <div className="space-y-6 flex flex-col h-full">
-
-                        {/* Live Feed - Takes most height */}
-                        <div className="flex-1 min-h-[400px]">
-                            <LiveAccessFeed registros={estatisticas.registrosRecentes} alunos={estatisticas.alunos} />
-                        </div>
-
-
-
+                    {/* Right Column (1/3) - Live Feed */}
+                    <div className="lg:col-span-1 h-[420px]">
+                        <LiveAccessFeed registros={estatisticas.registrosRecentes} alunos={estatisticas.alunos} />
                     </div>
                 </div>
             </div>
         </LayoutAdministrativo>
     );
 }
+

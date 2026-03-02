@@ -20,7 +20,7 @@ async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Respons
 
         for (const log of logs) {
             try {
-                // IDEMPOTÃŠNCIA: Inserir ou ignorar se jÃ¡ existe
+                // IDEMPOTÊNCIA: Inserir ou ignorar se já existe
                 await contexto.env.DB_SCAE.prepare(
                     `INSERT OR IGNORE INTO logs_auditoria 
                     (id, tenant_id, data_criacao, usuario_email, acao, entidade_tipo, entidade_id, dados_anteriores, dados_novos, ip_address, user_agent) 
@@ -84,5 +84,5 @@ async function processarVerificacaoLogs(contexto: ContextoSCAE): Promise<Respons
     }
 }
 
-// ExportaÃ§Ãµes com Alias
+// Exportações com Alias
 export { processarRecebimentoLogs as onRequestPost, processarVerificacaoLogs as onRequestGet };
