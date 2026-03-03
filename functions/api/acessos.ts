@@ -57,6 +57,15 @@ async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> 
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
+        // RBAC: Apenas ADMIN, COORDENACAO e SECRETARIA
+        const papel = contexto.data.usuarioScae?.papel;
+        const eGestorOuAdmin = ['ADMIN', 'COORDENACAO', 'SECRETARIA'].includes(papel || '');
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (!eGestorOuAdmin && !eDono) {
+            return new Response("Acesso negado: Papel insuficiente para listar histórico de acessos", { status: 403 });
+        }
+
         const { searchParams } = new URL(contexto.request.url);
         const limite = searchParams.get('limite') || '1000';
         const data = searchParams.get('data');

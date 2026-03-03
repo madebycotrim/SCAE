@@ -11,6 +11,14 @@ async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response>
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
+        // RBAC: Apenas ADMIN
+        const papel = contexto.data.usuarioScae?.papel;
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (papel !== 'ADMIN' && !eDono) {
+            return new Response("Acesso negado: Apenas administradores podem gerenciar usuários", { status: 403 });
+        }
+
         const { results } = await contexto.env.DB_SCAE.prepare(
             "SELECT email, tenant_id, nome_completo, papel, ativo, criado_por, pendente, criado_em, atualizado_em, data_exclusao FROM usuarios WHERE tenant_id = ?"
         ).bind(tenantId).all();
@@ -26,6 +34,14 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
+        // RBAC: Apenas ADMIN
+        const papel = contexto.data.usuarioScae?.papel;
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (papel !== 'ADMIN' && !eDono) {
+            return new Response("Acesso negado: Apenas administradores podem gerenciar usuários", { status: 403 });
+        }
+
         const usuario: PayloadCriacaoUsuario = await contexto.request.json();
 
         if (!usuario.email) {
@@ -40,7 +56,7 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
              ativo = excluded.ativo,
              nome_completo = excluded.nome_completo,
              pendente = excluded.pendente,
-             atualizado_em = excluded.atualizado_em`
+             atualizado_em = CURRENT_TIMESTAMP`
         );
 
         await stmt.bind(
@@ -52,7 +68,7 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
             usuario.criado_por ?? null,
             usuario.pendente ? 1 : 0,
             usuario.criado_em || new Date().toISOString(),
-            usuario.atualizado_em || new Date().toISOString()
+            new Date().toISOString()
         ).run();
 
         return new Response("Usuário salvo/atualizado", { status: 200 });
@@ -67,11 +83,24 @@ async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
+        // RBAC: Apenas ADMIN
+        const papel = contexto.data.usuarioScae?.papel;
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (papel !== 'ADMIN' && !eDono) {
+            return new Response("Acesso negado: Apenas administradores podem gerenciar usuários", { status: 403 });
+        }
+
         const url = new URL(contexto.request.url);
         const email = url.searchParams.get("email");
 
         if (!email) {
             return new Response("Email obrigatório", { status: 400 });
+        }
+
+        // Impedir auto-exclusão acidental do admin principal (opcional mas seguro)
+        if (email === contexto.data.user?.email) {
+            return new Response("Ação negada: Você não pode remover seu próprio acesso administrativo", { status: 400 });
         }
 
         await contexto.env.DB_SCAE.prepare(

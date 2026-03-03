@@ -20,11 +20,9 @@ O **SCAE** é um sistema de controle de acesso de alta disponibilidade, projetad
 ---
 
 ## 📚 Documentação
-
-Para detalhes completos sobre o funcionamento, arquitetura e regras de negócio, consulte:
-
-1.  [📘 Documentação Institucional (Regras e Escopo)](./DOCUMENTACAO.md)
-2.  [🛠️ Documentação Técnica (Arquitetura e Instalação)](./DOCUMENTACAO_TECNICA.md)
+ 
+ 1.  [📘 Documentação Institucional (Regras e Escopo)](./LGPD.md)
+ 2.  [🛠️ Documentação Técnica (Arquitetura de Agentes)](./Agents.md)
 
 ---
 

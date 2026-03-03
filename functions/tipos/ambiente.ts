@@ -24,6 +24,7 @@ export interface AmbienteSCAE {
 
 export interface DadosContexto {
     user?: DadosTokenFirebase;
+    usuarioScae?: UsuarioDB;
 }
 
 export interface ContextoSCAE {
@@ -165,7 +166,7 @@ export interface PayloadCriacaoAluno {
     matricula: string;
     nome_completo: string;
     turma_id?: string;
-    status?: string;
+    ativo?: boolean;
 }
 
 export interface PayloadCriacaoTurma {

@@ -59,7 +59,27 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
             throw new Error('Email não autorizado. Use uma conta institucional.');
         }
 
-        // Anexar usuário ao contexto para funções subsequentes
+        // 3. Validar Tenant e Buscar Papel do Usuário no SCAE
+        const tenantId = requisicao.headers.get('X-Tenant-ID');
+
+        // Se houver tenant_id, validamos se o usuário existe e está ativo NAQUELE tenant
+        if (tenantId) {
+            const usuarioScae = await contexto.env.DB_SCAE.prepare(
+                "SELECT * FROM usuarios WHERE email = ? AND tenant_id = ? AND ativo = 1"
+            ).bind(email, tenantId).first();
+
+            if (!usuarioScae && !emailsPermitidos.includes(email)) {
+                return new Response(JSON.stringify({ erro: 'Usuário não vinculado a esta escola ou inativo.' }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+
+            // Anexar dados do SCAE ao contexto
+            contexto.data.usuarioScae = usuarioScae as any;
+        }
+
+        // Anexar usuário do Firebase ao contexto
         contexto.data.user = dadosToken as DadosTokenFirebase;
 
         return proximo();

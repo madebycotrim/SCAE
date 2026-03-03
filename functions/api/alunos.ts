@@ -11,8 +11,17 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
+        // RBAC: Apenas ADMIN, COORDENACAO e SECRETARIA
+        const papel = contexto.data.usuarioScae?.papel;
+        const eAdminOuCoordenacao = ['ADMIN', 'COORDENACAO', 'SECRETARIA'].includes(papel || '');
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (!eAdminOuCoordenacao && !eDono) {
+            return new Response("Acesso negado: Papel insuficiente para listar alunos", { status: 403 });
+        }
+
         const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT matricula, tenant_id, nome_completo, turma_id, status, base_legal, finalidade_coleta, prazo_retencao_meses, data_anonimizacao, anonimizado, data_criacao as criado_em, data_atualizacao, data_exclusao FROM alunos WHERE tenant_id = ?"
+            "SELECT matricula, tenant_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses, data_anonimizacao, anonimizado, criado_em, atualizado_em, data_exclusao FROM alunos WHERE tenant_id = ?"
         ).bind(tenantId).all();
 
         return Response.json(results);
@@ -27,7 +36,16 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
-        const { matricula, nome_completo, turma_id, status }: PayloadCriacaoAluno = await contexto.request.json();
+        // RBAC: Apenas ADMIN, COORDENACAO e SECRETARIA
+        const papel = contexto.data.usuarioScae?.papel;
+        const podeCriar = ['ADMIN', 'COORDENACAO', 'SECRETARIA'].includes(papel || '');
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (!podeCriar && !eDono) {
+            return new Response("Acesso negado: Papel insuficiente para cadastrar alunos", { status: 403 });
+        }
+
+        const { matricula, nome_completo, turma_id, ativo }: PayloadCriacaoAluno = await contexto.request.json();
 
         if (!matricula || !nome_completo) {
             return new Response("Campos obrigatórios ausentes", { status: 400 });
@@ -35,12 +53,13 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
 
         // UPSERT: Inserir ou Atualizar
         await contexto.env.DB_SCAE.prepare(
-            `INSERT INTO alunos (matricula, tenant_id, nome_completo, turma_id, status, base_legal, finalidade_coleta, prazo_retencao_meses) VALUES (?, ?, ?, ?, ?, 'obrigacao_legal', 'registro_acesso', 24)
+            `INSERT INTO alunos (matricula, tenant_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses) VALUES (?, ?, ?, ?, ?, 'obrigacao_legal', 'registro_acesso', 24)
              ON CONFLICT(matricula, tenant_id) DO UPDATE SET
              nome_completo = excluded.nome_completo,
              turma_id = excluded.turma_id,
-             status = excluded.status`
-        ).bind(matricula, tenantId, nome_completo, turma_id ?? null, status || 'ATIVO').run();
+             ativo = excluded.ativo,
+             atualizado_em = CURRENT_TIMESTAMP`
+        ).bind(matricula, tenantId, nome_completo, turma_id ?? null, ativo ? 1 : 0).run();
 
         return new Response("Criado", { status: 201 });
     } catch (erro) {
@@ -53,6 +72,14 @@ async function processarRemocaoAluno(contexto: ContextoSCAE): Promise<Response> 
     try {
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+
+        // RBAC: Apenas ADMIN
+        const papel = contexto.data.usuarioScae?.papel;
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (papel !== 'ADMIN' && !eDono) {
+            return new Response("Acesso negado: Apenas administradores podem remover alunos", { status: 403 });
+        }
 
         const url = new URL(contexto.request.url);
         const matricula = url.searchParams.get("matricula");

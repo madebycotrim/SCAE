@@ -27,6 +27,15 @@ async function processarCriacaoTurma(contexto: ContextoSCAE): Promise<Response> 
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
+        // RBAC: Apenas ADMIN, COORDENACAO e SECRETARIA
+        const papel = contexto.data.usuarioScae?.papel;
+        const podeAlterar = ['ADMIN', 'COORDENACAO', 'SECRETARIA'].includes(papel || '');
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (!podeAlterar && !eDono) {
+            return new Response("Acesso negado: Papel insuficiente para gerenciar turmas", { status: 403 });
+        }
+
         const { id, serie, letra, turno, ano_letivo, criado_em }: PayloadCriacaoTurma = await contexto.request.json();
 
         if (!id) {
@@ -54,6 +63,14 @@ async function processarRemocaoTurma(contexto: ContextoSCAE): Promise<Response> 
     try {
         const tenantId = contexto.request.headers.get('X-Tenant-ID');
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+
+        // RBAC: Apenas ADMIN
+        const papel = contexto.data.usuarioScae?.papel;
+        const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+        if (papel !== 'ADMIN' && !eDono) {
+            return new Response("Acesso negado: Apenas administradores podem remover turmas", { status: 403 });
+        }
 
         const url = new URL(contexto.request.url);
         const id = url.searchParams.get("id");

@@ -9,12 +9,19 @@
 import { gerarScaeUuid } from '../utilitarios/uuid';
 import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../tipos/ambiente';
 
-// ============================================================
-// Handlers nomeados por método (Cloudflare Pages Functions)
-// ============================================================
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     const tenantId = contexto.request.headers.get('X-Tenant-ID');
     if (!tenantId) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+    // RBAC: Apenas ADMIN e COORDENACAO
+    const papel = contexto.data.usuarioScae?.papel;
+    const eAutorizado = ['ADMIN', 'COORDENACAO'].includes(papel || '');
+    const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+    if (!eAutorizado && !eDono) {
+        return new Response(JSON.stringify({ error: 'Acesso negado: Papel insuficiente para gerenciar evasão' }), { status: 403 });
+    }
+
     try {
         const { results } = await contexto.env.DB_SCAE.prepare(`
             SELECT
@@ -48,6 +55,16 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
 export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
     const tenantId = contexto.request.headers.get('X-Tenant-ID');
     if (!tenantId) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+    // RBAC: Apenas ADMIN e COORDENACAO
+    const papel = contexto.data.usuarioScae?.papel;
+    const eAutorizado = ['ADMIN', 'COORDENACAO'].includes(papel || '');
+    const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+    if (!eAutorizado && !eDono) {
+        return new Response(JSON.stringify({ error: 'Acesso negado: Papel insuficiente para disparar motor de evasão' }), { status: 403 });
+    }
+
     try {
         const url = new URL(contexto.request.url);
         if (url.pathname.endsWith('/processar')) {
@@ -63,6 +80,16 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
 export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> {
     const tenantId = contexto.request.headers.get('X-Tenant-ID');
     if (!tenantId) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+    // RBAC: Apenas ADMIN e COORDENACAO
+    const papel = contexto.data.usuarioScae?.papel;
+    const eAutorizado = ['ADMIN', 'COORDENACAO'].includes(papel || '');
+    const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+
+    if (!eAutorizado && !eDono) {
+        return new Response(JSON.stringify({ error: 'Acesso negado: Papel insuficiente para atualizar alertas de evasão' }), { status: 403 });
+    }
+
     try {
         const url = new URL(contexto.request.url);
         const pathParts = url.pathname.split('/');
