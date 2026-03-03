@@ -1,5 +1,6 @@
 import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Aluno } from '../types/aluno';
+import { mascararDadoPessoal } from '@compartilhado/utils/registrarLocal';
 
 interface ListaAlunosProps {
     alunos: Aluno[];
@@ -84,7 +85,7 @@ export default function ListaAlunos({
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="font-semibold text-gray-900 text-sm">{aluno.nome_completo}</span>
-                                                <span className="text-xs text-gray-500">{aluno.email || 'Sem e-mail'}</span>
+                                                <span className="text-xs text-gray-500">{aluno.email ? mascararDadoPessoal(aluno.email, 'email') : 'Sem e-mail'}</span>
                                             </div>
                                         </div>
                                     </td>

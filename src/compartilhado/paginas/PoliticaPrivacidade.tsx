@@ -1,6 +1,6 @@
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usarTenant } from '@tenant/provedorTenant';
+import { usarTenantOpcional } from '@tenant/provedorTenant';
 import { usarConteudoLegal } from '@funcionalidades/autenticacao/hooks/usarConteudoLegal';
 
 /**
@@ -10,7 +10,10 @@ import { usarConteudoLegal } from '@funcionalidades/autenticacao/hooks/usarConte
 export default function PoliticaPrivacidade() {
     const navegar = useNavigate();
     const { slugEscola } = useParams();
-    const { nomeEscola } = usarTenant();
+    const tenant = usarTenantOpcional();
+    const nomeEscola = tenant?.nomeEscola || 'Desenvolvedor SCAE';
+    const nomeAmigavel = tenant?.nomeEscola || 'SCAE';
+    const daEscola = !!tenant;
     const {
         basesLegais,
         prazoRetencaoRegistros,
@@ -31,15 +34,15 @@ export default function PoliticaPrivacidade() {
                         <ShieldCheck className="text-emerald-600 w-6 h-6" />
                         <div>
                             <h1 className="text-xl font-bold text-slate-800 tracking-tight">Política de Privacidade</h1>
-                            <p className="text-xs uppercase text-slate-500">{nomeEscola}</p>
+                            {daEscola && <p className="text-xs uppercase text-slate-500">{nomeAmigavel}</p>}
                         </div>
                     </div>
                     <button
-                        onClick={() => navegar(`/${slugEscola}/login`)}
+                        onClick={() => navegar(-1)}
                         className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        Voltar ao Login
+                        Voltar
                     </button>
                 </div>
             </div>
@@ -48,14 +51,17 @@ export default function PoliticaPrivacidade() {
             <div className="max-w-[210mm] mx-auto bg-white shadow-2xl mt-8 sm:mt-12 px-8 py-12 sm:px-[3cm] sm:py-[3cm] text-black">
                 {/* Cabeçalho do Documento */}
                 <div className="text-center mb-12 font-bold uppercase">
-                    <p className="text-[12pt]">{nomeEscola}</p>
+                    {daEscola && <p className="text-[12pt]">{nomeAmigavel}</p>}
                     <p className="text-[12pt] mt-8">POLÍTICA DE PRIVACIDADE E PROTEÇÃO DE DADOS (LGPD)</p>
                 </div>
 
                 <div className="text-[12pt] leading-[1.5] text-justify space-y-4">
                     <p className="indent-[1.25cm]">
-                        O <strong>{nomeEscola}</strong>, na qualidade de Controlador de Dados, adota esta Política
-                        de Privacidade para informar como os dados pessoais de alunos, responsáveis
+                        {daEscola ? (
+                            <>O <strong>{nomeEscola}</strong>, na qualidade de Controlador de Dados, adota esta Política de Privacidade para informar</>
+                        ) : (
+                            <>Esta Política de Privacidade informa</>
+                        )} como os dados pessoais de alunos, responsáveis
                         e colaboradores são coletados, tratados e protegidos pela plataforma SCAE,
                         operada tecnicamente por <strong>{nomeFornecedor}</strong> (Operador de Dados), em conformidade
                         com a Lei nº 13.709/2018 (LGPD).
@@ -147,7 +153,11 @@ export default function PoliticaPrivacidade() {
                     </p>
                     <p className="indent-[1.25cm]">
                         Para exercer seus direitos, acesse o Portal do Titular:
-                        <span className="font-bold text-blue-600 underline cursor-pointer ml-1" onClick={() => navegar(`/${slugEscola}/portal-titular`)}>Acessar o Portal do Titular</span>.
+                        {slugEscola ? (
+                            <span className="font-bold text-blue-600 underline cursor-pointer ml-1" onClick={() => navegar(`/${slugEscola}/portal-titular`)}>Acessar o Portal do Titular</span>
+                        ) : (
+                            <span className="font-bold ml-1">Para usuários escolares, acesse a URL específica da sua escola.</span>
+                        )}
                     </p>
 
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">7. CONTATO DO DPO</h2>
@@ -160,7 +170,7 @@ export default function PoliticaPrivacidade() {
                             <span><br /><strong>E-mail:</strong> {emailEncarregadoDPO}</span>
                         )}
                     </p>
-                    {!emailEncarregadoDPO && (
+                    {!emailEncarregadoDPO && daEscola && (
                         <p className="indent-[1.25cm]">
                             Para exercer seus direitos, compareça presencialmente à secretaria do <strong>{nomeEscola}</strong> com documento de identificação com foto e solicite abertura de "Chamado - Direitos do Titular".
                         </p>

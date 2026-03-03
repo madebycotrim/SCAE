@@ -26,6 +26,7 @@ export const PaginaLoginPortal = lazy(() => import('@funcionalidades/portal-titu
 export const PaginaPainelTitular = lazy(() => import('@funcionalidades/portal-titular/componentes/PainelTitular'));
 export const PaginaTermosUso = lazy(() => import('@compartilhado/paginas/TermosUso'));
 export const PaginaPoliticaPrivacidade = lazy(() => import('@compartilhado/paginas/PoliticaPrivacidade'));
+export const PaginaInicial = lazy(() => import('@principal/PaginaInicial'));
 
 // --- AGM (Root Mestre) ---
 export const PaginaLoginAGM = lazy(() => import('@funcionalidades/agm/componentes/LoginAGM'));

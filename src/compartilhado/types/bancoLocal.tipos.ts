@@ -5,10 +5,18 @@ export interface AlunoLocal {
     nome_completo: string;
     turma_id: string;
     ativo: boolean;
+    // LGPD
+    base_legal?: string;
+    finalidade_coleta?: string;
+    prazo_retencao_meses?: number;
+    anonimizado?: boolean;
+    data_anonimizacao?: string;
+    data_exclusao?: string;
+    // Tracking
     criado_em?: string;
     atualizado_em?: string;
-    sincronizado?: number; // 0 ou 1
-    // Suporte para aliases legados nos componentes
+    sincronizado?: number; // 0 = pendente | 1 = sincronizado
+    // Aliases legados
     id?: string;
     nome?: string;
 }
@@ -17,30 +25,34 @@ export interface TurmaLocal {
     id: string;
     ano_letivo: string;
     serie: string;
+    letra?: string;              // Ex: 'A', 'B'
     turno: string;
     sala: string;
     professor_regente?: string;
-    sincronizado?: number;
+    sincronizado?: number;       // 0 = pendente | 1 = sincronizado
+    criado_em?: string;
 }
 
 export interface RegistroAcessoLocal {
     id: string;
     aluno_matricula: string;
     tipo_movimentacao: 'ENTRADA' | 'SAIDA';
-    timestamp: string;
-    sincronizado: number;
+    timestamp: string;           // campo local (mapeado p/ timestamp_acesso no servidor)
+    metodo_leitura?: string;     // 'qr_celular' | 'qr_carteirinha' | 'manual'
+    sincronizado: number;        // 0 = pendente | 1 = sincronizado
 }
 
 export interface UsuarioLocal {
     email: string;
     papel: PapelUsuario;
     ativo: boolean;
-    atualizado_em: string;
     nome_completo?: string;
     criado_em?: string;
-    criado_por?: string;
-    pendente?: boolean;
-    // Suporte para aliases legados nos componentes
+    atualizado_em?: string;
+    criado_por?: string;         // email de quem criou (nullable)
+    pendente?: boolean;          // aguardando aprovação
+    data_exclusao?: string;
+    // Alias legado
     role?: PapelUsuario;
 }
 
@@ -82,7 +94,10 @@ export interface EsquemaSCAE {
         key: string;
         value: {
             id: string;
-            timestamp: string;
+            tenant_id?: string;          // nullable: logs offline podem não ter tenant
+            timestamp: string;            // campo local
+            created_at: string;           // alias — preenchido junto com timestamp
+            data_criacao?: string;        // campo canônico do servidor
             usuario_email: string;
             acao: string;
             entidade_tipo: string;
@@ -91,8 +106,7 @@ export interface EsquemaSCAE {
             dados_novos: string | null;
             ip_address: string;
             user_agent: string;
-            created_at: string;
-            sincronizado: number;
+            sincronizado: number;         // 0 = pendente | 1 = enviado
         };
         indexes: {
             timestamp: string;

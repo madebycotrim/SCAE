@@ -246,21 +246,12 @@ export default function LeitorPortaria() {
                             <div className="space-y-6 animate-fade-in">
                                 {/* Student Card Clean */}
                                 <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 text-center relative overflow-hidden">
-                                    <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center overflow-hidden shadow-sm">
-                                        {ultimoAcesso.aluno?.foto ? (
-                                            <img src={ultimoAcesso.aluno.foto} alt="Foto Aluno" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-3xl font-bold text-slate-400">
-                                                {ultimoAcesso.aluno?.nome_completo?.[0] || '?'}
-                                            </span>
-                                        )}
-                                    </div>
 
                                     <h2 className="text-lg font-bold text-slate-900 mb-1 leading-tight">
                                         {ultimoAcesso.aluno?.nome_completo || 'Não Identificado'}
                                     </h2>
                                     <p className="text-sm font-medium text-slate-500 mb-4">
-                                        Matrícula: {ultimoAcesso.aluno?.matricula || ultimoAcesso.matricula}
+                                        Matrícula: {'***' + (ultimoAcesso.aluno?.matricula || ultimoAcesso.matricula).slice(-3)}
                                     </p>
 
                                     {ultimoAcesso.aluno && (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Users, Search, Edit2, KeyRound, ShieldAlert } from 'lucide-react';
+import { mascararDadoPessoal } from '@compartilhado/utils/registrarLocal';
 
 interface UsuarioMock {
     id: string;
@@ -73,7 +74,7 @@ export function PaginaUsuariosAGM() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex flex-col gap-0.5">
                                             <span className="text-sm font-medium text-white">{usuario.nome}</span>
-                                            <span className="text-xs text-slate-500 font-mono">{usuario.email}</span>
+                                            <span className="text-xs text-slate-500 font-mono">{mascararDadoPessoal(usuario.email, 'email')}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

@@ -34,19 +34,6 @@ export const portalService = {
         return await raw.json();
     },
 
-    revogarNotificacoes: async (): Promise<void> => {
-        const token = localStorage.getItem('portal_lgpd_token');
-        if (!token) return;
-
-        const baseUrl = import.meta.env.VITE_API_URL || '/api';
-        await fetch(`${baseUrl}${PORTAL_API_URL}/revogar-notificacoes`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'X-Tenant-ID': sessionStorage.getItem('tenant_id') || ''
-            }
-        });
-    },
 
     sair: () => {
         localStorage.removeItem('portal_lgpd_token');

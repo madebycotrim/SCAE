@@ -1,4 +1,4 @@
-import { usarTenant } from '@tenant/provedorTenant';
+import { usarTenantOpcional } from '@tenant/provedorTenant';
 import { AMBIENTE } from '@configuracoes/ambiente';
 
 interface BaseLegal {
@@ -20,7 +20,12 @@ export interface ConteudoLegal {
 }
 
 export function usarConteudoLegal(): ConteudoLegal {
-    const { tipoEscola, foro, nomeDPO, emailDPO } = usarTenant();
+    const tenant = usarTenantOpcional();
+
+    const tipoEscola = tenant?.tipoEscola || 'publica';
+    const foro = tenant?.foro;
+    const nomeDPO = tenant?.nomeDPO;
+    const emailDPO = tenant?.emailDPO;
 
     const ehEscolaPrivada = tipoEscola === 'privada';
 

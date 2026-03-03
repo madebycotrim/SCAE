@@ -81,7 +81,7 @@ export const Registrador = {
 
             // Mascarar dados sensíveis antes de registrar/logar
             const detalhesMascarados = { ...detalhes };
-            if (detalhesMascarados.cpf) detalhesMascarados.cpf = registradorInterno.mascarar(detalhesMascarados.cpf as string, 'cpf');
+
             if (detalhesMascarados.email) detalhesMascarados.email = registradorInterno.mascarar(detalhesMascarados.email as string, 'email');
 
             await registrarAuditoria({

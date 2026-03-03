@@ -45,9 +45,9 @@ console.debug = criarOverride('debug');
 console.trace = criarOverride('trace');
 // =========================================================================
 
-function mascararDadoPessoal(valor: string, tipo: 'cpf' | 'email' | 'cartao' | 'token'): string {
+export function mascararDadoPessoal(valor: string, tipo: 'email' | 'cartao' | 'token'): string {
     if (!valor) return '';
-    if (tipo === 'cpf') return valor.replace(/(\d{3})\.\d{3}\.\d{3}-(\d{2})/g, '$1.***.***-$2');
+
     if (tipo === 'email') return valor.replace(/(.{2}).*(@.*)/, '$1***$2');
     if (tipo === 'token') return `tok_****${valor.slice(-4)}`;
     return '***';

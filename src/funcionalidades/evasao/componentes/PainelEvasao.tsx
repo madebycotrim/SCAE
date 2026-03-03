@@ -119,35 +119,42 @@ export default function PainelEvasao() {
                     />
                 </div>
 
-                {/* Filtros e Busca */}
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-                    <div className="flex w-full md:w-auto gap-4 flex-col sm:flex-row">
-                        <div className="relative w-full sm:w-80">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Buscar por aluno ou matrícula..."
-                                value={pesquisa}
-                                onChange={(e) => {
-                                    definirPesquisa(e.target.value);
-                                    definirPaginaAtual(1);
-                                }}
-                                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-md text-sm outline-none transition-colors"
-                            />
-                        </div>
-                        <select
-                            value={filtroStatus}
+                {/* Toolbar de Filtros - Flat Design */}
+                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20">
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Buscar por aluno ou matrícula..."
+                            value={pesquisa}
                             onChange={(e) => {
-                                definirFiltroStatus(e.target.value as StatusEvasao | 'TODOS');
+                                definirPesquisa(e.target.value);
                                 definirPaginaAtual(1);
                             }}
-                            className="bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-md text-sm px-3 py-2 outline-none transition-colors"
-                        >
-                            <option value="TODOS">Todos os Status</option>
-                            <option value="PENDENTE">A Fazer</option>
-                            <option value="EM_ANALISE">Em Análise</option>
-                            <option value="RESOLVIDO">Resolvido</option>
-                        </select>
+                            className="w-full pl-11 pr-4 h-10 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all placeholder:text-gray-400"
+                        />
+                    </div>
+
+                    <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
+                        <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
+
+                        <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 overflow-x-auto h-10">
+                            {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => {
+                                        definirFiltroStatus(status);
+                                        definirPaginaAtual(1);
+                                    }}
+                                    className={`px-4 h-full rounded text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors outline-none cursor-pointer flex items-center justify-center ${filtroStatus === status
+                                        ? 'bg-gray-800 text-white shadow-sm'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                                        }`}
+                                >
+                                    {status === 'TODOS' ? 'Todos os Status' : status === 'PENDENTE' ? 'A Fazer' : status === 'EM_ANALISE' ? 'Em Análise' : 'Resolvido'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 

@@ -4,6 +4,7 @@
  */
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { resolverSlugDaUrl } from './resolverTenant';
+import { ESCOLAS_CADASTRADAS_SISTEMA } from '@compartilhado/constantes/escolas';
 
 export interface ConfiguracaoEscola {
     id: string; // Identificador/Slug da escola
@@ -71,15 +72,23 @@ export function ProvedorTenant({ children }: { children: ReactNode }) {
             .catch(() => {
                 // Fallback para desenvolvimento local sem API de tenant
                 if (import.meta.env.DEV) {
+                    const escolaEncontrada = ESCOLAS_CADASTRADAS_SISTEMA.find(e => e.id === slug || e.slug === slug);
+
+                    if (!escolaEncontrada) {
+                        definirErro(true);
+                        return;
+                    }
+
                     const configPadrao: ConfiguracaoEscola = {
-                        id: slug,
-                        nomeEscola: (slug === 'cem03-taguatinga' || slug === 'cem03' || slug === 'padrao') ? 'CEM 03 de Taguatinga' : 'SCAE',
-                        dominioEmail: 'edu.se.df.gov.br',
+                        id: escolaEncontrada.id,
+                        nomeEscola: escolaEncontrada.nome,
+                        dominioEmail: 'edu.se.df.gov.br', // Mock genérico
                         corPrimaria: '#6366f1',
                         corSecundaria: '#4f46e5',
                         ttsAtivado: true,
+                        logoUrl: `/logos/${escolaEncontrada.slug}.png`,
                         tipoEscola: 'publica',
-                        foro: 'Brasília/DF'
+                        foro: escolaEncontrada.cidade || 'Brasília/DF'
                     };
                     sessionStorage.setItem('tenant_id', configPadrao.id);
                     definirConfig(configPadrao);
@@ -126,4 +135,8 @@ export const usarTenant = (): ConfiguracaoEscola => {
     const ctx = useContext(TenantContext);
     if (!ctx) throw new Error('usarTenant deve ser usado dentro de ProvedorTenant');
     return ctx;
+};
+
+export const usarTenantOpcional = (): ConfiguracaoEscola | null => {
+    return useContext(TenantContext);
 };

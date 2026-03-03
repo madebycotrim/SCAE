@@ -164,9 +164,9 @@ export default function Login() {
 
                             <div className="mt-8 text-center text-[11px] text-slate-400">
                                 Ao continuar, você concorda com nossos{' '}
-                                <span onClick={() => navegar(`/${slugEscola}/termos`)} className="font-semibold text-indigo-500 hover:text-indigo-600 transition-colors cursor-pointer">Termos de Uso</span>
+                                <span onClick={() => navegar(`/${slugEscola}/termos-de-uso`)} className="font-semibold text-indigo-500 hover:text-indigo-600 transition-colors cursor-pointer">Termos de Uso</span>
                                 {' '}e{' '}
-                                <span onClick={() => navegar(`/${slugEscola}/privacidade`)} className="font-semibold text-indigo-500 hover:text-indigo-600 transition-colors cursor-pointer">Política de Privacidade</span>.
+                                <span onClick={() => navegar(`/${slugEscola}/politica-de-privacidade`)} className="font-semibold text-indigo-500 hover:text-indigo-600 transition-colors cursor-pointer">Política de Privacidade</span>.
                             </div>
 
                             {erro && (

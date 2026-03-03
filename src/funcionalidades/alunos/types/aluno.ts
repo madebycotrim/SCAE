@@ -13,8 +13,8 @@ export interface Aluno {
     atualizado_em?: string;
     sincronizado?: number; // 0 para pendente offline, 1 para sincronizado
     email?: string;
-    cpf?: string;
-    foto_url?: string;
+
+
 }
 
 /** Interface para Turma (Baseado no IndexedDB) */

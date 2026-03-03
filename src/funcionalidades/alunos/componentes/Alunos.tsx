@@ -28,15 +28,13 @@ export default function Alunos() {
         ['alunos-e-turmas'],
         () => alunoServico.carregarDadosIniciais()
     );
-
     const alunos = (dados?.alunos as Aluno[]) || [];
     const turmas = dados?.turmas || [];
 
     const [searchParams] = useSearchParams();
     const [termoBusca, definirTermoBusca] = useState('');
-    const [filtroTurma, definirFiltroTurma] = useState(searchParams.get('turma') || '');
-    const [filtroAnoLetivo, definirFiltroAnoLetivo] = useState(new Date().getFullYear().toString());
     const [filtroStatus, definirFiltroStatus] = useState<'ativos' | 'inativos' | 'todos'>('ativos');
+    const [filtroAnoLetivo, definirFiltroAnoLetivo] = useState(new Date().getFullYear().toString());
     const [paginaAtual, definirPaginaAtual] = useState(1);
     const itensPorPagina = 12;
 
@@ -52,23 +50,22 @@ export default function Alunos() {
     // --- Filtros ---
     const alunosFiltrados = useMemo(() => {
         return alunos.filter(a => {
-            const matchNome = a.nome_completo.toLowerCase().includes(termoBusca.toLowerCase()) ||
-                a.matricula.includes(termoBusca);
-            const matchTurma = !filtroTurma || a.turma_id === filtroTurma;
+            const termoLower = termoBusca.toLowerCase();
+            const matchNome = a.nome_completo.toLowerCase().includes(termoLower) ||
+                a.matricula.includes(termoBusca) ||
+                (a.turma_id || '').toLowerCase().includes(termoLower);
 
             // Filtro de Status
             const matchStatus = filtroStatus === 'todos'
                 ? true
                 : filtroStatus === 'ativos' ? a.ativo !== false : a.ativo === false;
 
-            if (filtroTurma) return matchNome && matchTurma && matchStatus;
-
             const turmaDoAluno = turmas.find(t => t.id === a.turma_id);
             const matchAno = turmaDoAluno ? turmaDoAluno.ano_letivo.toString() === filtroAnoLetivo : true;
 
-            return matchNome && matchTurma && matchAno && matchStatus;
+            return matchNome && matchAno && matchStatus;
         });
-    }, [alunos, turmas, termoBusca, filtroTurma, filtroAnoLetivo, filtroStatus]);
+    }, [alunos, turmas, termoBusca, filtroAnoLetivo, filtroStatus]);
 
     const totalPaginas = Math.ceil(alunosFiltrados.length / itensPorPagina);
     const paginados = alunosFiltrados.slice(
@@ -170,7 +167,7 @@ export default function Alunos() {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="Buscar aluno por nome ou matrícula..."
+                        placeholder="Buscar por nome, matrícula ou turma..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
                         className="w-full pl-11 pr-4 h-10 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all placeholder:text-gray-400"
@@ -208,25 +205,6 @@ export default function Alunos() {
                                 {status === 'ativos' ? 'Matriculados' : status === 'inativos' ? 'Inativos' : 'Todos'}
                             </button>
                         ))}
-                    </div>
-
-                    <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
-
-                    <div className="relative group min-w-[220px] flex-1">
-                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={16} />
-                        <select
-                            value={filtroTurma}
-                            onChange={(e) => definirFiltroTurma(e.target.value)}
-                            className="w-full pl-11 pr-10 h-10 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none appearance-none cursor-pointer transition-all text-gray-700"
-                        >
-                            <option value="">Todas as Turmas</option>
-                            {turmas.filter((t: any) => t.ano_letivo.toString() === filtroAnoLetivo).map((t: any) => (
-                                <option key={t.id} value={t.id}>{t.id}</option>
-                            ))}
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-blue-600 transition-colors">
-                            <ChevronDown size={14} />
-                        </div>
                     </div>
                 </div>
             </div>

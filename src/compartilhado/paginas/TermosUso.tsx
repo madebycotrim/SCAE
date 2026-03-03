@@ -1,6 +1,6 @@
 import { Scale, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usarTenant } from '@tenant/provedorTenant';
+import { usarTenantOpcional } from '@tenant/provedorTenant';
 import { usarConteudoLegal } from '@funcionalidades/autenticacao/hooks/usarConteudoLegal';
 
 /**
@@ -10,7 +10,9 @@ import { usarConteudoLegal } from '@funcionalidades/autenticacao/hooks/usarConte
 export default function TermosUso() {
     const navegar = useNavigate();
     const { slugEscola } = useParams();
-    const { nomeEscola } = usarTenant();
+    const tenant = usarTenantOpcional();
+    const nomeEscola = tenant?.nomeEscola || 'Sistema de Controle de Acesso Escolar (SCAE)';
+    const daEscola = !!tenant;
     const { caraterUso, nomeFornecedor, foro, dataUltimaRevisao } = usarConteudoLegal();
 
     return (
@@ -22,15 +24,15 @@ export default function TermosUso() {
                         <Scale className="text-indigo-600 w-6 h-6" />
                         <div>
                             <h1 className="text-xl font-bold text-slate-800 tracking-tight">Termos de Uso</h1>
-                            <p className="text-xs uppercase text-slate-500">{nomeEscola}</p>
+                            {daEscola && <p className="text-xs uppercase text-slate-500">{nomeEscola}</p>}
                         </div>
                     </div>
                     <button
-                        onClick={() => navegar(`/${slugEscola}/login`)}
+                        onClick={() => navegar(-1)}
                         className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        Voltar ao Login
+                        Voltar
                     </button>
                 </div>
             </div>
@@ -39,14 +41,14 @@ export default function TermosUso() {
             <div className="max-w-[210mm] mx-auto bg-white shadow-2xl mt-8 sm:mt-12 px-8 py-12 sm:px-[3cm] sm:py-[3cm] text-black">
                 {/* Cabeçalho do Documento */}
                 <div className="text-center mb-12 font-bold uppercase">
-                    <p className="text-[12pt]">{nomeEscola}</p>
-                    <p className="text-[12pt] mt-8">TERMOS DE USO DO SISTEMA DE CONTROLE DE ACESSO ESCOLAR (SCAE)</p>
+                    {daEscola && <p className="text-[12pt]">{nomeEscola}</p>}
+                    <p className="text-[12pt] mt-8">Termos de Uso</p>
                 </div>
 
                 <div className="text-[12pt] leading-[1.5] text-justify space-y-4">
                     <p className="indent-[1.25cm]">
-                        Este documento estabelece as condições de uso do Sistema de Controle de Acesso Escolar (SCAE),
-                        licenciado para o <strong>{nomeEscola}</strong>. O acesso ou uso do sistema implica a aceitação
+                        Este documento estabelece as condições de uso do Sistema de Controle de Acesso Escolar (SCAE)
+                        {daEscola && <>, licenciado para o <strong>{nomeEscola}</strong></>}. O acesso ou uso do sistema implica a aceitação
                         integral destes termos.
                     </p>
 
@@ -139,7 +141,7 @@ export default function TermosUso() {
                     </p>
                     <p className="indent-[1.25cm]">
                         Acesse a Política de Privacidade completa:
-                        <span className="text-blue-600 underline cursor-pointer ml-1 font-bold" onClick={() => navegar(`/${slugEscola}/politica-privacidade`)}>Política de Privacidade</span>.
+                        <span className="text-blue-600 underline cursor-pointer ml-1 font-bold" onClick={() => navegar(slugEscola ? `/${slugEscola}/politica-de-privacidade` : '/politica-de-privacidade')}>Política de Privacidade</span>.
                     </p>
 
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">9. FORO E LEGISLAÇÃO APLICÁVEL</h2>

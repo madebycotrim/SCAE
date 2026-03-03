@@ -12,11 +12,8 @@ import {
     Fingerprint,
     ArrowLeft,
     Download,
-    BellOff,
-    MapPin,
     Clock,
-    LogOut,
-    CheckCircle2
+    LogOut
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -71,16 +68,6 @@ export default function PainelTitular() {
         toast.success("Dados exportados com segurança.");
     };
 
-    const desvincularNotificacoes = async () => {
-        if (!confirm('Deseja parar de receber alertas PUSH/Web no seu celular?')) return;
-        try {
-            await portalService.revogarNotificacoes();
-            toast.success('Notificações revogadas com sucesso.');
-        } catch (e) {
-            toast.error('Falha de revogação. Tente mais tarde.');
-        }
-    };
-
     if (carregando) return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
             <div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-indigo-600 animate-spin"></div>
@@ -121,21 +108,13 @@ export default function PainelTitular() {
             <div className="max-w-xl mx-auto mt-6 px-4 space-y-6">
 
                 {/* Ações LGPD */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                     <button
                         onClick={exportarDados}
                         className="flex flex-col items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-2xl shadow-sm text-indigo-600 hover:bg-slate-50 transition active:scale-95"
                     >
                         <Download size={22} />
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Exportar (JSON)</span>
-                    </button>
-
-                    <button
-                        onClick={desvincularNotificacoes}
-                        className="flex flex-col items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-2xl shadow-sm text-rose-500 hover:bg-slate-50 transition active:scale-95"
-                    >
-                        <BellOff size={22} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Parar Push</span>
                     </button>
                 </div>
 

@@ -53,23 +53,30 @@ export interface DadosTokenFirebase {
 export interface AlunoDB {
     matricula: string;
     tenant_id: string;
-    nome_completo: string;
+    nome_completo?: string;
     turma_id?: string;
-    status: string;
+    ativo: number;
+    sincronizado?: number;
     anonimizado?: number;
     base_legal?: string;
     finalidade_coleta?: string;
     prazo_retencao_meses?: number;
+    criado_em?: string;
+    atualizado_em?: string;
+    data_exclusao?: string;
 }
 
 export interface TurmaDB {
     id: string;
     tenant_id: string;
+    ano_letivo?: string;
     serie?: string;
     letra?: string;
     turno?: string;
-    ano_letivo?: string;
-    data_criacao?: string;
+    sala?: string;
+    professor_regente?: string;
+    sincronizado?: number;
+    criado_em?: string;
 }
 
 export interface RegistroAcessoDB {
@@ -89,14 +96,19 @@ export interface UsuarioDB {
     papel?: string;
     ativo: number;
     nome_completo?: string;
-    data_criacao?: string;
-    data_atualizacao?: string;
+    criado_por?: string;
+    pendente?: number;
+    criado_em?: string;
+    atualizado_em?: string;
+    data_exclusao?: string;
 }
 
 export interface LogAuditoriaDB {
     id: string;
-    tenant_id: string;
-    data_criacao: string;
+    tenant_id?: string;           // nullable: logs offline sem tenant
+    timestamp?: string;           // campo local do app
+    created_at?: string;          // alias
+    data_criacao?: string;        // campo canônico
     usuario_email?: string;
     acao?: string;
     entidade_tipo?: string;
@@ -105,7 +117,7 @@ export interface LogAuditoriaDB {
     dados_novos?: string;
     ip_address?: string;
     user_agent?: string;
-    colecao?: string;
+    sincronizado?: number;
 }
 
 export interface AlertaEvasaoDB {
@@ -160,9 +172,11 @@ export interface PayloadCriacaoTurma {
 export interface PayloadCriacaoUsuario {
     email: string;
     papel?: string;
-    role?: string;
+    role?: string;               // alias legado
     ativo?: boolean;
     nome_completo?: string;
+    criado_por?: string;
+    pendente?: boolean;
     criado_em?: string;
     atualizado_em?: string;
 }

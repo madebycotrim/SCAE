@@ -178,50 +178,25 @@ export const servicoSincronizacao = {
 
     sincronizarUsuarios: async () => {
         try {
-            // 1. Push: Enviar usuários locais para o servidor
+            // Usuários são gerenciados exclusivamente no servidor pelo admin.
+            // O sync local apenas baixa a lista atualizada (pull-only).
             const banco = await bancoLocal.iniciarBanco();
-            const usuariosLocais = await banco.getAll('usuarios');
 
-            if (navigator.onLine && usuariosLocais.length > 0) {
-                log.info(`Enviando ${usuariosLocais.length} usuários locais...`);
-                for (const u of usuariosLocais) {
-                    try {
-                        // Garantir compatibilidade com schema (papel vs role)
-                        // Whitelist de campos permitidos
-                        const payload = {
-                            email: u.email,
-                            nome_completo: u.nome_completo,
-                            papel: u.papel || u.role || 'VISUALIZACAO',
-                            ativo: u.ativo,
-                            criado_por: u.criado_por,
-                            data_criacao: u.criado_em || new Date().toISOString(),
-                            data_atualizacao: u.atualizado_em || new Date().toISOString()
-                        };
-                        await api.enviar('/usuarios', payload);
-                    } catch (e) {
-                        log.warn(`Erro ao enviar usuário`, { email: log.mascarar(u.email, 'email'), erro: e });
-                    }
-                }
-            }
-
-            // 2. Pull: Baixar usuários do servidor
             const usuariosServidor = await api.obter('/usuarios');
 
             if (Array.isArray(usuariosServidor)) {
                 const tx = banco.transaction('usuarios', 'readwrite');
-
                 for (const u of usuariosServidor) {
                     await tx.store.put(u);
                 }
                 await tx.done;
-
                 log.info('Usuários sincronizados (RBAC)', { quantidade: usuariosServidor.length });
                 return { sucesso: true, quantidade: usuariosServidor.length };
             }
             return { sucesso: true, quantidade: 0 };
         } catch (erro) {
-            log.error('Erro na sincronização de usuários', erro);
-            return { sucesso: false, erro: erro.message };
+            log.warn('Sync de usuários indisponível. Continuando com cache local.', { motivo: (erro as any)?.message });
+            return { sucesso: false, erro: (erro as any)?.message };
         }
     },
 

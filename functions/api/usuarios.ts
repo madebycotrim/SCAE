@@ -12,7 +12,7 @@ async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response>
         if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
 
         const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT email, tenant_id, nome_completo, papel, ativo, data_criacao as criado_em, data_atualizacao as atualizado_em, data_exclusao FROM usuarios WHERE tenant_id = ?"
+            "SELECT email, tenant_id, nome_completo, papel, ativo, criado_por, pendente, criado_em, atualizado_em, data_exclusao FROM usuarios WHERE tenant_id = ?"
         ).bind(tenantId).all();
         return Response.json(results);
     } catch (erro) {
@@ -28,19 +28,19 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
 
         const usuario: PayloadCriacaoUsuario = await contexto.request.json();
 
-        // Validação básica
         if (!usuario.email) {
             return new Response("Email obrigatório", { status: 400 });
         }
 
-        // Tenta inserir ou atualizar
         const stmt = contexto.env.DB_SCAE.prepare(
-            `INSERT INTO usuarios (email, tenant_id, papel, ativo, nome_completo, data_criacao, data_atualizacao) 
-             VALUES (?, ?, ?, ?, ?, ?, ?)
-             ON CONFLICT(email, tenant_id) DO UPDATE SET 
-             papel = excluded.papel, 
+            `INSERT INTO usuarios (email, tenant_id, papel, ativo, nome_completo, criado_por, pendente, criado_em, atualizado_em)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+             ON CONFLICT(email, tenant_id) DO UPDATE SET
+             papel = excluded.papel,
              ativo = excluded.ativo,
-             data_atualizacao = excluded.data_atualizacao`
+             nome_completo = excluded.nome_completo,
+             pendente = excluded.pendente,
+             atualizado_em = excluded.atualizado_em`
         );
 
         await stmt.bind(
@@ -49,6 +49,8 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
             usuario.papel || usuario.role,
             usuario.ativo ? 1 : 0,
             usuario.nome_completo ?? null,
+            usuario.criado_por ?? null,
+            usuario.pendente ? 1 : 0,
             usuario.criado_em || new Date().toISOString(),
             usuario.atualizado_em || new Date().toISOString()
         ).run();

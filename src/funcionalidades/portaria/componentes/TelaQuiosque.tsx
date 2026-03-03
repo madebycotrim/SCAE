@@ -255,21 +255,12 @@ export default function TelaQuiosque() {
                             <div className="space-y-8 animate-fade-in">
                                 {ultimoAcesso.aluno && (
                                     <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 text-center relative overflow-hidden">
-                                        <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-white border-4 border-slate-100 flex items-center justify-center overflow-hidden shadow-sm">
-                                            {ultimoAcesso.aluno.foto ? (
-                                                <img src={ultimoAcesso.aluno.foto} alt="Foto Aluno" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-5xl font-bold text-slate-300">
-                                                    {ultimoAcesso.aluno.nome_completo?.[0] || '?'}
-                                                </span>
-                                            )}
-                                        </div>
 
                                         <h2 className="text-xl font-bold text-slate-900 mb-1 leading-tight">
                                             {ultimoAcesso.aluno.nome_completo}
                                         </h2>
                                         <p className="text-sm font-medium text-slate-500 mb-6">
-                                            Matrícula: {ultimoAcesso.aluno.matricula}
+                                            Matrícula: {'***' + ultimoAcesso.aluno.matricula.slice(-3)}
                                         </p>
 
                                         <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-lg text-sm font-semibold border border-indigo-100">

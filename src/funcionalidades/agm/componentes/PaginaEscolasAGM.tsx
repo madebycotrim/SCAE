@@ -1,25 +1,10 @@
 import { useState } from 'react';
 import { Building2, Plus, Search, MoreVertical, Edit2, Ban, Eye } from 'lucide-react';
-
-// Tipagem Mocada Inicial do Tenant (Será consumida do backend D1)
-interface EscolaMock {
-    id: string;
-    nome: string;
-    slug: string;
-    status: 'ATIVA' | 'SUSPENSA' | 'PENDENTE';
-    criadoEm: string;
-    totalAlunos: number;
-}
-
-const mockEscolas: EscolaMock[] = [
-    { id: '1', nome: 'CEM 03 Taguatinga', slug: 'cem03-taguatinga', status: 'ATIVA', criadoEm: '2024-01-15', totalAlunos: 1450 },
-    { id: '2', nome: 'CEF 12 Ceilândia', slug: 'cef12-ceilandia', status: 'ATIVA', criadoEm: '2024-03-22', totalAlunos: 2100 },
-    { id: '3', nome: 'CED 45 Gama', slug: 'ced45-gama', status: 'SUSPENSA', criadoEm: '2023-11-05', totalAlunos: 800 },
-];
+import { ESCOLAS_CADASTRADAS_SISTEMA, EscolaSistema } from '@compartilhado/constantes/escolas';
 
 export function PaginaEscolasAGM() {
     const [busca, definirBusca] = useState('');
-    const [escolas] = useState<EscolaMock[]>(mockEscolas); // Preparando p/ useQuery no futuro
+    const [escolas] = useState<EscolaSistema[]>(ESCOLAS_CADASTRADAS_SISTEMA); // Preparando p/ useQuery no futuro
 
     const escolasFiltradas = escolas.filter(e => e.nome.toLowerCase().includes(busca.toLowerCase()) || e.slug.includes(busca.toLowerCase()));
 

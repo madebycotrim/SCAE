@@ -319,10 +319,7 @@ export default function Turmas() {
                                                 onClick={() => navegar(`/${tenant.id}/admin/alunos?turma=${turma.id}`)}
                                             >
                                                 <td className="py-4 px-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600 font-bold border border-gray-200 shrink-0">
-                                                            {turma.serie}
-                                                        </div>
+                                                    <div className="flex items-center gap-2">
                                                         <span className="font-semibold text-gray-900">{turma.serie}º {turma.letra}</span>
                                                     </div>
                                                 </td>
