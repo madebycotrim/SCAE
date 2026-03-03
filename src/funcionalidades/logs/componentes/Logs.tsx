@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 import {
     Activity,
     Search,
@@ -13,7 +13,8 @@ import {
     Clock,
     User,
     Trash2,
-    RefreshCw
+    RefreshCw,
+    ShieldOff
 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -21,14 +22,14 @@ import toast from 'react-hot-toast';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 
 export default function Logs() {
-    const { usuarioAtual } = usarAutenticacao();
+    const { podeVerLogs, ehAdmin } = usarPermissoes();
     const [logs, definirLogs] = useState([]);
     const [busca, definirBusca] = useState('');
     const [pagina, definirPagina] = useState(1);
     const [logSelecionado, definirLogSelecionado] = useState(null);
 
     const LOGS_PER_PAGE = 15;
-    const EH_ADMIN_SUPREMO = usuarioAtual?.email === 'madebycotrim@gmail.com';
+    const EH_ADMIN_SUPREMO = ehAdmin;
 
     useEffect(() => {
         carregarLogs();
@@ -95,6 +96,17 @@ export default function Logs() {
             </span>
         );
     };
+
+    if (!podeVerLogs) {
+        return (
+            <LayoutAdministrativo titulo="Auditoria do Sistema" subtitulo="Rastreabilidade e segurança" acoes={null}>
+                <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-400">
+                    <ShieldOff size={40} />
+                    <p className="text-sm font-semibold">Acesso restrito a Administradores e Coordenação.</p>
+                </div>
+            </LayoutAdministrativo>
+        );
+    }
 
     return (
         <LayoutAdministrativo titulo="Auditoria do Sistema" subtitulo="Rastreabilidade e segurança" acoes={null}>

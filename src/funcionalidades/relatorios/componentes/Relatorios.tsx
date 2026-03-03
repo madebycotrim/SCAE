@@ -4,6 +4,7 @@ import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativ
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 
 import {
     FileText,
@@ -22,6 +23,7 @@ const log = criarRegistrador('Relatorios');
 
 export default function Relatorios() {
 
+    const { podeVerLogs } = usarPermissoes();
     const anoAtual = new Date().getFullYear();
 
     const calcularPeriodo = (ano: number, semestre: 1 | 2) => {
@@ -186,7 +188,8 @@ export default function Relatorios() {
             iconeCor: 'bg-amber-50 text-amber-600',
             acao: () => gerarRelatorio('Risco de Evasão'),
         },
-        {
+        // Log de Auditoria: apenas ADMIN e COORDENACAO
+        ...(podeVerLogs ? [{
             titulo: 'Log de Auditoria',
             descricao: 'Histórico completo de acessos e ações registradas no sistema.',
             icone: FileCheck,
@@ -194,7 +197,7 @@ export default function Relatorios() {
             badgeCor: 'bg-slate-100 text-slate-700 border-slate-200',
             iconeCor: 'bg-slate-100 text-slate-600',
             acao: () => gerarRelatorio('Log de Auditoria'),
-        },
+        }] : []),
     ];
 
     return (

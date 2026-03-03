@@ -83,7 +83,7 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
         caminho: '/logs',
         componente: PaginaLogs,
         protegida: true,
-        papeis: ['ADMIN'],
+        papeis: ['ADMIN', 'COORDENACAO'], // COORDENACAO pode visualizar (não exportar)
     },
     {
         caminho: '/usuarios',

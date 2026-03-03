@@ -45,7 +45,7 @@ interface LayoutAdministrativoProps {
 
 export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }: LayoutAdministrativoProps) {
     const { usuarioAtual, sair } = usarAutenticacao();
-    const { ehAdmin, usuario, pode } = usarPermissoes();
+    const { ehAdmin, podeVerLogs, usuario, pode } = usarPermissoes();
     const navegar = useNavigate();
     const localizacao = useLocation();
     const { id: slugEscola } = usarTenant();
@@ -99,12 +99,16 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         }
     ];
 
-    // Itens exclusivos para ADMIN
-    const itensMenuAdmin = [
+    // Itens de administração por permissão
+    const itensMenuLogs = podeVerLogs
+        ? [{ icone: FileText, texto: 'Logs de Auditoria', rota: '/logs' }]
+        : [];
 
-        { icone: FileText, texto: 'Logs de Auditoria', rota: '/logs' },
-        { icone: Shield, texto: 'Usuários do Sistema', rota: '/usuarios' },
-    ];
+    const itensMenuAdmin = ehAdmin
+        ? [{ icone: Shield, texto: 'Usuários do Sistema', rota: '/usuarios' }]
+        : [];
+
+    const itensMenuAdministracao = [...itensMenuLogs, ...itensMenuAdmin];
 
 
     const aoSair = async () => {
@@ -297,7 +301,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
 
                     {/* Seção Administrativa */}
-                    {ehAdmin && (
+                    {itensMenuAdministracao.length > 0 && (
                         <div>
                             {!sidebarMinimizado && (
                                 <div className="mt-6 mb-2">
@@ -308,7 +312,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             )}
 
                             <div className="space-y-0.5">
-                                {itensMenuAdmin.map((item) => {
+                                {itensMenuAdministracao.map((item) => {
                                     const Icone = item.icone;
                                     const ativo = localizacao.pathname.startsWith(`${prefixoAdmin}${item.rota}`);
 
