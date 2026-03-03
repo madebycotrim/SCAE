@@ -176,7 +176,7 @@ CREATE TABLE registros_acesso (
 
     PRIMARY KEY (id, tenant_id),
     FOREIGN KEY (tenant_id) REFERENCES tenants(id),
-    FOREIGN KEY (aluno_matricula, tenant_id) REFERENCES alunos(matricula, tenant_id)
+    FOREIGN KEY (aluno_matricula, tenant_id) REFERENCES alunos(matricula, tenant_id) ON DELETE CASCADE
 );
 CREATE INDEX idx_registros_acesso_aluno ON registros_acesso(aluno_matricula, tenant_id);
 CREATE INDEX idx_registros_acesso_data ON registros_acesso(timestamp_acesso DESC, tenant_id);
@@ -198,7 +198,7 @@ CREATE TABLE alertas_evasao (
 
     PRIMARY KEY (id, tenant_id),
     FOREIGN KEY (tenant_id) REFERENCES tenants(id),
-    FOREIGN KEY (aluno_matricula, tenant_id) REFERENCES alunos(matricula, tenant_id)
+    FOREIGN KEY (aluno_matricula, tenant_id) REFERENCES alunos(matricula, tenant_id) ON DELETE CASCADE
 );
 CREATE INDEX idx_alertas_evasao_aluno ON alertas_evasao(aluno_matricula, tenant_id);
 CREATE INDEX idx_alertas_evasao_status ON alertas_evasao(status, tenant_id);

@@ -115,6 +115,18 @@ export default function TelaAutocadastro() {
                         />
                     </div>
 
+                    <div className="flex items-start gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
+                        <input
+                            type="checkbox"
+                            id="consentimento"
+                            required
+                            className="mt-1 w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-600/20"
+                        />
+                        <label htmlFor="consentimento" className="text-xs text-slate-600 leading-relaxed cursor-pointer">
+                            Eu li e aceito os <a href="/termos" target="_blank" className="text-indigo-600 font-bold hover:underline">Termos de Uso</a> e a <a href="/politica" target="_blank" className="text-indigo-600 font-bold hover:underline">Política de Privacidade</a> do sistema SCAE, autorizando o tratamento dos meus dados e do meu dependente para fins de segurança escolar.
+                        </label>
+                    </div>
+
                     {erro && (
                         <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 rounded-lg text-rose-600 text-sm font-medium">
                             <AlertCircle size={16} className="shrink-0" />
