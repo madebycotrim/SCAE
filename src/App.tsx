@@ -13,7 +13,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import { Suspense, useEffect, ReactNode } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { HelmetProvider } from 'react-helmet-async';
 import { clienteConsulta } from '@compartilhado/servicos/clienteConsulta';
 
 // Tenant (dentro da rota com slug)
@@ -110,77 +109,75 @@ function AgmShell() {
 
 function App() {
     return (
-        <HelmetProvider>
-            <Router>
-                <QueryClientProvider client={clienteConsulta}>
-                    <Routes>
-                        {/* ═══ MÓDULO ROOT - ADMINISTRADOR GERAL MULTI-TENANT ═══ */}
-                        <Route path="/agm" element={<AgmShell />}>
-                            <Route path="login" element={<PaginaLoginAGM />} />
-                            <Route element={<GuardaRota papeis={['AGM']} desabilitarTenantCheck={true}><LayoutAGM><Outlet /></LayoutAGM></GuardaRota>}>
-                                <Route path="painel" element={<PaginaPainelAGM />} />
-                                <Route path="escolas" element={<PaginaEscolasAGM />} />
-                                <Route path="usuarios" element={<PaginaUsuariosAGM />} />
-                                <Route path="logs" element={<PaginaLogsAGM />} />
-                            </Route>
+        <Router>
+            <QueryClientProvider client={clienteConsulta}>
+                <Routes>
+                    {/* ═══ MÓDULO ROOT - ADMINISTRADOR GERAL MULTI-TENANT ═══ */}
+                    <Route path="/agm" element={<AgmShell />}>
+                        <Route path="login" element={<PaginaLoginAGM />} />
+                        <Route element={<GuardaRota papeis={['AGM']} desabilitarTenantCheck={true}><LayoutAGM><Outlet /></LayoutAGM></GuardaRota>}>
+                            <Route path="painel" element={<PaginaPainelAGM />} />
+                            <Route path="escolas" element={<PaginaEscolasAGM />} />
+                            <Route path="usuarios" element={<PaginaUsuariosAGM />} />
+                            <Route path="logs" element={<PaginaLogsAGM />} />
+                        </Route>
+                        <Route index element={<Navigate to="painel" replace />} />
+                    </Route>
+
+                    {/* ═══ Todas as rotas da escola ficam sob /:slugEscola ═══ */}
+                    <Route path="/:slugEscola" element={<TenantShell />}>
+
+                        {/* Login */}
+                        <Route path="login" element={<PaginaLogin />} />
+
+                        {/* ═══ SUPERFÍCIE 1: Quiosque (sem layout admin) ═══ */}
+                        <Route path="quiosque" element={<GuardaQuiosque />}>
+                            <Route index element={<PaginaTelaQuiosque />} />
+                        </Route>
+
+                        {/* ═══ SUPERFÍCIE PÚBLICA: Páginas Auxiliares ═══ */}
+                        <Route path="responsavel/cadastro" element={<PaginaAutocadastro />} />
+                        <Route path="termos-de-uso" element={<PaginaTermosUso />} />
+                        <Route path="politica-de-privacidade" element={<PaginaPoliticaPrivacidade />} />
+
+                        {/* ═══ SUPERFÍCIE 2: Painel Administrativo ═══ */}
+                        <Route path="admin">
+                            {ROTAS_ADMIN.map(({ caminho, componente: Componente, protegida, papeis }) => (
+                                <Route
+                                    key={caminho}
+                                    path={caminho.replace(/^\//, '')}
+                                    element={
+                                        <Layout>
+                                            {protegida ? (
+                                                <GuardaRota papeis={papeis}>
+                                                    <Componente />
+                                                </GuardaRota>
+                                            ) : (
+                                                <Componente />
+                                            )}
+                                        </Layout>
+                                    }
+                                />
+                            ))}
+
+                            {/* /:slugEscola/admin → redireciona para painel */}
                             <Route index element={<Navigate to="painel" replace />} />
                         </Route>
 
-                        {/* ═══ Todas as rotas da escola ficam sob /:slugEscola ═══ */}
-                        <Route path="/:slugEscola" element={<TenantShell />}>
+                        {/* /:slugEscola → redireciona para admin/painel */}
+                        <Route index element={<Navigate to="admin/painel" replace />} />
+                    </Route>
 
-                            {/* Login */}
-                            <Route path="login" element={<PaginaLogin />} />
+                    {/* Raiz → Landing Page Publica */}
+                    <Route path="/" element={<Suspense fallback={<CarregandoPagina />}><PaginaInicial /></Suspense>} />
+                    <Route path="/termos-de-uso" element={<Suspense fallback={<CarregandoPagina />}><PaginaTermosUso /></Suspense>} />
+                    <Route path="/politica-de-privacidade" element={<Suspense fallback={<CarregandoPagina />}><PaginaPoliticaPrivacidade /></Suspense>} />
 
-                            {/* ═══ SUPERFÍCIE 1: Quiosque (sem layout admin) ═══ */}
-                            <Route path="quiosque" element={<GuardaQuiosque />}>
-                                <Route index element={<PaginaTelaQuiosque />} />
-                            </Route>
-
-                            {/* ═══ SUPERFÍCIE PÚBLICA: Páginas Auxiliares ═══ */}
-                            <Route path="responsavel/cadastro" element={<PaginaAutocadastro />} />
-                            <Route path="termos-de-uso" element={<PaginaTermosUso />} />
-                            <Route path="politica-de-privacidade" element={<PaginaPoliticaPrivacidade />} />
-
-                            {/* ═══ SUPERFÍCIE 2: Painel Administrativo ═══ */}
-                            <Route path="admin">
-                                {ROTAS_ADMIN.map(({ caminho, componente: Componente, protegida, papeis }) => (
-                                    <Route
-                                        key={caminho}
-                                        path={caminho.replace(/^\//, '')}
-                                        element={
-                                            <Layout>
-                                                {protegida ? (
-                                                    <GuardaRota papeis={papeis}>
-                                                        <Componente />
-                                                    </GuardaRota>
-                                                ) : (
-                                                    <Componente />
-                                                )}
-                                            </Layout>
-                                        }
-                                    />
-                                ))}
-
-                                {/* /:slugEscola/admin → redireciona para painel */}
-                                <Route index element={<Navigate to="painel" replace />} />
-                            </Route>
-
-                            {/* /:slugEscola → redireciona para admin/painel */}
-                            <Route index element={<Navigate to="admin/painel" replace />} />
-                        </Route>
-
-                        {/* Raiz → Landing Page Publica */}
-                        <Route path="/" element={<Suspense fallback={<CarregandoPagina />}><PaginaInicial /></Suspense>} />
-                        <Route path="/termos-de-uso" element={<Suspense fallback={<CarregandoPagina />}><PaginaTermosUso /></Suspense>} />
-                        <Route path="/politica-de-privacidade" element={<Suspense fallback={<CarregandoPagina />}><PaginaPoliticaPrivacidade /></Suspense>} />
-
-                        {/* Fallback */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </QueryClientProvider>
-            </Router>
-        </HelmetProvider>
+                    {/* Fallback */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </QueryClientProvider>
+        </Router>
     );
 }
 
