@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import PortariaWorker from '../servicos/portaria.worker?worker';
 import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 import { usarTenant } from '@tenant/provedorTenant';
-import { autenticacao } from '@funcionalidades/autenticacao/servicos/firebase.config';
+import { autenticacao } from '@compartilhado/servicos/firebase.config';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('PortariaWorker');

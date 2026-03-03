@@ -4,7 +4,7 @@
  * Agora com interceptador global para permitir logs EXCLUSIVAMENTE para a conta do desenvolvedor.
  */
 
-import { autenticacao } from '@funcionalidades/autenticacao/servicos/firebase.config';
+import { autenticacao } from '@compartilhado/servicos/firebase.config';
 
 type NivelLog = 'info' | 'warn' | 'error' | 'trace';
 

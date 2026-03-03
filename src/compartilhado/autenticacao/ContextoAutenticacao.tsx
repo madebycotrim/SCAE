@@ -1,6 +1,6 @@
 ﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
-import { autenticacao } from '@funcionalidades/autenticacao/servicos/firebase.config';
+import { autenticacao } from '@compartilhado/servicos/firebase.config';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
 import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';

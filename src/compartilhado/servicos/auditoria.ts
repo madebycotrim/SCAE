@@ -1,6 +1,6 @@
 ﻿import { bancoLocal } from './bancoLocal';
 import { api } from './api';
-import { autenticacao } from '@funcionalidades/autenticacao/servicos/firebase.config';
+import { autenticacao } from '@compartilhado/servicos/firebase.config';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
 const registradorInterno = criarRegistrador('Auditoria');

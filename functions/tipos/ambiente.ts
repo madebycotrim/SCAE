@@ -126,7 +126,7 @@ export interface AlertaEvasaoDB {
     aluno_matricula: string;
     motivo: string;
     status: 'PENDENTE' | 'EM_ANALISE' | 'RESOLVIDO';
-    data_criacao?: string;
+    criado_em?: string;
     data_resolucao?: string;
 }
 
@@ -137,7 +137,16 @@ export interface ResponsavelDB {
     telefone: string;
     email?: string;
     fcm_token?: string;
+    // LGPD
     id_consentimento?: string;
+    base_legal?: string;
+    finalidade_coleta?: string;
+    prazo_retencao_meses?: number;
+    anonimizado?: number;
+    data_anonimizacao?: string;
+    criado_em?: string;
+    atualizado_em?: string;
+    data_exclusao?: string;
 }
 
 // ============================================================

@@ -6,7 +6,7 @@
  * @module autenticacao/servicos/sessaoQuiosque.service
  */
 import { getAuth, setPersistence, indexedDBLocalPersistence } from 'firebase/auth';
-import { autenticacao } from '@funcionalidades/autenticacao/servicos/firebase.config';
+import { autenticacao } from '@compartilhado/servicos/firebase.config';
 
 /**
  * Configura a sessão Firebase para persistir indefinidamente no IndexedDB.
