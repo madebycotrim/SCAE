@@ -52,7 +52,7 @@ export default function PainelTitular() {
 
     const sair = () => {
         portalService.sair();
-        navegar(`/${slugEscola}/portal-titular`);
+        navegar(`/${slugEscola}/responsavel`);
     };
 
     // Ação LGPD Art. 18 (Portabilidade / Acesso)

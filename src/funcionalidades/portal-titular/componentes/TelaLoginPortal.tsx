@@ -22,7 +22,7 @@ export default function TelaLoginPortal() {
 
     // Máscara Simples de Telefone (11) 99999-9999
     const formatarTelefone = (valor: string) => {
-        const d = valor.replace(/\\D/g, '');
+        const d = valor.replace(/\D/g, '');
         if (d.length <= 2) return d;
         if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
         return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
@@ -40,7 +40,7 @@ export default function TelaLoginPortal() {
         try {
             await portalService.autenticar(telefone, matricula);
             toast.success('Identidade confirmada.');
-            navegar(`/${slugEscola}/portal-titular/painel`);
+            navegar(`/${slugEscola}/responsavel/painel`);
         } catch (error) {
             toast.error('Credenciais inválidas. Verifique com a secretaria.');
             log.error('Falha na autenticação do portal do titular', error);

@@ -19,11 +19,13 @@ export const PaginaTelaQuiosque = lazy(() => import('@funcionalidades/portaria/c
 export const PaginaRelatorios = lazy(() => import('@funcionalidades/relatorios/componentes/Relatorios'));
 export const PaginaLogs = lazy(() => import('@funcionalidades/logs/componentes/Logs'));
 export const PaginaUsuarios = lazy(() => import('@funcionalidades/usuarios/componentes/Usuarios'));
-export const PaginaAutocadastro = lazy(() => import('@funcionalidades/responsaveis/componentes/TelaAutocadastro'));
 export const PaginaHorarios = lazy(() => import('@funcionalidades/configuracaoEscola/componentes/FormHorariosAcesso'));
 export const PaginaEvasao = lazy(() => import('@funcionalidades/evasao/componentes/PainelEvasao'));
-export const PaginaLoginPortal = lazy(() => import('@funcionalidades/portal-titular/componentes/TelaLoginPortal'));
-export const PaginaPainelTitular = lazy(() => import('@funcionalidades/portal-titular/componentes/PainelTitular'));
+import PaginaLoginPortalComp from '@funcionalidades/portal-titular/componentes/TelaLoginPortal';
+import PaginaPainelTitularComp from '@funcionalidades/portal-titular/componentes/PainelTitular';
+
+export const PaginaLoginPortal = PaginaLoginPortalComp;
+export const PaginaPainelTitular = PaginaPainelTitularComp;
 export const PaginaTermosUso = lazy(() => import('@compartilhado/paginas/TermosUso'));
 export const PaginaPoliticaPrivacidade = lazy(() => import('@compartilhado/paginas/PoliticaPrivacidade'));
 export const PaginaInicial = lazy(() => import('@principal/PaginaInicial'));
@@ -124,17 +126,12 @@ export const ROTAS: RotaAplicacao[] = [
         quiosque: true, // Flag para App.jsx saber que é rota de quiosque
     },
     {
-        caminho: '/responsavel/cadastro',
-        componente: PaginaAutocadastro,
-        protegida: false,
-    },
-    {
-        caminho: '/portal-titular',
+        caminho: '/responsavel',
         componente: PaginaLoginPortal,
         protegida: false, // Proteção é via JWT do LGPD local
     },
     {
-        caminho: '/portal-titular/painel',
+        caminho: '/responsavel/painel',
         componente: PaginaPainelTitular,
         protegida: false, // Proteção feita pelo Fetch e render loading no PWA
     }

@@ -28,7 +28,7 @@ import GuardaRota from '@compartilhado/autorizacao/GuardaRota';
 import GuardaQuiosque from '@compartilhado/autorizacao/GuardaQuiosque';
 
 // Configuração de rotas com lazy loading
-import { ROTAS_ADMIN, PaginaLogin, PaginaTelaQuiosque, PaginaAutocadastro, PaginaTermosUso, PaginaPoliticaPrivacidade, PaginaLoginAGM, PaginaPainelAGM, PaginaEscolasAGM, PaginaUsuariosAGM, PaginaLogsAGM, LayoutAGM, PaginaInicial } from '@configuracoes/rotas';
+import { ROTAS_ADMIN, PaginaLogin, PaginaTelaQuiosque, PaginaTermosUso, PaginaPoliticaPrivacidade, PaginaLoginAGM, PaginaPainelAGM, PaginaEscolasAGM, PaginaUsuariosAGM, PaginaLogsAGM, LayoutAGM, PaginaInicial, PaginaLoginPortal, PaginaPainelTitular } from '@configuracoes/rotas';
 
 // Serviço de sincronização
 import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
@@ -136,9 +136,14 @@ function App() {
                         </Route>
 
                         {/* ═══ SUPERFÍCIE PÚBLICA: Páginas Auxiliares ═══ */}
-                        <Route path="responsavel/cadastro" element={<PaginaAutocadastro />} />
                         <Route path="termos-de-uso" element={<PaginaTermosUso />} />
                         <Route path="politica-de-privacidade" element={<PaginaPoliticaPrivacidade />} />
+
+                        {/* ═══ MÓDULO DO RESPONSÁVEL (Portal e Cadastro) ═══ */}
+                        <Route path="responsavel">
+                            <Route index element={<PaginaLoginPortal />} />
+                            <Route path="painel" element={<PaginaPainelTitular />} />
+                        </Route>
 
                         {/* ═══ SUPERFÍCIE 2: Painel Administrativo ═══ */}
                         <Route path="admin">
