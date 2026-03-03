@@ -9,79 +9,71 @@
 import { gerarScaeUuid } from '../utilitarios/uuid';
 import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../tipos/ambiente';
 
-export async function onRequest(contexto: ContextoSCAE): Promise<Response> {
+// ============================================================
+// Handlers nomeados por método (Cloudflare Pages Functions)
+// ============================================================
+export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     const tenantId = contexto.request.headers.get('X-Tenant-ID');
-
-    if (!tenantId) {
-        return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
-
+    if (!tenantId) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     try {
-        const url = new URL(contexto.request.url);
-        const path = url.pathname;
-        const method = contexto.request.method;
-
-        // 1. MOTOR DE BUSCA ON-DEMAND (Executa o Scan)
-        if (method === 'POST' && path.endsWith('/processar')) {
-            return await processarMotorEvasao(contexto.env.DB_SCAE, tenantId);
-        }
-
-        // 2. ATUALIZAÇÃO DO STATUS DO KANBAN DE EVASÃO
-        if (method === 'PATCH') {
-            const pathParts = path.split('/');
-            const alertaId = pathParts[pathParts.length - 1];
-            if (!alertaId || alertaId === 'evasao') {
-                return new Response(JSON.stringify({ error: 'ID do alerta ausente' }), { status: 400 });
-            }
-            return await atualizarStatusAlerta(contexto, contexto.env.DB_SCAE, tenantId, alertaId);
-        }
-
-        // 3. LISTAGEM DO PAINEL GERENCIAL DE EVASÃO
-        if (method === 'GET') {
-            const { results } = await contexto.env.DB_SCAE.prepare(`
-                SELECT 
-                    a.id,
-                    a.aluno_matricula,
-                    a.motivo,
-                    a.status,
-                    a.data_criacao,
-                    a.data_resolucao,
-                    al.nome_completo AS aluno_nome,
-                    t.id AS turma_nome
-                FROM 
-                    alertas_evasao a
-                INNER JOIN 
-                    alunos al ON a.aluno_matricula = al.matricula AND a.tenant_id = al.tenant_id
-                LEFT JOIN 
-                    turmas t ON al.turma_id = t.id AND al.tenant_id = t.tenant_id
-                WHERE 
-                    a.tenant_id = ?
-                ORDER BY 
-                    CASE a.status
-                        WHEN 'PENDENTE' THEN 1
-                        WHEN 'EM_ANALISE' THEN 2
-                        WHEN 'RESOLVIDO' THEN 3
-                    END,
-                    a.data_criacao DESC
-            `).bind(tenantId).all();
-
-            return new Response(JSON.stringify(results), {
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
-        return new Response(JSON.stringify({ error: 'Método não permitido' }), { status: 405 });
-
+        const { results } = await contexto.env.DB_SCAE.prepare(`
+            SELECT
+                a.id,
+                a.aluno_matricula,
+                a.motivo,
+                a.status,
+                a.criado_em as data_criacao,
+                a.data_resolucao,
+                al.nome_completo AS aluno_nome,
+                t.id AS turma_nome
+            FROM alertas_evasao a
+            INNER JOIN alunos al ON a.aluno_matricula = al.matricula AND a.tenant_id = al.tenant_id
+            LEFT JOIN turmas t ON al.turma_id = t.id AND al.tenant_id = t.tenant_id
+            WHERE a.tenant_id = ?
+            ORDER BY
+                CASE a.status
+                    WHEN 'PENDENTE' THEN 1
+                    WHEN 'EM_ANALISE' THEN 2
+                    WHEN 'RESOLVIDO' THEN 3
+                END,
+                a.criado_em DESC
+        `).bind(tenantId).all();
+        return new Response(JSON.stringify(results), { headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
         const mensagem = error instanceof Error ? error.message : 'Erro interno';
-        console.error('Erro na API Evasao:', mensagem);
-        return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return new Response(JSON.stringify({ error: mensagem }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+}
+
+export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
+    const tenantId = contexto.request.headers.get('X-Tenant-ID');
+    if (!tenantId) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    try {
+        const url = new URL(contexto.request.url);
+        if (url.pathname.endsWith('/processar')) {
+            return await processarMotorEvasao(contexto.env.DB_SCAE, tenantId);
+        }
+        return new Response(JSON.stringify({ error: 'Rota POST não reconhecida' }), { status: 404 });
+    } catch (error) {
+        const mensagem = error instanceof Error ? error.message : 'Erro interno';
+        return new Response(JSON.stringify({ error: mensagem }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+}
+
+export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> {
+    const tenantId = contexto.request.headers.get('X-Tenant-ID');
+    if (!tenantId) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    try {
+        const url = new URL(contexto.request.url);
+        const pathParts = url.pathname.split('/');
+        const alertaId = pathParts[pathParts.length - 1];
+        if (!alertaId || alertaId === 'evasao') {
+            return new Response(JSON.stringify({ error: 'ID do alerta ausente' }), { status: 400 });
+        }
+        return await atualizarStatusAlerta(contexto, contexto.env.DB_SCAE, tenantId, alertaId);
+    } catch (error) {
+        const mensagem = error instanceof Error ? error.message : 'Erro interno';
+        return new Response(JSON.stringify({ error: mensagem }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
 
@@ -122,9 +114,9 @@ async function processarMotorEvasao(db: D1Database, tenantId: string): Promise<R
     try {
         // 1. Localizar Estudantes Não Anonimizados (Ativos)
         const alunosResp = await db.prepare(`
-            SELECT matricula, nome_completo 
-            FROM alunos 
-            WHERE tenant_id = ? AND status = 'ATIVO' AND anonimizado = 0
+            SELECT matricula, nome_completo
+            FROM alunos
+            WHERE tenant_id = ? AND ativo = 1 AND anonimizado = 0
         `).bind(tenantId).all();
 
         const alunosAtivos = alunosResp.results || [];
