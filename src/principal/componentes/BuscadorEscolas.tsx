@@ -34,11 +34,24 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
         const delayBusca = setTimeout(async () => {
             definirCarregando(true);
             try {
-                // Aqui no futuro chamaremos a API de busca global: /api/search/escolas?q=...
-                // Por enquanto, como a regra é NADA FIXO, não retornamos nada fixo.
-                definirResultados([]);
+                const apiUrl = import.meta.env.VITE_API_URL || '/api';
+                const resposta = await fetch(`${apiUrl}/escola/buscar?q=${encodeURIComponent(termoBusca)}`);
+                if (resposta.ok) {
+                    const dados = await resposta.json();
+                    // Mapear resposta da API para o formato esperado pelo componente
+                    const escolasMapeadas = (dados.dados || []).map((e: { id: string; nome: string }) => ({
+                        id: e.id,
+                        nome: e.nome,
+                        slug: e.id,
+                        cidade: '', // Campo não disponível na busca pública
+                    }));
+                    definirResultados(escolasMapeadas);
+                } else {
+                    definirResultados([]);
+                }
             } catch (error) {
                 console.error('Erro ao buscar escolas:', error);
+                definirResultados([]);
             } finally {
                 definirCarregando(false);
             }
