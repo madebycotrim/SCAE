@@ -7,7 +7,7 @@
  */
 import { useState, useEffect } from 'react';
 import { usarRegrasHorarios } from '@funcionalidades/configuracao-horarios';
-import type { JanelaHorarioAcesso } from '@funcionalidades/configuracao-horarios/types/RegrasHorariosTipos';
+import type { JanelaHorarioAcesso } from '@funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
 import { usarEscola } from '@escola/ProvedorEscola';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import toast from 'react-hot-toast';

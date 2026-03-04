@@ -1,6 +1,6 @@
 ﻿import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
-import { RegrasHorariosApi } from '../servicos/RegrasHorariosApi';
-import type { JanelaHorarioAcesso, ConfiguracaoHorarios } from '../types/RegrasHorariosTipos';
+import { RegrasHorariosApi } from '../servicos/regrasAcessoApi';
+import type { JanelaHorarioAcesso, ConfiguracaoHorarios } from '../types/regrasHorarios.tipos';
 
 /**
  * Hook para obter e gerenciar as janelas de horário (regras de acesso) da escola.
