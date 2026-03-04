@@ -1,7 +1,7 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Smartphone, Bell, ShieldCheck, Zap, Users, GraduationCap, BookOpen, Library, Landmark } from 'lucide-react';
+import { ArrowRight, Smartphone, Bell, ShieldCheck, Zap, Users, GraduationCap, BookOpen, Library, Landmark, Building2 } from 'lucide-react';
 
 import { CabecalhoInicial } from './componentes/CabecalhoInicial';
 import { BuscadorEscolas } from './componentes/BuscadorEscolas';
@@ -11,11 +11,26 @@ import { ModalContato } from './componentes/ModalContato';
 import { RodapeInicial } from './componentes/RodapeInicial';
 import { SEO } from './componentes/SEO';
 
+interface EscolaCadastrada {
+    id: string;
+    nome: string;
+}
+
 export default function PaginaInicial() {
     const [temaEscuro, definirTemaEscuro] = useState(false);
     const [modalSobreAberto, definirModalSobreAberto] = useState(false);
     const [modalContatoAberto, definirModalContatoAberto] = useState(false);
+    const [escolasCadastradas, definirEscolasCadastradas] = useState<EscolaCadastrada[]>([]);
     const navegar = useNavigate();
+
+    // Carrega todas as escolas cadastradas ao montar a página
+    useEffect(() => {
+        const apiUrl = import.meta.env.VITE_API_URL || '/api';
+        fetch(`${apiUrl}/escola/buscar`)
+            .then(r => r.ok ? r.json() : { dados: [] })
+            .then(dados => definirEscolasCadastradas(dados.dados || []))
+            .catch(() => definirEscolasCadastradas([]));
+    }, []);
 
     const selecionarEscola = (slug: string) => {
         navegar(`/${slug}/login`);
@@ -98,10 +113,38 @@ export default function PaginaInicial() {
 
             </main>
 
-            {/* Partner Logos Strip (Social Proof - Simplified) */}
-            <div className={`w-full py-10 border-y relative z-10 ${temaEscuro ? 'border-slate-800/60 bg-[#0B0F19]/40' : 'border-slate-200/60 bg-white/40'}`}>
-                <div className="max-w-5xl mx-auto px-6 text-center text-slate-500 font-medium text-sm uppercase tracking-widest">
-                    Segurança e Controle para Instituições de Ensino
+            {/* Escolas Cadastradas */}
+            <div className={`w-full py-14 border-y relative z-10 ${temaEscuro ? 'border-slate-800/60 bg-[#0B0F19]/40' : 'border-slate-200/60 bg-white/40'}`}>
+                <div className="max-w-5xl mx-auto px-6">
+                    <p className={`text-center font-medium text-sm uppercase tracking-widest mb-8 ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {escolasCadastradas.length > 0 ? 'Escolas que utilizam o SCAE' : 'Segurança e Controle para Instituições de Ensino'}
+                    </p>
+
+                    {escolasCadastradas.length > 0 && (
+                        <div className="flex flex-wrap justify-center gap-4">
+                            {escolasCadastradas.map((escola) => (
+                                <motion.button
+                                    key={escola.id}
+                                    onClick={() => selecionarEscola(escola.id)}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    className={`flex items-center gap-3 px-6 py-4 rounded-2xl border font-semibold transition-all cursor-pointer shadow-sm hover:shadow-lg group ${temaEscuro
+                                        ? 'bg-slate-800/60 border-slate-700/60 text-slate-200 hover:border-indigo-500/50 hover:bg-slate-800'
+                                        : 'bg-white/80 border-slate-200/80 text-slate-700 hover:border-indigo-300 hover:bg-white'
+                                        }`}
+                                >
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${temaEscuro
+                                        ? 'bg-indigo-500/15 text-indigo-400 group-hover:bg-indigo-500/25'
+                                        : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
+                                        }`}>
+                                        <Building2 className="w-5 h-5" />
+                                    </div>
+                                    <span>{escola.nome}</span>
+                                    <ArrowRight className={`w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all ${temaEscuro ? 'text-indigo-400' : 'text-indigo-500'}`} />
+                                </motion.button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 

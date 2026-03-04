@@ -11,9 +11,17 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         const url = new URL(contexto.request.url);
         const termo = url.searchParams.get('q')?.trim() || '';
 
+        // Sem termo de busca → retorna todas as escolas cadastradas
         if (termo.length < 2) {
-            return new Response(JSON.stringify({ dados: [] }), {
-                headers: { 'Content-Type': 'application/json' }
+            const todas = await contexto.env.DB_SCAE.prepare(
+                `SELECT id, nome_escola as nome FROM escolas ORDER BY nome_escola ASC LIMIT 50`
+            ).all();
+
+            return new Response(JSON.stringify({ dados: todas.results }), {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'public, max-age=300'
+                }
             });
         }
 
