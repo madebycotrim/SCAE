@@ -66,7 +66,7 @@ export default function TerminalAcesso() {
                 if (aluno.ativo === false) {
                     definirUltimoAcesso({
                         tipo: 'ERRO',
-                        mensagem: 'Acesso Negado: Discente Inativo',
+                        mensagem: 'Acesso Negado: Aluno Bloqueado',
                         hora: format(new Date(), 'HH:mm:ss'),
                         aluno: aluno
                     });
@@ -97,7 +97,7 @@ export default function TerminalAcesso() {
             } else {
                 definirUltimoAcesso({
                     tipo: 'ERRO',
-                    mensagem: 'Credencial não localizada',
+                    mensagem: 'Carteirinha não encontrada',
                     hora: format(new Date(), 'HH:mm:ss')
                 });
                 audioErro.current.play().catch(() => { });
@@ -150,11 +150,11 @@ export default function TerminalAcesso() {
                     <div>
                         <div className="flex items-center gap-3">
                             <h1 className="text-lg font-black text-white uppercase tracking-tighter">
-                                Terminal de Acesso
+                                Leitor de QR Code
                             </h1>
-                            <span className="px-2 py-0.5 bg-indigo-600 text-white text-[8px] font-black rounded uppercase tracking-widest shadow-lg shadow-indigo-900/20">V2.4 CORE</span>
+                            <span className="px-2 py-0.5 bg-indigo-600 text-white text-[8px] font-black rounded uppercase tracking-widest shadow-lg shadow-indigo-900/20">SISTEMA</span>
                         </div>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-0.5">Monitoramento de Fluxo Estratégico</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-0.5">Controle de Entrada e Saída</p>
                     </div>
                 </div>
 
@@ -180,8 +180,8 @@ export default function TerminalAcesso() {
                         <p className="text-xs font-black text-white leading-tight uppercase tracking-tight">{usuarioAtual?.email?.split('@')[0]}</p>
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">
                             {statusWorker.pendentes > 0
-                                ? <span className="text-amber-500 animate-pulse">Lote Pendente: {statusWorker.pendentes}</span>
-                                : 'Kernel Autorizado'}
+                                ? <span className="text-amber-500 animate-pulse">Sincronizando: {statusWorker.pendentes}</span>
+                                : 'Operando Normalmente'}
                         </p>
                     </div>
                 </div>
@@ -196,9 +196,9 @@ export default function TerminalAcesso() {
 
                     <div className="text-center space-y-2 mb-12">
                         <h2 className="text-xs font-black text-indigo-400 uppercase tracking-[0.4em] flex items-center justify-center gap-3">
-                            <Radar size={16} className="animate-spin-slow" /> Sensores Ativos
+                            <Radar size={16} className="animate-spin-slow" /> Pronto para ler
                         </h2>
-                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Câmera de Varredura</h3>
+                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Câmera de Acesso</h3>
                     </div>
 
                     {/* Industrial Scanner Frame */}
@@ -227,7 +227,7 @@ export default function TerminalAcesso() {
                     <div className="mt-12 flex items-center gap-6 px-8 py-4 bg-white/5 rounded-3xl border border-white/5 backdrop-blur-md">
                         <Maximize2 size={24} className="text-slate-500 animate-pulse" />
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] max-w-[240px] leading-relaxed">
-                            Aproxime a credencial QR à zona de varredura para validação instantânea.
+                            Aproxime o QR Code do aluno para liberar a passagem.
                         </p>
                     </div>
                 </CartaoConteudo>
@@ -238,7 +238,7 @@ export default function TerminalAcesso() {
 
                     <div className="flex items-center justify-between pb-6 border-b border-white/5 mb-10 z-10 relative">
                         <h3 className="text-xs font-black text-slate-300 flex items-center gap-3 uppercase tracking-widest">
-                            <Terminal size={18} className="text-indigo-500" /> Kernel Dashboard
+                            <Terminal size={18} className="text-indigo-500" /> Informações do Aluno
                         </h3>
                         <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-indigo-400 transition-colors">
                             <Zap size={14} />
@@ -255,7 +255,7 @@ export default function TerminalAcesso() {
                                         {ultimoAcesso.aluno?.nome_completo || 'Unknown'}
                                     </h2>
                                     <p className="text-[9px] font-mono font-black text-indigo-400/60 mb-8 uppercase tracking-[0.3em]">
-                                        PID: {ultimoAcesso.aluno?.matricula || 'NULL_PTR'}
+                                        Matrícula: {ultimoAcesso.aluno?.matricula || '---'}
                                     </p>
 
                                     {ultimoAcesso.aluno && (
@@ -280,7 +280,7 @@ export default function TerminalAcesso() {
                                         : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
                                         }`}>
                                         <div className="flex flex-col gap-2">
-                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] leading-none">Status Autenticação</span>
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] leading-none">Resultado</span>
                                             <span className="text-sm font-black uppercase tracking-tighter leading-none">{ultimoAcesso.mensagem}</span>
                                         </div>
                                         <Fingerprint size={28} strokeWidth={2.5} className="opacity-50" />
@@ -296,9 +296,9 @@ export default function TerminalAcesso() {
                                     </div>
                                 </div>
                                 <div className="text-center space-y-2">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500">Aguardando Pulso</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500">Aguardando leitura</p>
                                     <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest max-w-[180px] leading-relaxed mx-auto">
-                                        Sensor de Proximidade Ativado. Conecte credencial...
+                                        Scanner ativado. Aproxime um QR Code...
                                     </p>
                                 </div>
                             </div>

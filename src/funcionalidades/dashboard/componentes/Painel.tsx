@@ -5,9 +5,6 @@ import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
 import { Botao, CartaoConteudo } from '@compartilhado/componentes/UI';
 import { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
 import {
-    Users,
-    Clock,
-    ShieldCheck,
     TrendingUp,
     ArrowUpRight,
     ArrowDownRight,
@@ -15,7 +12,17 @@ import {
     LogOut,
     LogIn,
     ArrowRight,
-    Radar
+    Radar,
+    AlertTriangle,
+    CheckCircle,
+    Layers,
+    Shield,
+    ShieldCheck,
+    FileText,
+    Calendar,
+    Grid,
+    Clock,
+    Users
 } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import { useMemo } from 'react';
@@ -58,87 +65,106 @@ interface PropsCardEstatistica {
 }
 
 const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }: PropsCardEstatistica) => {
-    const corConfig = {
-        indigo: 'bg-indigo-600 text-white shadow-indigo-900/10 border-indigo-500',
-        amber: 'bg-amber-500 text-white shadow-amber-900/10 border-amber-400',
-        rose: 'bg-rose-500 text-white shadow-rose-900/10 border-rose-400',
-        emerald: 'bg-emerald-600 text-white shadow-emerald-900/10 border-emerald-500'
+    const corAcento = {
+        indigo: 'border-l-slate-400',
+        amber: 'border-l-amber-400',
+        rose: 'border-l-rose-400',
+        emerald: 'border-l-emerald-400'
     };
 
-    const corIconeBg = {
-        indigo: 'bg-white/10',
-        amber: 'bg-white/10',
-        rose: 'bg-white/10',
-        emerald: 'bg-white/10'
+    const corIcone = {
+        indigo: 'text-slate-600 bg-slate-50',
+        amber: 'text-amber-600 bg-amber-50',
+        rose: 'text-rose-600 bg-rose-50',
+        emerald: 'text-emerald-600 bg-emerald-50'
     };
 
     return (
-        <CartaoConteudo className={`p-8 hover:shadow-2xl transition-all hover:-translate-y-1 relative overflow-hidden group border-none rounded-[2.5rem] ${corConfig[cor]}`}>
-            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full group-hover:scale-150 transition-transform"></div>
-            <div className="flex justify-between items-start mb-6 z-10 relative">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border border-white/20 shadow-xl ${corIconeBg[cor]} backdrop-blur-sm group-hover:rotate-6 transition-transform`}>
-                    <Icone size={24} strokeWidth={2.5} />
+        <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border border-slate-200 border-l-4 ${corAcento[cor]} rounded-xl shadow-sm`}>
+            <div className="flex justify-between items-start mb-3 z-10 relative">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border border-slate-200/50 shadow-sm transition-transform ${corIcone[cor]}`}>
+                    <Icone size={18} strokeWidth={2} />
                 </div>
                 {tendencia !== undefined && (
-                    <div className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md uppercase tracking-widest">
-                        {tendencia > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                    <div className={`flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-wider ${(tendencia > 0 && !inverterTendencia) || (tendencia < 0 && inverterTendencia)
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        : 'bg-rose-50 text-rose-600 border-rose-100'
+                        }`}>
+                        {tendencia > 0 ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
                         {Math.abs(tendencia)}%
                     </div>
                 )}
             </div>
             <div className="z-10 relative">
-                <h3 className="text-white/60 text-[10px] font-black uppercase tracking-[0.2em] mb-1 leading-none">{titulo}</h3>
-                <p className="text-3xl font-black text-white tracking-tighter leading-tight">{valor}</p>
-                {subtitulo && (
-                    <p className="text-[10px] text-white/50 font-bold mt-2 uppercase tracking-wide">{subtitulo}</p>
-                )}
+                <h3 className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] mb-1 leading-none">{titulo}</h3>
+                <div className="flex items-baseline gap-2">
+                    <p className="text-xl font-black text-slate-800 tracking-tighter leading-tight">{valor}</p>
+                    {subtitulo && (
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate">{subtitulo}</p>
+                    )}
+                </div>
             </div>
         </CartaoConteudo>
     );
 };
 
+const SecaoHeader = ({ titulo, subtitulo, icone: Icone }: { titulo: string; subtitulo: string; icone: any }) => (
+    <div className="flex items-center justify-between mb-6 group">
+        <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 shadow-sm transition-all">
+                <Icone size={20} strokeWidth={2.5} />
+            </div>
+            <div>
+                <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest leading-none mb-1.5">{titulo}</h2>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">{subtitulo}</p>
+            </div>
+        </div>
+        <div className="h-px flex-1 bg-slate-200/60 mx-8 hidden md:block"></div>
+    </div>
+);
+
 const LiveAccessFeed = ({ registros, alunos }) => {
     return (
-        <CartaoConteudo className="h-full flex flex-col bg-white border-slate-200 shadow-2xl rounded-[2.5rem] overflow-hidden group">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <CartaoConteudo className="h-full flex flex-col bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden group">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Radar size={16} className="text-indigo-600 animate-pulse" />
-                    Telemetria em Real-Time
+                    <Radar size={14} className="text-slate-600 animate-pulse" />
+                    Atividade em Tempo Real
                 </h3>
-                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100 shadow-sm">
-                    <span className="relative flex h-2 w-2">
+                <div className="flex items-center gap-2 px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                     </span>
-                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none">AO VIVO</span>
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none">AO VIVO</span>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-1">
+            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-0.5">
                 {registros.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-40 grayscale gap-4">
-                        <Activity size={48} strokeWidth={1} className="text-slate-400" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Silêncio Operacional</p>
+                        <Activity size={32} strokeWidth={1} className="text-slate-400" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Sincronizando...</p>
                     </div>
                 ) : (
                     registros.slice(0, 15).map((reg) => {
                         const aluno = alunos.find(a => a.matricula === reg.aluno_matricula);
                         const isEntrada = reg.tipo_movimentacao === 'ENTRADA';
                         return (
-                            <div key={reg.id} className="p-4 rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-4 group/item border border-transparent hover:border-slate-100">
-                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border shadow-sm transition-transform group-hover/item:scale-110 ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                                    {isEntrada ? <LogIn size={20} /> : <LogOut size={20} />}
+                            <div key={reg.id} className="p-3 rounded-lg hover:bg-slate-50 transition-all flex items-center gap-4 group/item">
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shadow-sm transition-transform ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                    {isEntrada ? <LogIn size={16} /> : <LogOut size={16} />}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-black text-slate-900 group-hover/item:text-indigo-700 transition-colors uppercase tracking-tight truncate">
+                                    <p className="text-xs font-black text-slate-700 uppercase tracking-tight truncate">
                                         {aluno?.nome_completo || 'Identificando...'}
                                     </p>
-                                    <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
                                         {reg.aluno_matricula} • {aluno?.turma_id || 'Avulso'}
                                     </p>
                                 </div>
                                 <div className="text-right whitespace-nowrap">
-                                    <span className="text-[10px] font-mono font-black text-slate-700 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl shadow-sm group-hover/item:border-indigo-200 group-hover/item:bg-indigo-50 transition-all">
+                                    <span className="text-[9px] font-bold text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded-lg">
                                         {format(parseISO(reg.timestamp), 'HH:mm')}
                                     </span>
                                 </div>
@@ -148,9 +174,9 @@ const LiveAccessFeed = ({ registros, alunos }) => {
                 )}
             </div>
 
-            <button className="w-full p-4 bg-slate-50 border-t border-slate-100 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-all flex items-center justify-center gap-2 group/btn">
+            <button className="w-full h-11 bg-slate-50 border-t border-slate-100 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center gap-2 group/btn">
                 Auditoria Completa de Fluxo
-                <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                <ArrowRight size={12} className="group-hover/btn:translate-x-1 transition-transform" />
             </button>
         </CartaoConteudo>
     );
@@ -246,109 +272,226 @@ export default function Painel() {
 
     return (
         <LayoutAdministrativo
-            titulo="Visão Geral"
-            subtitulo="Acompanhamento de alunos e movimentação em tempo real"
+            titulo="Dashboard Central"
+            subtitulo="Gestão, Pedagogia e Controle em Tempo Real"
             acoes={null}
         >
-            <div className="space-y-8 pb-12">
+            <div className="space-y-12 pb-16">
 
-                {/* Grid de Indicadores Principais */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <CardEstatistica
-                        titulo="Alunos na Escola"
-                        valor={estatisticas.presentesHoje}
-                        subtitulo="Entradas registradas hoje"
-                        icone={Users}
-                        cor="indigo"
-                        tendencia={12}
+                {/* --- PILAR 1: VISÃO GERAL --- */}
+                <section>
+                    <SecaoHeader
+                        titulo="Visão Estratégica"
+                        subtitulo="Indicadores de performance e evolução escolar"
+                        icone={TrendingUp}
                     />
-                    <CardEstatistica
-                        titulo="Atrasos do Dia"
-                        valor={estatisticas.atrasosHoje}
-                        subtitulo="Entradas fora do horário"
-                        icone={Clock}
-                        cor="amber"
-                        tendencia={-5}
-                        inverterTendencia
-                    />
-                    <CardEstatistica
-                        titulo="Saídas Registradas"
-                        valor={estatisticas.saidasHoje}
-                        subtitulo="Alunos que saíram hoje"
-                        icone={LogOut}
-                        cor="rose"
-                    />
-                    <CardEstatistica
-                        titulo="Total de Alunos"
-                        valor={estatisticas.totalAlunos}
-                        subtitulo="Estudantes cadastrados"
-                        icone={ShieldCheck}
-                        cor="emerald"
-                    />
-                </div>
 
-                {/* Grid de Análises e Atividade */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-                    {/* Coluna de Gráficos */}
-                    <div className="lg:col-span-2">
-                        <CartaoConteudo className="p-10 flex flex-col h-full bg-white border-slate-200 shadow-2xl rounded-[2.5rem] overflow-hidden group">
-                            <div className="flex justify-between items-center mb-8">
-                                <div>
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Evolução Diária</h3>
-                                    <h4 className="text-xl font-black text-slate-800 uppercase tracking-tight">Frequência da Semana</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+                        <div className="lg:col-span-2">
+                            <CartaoConteudo className="p-8 flex flex-col h-full bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden group">
+                                <div className="flex justify-between items-center mb-8">
+                                    <div className="flex items-center gap-4 border-l-2 border-slate-900 pl-4">
+                                        <div>
+                                            <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 leading-none">Evolução Diária</h3>
+                                            <h4 className="text-base font-black text-slate-800 uppercase tracking-tight">Frequência da Semana</h4>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
+                                        <Activity size={12} className="text-slate-500" />
+                                        <span className="text-[9px] font-black text-slate-500 uppercase">Média: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)}</span>
+                                    </div>
                                 </div>
-                                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 border border-indigo-100 shadow-sm group-hover:rotate-12 transition-transform">
-                                    <TrendingUp size={24} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                            <div className="flex-1 w-full min-h-[350px] relative">
-                                <Line data={dataLine} options={{
-                                    maintainAspectRatio: false,
-                                    responsive: true,
-                                    plugins: {
-                                        legend: { display: false },
-                                        tooltip: {
-                                            backgroundColor: '#0f172a',
-                                            titleFont: { family: 'inherit', weight: 800, size: 12 },
-                                            bodyFont: { family: 'inherit', size: 12, weight: 600 },
-                                            padding: 16,
-                                            cornerRadius: 16,
-                                            displayColors: false,
-                                            caretSize: 8,
-                                            bodyColor: '#cbd5e1'
-                                        }
-                                    },
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            grid: { color: '#f8fafc', drawTicks: false },
-                                            border: { display: false },
-                                            ticks: {
-                                                font: { family: 'inherit', size: 10, weight: 700 },
-                                                color: '#94a3b8',
-                                                padding: 10
+                                <div className="flex-1 w-full min-h-[300px] relative">
+                                    <Line data={dataLine} options={{
+                                        maintainAspectRatio: false,
+                                        responsive: true,
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                                backgroundColor: '#0f172a',
+                                                titleFont: { family: 'inherit', weight: 800, size: 12 },
+                                                bodyFont: { family: 'inherit', size: 12, weight: 600 },
+                                                padding: 16,
+                                                cornerRadius: 16,
+                                                displayColors: false,
+                                                caretSize: 8,
+                                                bodyColor: '#cbd5e1'
                                             }
                                         },
-                                        x: {
-                                            grid: { display: false },
-                                            border: { display: false },
-                                            ticks: {
-                                                font: { family: 'inherit', size: 10, weight: 700 },
-                                                color: '#94a3b8',
-                                                padding: 10
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                grid: { color: '#f1f5f9', drawTicks: false },
+                                                border: { display: false },
+                                                ticks: {
+                                                    font: { family: 'inherit', size: 10, weight: 700 },
+                                                    color: '#94a3b8',
+                                                    padding: 10
+                                                }
+                                            },
+                                            x: {
+                                                grid: { display: false },
+                                                border: { display: false },
+                                                ticks: {
+                                                    font: { family: 'inherit', size: 10, weight: 700 },
+                                                    color: '#94a3b8',
+                                                    padding: 10
+                                                }
                                             }
                                         }
-                                    }
-                                }} />
-                            </div>
-                        </CartaoConteudo>
-                    </div>
+                                    }} />
+                                </div>
+                            </CartaoConteudo>
+                        </div>
 
-                    {/* Real-time Telemetry Column */}
-                    <div className="lg:col-span-1">
-                        <LiveAccessFeed registros={estatisticas.registrosRecentes} alunos={estatisticas.alunos} />
+                        <div className="flex flex-col gap-6">
+                            <CardEstatistica
+                                titulo="Taxa de Frequência"
+                                valor={`${estatisticas.totalAlunos > 0 ? Math.round((estatisticas.presentesHoje / estatisticas.totalAlunos) * 100) : 0}%`}
+                                subtitulo="Meta: 95%"
+                                icone={Activity}
+                                cor="indigo"
+                                tendencia={2.4}
+                            />
+                            <CardEstatistica
+                                titulo="Total de Estudantes"
+                                valor={estatisticas.totalAlunos}
+                                subtitulo="Cadastro Ativo"
+                                icone={Users}
+                                cor="indigo"
+                            />
+                            <CardEstatistica
+                                titulo="Permanência Média"
+                                valor="4.2h"
+                                subtitulo="Tempo em aula"
+                                icone={Clock}
+                                cor="indigo"
+                            />
+                        </div>
                     </div>
-                </div>
+                </section>
+
+                {/* --- PILAR 2: PEDAGÓGICO --- */}
+                <section>
+                    <SecaoHeader
+                        titulo="Módulo Pedagógico"
+                        subtitulo="Acompanhamento preventivo e evasão"
+                        icone={ShieldCheck}
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <CardEstatistica
+                            titulo="Risco de Abandono"
+                            valor={estatisticas.atrasosHoje} // Usando dado disponível como proxy
+                            subtitulo="Pendentes Urgentes"
+                            icone={AlertTriangle}
+                            cor="rose"
+                            tendencia={-12}
+                            inverterTendencia
+                        />
+                        <CardEstatistica
+                            titulo="Faltas Consecutivas"
+                            valor={8}
+                            subtitulo="Turmas Críticas"
+                            icone={Activity}
+                            cor="rose"
+                        />
+                        <CardEstatistica
+                            titulo="Alunos Presentes"
+                            valor={estatisticas.presentesHoje}
+                            subtitulo="Check-in realizado"
+                            icone={CheckCircle}
+                            cor="emerald"
+                            tendencia={5}
+                        />
+                        <CardEstatistica
+                            titulo="Turmas Ativas"
+                            valor={12}
+                            subtitulo="Em aula agora"
+                            icone={Layers}
+                            cor="emerald"
+                        />
+                    </div>
+                </section>
+
+                {/* --- PILAR 3: CONTROLE & ACESSO --- */}
+                <section>
+                    <SecaoHeader
+                        titulo="Controle de Portaria"
+                        subtitulo="Monitoramento de fluxo em tempo real"
+                        icone={Radar}
+                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-1 flex flex-col gap-6">
+                            <CardEstatistica
+                                titulo="Saídas Registradas"
+                                valor={estatisticas.saidasHoje}
+                                subtitulo="Fluxo de saída"
+                                icone={LogOut}
+                                cor="amber"
+                            />
+                            <CardEstatistica
+                                titulo="Atrasos Detectados"
+                                valor={estatisticas.atrasosHoje}
+                                subtitulo="Pós-tolerância"
+                                icone={Clock}
+                                cor="amber"
+                                tendencia={8}
+                                inverterTendencia
+                            />
+                        </div>
+                        <div className="lg:col-span-2 min-h-[400px]">
+                            <LiveAccessFeed registros={estatisticas.registrosRecentes} alunos={estatisticas.alunos} />
+                        </div>
+                    </div>
+                </section>
+
+                {/* --- PILAR 4: ADMINISTRAÇÃO --- */}
+                <section>
+                    <SecaoHeader
+                        titulo="Administração"
+                        subtitulo="Status do sistema e atalhos rápidos"
+                        icone={Shield}
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex items-center justify-between group hover:border-slate-400 transition-all">
+                            <div className="flex items-center gap-4">
+                                <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors border border-slate-100">
+                                    <Users size={16} />
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Usuários</p>
+                                    <p className="text-xs font-black text-slate-700 uppercase tracking-tight">Time</p>
+                                </div>
+                            </div>
+                            <ArrowRight size={12} className="text-slate-300 group-hover:translate-x-1 group-hover:text-slate-900 transition-all" />
+                        </div>
+
+                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex items-center justify-between group hover:border-slate-400 transition-all">
+                            <div className="flex items-center gap-4">
+                                <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors border border-slate-100">
+                                    <FileText size={16} />
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Registros</p>
+                                    <p className="text-xs font-black text-slate-700 uppercase tracking-tight">Audit</p>
+                                </div>
+                            </div>
+                            <ArrowRight size={12} className="text-slate-300 group-hover:translate-x-1 group-hover:text-slate-900 transition-all" />
+                        </div>
+
+                        <div className="sm:col-span-2 bg-slate-950 rounded-xl p-5 border border-slate-800 relative overflow-hidden flex items-center justify-between group">
+                            <div className="relative z-10 border-l-2 border-emerald-500 pl-4">
+                                <h4 className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] mb-1">Sync Service</h4>
+                                <div className="flex items-center gap-3">
+                                    <p className="text-white text-[11px] font-black uppercase tracking-widest">Database Ativa</p>
+                                </div>
+                            </div>
+                            <Botao variante="ghost" tamanho="sm" className="text-slate-400 hover:bg-white/5 border border-white/10 relative z-10 h-8">
+                                Forçar Sinc
+                            </Botao>
+                        </div>
+                    </div>
+                </section>
             </div>
         </LayoutAdministrativo>
     );

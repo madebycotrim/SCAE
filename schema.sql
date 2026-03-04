@@ -13,8 +13,10 @@ CREATE TABLE escolas (
     cor_primaria TEXT DEFAULT '#000000',
     cor_secundaria TEXT DEFAULT '#ffffff',
     tts_ativado BOOLEAN DEFAULT 1,
+    janelas TEXT DEFAULT '[]',         -- Configuração de horários JSON
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 -- ====================================

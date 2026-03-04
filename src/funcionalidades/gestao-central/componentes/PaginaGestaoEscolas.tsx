@@ -52,7 +52,7 @@ export function PaginaGestaoEscolas() {
 
     if (erro) {
         return (
-            <div className="bg-rose-500/5 border border-rose-500/20 p-12 rounded-3xl flex flex-col items-center text-center gap-6 max-w-lg mx-auto">
+            <div className="bg-rose-500/5 border border-rose-500/20 p-12 rounded-2xl flex flex-col items-center text-center gap-6 max-w-lg mx-auto">
                 <div className="w-16 h-16 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500 shadow-lg shadow-rose-900/10">
                     <AlertTriangle size={32} />
                 </div>
@@ -68,7 +68,7 @@ export function PaginaGestaoEscolas() {
     return (
         <div className="space-y-8 animate-fade-in pb-12">
             {/* Header Técnico */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[100px] rounded-full pointer-events-none"></div>
 
                 <div className="flex items-center gap-5 relative z-10">

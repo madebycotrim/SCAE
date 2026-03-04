@@ -1,9 +1,10 @@
 // TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
-﻿import { openDB, IDBPDatabase, IDBPTransaction } from 'idb';
+import { openDB, IDBPDatabase, IDBPTransaction } from 'idb';
 import type { EsquemaSCAE, AlunoLocal, TurmaLocal, RegistroAcessoLocal, UsuarioLocal, AlunoPresente } from '@compartilhado/types/bancoLocal.tipos';
+import type { ConfiguracaoHorarios } from '@funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
 
 const NOME_BANCO = 'SCAE_DB';
-const VERSAO_BANCO = 10; // v10: Index Sincronizado Logs
+const VERSAO_BANCO = 11; // v11: Store Configuracao Horarios
 
 export const iniciarBanco = async (): Promise<IDBPDatabase<EsquemaSCAE>> => {
     return openDB<EsquemaSCAE>(NOME_BANCO, VERSAO_BANCO, {
@@ -91,6 +92,11 @@ export const iniciarBanco = async (): Promise<IDBPDatabase<EsquemaSCAE>> => {
                 const store = transaction.objectStore('usuarios');
                 if (!store.indexNames.contains('papel')) store.createIndex('papel', 'papel');
                 if (!store.indexNames.contains('ativo')) store.createIndex('ativo', 'ativo');
+            }
+
+            // --- 7. Configuração Horários ---
+            if (!banco.objectStoreNames.contains('configuracao_horarios')) {
+                banco.createObjectStore('configuracao_horarios', { keyPath: 'id' });
             }
         },
     });
@@ -394,5 +400,16 @@ export const bancoLocal = {
             registros: registrosRecentes,
             logs
         };
+    },
+
+    // --- Configuração Horários (Acessos) ---
+    salvarConfiguracaoHorarios: async (config: ConfiguracaoHorarios & { id: string }) => {
+        const banco = await iniciarBanco();
+        await banco.put('configuracao_horarios', config);
+    },
+
+    buscarConfiguracaoHorarios: async (idEscola: string) => {
+        const banco = await iniciarBanco();
+        return await banco.get('configuracao_horarios', idEscola);
     }
 };

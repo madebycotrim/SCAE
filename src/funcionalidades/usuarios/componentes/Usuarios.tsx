@@ -168,7 +168,7 @@ export default function Usuarios() {
         { id: 'ADMIN', nome: 'Administrador', cor: 'indigo' },
         { id: 'COORDENACAO', nome: 'Coordenação', cor: 'emerald' },
         { id: 'SECRETARIA', nome: 'Secretaria', cor: 'amber' },
-        { id: 'PORTEIRO', nome: 'Controle de Acesso', cor: 'rose' },
+        { id: 'PORTEIRO', nome: 'Portaria / Acesso', cor: 'rose' },
         { id: 'VISUALIZACAO', nome: 'Visitante', cor: 'slate' }
     ];
 
@@ -179,44 +179,44 @@ export default function Usuarios() {
             icone={Plus}
             onClick={novoUsuario}
         >
-            Convidar Usuário
+            Novo Acesso
         </Botao>
     );
 
     return (
         <LayoutAdministrativo
-            titulo="Time Acadêmico"
-            subtitulo="Gestão de operadores, permissões e privilégios da unidade"
+            titulo="Equipe da Escola"
+            subtitulo="Gerencie quem pode acessar e operar o sistema na unidade"
             acoes={AcoesHeader}
         >
-            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-[2rem]">
+            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-2xl">
                 <div className="flex flex-col gap-2.5 flex-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Pesquisa de Operadores</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Buscar Funcionário</label>
                     <InputBusca
                         icone={Search}
-                        placeholder="Filtrar por nome, email ou perfil de acesso..."
+                        placeholder="Nome, e-mail ou cargo..."
                         value={busca}
                         onChange={(e) => definirBusca(e.target.value)}
-                        className="w-full h-12 rounded-2xl"
+                        className="w-full h-9 rounded-2xl"
                     />
                 </div>
                 <div className="flex items-center gap-4 ml-6 self-end pb-1">
                     <div className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-sm">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Contingente Ativo</span>
-                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Operadores</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Cadastrado</span>
+                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Pessoas</span>
                     </div>
                 </div>
             </BarraFiltro>
 
-            <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-[2.5rem] overflow-hidden mt-8">
+            <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-2xl overflow-hidden mt-8">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-200">
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificação do Usuário</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Perfil / Privilégios</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações de Gestão</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Funcionário</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Permissão de Acesso</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Situação</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -231,7 +231,7 @@ export default function Usuarios() {
                                     <td colSpan={4} className="py-24 text-center">
                                         <div className="flex flex-col items-center justify-center gap-4 opacity-40 grayscale">
                                             <UserCircle2 size={48} className="text-slate-400" />
-                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhum operador localizado</p>
+                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhuma pessoa encontrada</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -242,10 +242,10 @@ export default function Usuarios() {
                                     const papelCor = papelInfo?.cor || 'slate';
 
                                     return (
-                                        <tr key={u.email} className={`hover:bg-indigo-50/20 transition-all group ${!u.ativo ? 'opacity-70 grayscale' : ''}`}>
+                                        <tr key={u.email} className={`hover:bg-slate-50 transition-all group ${!u.ativo ? 'opacity-70 grayscale' : ''}`}>
                                             <td className="py-5 px-8">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-900/10' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border-indigo-100 shadow-indigo-100/50' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
                                                         {u.papel === 'ADMIN' ? <ShieldCheck size={20} strokeWidth={2.5} /> : <UserCircle2 size={20} />}
                                                     </div>
                                                     <div>
@@ -260,11 +260,11 @@ export default function Usuarios() {
                                                 </div>
                                             </td>
                                             <td className="py-5 px-8 text-center">
-                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all hover:shadow-lg ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                                                    papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                        papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                                            papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                                                                'bg-slate-50 text-slate-700 border-slate-200'
+                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                        papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                            papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                                papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                                                    'bg-slate-50 text-slate-700 border-slate-200'
                                                     }`}>
                                                     {papelNome}
                                                 </span>
@@ -320,20 +320,20 @@ function BadgeStatus({ ativo, pendente }: { ativo: boolean, pendente?: boolean }
     if (pendente) {
         return (
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 shadow-sm transition-all hover:scale-110">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> Pendente
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> Aguardando
             </span>
         );
     }
     if (ativo) {
         return (
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-sm transition-all hover:scale-110">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Operacional
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Ativo
             </span>
         );
     }
     return (
         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 shadow-sm transition-all hover:scale-110">
-            <div className="w-1.5 h-1.5 rounded-full bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Suspenso
+            <div className="w-1.5 h-1.5 rounded-full bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Bloqueado
         </span>
     );
 }

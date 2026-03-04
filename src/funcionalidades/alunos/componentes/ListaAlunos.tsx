@@ -29,19 +29,19 @@ export default function ListaAlunos({
 }: ListaAlunosProps) {
     if (alunos.length === 0) {
         return (
-            <div className="bg-white rounded-[2rem] border border-slate-200/60 p-24 text-center animate-fade-in shadow-xl shadow-slate-900/5">
-                <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 mx-auto border border-slate-100 shadow-inner">
-                    <Users size={40} className="text-slate-300" />
+            <div className="bg-white rounded-xl border border-slate-200 p-20 text-center animate-fade-in shadow-sm">
+                <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mb-5 mx-auto border border-slate-100">
+                    <Users size={32} className="text-slate-300" />
                 </div>
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.3em] mb-2">Cluster de dados vazio</h3>
-                <p className="text-[10px] font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest">Nenhum registro de discente identificado para os filtros aplicados.</p>
+                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2 text-center ml-2">Dados não identificados</h3>
+                <p className="text-[9px] font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest text-center">Nenhum registro de discente corresponde aos filtros.</p>
             </div>
         );
     }
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-[2.5rem] border border-slate-200/60 shadow-2xl overflow-hidden mt-8">
+            <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl overflow-hidden mt-8">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
@@ -57,79 +57,79 @@ export default function ListaAlunos({
                                                 alunos.forEach(a => { if (alunosSelecionados.includes(a.matricula)) aoSelecionar(a.matricula) });
                                             }
                                         }}
-                                        className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-600/20 cursor-pointer transition-all shadow-sm"
+                                        className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 cursor-pointer transition-all"
                                     />
                                 </th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificação do Discente</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Registro Acadêmico (RA)</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Unidade / Classe</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status Operacional</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações de Gestão</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Identificação</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Matrícula</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turma</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {alunos.map((aluno) => (
                                 <tr key={aluno.matricula} className={`hover:bg-indigo-50/20 transition-all group ${alunosSelecionados.includes(aluno.matricula) ? 'bg-indigo-50/40' : ''}`}>
-                                    <td className="py-5 px-8 text-center">
+                                    <td className="py-4 px-8 text-center">
                                         <input
                                             type="checkbox"
                                             checked={alunosSelecionados.includes(aluno.matricula)}
                                             onChange={() => aoSelecionar(aluno.matricula)}
-                                            className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-600/20 cursor-pointer transition-all shadow-sm"
+                                            className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 cursor-pointer transition-all"
                                         />
                                     </td>
-                                    <td className="py-5 px-8">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 font-black text-[10px] shrink-0 border border-slate-200 group-hover:bg-white group-hover:scale-110 transition-all shadow-sm">
+                                    <td className="py-4 px-8">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 font-black text-[9px] shrink-0 border border-slate-200 transition-all">
                                                 {aluno.nome_completo.split(' ').map((n, i, arr) => i === 0 || i === arr.length - 1 ? n[0] : '').join('').toUpperCase().substring(0, 2)}
                                             </div>
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="font-black text-slate-900 text-sm uppercase tracking-tight group-hover:text-indigo-700 transition-colors">{aluno.nome_completo}</span>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{aluno.email ? mascararDadoPessoal(aluno.email, 'email') : 'CONTATO NÃO CATALOGADO'}</span>
+                                                <span className="font-black text-slate-800 text-xs uppercase tracking-tight group-hover:text-slate-950 transition-colors">{aluno.nome_completo}</span>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{aluno.email ? mascararDadoPessoal(aluno.email, 'email') : 'CONTATO NÃO CATALOGADO'}</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="py-5 px-8">
-                                        <span className="text-[10px] font-mono font-black text-slate-900 bg-slate-100 border border-slate-200 px-3 py-1 rounded-lg shadow-inner">
+                                    <td className="py-4 px-8">
+                                        <span className="text-[9px] font-mono font-black text-slate-700 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md">
                                             {aluno.matricula}
                                         </span>
                                     </td>
-                                    <td className="py-5 px-8">
-                                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{aluno.turma_id || 'NÃO ENTURMADO'}</span>
+                                    <td className="py-4 px-8">
+                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{aluno.turma_id || 'NÃO ENTURMADO'}</span>
                                     </td>
-                                    <td className="py-5 px-8">
+                                    <td className="py-4 px-8">
                                         {aluno.ativo !== false ? (
-                                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border-2 border-emerald-100 shadow-sm transition-all hover:scale-110">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Operacional
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-600 bg-slate-50 border border-slate-200">
+                                                <div className="w-1 h-1 rounded-full bg-emerald-500 pulse-subtle"></div> Ativo
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border-2 border-rose-100 shadow-sm transition-all hover:scale-110">
-                                                <div className="w-2 h-2 rounded-full bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Registro Suspenso
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-rose-600 bg-rose-50 border border-rose-100">
+                                                <div className="w-1 h-1 rounded-full bg-rose-500"></div> Suspenso
                                             </span>
                                         )}
                                     </td>
-                                    <td className="py-5 px-8 text-right">
-                                        <div className="flex items-center justify-end gap-2">
+                                    <td className="py-4 px-8 text-right">
+                                        <div className="flex items-center justify-end gap-1">
                                             <button
                                                 onClick={() => aoVerQRCode(aluno.matricula)}
-                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-2xl transition-all hover:shadow-lg border border-transparent hover:border-slate-100 active:scale-90"
+                                                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all"
                                                 title="Visualizar Credencial"
                                             >
-                                                <QrCode size={18} />
+                                                <QrCode size={16} />
                                             </button>
                                             <button
                                                 onClick={() => aoEditar(aluno)}
-                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-2xl transition-all hover:shadow-lg border border-transparent hover:border-slate-100 active:scale-90"
+                                                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all"
                                                 title="Configurar Registro"
                                             >
-                                                <Edit2 size={18} />
+                                                <Edit2 size={16} />
                                             </button>
                                             <button
                                                 onClick={() => aoExcluir(aluno)}
-                                                className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-2xl transition-all hover:shadow-lg border border-transparent hover:border-slate-100 active:scale-90"
+                                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                                                 title="Remover do Sistema"
                                             >
-                                                <Trash2 size={18} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>
@@ -141,23 +141,23 @@ export default function ListaAlunos({
             </div>
 
             {totalPaginas > 1 && (
-                <div className="bg-white rounded-[2rem] border border-slate-200/60 p-5 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-slate-900/5 mt-8">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-2 rounded-2xl shadow-inner">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Cluster de Visualização</span>
-                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{paginaAtual} / {totalPaginas}</span>
+                <div className="bg-white rounded-xl border border-slate-200 p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm mt-8">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
+                            <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
                         </div>
                     </div>
-                    <div className="flex gap-2.5">
+                    <div className="flex gap-1.5">
                         <button
                             onClick={() => aoMudarPagina(paginaAtual - 1)}
                             disabled={paginaAtual === 1}
-                            className="w-11 h-11 flex items-center justify-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 disabled:opacity-30 disabled:hover:bg-transparent transition-all active:scale-90"
+                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
                         >
-                            <ChevronLeft size={18} />
+                            <ChevronLeft size={16} />
                         </button>
 
-                        <div className="flex gap-1.5 items-center">
+                        <div className="flex gap-1 items-center">
                             {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                                 let pageNum = i + 1;
                                 if (totalPaginas > 5 && paginaAtual > 3) {
@@ -167,9 +167,9 @@ export default function ListaAlunos({
                                     <button
                                         key={pageNum}
                                         onClick={() => aoMudarPagina(pageNum)}
-                                        className={`w-11 h-11 rounded-2xl text-[10px] font-black tracking-widest transition-all active:scale-90 ${paginaAtual === pageNum
-                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                                            : 'text-slate-500 hover:bg-slate-50'
+                                        className={`w-9 h-9 rounded-lg text-[9px] font-black tracking-widest transition-all border ${paginaAtual === pageNum
+                                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                            : 'text-slate-400 border-transparent hover:text-slate-900 hover:bg-slate-50'
                                             }`}
                                     >
                                         {pageNum}
@@ -181,9 +181,9 @@ export default function ListaAlunos({
                         <button
                             onClick={() => aoMudarPagina(paginaAtual + 1)}
                             disabled={paginaAtual === totalPaginas}
-                            className="w-11 h-11 flex items-center justify-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 disabled:opacity-30 disabled:hover:bg-transparent transition-all active:scale-90"
+                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
                         >
-                            <ChevronRight size={18} />
+                            <ChevronRight size={16} />
                         </button>
                     </div>
                 </div>

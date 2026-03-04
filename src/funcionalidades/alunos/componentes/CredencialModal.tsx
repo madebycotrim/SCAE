@@ -16,31 +16,27 @@ export default function CredencialModal({ matricula, aoFechar }: CredencialModal
             aoFechar={aoFechar}
             tamanho="sm"
         >
-            <div className="flex flex-col items-center space-y-10 py-4">
-                {/* Visual do Cartão */}
+            <div className="flex flex-col items-center space-y-8 py-2">
+                {/* Visual da Credencial V2 */}
                 <div className="relative group">
-                    {/* Glow effect */}
-                    <div className="absolute -inset-4 bg-gradient-to-tr from-indigo-500/20 to-blue-600/20 rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-all duration-700 blur-2xl" />
-
-                    <div className="relative p-8 bg-white border border-slate-200 rounded-[3rem] shadow-2xl shadow-indigo-100 flex flex-col items-center">
-                        <div className="w-60 h-60 bg-slate-950 rounded-[2rem] flex items-center justify-center overflow-hidden relative border-[10px] border-white shadow-inner">
-                            <QrCode size={160} strokeWidth={1} className="text-white" />
+                    <div className="relative p-6 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                        <div className="w-56 h-56 bg-white rounded-lg flex items-center justify-center overflow-hidden relative border border-slate-100 p-4">
+                            <QrCode size={200} strokeWidth={1.5} className="text-slate-900" />
                         </div>
 
-                        <div className="mt-8 text-center space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1">Registro SIGE</p>
-                            <h3 className="text-3xl font-black text-slate-900 font-mono tracking-tighter">
+                        <div className="mt-6 text-center">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1 leading-none">Identidade Estudantil</p>
+                            <h3 className="text-2xl font-black text-slate-900 font-mono tracking-tighter">
                                 {matricula}
                             </h3>
                         </div>
                     </div>
                 </div>
 
-                <div className="w-full space-y-6">
-                    <div className="flex flex-col items-center gap-3 px-6 text-center">
-                        <div className="w-8 h-1 bg-slate-100 rounded-full" />
-                        <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">
-                            Apresente este código no leitor óptico para validar sua movimentação escolar em tempo real.
+                <div className="w-full space-y-5">
+                    <div className="flex flex-col items-center gap-2.5 px-4 text-center">
+                        <p className="text-[9px] font-bold text-slate-400 leading-normal uppercase tracking-widest max-w-[200px]">
+                            Apresente ao terminal de leitura para validação de acesso.
                         </p>
                     </div>
 
@@ -48,10 +44,9 @@ export default function CredencialModal({ matricula, aoFechar }: CredencialModal
                         variante="secundario"
                         fullWidth
                         tamanho="lg"
-                        icone={X}
                         onClick={aoFechar}
                     >
-                        Fechar Visualização
+                        Fechar
                     </Botao>
                 </div>
             </div>

@@ -1,4 +1,5 @@
-﻿import { useState, useMemo } from 'react';
+﻿import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import { Botao, BarraFiltro, InputBusca } from '@compartilhado/componentes/UI';
@@ -29,13 +30,31 @@ export default function Alunos() {
     const alunos = (dados?.alunos as Aluno[]) || [];
     const turmas = dados?.turmas || [];
 
-    const [termoBusca, definirTermoBusca] = useState('');
-    const [filtroStatus, definirFiltroStatus] = useState<'ativos' | 'inativos' | 'todos'>('ativos');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const termoInicial = searchParams.get('busca') || '';
+    const statusInicial = (searchParams.get('status') as 'ativos' | 'inativos' | 'todos') || 'ativos';
+
+    const [termoBusca, definirTermoBusca] = useState(termoInicial);
+    const [filtroStatus, definirFiltroStatus] = useState<'ativos' | 'inativos' | 'todos'>(statusInicial);
     const [filtroAnoLetivo, definirFiltroAnoLetivo] = useState(new Date().getFullYear().toString());
     const [paginaAtual, definirPaginaAtual] = useState(1);
     const itensPorPagina = 12;
 
-    const [modalForm, definirModalForm] = useState(false);
+    // Sincronizar termo da URL se mudar externamente
+    useEffect(() => {
+        const busca = searchParams.get('busca');
+        if (busca !== null) definirTermoBusca(busca);
+
+        const status = searchParams.get('status');
+        if (status) definirFiltroStatus(status as any);
+
+        if (searchParams.get('acao') === 'novo') {
+            definirAlunoEmEdicao(null);
+            definirModalForm(true);
+        }
+    }, [searchParams]);
+
+    const [modalForm, definirModalForm] = useState(searchParams.get('acao') === 'novo');
     const [modalImport, definirModalImport] = useState(false);
     const [modalPromocao, definirModalPromocao] = useState(false);
     const [modalQRCode, definirModalQRCode] = useState(false);
@@ -136,32 +155,35 @@ export default function Alunos() {
 
     return (
         <LayoutAdministrativo
-            titulo="Gestão de Discentes"
-            subtitulo="Controle unificado de matrículas e identidades digitais"
+            titulo="Lista de Alunos"
+            subtitulo="Gerencie as matrículas e as informações dos estudantes"
             acoes={AcoesHeader}
         >
-            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-[2rem]">
-                <div className="flex flex-col gap-2.5 flex-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Pesquisa de Discentes</label>
+            <BarraFiltro className="bg-white border-slate-200 shadow-sm p-3 rounded-xl">
+                <div className="flex flex-col gap-1.5 flex-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Aluno</label>
                     <InputBusca
                         icone={Search}
-                        placeholder="Nome, matrícula ou identificador de turma..."
+                        placeholder="Nome, matrícula ou turma..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-12 rounded-2xl"
+                        className="w-full h-9 rounded-lg"
                     />
                 </div>
 
                 <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
                     {/* Filtro de Ano Letivo */}
-                    <div className="flex flex-col gap-2.5">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Ciclo Acadêmico</label>
-                        <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
+                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-9">
                             {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                                 <button
                                     key={ano}
                                     onClick={() => definirFiltroAnoLetivo(ano)}
-                                    className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filtroAnoLetivo === ano ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                                    className={`px-4 h-full rounded-md text-[9px] font-black uppercase tracking-widest transition-all border ${filtroAnoLetivo === ano
+                                        ? 'bg-white text-slate-900 border-slate-200 shadow-sm'
+                                        : 'text-slate-400 border-transparent hover:text-slate-600'
+                                        }`}
                                 >
                                     <span className="flex items-center gap-2">
                                         <Calendar size={12} /> {ano}
@@ -172,19 +194,22 @@ export default function Alunos() {
                     </div>
 
                     {/* Filtro de Status */}
-                    <div className="flex flex-col gap-2.5">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Status de Matrícula</label>
-                        <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação</label>
+                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-9">
                             {(['ativos', 'inativos', 'todos'] as const).map((status) => (
                                 <button
                                     key={status}
                                     onClick={() => definirFiltroStatus(status)}
-                                    className={`px-4 h-full rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 ${filtroStatus === status ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                                    className={`px-3 h-full rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
+                                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                        : 'text-slate-400 border-transparent hover:text-slate-600'
+                                        }`}
                                 >
                                     {status === 'ativos' && <CheckCircle2 size={12} />}
                                     {status === 'inativos' && <XCircle size={12} />}
                                     {status === 'todos' && <Grid size={12} />}
-                                    {status === 'ativos' ? 'Matriculados' : status === 'inativos' ? 'Inativos' : 'Todos'}
+                                    {status === 'ativos' ? 'Ativos' : status === 'inativos' ? 'Inativos' : 'Todos'}
                                 </button>
                             ))}
                         </div>

@@ -89,14 +89,14 @@ export default function RegistroAuditoria() {
     const StatusBadge = ({ action }: { action: string }) => {
         const act = action?.toUpperCase() || '';
 
-        let colorClasses = 'bg-slate-100 text-slate-700 border-slate-200';
-        if (act.includes('SUCESSO') || act.includes('CRIAR') || act.includes('LOGIN')) colorClasses = 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm shadow-emerald-900/5';
-        if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) colorClasses = 'bg-rose-50 text-rose-700 border-rose-200 shadow-sm shadow-rose-900/5';
-        if (act.includes('ATUALIZAR') || act.includes('EDITAR')) colorClasses = 'bg-amber-50 text-amber-700 border-amber-200 shadow-sm shadow-amber-900/5';
-        if (act.includes('LOGOUT')) colorClasses = 'bg-slate-100 text-slate-500 border-slate-200';
+        let colorClasses = 'bg-slate-50 text-slate-700 border-slate-200/60';
+        if (act.includes('SUCESSO') || act.includes('CRIAR') || act.includes('LOGIN')) colorClasses = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) colorClasses = 'bg-rose-50 text-rose-700 border-rose-200';
+        if (act.includes('ATUALIZAR') || act.includes('EDITAR')) colorClasses = 'bg-amber-50 text-amber-700 border-amber-200';
+        if (act.includes('LOGOUT')) colorClasses = 'bg-slate-50 text-slate-500 border-slate-200/60';
 
         return (
-            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all hover:scale-105 ${colorClasses}`}>
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all hover:shadow-sm ${colorClasses}`}>
                 {action}
             </span>
         );
@@ -104,10 +104,10 @@ export default function RegistroAuditoria() {
 
     if (!podeVerLogs) {
         return (
-            <LayoutAdministrativo titulo="Auditoria Local" subtitulo="Rastreabilidade e trilha de segurança" acoes={null}>
+            <LayoutAdministrativo titulo="Registro de Segurança" subtitulo="Acompanhamento de ações realizadas no sistema" acoes={null}>
                 <div className="flex flex-col items-center justify-center h-96 gap-4 text-slate-400 opacity-50 grayscale">
                     <ShieldOff size={64} strokeWidth={1} />
-                    <p className="text-[11px] font-black uppercase tracking-[0.2em]">Acesso restrito ao comitê de segurança</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.2em]">Acesso restrito à direção e coordenação</p>
                 </div>
             </LayoutAdministrativo>
         );
@@ -115,14 +115,14 @@ export default function RegistroAuditoria() {
 
     return (
         <LayoutAdministrativo
-            titulo="Trilha de Auditoria"
-            subtitulo="Monitoramento de transações e logs imutáveis da unidade"
+            titulo="Histórico de Atividades"
+            subtitulo="Veja tudo o que foi feito no sistema para garantir a segurança dos dados"
             acoes={<Botao variante="secundario" tamanho="md" icone={RefreshCw} loading={carregando} onClick={carregarLogs}>Sincronizar</Botao>}
         >
             <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm">
                 <InputBusca
                     icone={Search}
-                    placeholder="Filtrar por transação, usuário ou payload..."
+                    placeholder="Buscar por ação ou funcionário..."
                     value={busca}
                     onChange={(e) => { definirBusca(e.target.value); definirPagina(1); }}
                     className="md:max-w-md"
@@ -134,20 +134,20 @@ export default function RegistroAuditoria() {
                     icone={Download}
                     className="hidden md:flex ml-auto font-black text-[10px] tracking-widest text-slate-500"
                 >
-                    EXPORTAR DATASET (CSV)
+                    BAIXAR RELATÓRIO (CSV)
                 </Botao>
             </BarraFiltro>
 
-            <CartaoConteudo className="flex flex-col h-[calc(100vh-320px)] overflow-hidden bg-white border-slate-200 shadow-xl">
+            <CartaoConteudo className="flex flex-col h-[calc(100vh-320px)] overflow-hidden bg-white border-slate-200 shadow-xl rounded-2xl">
                 {/* Table Area */}
                 <div className="flex-1 overflow-auto relative custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead className="bg-slate-50/90 backdrop-blur-md sticky top-0 z-10 border-b border-slate-200">
                             <tr>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Procedimento / Ação</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Operador (Email)</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Entidade Afetada</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Cronologia (UTC-3)</th>
+                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">O que foi feito</th>
+                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Quem fez</th>
+                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Onde mudou</th>
+                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Data e Hora</th>
                                 <th className="px-8 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Ações</th>
                             </tr>
                         </thead>
@@ -163,25 +163,25 @@ export default function RegistroAuditoria() {
                                     <td colSpan={5} className="py-24 text-center">
                                         <div className="flex flex-col items-center justify-center opacity-40 grayscale gap-4">
                                             <Activity size={48} className="text-slate-400" />
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Nenhum registro de auditoria em cache</span>
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Nenhuma atividade registrada no momento</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : logsPaginados.map((log) => (
-                                <tr key={log.id} className="hover:bg-indigo-50/30 transition-colors group">
+                                <tr key={log.id} className="hover:bg-slate-50 transition-all group">
                                     <td className="px-8 py-4">
                                         <StatusBadge action={log.acao} />
                                     </td>
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors shadow-inner">
+                                            <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-sm">
                                                 <User size={14} />
                                             </div>
-                                            <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors tracking-tight">{log.usuario_email}</span>
+                                            <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 transition-colors tracking-tight uppercase">{log.usuario_email.split('@')[0]}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-4 text-center">
-                                        <span className="text-[10px] font-black uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 group-hover:border-indigo-200 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all shadow-sm">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60 transition-all group-hover:bg-white group-hover:text-slate-800">
                                             {log.entidade_tipo}
                                         </span>
                                     </td>
@@ -198,7 +198,7 @@ export default function RegistroAuditoria() {
                                                 tamanho="sm"
                                                 icone={Eye}
                                                 onClick={() => definirLogSelecionado(log)}
-                                                title="Analisar Payload"
+                                                title="Ver Detalhes"
                                                 className="hover:text-indigo-600"
                                             />
 
@@ -208,7 +208,7 @@ export default function RegistroAuditoria() {
                                                     tamanho="sm"
                                                     icone={Trash2}
                                                     onClick={() => excluirLog(log.id)}
-                                                    title="Excluir (Risco de Compliance)"
+                                                    title="Remover Registro"
                                                     className="hover:text-rose-600"
                                                 />
                                             )}
@@ -227,7 +227,7 @@ export default function RegistroAuditoria() {
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
                             <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{pagina} de {totalPaginas}</span>
                         </div>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Dataset Final: {logsFiltrados.length} entradas</span>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Encontrado: {logsFiltrados.length} entradas</span>
                     </div>
 
                     <div className="flex gap-3">
@@ -256,22 +256,22 @@ export default function RegistroAuditoria() {
             {/* Modal Detalhes JSON High-Tech */}
             {logSelecionado && (
                 <ModalUniversal
-                    titulo="Análise de Transação"
-                    subtitulo="Inspeção profunda de metadados e payload imutável"
+                    titulo="Detalhes da Atividade"
+                    subtitulo="Informações detalhadas sobre esta ação realizada no sistema"
                     icone={Terminal}
                     aoFechar={() => definirLogSelecionado(null)}
                     tamanho="lg"
                 >
                     <div className="space-y-8 pb-4">
                         <div className="grid grid-cols-2 gap-6">
-                            <div className="p-4 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl">
-                                <p className="text-[9px] text-indigo-400 uppercase font-black tracking-[0.2em] mb-2">Fingerprint (Hex)</p>
+                            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl">
+                                <p className="text-[9px] text-indigo-400 uppercase font-black tracking-[0.2em] mb-2">Código de Identificação</p>
                                 <p className="font-mono text-[10px] text-slate-400 font-bold truncate leading-relaxed" title={logSelecionado.id}>
                                     {logSelecionado.id}
                                 </p>
                             </div>
-                            <div className="p-4 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl">
-                                <p className="text-[9px] text-emerald-400 uppercase font-black tracking-[0.2em] mb-2">Selo Temporal</p>
+                            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl">
+                                <p className="text-[9px] text-emerald-400 uppercase font-black tracking-[0.2em] mb-2">Data e Hora do Registro</p>
                                 <p className="font-mono text-xs text-slate-400 font-bold leading-relaxed">
                                     {logSelecionado.timestamp ? format(new Date(logSelecionado.timestamp), "dd/MM/yyyy HH:mm:ss") : '-'}
                                 </p>
@@ -284,13 +284,13 @@ export default function RegistroAuditoria() {
                                     <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/20">
                                         <Code size={18} strokeWidth={2.5} />
                                     </div>
-                                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Metadata / Payload Object</span>
+                                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Dados Internos da Ação</span>
                                 </div>
                                 <span className="text-[8px] font-black bg-slate-900 text-indigo-300 px-3 py-1 rounded-full border border-slate-700 uppercase tracking-[0.2em] shadow-lg">
-                                    UTF-8 Encoded
+                                    Dados Protegidos
                                 </span>
                             </div>
-                            <div className="bg-slate-950 rounded-[2.5rem] p-8 overflow-x-auto border border-slate-900 shadow-2xl max-h-[400px] overflow-y-auto custom-scrollbar group relative">
+                            <div className="bg-slate-950 rounded-2xl p-8 overflow-x-auto border border-slate-900 shadow-2xl max-h-[400px] overflow-y-auto custom-scrollbar group relative">
                                 <div className="absolute top-6 right-6 opacity-20 group-hover:opacity-100 transition-opacity">
                                     <Fingerprint className="text-indigo-500" size={40} strokeWidth={1} />
                                 </div>
@@ -306,7 +306,7 @@ export default function RegistroAuditoria() {
                             tamanho="lg"
                             onClick={() => definirLogSelecionado(null)}
                         >
-                            Encerrar Inspeção
+                            Fechar Detalhes
                         </Botao>
                     </div>
                 </ModalUniversal>

@@ -77,7 +77,7 @@ export default function PainelResponsavel() {
     return (
         <div className="min-h-screen bg-slate-100/50 pb-20">
             {/* Nav Mobile-first */}
-            <div className="bg-indigo-600 px-6 py-4 shadow-md sticky top-0 z-50 flex items-center justify-between">
+            <header className="bg-indigo-600 px-6 h-16 shadow-md sticky top-0 z-50 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Fingerprint className="text-indigo-200" size={24} />
                     <h1 className="text-white font-bold tracking-tight">Portal do Responsável</h1>
@@ -85,7 +85,7 @@ export default function PainelResponsavel() {
                 <button onClick={sair} className="p-2 bg-indigo-700 hover:bg-indigo-800 rounded-full text-indigo-100 transition">
                     <LogOut size={18} />
                 </button>
-            </div>
+            </header>
 
             {/* Cabeçalho do Aluno */}
             <div className="bg-white px-6 py-8 border-b border-slate-200">
@@ -119,7 +119,7 @@ export default function PainelResponsavel() {
                 </div>
 
                 {/* Feed (Timeline de Acessos) */}
-                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-6 mt-6 relative">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 mt-6 relative">
                     <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
                         <Clock size={16} className="text-indigo-500" />
                         Histórico Recente de Catraca

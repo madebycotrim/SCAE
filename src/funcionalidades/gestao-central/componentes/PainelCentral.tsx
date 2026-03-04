@@ -5,7 +5,7 @@ export default function PainelCentral() {
     return (
         <div className="space-y-10 animate-fade-in pb-12">
             {/* Header de Telemetria */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900 border border-slate-800 p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900 border border-slate-800 p-10 rounded-2xl shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none"></div>
 
                 <div className="flex items-center gap-6 relative z-10">

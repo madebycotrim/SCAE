@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
+import { usarBuscaGlobal } from '@compartilhado/hooks/usarBuscaGlobal';
 import { usarEscola } from '@escola/ProvedorEscola';
 import {
     LayoutDashboard,
@@ -69,6 +70,26 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     useEffect(() => {
         localStorage.setItem('sidebarMinimizado', String(sidebarMinimizado));
     }, [sidebarMinimizado]);
+
+    // Busca Global
+    const { termo, definirTermo, resultados } = usarBuscaGlobal();
+    const [mostrarResultados, definirMostrarResultados] = useState(false);
+
+    // Atalhos de Teclado
+    useEffect(() => {
+        const tratarTeclas = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('input-busca-global')?.focus();
+            }
+            if (e.key === 'Escape') {
+                definirMostrarResultados(false);
+            }
+        };
+
+        window.addEventListener('keydown', tratarTeclas);
+        return () => window.removeEventListener('keydown', tratarTeclas);
+    }, []);
 
     // Fechar sidebar mobile ao navegar
     useEffect(() => {
@@ -143,7 +164,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     if (usuario && usuario.ativo === false) {
         return (
             <div className="fixed inset-0 z-[9999] bg-slate-900 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-slate-100">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-slate-100">
                     <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-rose-50/50">
                         <Lock size={40} className="text-rose-500" />
                     </div>
@@ -166,7 +187,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     if (usuario?.pendente) {
         return (
             <div className="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-slate-100">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-slate-100">
                     <div className="w-20 h-20 bg-escola-claro rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-escola">
                         <Crown size={40} className="text-escola" />
                     </div>
@@ -208,30 +229,29 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             <aside
                 className={`
                     fixed lg:static inset-y-0 left-0 z-50
-                    border-r border-[rgba(255,255,255,0.06)]
-                    flex flex-col transition-all duration-300 ease-in-out shadow-lg relative
+                    border-r border-slate-800/40
+                    flex flex-col transition-all duration-300 ease-in-out shadow-none relative
                     ${sidebarAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     ${sidebarMinimizado ? 'lg:w-20' : 'lg:w-64'}
-                    w-64
+                    w-64 bg-slate-950
                 `}
-                style={{ background: 'linear-gradient(145deg, #060d1f 0%, #0a1628 60%, #0d1f3c 100%)' }}
             >
                 {/* Seção do Logo (Clean) */}
                 <div className={`
-                    h-16 flex items-center relative z-10
+                    h-14 flex items-center relative z-10 border-b border-slate-900
                     ${sidebarMinimizado ? 'justify-center px-0' : 'justify-between px-6'}
                 `}>
                     <div className="flex items-center gap-3 overflow-hidden">
                         <div className="shrink-0 flex items-center justify-center">
-                            <ShieldCheck className="w-6 h-6 text-sky-400" strokeWidth={2} />
+                            <ShieldCheck className="w-6 h-6 text-sky-400" strokeWidth={2.5} />
                         </div>
 
                         {!sidebarMinimizado && (
                             <div className="flex flex-col">
-                                <h1 className="font-bold text-lg text-white leading-tight">
+                                <h1 className="font-black text-white leading-tight uppercase tracking-widest">
                                     SCAE
                                 </h1>
-                                <p className="text-xs text-slate-400 font-normal truncate max-w-[160px]">{nomeEscola}</p>
+                                <p className="text-[12px] text-slate-500 font-bold truncate max-w-[160px] uppercase tracking-tighter">{nomeEscola}</p>
                             </div>
                         )}
                     </div>
@@ -241,12 +261,12 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         onClick={() => definirSidebarMinimizado(!sidebarMinimizado)}
                         className={`
                             absolute -right-3 top-1/2 -translate-y-1/2 
-                            w-6 h-6 bg-[#0d1f3c] border border-[rgba(255,255,255,0.06)] rounded-full 
-                            flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800
+                            w-6 h-6 bg-slate-950 border border-slate-800 rounded-full 
+                            flex items-center justify-center text-slate-500 hover:text-white hover:bg-slate-800
                             z-50 hidden lg:flex transition-colors
                         `}
                     >
-                        {sidebarMinimizado ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                        {sidebarMinimizado ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
                     </button>
                 </div>
 
@@ -262,7 +282,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             {gruposMenu.map((grupo, idx) => (
                                 <div key={idx} className="space-y-1">
                                     {!sidebarMinimizado && (
-                                        <p className="pl-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 first:mt-0">
+                                        <p className="pl-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 mt-6 first:mt-0 leading-none">
                                             {grupo.titulo}
                                         </p>
                                     )}
@@ -272,30 +292,31 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                             const ativo = localizacao.pathname.startsWith(`${prefixoAdmin}${item.rota}`);
 
                                             return (
-                                                <button
-                                                    key={item.rota}
-                                                    onClick={() => navegar(`${prefixoAdmin}${item.rota}`)}
-                                                    className={`
-                                                        w-full flex items-center transition-all duration-150 group
-                                                        ${sidebarMinimizado ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'}
-                                                        ${ativo
-                                                            ? 'bg-[rgba(56,189,248,0.08)] border-l-2 border-sky-400 text-white font-semibold rounded-r-lg'
-                                                            : 'bg-transparent text-slate-300 font-medium hover:bg-[rgba(255,255,255,0.05)] hover:text-white rounded-lg'
-                                                        }
-                                                    `}
-                                                    title={sidebarMinimizado ? item.texto : ""}
-                                                >
-                                                    <Icone
-                                                        size={18}
-                                                        className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-200 transition-colors'}
-                                                    />
+                                                <div key={item.rota} className="space-y-0.5">
+                                                    <button
+                                                        onClick={() => navegar(`${prefixoAdmin}${item.rota}`)}
+                                                        className={`
+                                                            w-full flex items-center transition-all duration-150 group
+                                                            ${sidebarMinimizado ? 'justify-center p-2' : 'gap-3 px-3 py-2'}
+                                                            ${ativo
+                                                                ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-lg'
+                                                                : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-lg'
+                                                            }
+                                                        `}
+                                                        title={sidebarMinimizado ? item.texto : ""}
+                                                    >
+                                                        <Icone
+                                                            size={16}
+                                                            className={ativo ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300 transition-colors'}
+                                                        />
 
-                                                    {!sidebarMinimizado && (
-                                                        <span className="text-sm">
-                                                            {item.texto}
-                                                        </span>
-                                                    )}
-                                                </button>
+                                                        {!sidebarMinimizado && (
+                                                            <span className="text-sm">
+                                                                {item.texto}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </div>
                                             );
                                         })}
                                     </div>
@@ -309,7 +330,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         <div>
                             {!sidebarMinimizado && (
                                 <div className="mt-6 mb-2">
-                                    <p className="pl-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    <p className="pl-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none mb-3">
                                         Administração
                                     </p>
                                 </div>
@@ -328,15 +349,15 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                 w-full flex items-center transition-all duration-150 group
                                                 ${sidebarMinimizado ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'}
                                                 ${ativo
-                                                    ? 'bg-[rgba(56,189,248,0.08)] border-l-2 border-sky-400 text-white font-semibold rounded-r-lg'
-                                                    : 'bg-transparent text-slate-300 font-medium hover:bg-[rgba(255,255,255,0.05)] hover:text-white rounded-lg'
+                                                    ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-lg'
+                                                    : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-lg'
                                                 }
                                             `}
                                             title={sidebarMinimizado ? item.texto : ""}
                                         >
                                             <Icone
-                                                size={18}
-                                                className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-200 transition-colors'}
+                                                size={16}
+                                                className={ativo ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300 transition-colors'}
                                             />
                                             {!sidebarMinimizado && (
                                                 <span className="text-sm">
@@ -358,18 +379,18 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         {/* Avatar e Infos */}
                         <div className={`flex items-center ${sidebarMinimizado ? 'flex-col gap-4' : 'gap-3 min-w-0'}`}>
                             <div className="relative shrink-0 cursor-pointer">
-                                <div className="w-9 h-9 bg-[#0d1f3c] border-[1.5px] border-[rgba(56,189,248,0.3)] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                <div className="w-9 h-9 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-inner group-hover:border-slate-700 transition-colors">
                                     {usuarioAtual?.email?.[0]?.toUpperCase() || 'U'}
                                 </div>
-                                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#060d1f]"></div>
+                                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-slate-950"></div>
                             </div>
 
                             {!sidebarMinimizado && (
                                 <div className="flex-1 min-w-0 pr-2">
-                                    <p className="text-sm font-medium text-white truncate">
+                                    <p className="text-[12px] font-black text-white truncate uppercase tracking-tight">
                                         {usuarioAtual?.email?.split('@')[0] || 'Usuário'}
                                     </p>
-                                    <p className="text-xs text-slate-400 truncate" title={usuarioAtual?.email}>
+                                    <p className="text-[10.5px] text-slate-500 truncate font-bold tracking-tighter" title={usuarioAtual?.email}>
                                         {usuarioAtual?.email}
                                     </p>
                                 </div>
@@ -396,45 +417,110 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                 {/* Cabeçalho */}
                 <header
-                    className="bg-white border-b border-gray-100 sticky top-0 z-30 flex items-center justify-between px-8 shadow-[0_1px_5px_rgba(0,0,0,0.02)]"
-                    style={{ height: '80px' }}
+                    className="bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-8"
+                    style={{ height: '64px' }}
                 >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-5">
                         <button
                             onClick={() => definirSidebarAberto(!sidebarAberto)}
-                            className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-md transition-colors"
+                            className="lg:hidden p-2 -ml-1 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors"
                         >
-                            <Menu size={20} />
+                            <Menu size={18} />
                         </button>
 
-                        <div>
-                            <h1 className="text-xl font-bold text-slate-900 leading-tight">{titulo}</h1>
-                            {subtitulo && <p className="text-sm text-slate-500 hidden sm:block">{subtitulo}</p>}
+                        <div className="flex flex-col justify-center">
+                            <h1 className="text-lg font-black text-slate-900 leading-none tracking-tight uppercase">{titulo}</h1>
+                            {subtitulo && <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 hidden sm:block">{subtitulo}</p>}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-5">
                         {/* Barra de Busca - Oculta em telas pequenas */}
-                        <div className="hidden md:flex items-center relative group">
-                            <Search className="absolute left-3 w-4 h-4 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                        <div className="hidden md:flex items-center relative group h-8">
+                            <Search className="absolute left-3 w-3.5 h-3.5 text-slate-400 group-focus-within:text-slate-900 transition-colors pointer-events-none" />
                             <input
+                                id="input-busca-global"
                                 type="text"
-                                placeholder="Buscar no sistema..."
-                                className="pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm w-64 focus:w-80 outline-none transition-all duration-200"
+                                placeholder="Buscar no sistema... (Ctrl+K)"
+                                value={termo}
+                                onChange={(e) => {
+                                    definirTermo(e.target.value);
+                                    definirMostrarResultados(true);
+                                }}
+                                onFocus={() => definirMostrarResultados(true)}
+                                className="pl-9 pr-12 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-900/5 rounded-lg text-[11px] font-bold w-64 focus:w-80 h-full outline-none transition-all duration-300"
                             />
+
+                            {/* Resultados da Busca */}
+                            {mostrarResultados && resultados.length > 0 && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-[45]"
+                                        onClick={() => definirMostrarResultados(false)}
+                                    />
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="p-2 border-b border-slate-50 bg-slate-50/50">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 py-1">Funcionalidades Sugeridas</p>
+                                        </div>
+                                        <div className="max-h-[320px] overflow-y-auto p-1.5 flex flex-col gap-1">
+                                            {resultados.map((res) => {
+                                                const Icone = res.icone;
+                                                const corCategoria =
+                                                    res.categoria === 'acao' ? 'bg-amber-100 text-amber-600' :
+                                                        res.categoria === 'dado' ? 'bg-indigo-100 text-indigo-600' :
+                                                            'bg-slate-100 text-slate-500';
+
+                                                const labelCategoria =
+                                                    res.categoria === 'acao' ? 'Ação' :
+                                                        res.categoria === 'dado' ? 'Consulta' :
+                                                            'Página';
+
+                                                return (
+                                                    <button
+                                                        key={res.id}
+                                                        onClick={() => {
+                                                            navegar(`${prefixoAdmin}${res.rota}`);
+                                                            definirTermo('');
+                                                            definirMostrarResultados(false);
+                                                        }}
+                                                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-all text-left group"
+                                                    >
+                                                        <div className={`w-9 h-9 ${corCategoria} rounded-lg flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors`}>
+                                                            <Icone size={18} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{res.titulo}</p>
+                                                                <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border transition-colors ${res.categoria === 'acao' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                                    res.categoria === 'dado' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+                                                                        'bg-slate-50 text-slate-400 border-slate-100 group-hover:text-blue-600 group-hover:border-blue-200'
+                                                                    }`}>
+                                                                    {labelCategoria}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-[10px] text-slate-400 truncate mt-0.5">{res.descricao}</p>
+                                                        </div>
+                                                        <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-all" />
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
-                        <div className="h-6 w-px bg-slate-200 mx-1"></div>
+                        <div className="h-6 w-px bg-slate-200"></div>
 
                         {/* Notificações */}
-                        <div className="relative">
+                        <div className="relative flex items-center">
                             <button
                                 onClick={() => definirNotificacoesAberta(!notificacoesAberta)}
-                                className="relative p-2.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                                className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-400 hover:text-slate-900 hover:border-slate-300 hover:bg-white transition-all group"
                             >
-                                <Bell size={20} className={naoLidas > 0 ? "text-blue-600" : ""} />
+                                <Bell size={16} className={naoLidas > 0 ? "text-slate-900" : ""} />
                                 {naoLidas > 0 && (
-                                    <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+                                    <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-rose-500 rounded-full border-2 border-white"></span>
                                 )}
                             </button>
 
@@ -445,13 +531,13 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                         className="fixed inset-0 z-[40]"
                                         onClick={() => definirNotificacoesAberta(false)}
                                     ></div>
-                                    <div className="absolute right-0 top-full mt-4 w-80 md:w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-[50] overflow-hidden origin-top-right animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="absolute right-0 top-full mt-4 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 z-[50] overflow-hidden origin-top-right animate-in fade-in zoom-in-95 duration-200">
                                         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 backdrop-blur-sm">
                                             <h3 className="font-bold text-slate-700">Notificações</h3>
                                             {naoLidas > 0 && (
                                                 <button
                                                     onClick={marcarTodasComoLidas}
-                                                    className="text-[10px] font-bold uppercase text-blue-600 hover:text-blue-800 hover:underline"
+                                                    className="text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-800 hover:underline"
                                                 >
                                                     Marcar todas como lidas
                                                 </button>
@@ -474,7 +560,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                             key={notificacao.id}
                                                             className={`
                                                                 relative p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors group
-                                                                ${!notificacao.lida ? 'bg-escola-claro' : ''}
+                                                                ${!notificacao.lida ? 'bg-indigo-50/30' : ''}
                                                             `}
                                                         >
                                                             <div className="flex gap-3">
@@ -483,7 +569,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                                     ${notificacao.tipo === 'error' ? 'bg-rose-100 text-rose-600' :
                                                                         notificacao.tipo === 'success' ? 'bg-emerald-100 text-emerald-600' :
                                                                             notificacao.tipo === 'warning' ? 'bg-amber-100 text-amber-600' :
-                                                                                'bg-blue-100 text-blue-600'}
+                                                                                'bg-indigo-100 text-indigo-600'}
                                                                 `}>
                                                                     {notificacao.tipo === 'error' && <XCircle size={16} />}
                                                                     {notificacao.tipo === 'success' && <CheckCircle size={16} />}
@@ -534,10 +620,10 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                         {/* Contêiner de Ações */}
                         {acoes && (
-                            <>
-                                <div className="h-8 w-px bg-slate-200 mx-2"></div>
-                                <div className="flex items-center gap-3">{acoes}</div>
-                            </>
+                            <div className="flex items-center gap-5 h-9">
+                                <div className="h-6 w-px bg-slate-200"></div>
+                                <div className="flex items-center gap-3 h-full">{acoes}</div>
+                            </div>
                         )}
                     </div>
                 </header>

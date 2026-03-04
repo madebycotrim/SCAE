@@ -84,17 +84,17 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
                                 key={p.id}
                                 type="button"
                                 onClick={() => definirPapel(p.id)}
-                                className={`flex items-start gap-4 p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] ${papel === p.id
-                                    ? 'bg-indigo-600 border-indigo-700 text-white shadow-lg shadow-indigo-100'
-                                    : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50'
+                                className={`flex items-start gap-4 p-4 rounded-2xl border text-left transition-all active:scale-[0.98] ${papel === p.id
+                                    ? 'bg-indigo-50 border-indigo-200 shadow-sm'
+                                    : 'bg-white border-slate-200/60 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                                     }`}
                             >
-                                <div className={`p-2 rounded-xl shrink-0 ${papel === p.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                                    <p.icone size={20} />
+                                <div className={`p-2.5 rounded-xl shrink-0 border transition-colors ${papel === p.id ? 'bg-white border-indigo-100 text-indigo-600 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                    <p.icone size={18} />
                                 </div>
-                                <div className="min-w-0">
-                                    <p className={`text-xs font-black uppercase tracking-tight ${papel === p.id ? 'text-white' : 'text-slate-800'}`}>{p.nome}</p>
-                                    <p className={`text-[10px] font-bold mt-0.5 truncate ${papel === p.id ? 'text-indigo-100' : 'text-slate-500'}`}>{p.desc}</p>
+                                <div className="min-w-0 pr-2">
+                                    <p className={`text-[11px] font-black uppercase tracking-tight ${papel === p.id ? 'text-indigo-700' : 'text-slate-800'}`}>{p.nome}</p>
+                                    <p className={`text-[10px] font-bold mt-0.5 truncate uppercase tracking-tighter ${papel === p.id ? 'text-indigo-400' : 'text-slate-400/80'}`}>{p.desc}</p>
                                 </div>
                             </button>
                         ))}

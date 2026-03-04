@@ -1,4 +1,5 @@
 ﻿export type PapelUsuario = 'CENTRAL' | 'ADMIN' | 'COORDENACAO' | 'SECRETARIA' | 'PORTEIRO' | 'VISUALIZACAO';
+import type { ConfiguracaoHorarios } from '@funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
 
 export interface AlunoLocal {
     matricula: string;
@@ -150,6 +151,11 @@ export interface EsquemaSCAE {
         key: string;
         value: VinculoResponsavelAluno;
         indexes: { responsavel_id: string; aluno_matricula: string; escola_id: string };
+    };
+    configuracao_horarios: {
+        key: string;
+        value: ConfiguracaoHorarios & { id: string };
+        indexes: {};
     };
 }
 

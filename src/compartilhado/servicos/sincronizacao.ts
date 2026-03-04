@@ -1,5 +1,5 @@
 // TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
-﻿import { api } from './api';
+import { api } from './api';
 import { bancoLocal } from './bancoLocal';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 import type { AlunoLocal, RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
@@ -25,6 +25,11 @@ export const servicoSincronizacao = {
                     }
                     else if (p.acao === 'DELETE' && p.colecao === 'turmas') {
                         await api.remover(`/turmas?id=${p.dado_id}`);
+                        await bancoLocal.removerPendencia(p.id);
+                        processados++;
+                    }
+                    else if (p.acao === 'UPDATE' && p.colecao === 'configuracao_horarios') {
+                        await api.atualizar(`/configuracao/${p.dado_id}/horarios`, { janelas: p.dados_extras?.janelas });
                         await bancoLocal.removerPendencia(p.id);
                         processados++;
                     }

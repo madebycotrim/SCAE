@@ -159,9 +159,9 @@ export default function QuiosqueAutoatendimento() {
                             <h1 className="text-xl font-black text-white uppercase tracking-tighter leading-none">
                                 {escola?.nomeEscola || 'SCAE UNIT'}
                             </h1>
-                            <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[8px] font-black rounded border border-white/5 uppercase tracking-widest">AUTO-QUICK V2</span>
+                            <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[8px] font-black rounded border border-white/5 uppercase tracking-widest">AUTOATENDIMENTO</span>
                         </div>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-1.5">Unidade de Operação Autônoma</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-1.5">Terminal de Acesso do Aluno</p>
                     </div>
                 </div>
 
@@ -175,11 +175,11 @@ export default function QuiosqueAutoatendimento() {
                         <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_12px_currentColor] ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
                         {tipoAcessoAtual === TIPO_ACESSO.ENTRADA && 'MODO: ENTRADA'}
                         {tipoAcessoAtual === TIPO_ACESSO.SAIDA && 'MODO: SAÍDA'}
-                        {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'MODO: MONITORAMENTO'}
+                        {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'MODO: LEITURA'}
                     </div>
 
                     <div className="text-right hidden sm:block border-l border-white/10 pl-6">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 italic">Authorized Context</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 italic">Logado como</p>
                         <p className="text-xs font-black text-white leading-tight uppercase tracking-tight">{usuarioAtual?.email?.split('@')[0]}</p>
                     </div>
                 </div>
@@ -194,13 +194,13 @@ export default function QuiosqueAutoatendimento() {
 
                     <div className="text-center space-y-3 mb-12">
                         <h2 className="text-xs font-black text-indigo-400 uppercase tracking-[0.5em] flex items-center justify-center gap-3">
-                            <Radar size={18} className="animate-spin-slow" /> Sensores Biomátricos
+                            <Radar size={18} className="animate-spin-slow" /> Pronto para ler
                         </h2>
-                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Posicionamento de Credencial</h3>
+                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Aproxime sua Carteirinha</h3>
                     </div>
 
                     {/* Heavy Duty Frame */}
-                    <div className="relative w-full max-w-2xl aspect-[16/10] bg-black rounded-[3rem] border border-white/10 overflow-hidden shadow-[0_0_150px_rgba(0,0,0,0.8)] flex items-center justify-center ring-1 ring-white/5 group-hover:ring-indigo-500/20 transition-all duration-700">
+                    <div className="relative w-full max-w-2xl aspect-[16/10] bg-black rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_150px_rgba(0,0,0,0.8)] flex items-center justify-center ring-1 ring-white/5 group-hover:ring-indigo-500/20 transition-all duration-700">
 
                         {/* Camera Core */}
                         <div id="quiosque-camera" className="w-full h-full object-cover scale-[1.05] grayscale opacity-70 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-1000"></div>
@@ -246,7 +246,7 @@ export default function QuiosqueAutoatendimento() {
                     </div>
 
                     <div className="mt-12 text-center opacity-40 uppercase tracking-[0.3em] font-black text-[10px] text-slate-500">
-                        O sensor está ativo. Aproxime seu Qr Code Institucional.
+                        O leitor está ativo. Aproxime seu QR Code para entrar ou sair.
                     </div>
                 </CartaoConteudo>
 
@@ -256,14 +256,14 @@ export default function QuiosqueAutoatendimento() {
 
                     <h3 className="text-xs font-black text-slate-400 flex items-center gap-3 pb-6 border-b border-white/5 mb-10 uppercase tracking-[0.2em] z-10 relative">
                         <Zap size={20} className="text-amber-500 animate-pulse" />
-                        Fluxo de Telemetria
+                        Último Acesso
                     </h3>
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar z-10 relative">
                         {ultimoAcesso ? (
                             <div className="space-y-10 animate-in slide-in-from-right-10 duration-500">
                                 {ultimoAcesso.aluno && (
-                                    <div className="bg-white/5 rounded-[3rem] p-10 border border-white/10 text-center relative overflow-hidden backdrop-blur-3xl shadow-2xl group-hover/side:border-indigo-500/30 transition-all">
+                                    <div className="bg-white/5 rounded-2xl p-10 border border-white/10 text-center relative overflow-hidden backdrop-blur-3xl shadow-2xl group-hover/side:border-indigo-500/30 transition-all">
                                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
                                         <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6 text-white/30 border border-white/5">
                                             <Fingerprint size={32} />
@@ -272,7 +272,7 @@ export default function QuiosqueAutoatendimento() {
                                             {ultimoAcesso.aluno.nome_completo}
                                         </h2>
                                         <p className="text-[10px] font-mono font-black text-slate-500 mb-8 uppercase tracking-[0.3em] italic">
-                                            PID: {ultimoAcesso.aluno.matricula}
+                                            Matrícula: {ultimoAcesso.aluno.matricula}
                                         </p>
 
                                         <div className="inline-flex items-center gap-3 bg-indigo-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black border border-indigo-400/50 shadow-xl shadow-indigo-900/40 uppercase tracking-widest leading-none">
@@ -282,14 +282,14 @@ export default function QuiosqueAutoatendimento() {
                                 )}
 
                                 <div className="space-y-4">
-                                    <div className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all shadow-xl ${statusLeitura === 'SUCESSO' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'}`}>
-                                        <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Diagnóstico</span>
+                                    <div className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all shadow-xl ${statusLeitura === 'SUCESSO' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'}`}>
+                                        <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Resultado</span>
                                         <div className="text-[10px] font-black flex items-center gap-3 uppercase tracking-widest whitespace-nowrap">
                                             {statusLeitura === 'SUCESSO' ? <ShieldCheck size={20} strokeWidth={2.5} /> : <UserX size={20} strokeWidth={2.5} />}
                                             {ultimoAcesso.mensagem}
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-3xl backdrop-blur-md">
+                                    <div className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-md">
                                         <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Timestamp</span>
                                         <div className="text-sm font-mono font-black text-slate-300 flex items-center gap-3">
                                             <Clock size={18} className="text-slate-600" />
@@ -304,7 +304,7 @@ export default function QuiosqueAutoatendimento() {
                                     <ScanLine size={48} className="animate-pulse" />
                                 </div>
                                 <p className="text-[10px] font-black text-center uppercase tracking-[0.5em] max-w-[200px] leading-loose">
-                                    AGUARDANDO<br />PACOTE DE DADOS
+                                    AGUARDANDO LEITURA
                                 </p>
                             </div>
                         )}
@@ -314,10 +314,10 @@ export default function QuiosqueAutoatendimento() {
                     <div className="pt-8 border-t border-white/5 flex items-center justify-between z-10 relative">
                         <div className="flex items-center gap-3">
                             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)] animate-pulse"></div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Nucleo Ativo</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Sistema Online</span>
                         </div>
                         <p className="text-[10px] font-mono font-black text-indigo-400/40 uppercase tracking-widest">
-                            {statusWorker.pendentes > 0 ? `SYNC: ${statusWorker.pendentes}` : 'TELEMETRIA OK'}
+                            {statusWorker.pendentes > 0 ? `SINCRONIZANDO: ${statusWorker.pendentes}` : 'SISTEMA OK'}
                         </p>
                     </div>
                 </CartaoConteudo>

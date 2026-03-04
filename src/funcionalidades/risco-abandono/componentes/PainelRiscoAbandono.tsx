@@ -89,14 +89,14 @@ export default function PainelRiscoAbandono() {
             loading={processando || carregando}
             onClick={rodarMotorRiscoAbandono}
         >
-            {processando ? "Processando Algoritmo..." : "Recalcular Evasão"}
+            {processando ? "Atualizando..." : "Atualizar Lista"}
         </Botao>
     );
 
     return (
         <LayoutAdministrativo
-            titulo="Gestão de Evasão"
-            subtitulo="Diagnóstico preventivo de abandono escolar e análise de frequência"
+            titulo="Acompanhamento de Faltas"
+            subtitulo="Monitore alunos com muitas faltas consecutivas para evitar o abandono escolar"
             acoes={AcoesHeader}
         >
             <div className="space-y-8 pb-12">
@@ -104,51 +104,51 @@ export default function PainelRiscoAbandono() {
                 {/* Métricas Master Style */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <CardMetrica
-                        label="Alertas Totais"
+                        label="Total de Alertas"
                         valor={metricas.total}
-                        icon={<Activity className="text-slate-400" size={24} />}
-                        className="bg-white"
+                        icon={<Activity size={20} />}
+                        cor="slate"
                     />
                     <CardMetrica
-                        label="Fluxo Crítico"
+                        label="Atenção Urgente"
                         valor={metricas.criticos}
-                        icon={<ShieldAlert className="text-rose-500" size={24} />}
-                        className="bg-rose-50/30 border-rose-100"
+                        icon={<ShieldAlert size={20} />}
+                        cor="rose"
                     />
                     <CardMetrica
-                        label="Em Tratativa"
+                        label="Em Análise"
                         valor={metricas.emTratativa}
-                        icon={<Clock className="text-amber-500" size={24} />}
-                        className="bg-amber-50/30 border-amber-100"
+                        icon={<Clock size={20} />}
+                        cor="amber"
                     />
                     <CardMetrica
                         label="Casos Resolvidos"
                         valor={metricas.resolvidos}
-                        icon={<CheckCircle2 className="text-emerald-500" size={24} />}
-                        className="bg-emerald-50/30 border-emerald-100"
+                        icon={<CheckCircle2 size={20} />}
+                        cor="emerald"
                     />
                 </div>
 
                 {/* Toolbar de Filtros */}
-                <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-[2rem]">
+                <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-2xl">
                     <div className="flex flex-col gap-2.5 flex-1">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Filtro de Inteligência</label>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Buscar Aluno</label>
                         <InputBusca
                             icone={Search}
-                            placeholder="Pesquisar por aluno ou matrícula no radar..."
+                            placeholder="Pesquisar por nome ou matrícula..."
                             value={pesquisa}
                             onChange={(e) => {
                                 definirPesquisa(e.target.value);
                                 definirPaginaAtual(1);
                             }}
-                            className="w-full h-12 rounded-2xl"
+                            className="w-full h-9 rounded-2xl"
                         />
                     </div>
 
                     <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
                         <div className="flex flex-col gap-2.5">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Status Operacional</label>
-                            <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Situação do Alerta</label>
+                            <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-9 shadow-sm">
                                 {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
                                     <button
                                         key={status}
@@ -156,12 +156,12 @@ export default function PainelRiscoAbandono() {
                                             definirFiltroStatus(status);
                                             definirPaginaAtual(1);
                                         }}
-                                        className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center ${filtroStatus === status
-                                            ? 'bg-slate-900 text-white shadow-md'
-                                            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                                        className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center border ${filtroStatus === status
+                                            ? 'bg-slate-800 text-white border-slate-700 shadow-sm'
+                                            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-transparent'
                                             }`}
                                     >
-                                        {status === 'TODOS' ? 'Todos' : status === 'PENDENTE' ? 'Críticos' : status === 'EM_ANALISE' ? 'Análise' : 'Resolvido'}
+                                        {status === 'TODOS' ? 'Todos' : status === 'PENDENTE' ? 'Urgentes' : status === 'EM_ANALISE' ? 'Em Análise' : 'Resolvido'}
                                     </button>
                                 ))}
                             </div>
@@ -170,17 +170,17 @@ export default function PainelRiscoAbandono() {
                 </BarraFiltro>
 
                 {/* Tabela de Alertas SaaS Premium */}
-                <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-[2.5rem] overflow-hidden">
+                <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-2xl overflow-hidden">
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse whitespace-nowrap">
                             <thead>
                                 <tr className="bg-slate-50/80 border-b border-slate-200">
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificação do Aluno</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Unidade / Classe</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Diagnóstico (Motivo)</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Data do Incidente</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Status Operacional</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações de Gestão</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Estudante</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Turma</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Motivo do Alerta</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Data do Alerta</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Situação</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -195,7 +195,7 @@ export default function PainelRiscoAbandono() {
                                         <td colSpan={6} className="py-24 text-center">
                                             <div className="flex flex-col items-center justify-center gap-4 opacity-40 grayscale">
                                                 <AlertCircle size={48} className="text-slate-400" />
-                                                <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Zero instâncias de abandono localizadas</p>
+                                                <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhum aluno com faltas excessivas no momento</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -237,7 +237,7 @@ export default function PainelRiscoAbandono() {
                                                         onChange={(e) => tratarAlerta(alerta.id, e.target.value as StatusRiscoAbandono)}
                                                         className="text-[10px] font-black uppercase tracking-widest border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-600 outline-none hover:border-indigo-300 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer shadow-sm"
                                                     >
-                                                        <option value="PENDENTE">Status: Crítico</option>
+                                                        <option value="PENDENTE">Status: Urgente</option>
                                                         <option value="EM_ANALISE">Status: Em Análise</option>
                                                         <option value="RESOLVIDO">Status: Resolvido</option>
                                                     </select>
@@ -296,14 +296,14 @@ export default function PainelRiscoAbandono() {
             {/* Modal de Dossiê de Faltas (Standardized) */}
             {alertaFaltasAtivo && (
                 <ModalUniversal
-                    titulo={`Dossiê de Frequência`}
-                    subtitulo="Detalhamento cronológico de telemetria escolar"
+                    titulo={`Histórico de Presença`}
+                    subtitulo="Veja detalhadamente os dias que o aluno esteve ou não na escola"
                     icone={Activity}
                     aoFechar={() => definirAlertaFaltasAtivo(null)}
                     tamanho="lg"
                 >
                     <div className="space-y-8 pb-4">
-                        <div className="bg-slate-900 rounded-[2rem] p-8 border border-slate-800 shadow-2xl relative overflow-hidden">
+                        <div className="bg-slate-900 rounded-2xl p-8 border border-slate-800 shadow-2xl relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 blur-3xl rounded-full"></div>
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                                 <div>
@@ -316,12 +316,12 @@ export default function PainelRiscoAbandono() {
                             </div>
                         </div>
 
-                        <div className="bg-rose-50 rounded-3xl p-6 border border-rose-100 flex items-start gap-5 shadow-lg shadow-rose-900/5 transition-all hover:scale-[1.01]">
+                        <div className="bg-rose-50 rounded-2xl p-6 border border-rose-100 flex items-start gap-5 shadow-lg shadow-rose-900/5 transition-all hover:scale-[1.01]">
                             <div className="w-12 h-12 bg-rose-600 text-white rounded-2xl flex items-center justify-center border border-rose-500 shadow-xl shrink-0">
                                 <AlertCircle size={24} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <h4 className="font-black text-[10px] text-rose-600 uppercase tracking-[0.2em] mb-1.5">Diagnóstico Técnico</h4>
+                                <h4 className="font-black text-[10px] text-rose-600 uppercase tracking-[0.2em] mb-1.5">Análise do Alerta</h4>
                                 <p className="text-sm text-rose-900 leading-relaxed font-bold">{alertaFaltasAtivo.motivo}</p>
                             </div>
                         </div>
@@ -330,7 +330,7 @@ export default function PainelRiscoAbandono() {
                             <div className="flex items-center justify-between mb-4 px-2">
                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
                                     <Clock size={14} className="text-indigo-500" />
-                                    Telemetria de Acessos (Janela: 30 dias)
+                                    Registros de Entrada e Saída (Últimos 30 dias)
                                 </h4>
                                 {historicoAtivo.length > 0 && (
                                     <span className="text-[9px] font-black text-indigo-600 bg-white border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-widest">
@@ -343,12 +343,12 @@ export default function PainelRiscoAbandono() {
                                 {carregandoHistorico ? (
                                     <div className="py-16 flex flex-col items-center gap-4 text-slate-400 opacity-50 grayscale">
                                         <Loader2 size={32} className="animate-spin text-indigo-600" />
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Consultando Datacenter...</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Buscando informações...</span>
                                     </div>
                                 ) : historicoAtivo.length === 0 ? (
-                                    <div className="text-center py-12 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center gap-3">
+                                    <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center gap-3">
                                         <Clock size={32} className="text-slate-200" />
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Inexistência de logs digitais no período</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nenhum registro encontrado no período</p>
                                     </div>
                                 ) : (
                                     historicoAtivo.map(registro => (
@@ -373,7 +373,7 @@ export default function PainelRiscoAbandono() {
                             tamanho="lg"
                             onClick={() => definirAlertaFaltasAtivo(null)}
                         >
-                            Fechar Análise
+                            Fechar Histórico
                         </Botao>
                     </div>
                 </ModalUniversal>
@@ -382,39 +382,46 @@ export default function PainelRiscoAbandono() {
     )
 }
 
-function CardMetrica({ label, valor, icon, className = "" }: { label: string, valor: number, icon: React.ReactNode, className?: string }) {
+function CardMetrica({ label, valor, icon, cor }: { label: string, valor: number, icon: React.ReactNode, cor: 'indigo' | 'emerald' | 'rose' | 'amber' | 'slate' }) {
+    const cores = {
+        indigo: "border-l-indigo-600 bg-indigo-50/30 text-indigo-600",
+        emerald: "border-l-emerald-600 bg-emerald-50/30 text-emerald-600",
+        rose: "border-l-rose-600 bg-rose-50/30 text-rose-600",
+        amber: "border-l-amber-600 bg-amber-50/30 text-amber-600",
+        slate: "border-l-slate-400 bg-slate-50 text-slate-400"
+    };
+
     return (
-        <CartaoConteudo className={`p-8 flex items-center gap-6 hover:shadow-2xl transition-all hover:-translate-y-1 relative overflow-hidden group rounded-[2.5rem] shadow-2xl ${className}`}>
-            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-slate-900/[0.02] rounded-full group-hover:scale-150 transition-transform"></div>
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shrink-0 border border-slate-100 shadow-xl group-hover:rotate-6 transition-transform z-10">
+        <div className={`p-6 bg-white border border-slate-200/60 border-l-4 ${cores[cor]} rounded-r-lg hover:shadow-xl transition-all hover:-translate-y-1 relative overflow-hidden group shadow-sm flex items-center gap-5`}>
+            <div className={`w-12 h-12 bg-white rounded-lg flex items-center justify-center shrink-0 border border-slate-100 shadow-sm z-10 transition-transform group-hover:scale-110`}>
                 {icon}
             </div>
             <div className="z-10">
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-1 leading-none">{label}</p>
-                <p className="text-3xl font-black text-slate-900 leading-tight tracking-tighter">{valor}</p>
+                <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mb-1 leading-none">{label}</p>
+                <p className="text-2xl font-black text-slate-900 leading-tight tracking-tighter">{valor}</p>
             </div>
-        </CartaoConteudo>
+        </div>
     );
 }
 
 function BadgeStatus({ status }: { status: StatusRiscoAbandono }) {
     if (status === 'PENDENTE') {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border-2 border-rose-100 shadow-sm transition-all hover:scale-110">
-                <div className="w-2 h-2 rounded-full bg-rose-600 animate-pulse shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Registro Crítico
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 shadow-sm transition-all hover:scale-105">
+                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Urgente
             </span>
         );
     }
     if (status === 'EM_ANALISE') {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border-2 border-amber-100 shadow-sm transition-all hover:scale-110">
-                <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]"></div> Em Trincheira
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 shadow-sm transition-all hover:scale-105">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]"></div> Em Análise
             </span>
         );
     }
     return (
-        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border-2 border-emerald-100 shadow-sm transition-all hover:scale-110">
-            <div className="w-2 h-2 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Fluxo Estabilizado
+        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-sm transition-all hover:scale-105">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Resolvido
         </span>
     );
 }

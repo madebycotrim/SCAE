@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
@@ -59,40 +59,58 @@ export default function Turmas() {
     );
 
     const turmas = dados || [];
-    const [modalAberto, definirModalAberto] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const termoInicial = searchParams.get('busca') || '';
+    const turnoInicial = searchParams.get('turno') || 'TODOS';
+
+    const [modalAberto, definirModalAberto] = useState(searchParams.get('acao') === 'novo');
     const [turmaEmEdicao, definirTurmaEmEdicao] = useState(null);
-    const [termoBusca, definirTermoBusca] = useState('');
-    const [filtroTurno, definirFiltroTurno] = useState('TODOS');
+    const [termoBusca, definirTermoBusca] = useState(termoInicial);
+    const [filtroTurno, definirFiltroTurno] = useState(turnoInicial);
     const [filtroAnoLetivo, definirFiltroAnoLetivo] = useState(new Date().getFullYear().toString());
+
+    // Sincronizar com URL
+    useEffect(() => {
+        const busca = searchParams.get('busca');
+        if (busca !== null) definirTermoBusca(busca);
+
+        const turno = searchParams.get('turno');
+        if (turno) definirFiltroTurno(turno);
+
+        if (searchParams.get('acao') === 'novo') {
+            definirTurmaEmEdicao(null);
+            definirModalAberto(true);
+        }
+    }, [searchParams]);
 
     // Mapeamento de Cores e Ícones por Turno
     const CONFIG_TURNO = {
         'Matutino': {
-            bg: 'bg-orange-50',
-            text: 'text-orange-700',
-            border: 'border-orange-200',
-            indicator: 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]',
+            bg: 'bg-slate-50',
+            text: 'text-slate-600',
+            border: 'border-slate-200',
+            indicator: 'bg-amber-400',
             icone: Sun
         },
         'Vespertino': {
-            bg: 'bg-sky-50',
-            text: 'text-sky-700',
-            border: 'border-sky-200',
-            indicator: 'bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.4)]',
+            bg: 'bg-slate-50',
+            text: 'text-slate-600',
+            border: 'border-slate-200',
+            indicator: 'bg-sky-400',
             icone: CloudSun
         },
         'Noturno': {
-            bg: 'bg-indigo-50',
-            text: 'text-indigo-700',
-            border: 'border-indigo-200',
-            indicator: 'bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.4)]',
+            bg: 'bg-slate-50',
+            text: 'text-slate-600',
+            border: 'border-slate-200',
+            indicator: 'bg-slate-600',
             icone: Moon
         },
         'Integral': {
-            bg: 'bg-emerald-50',
-            text: 'text-emerald-700',
-            border: 'border-emerald-200',
-            indicator: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]',
+            bg: 'bg-slate-50',
+            text: 'text-slate-600',
+            border: 'border-slate-200',
+            indicator: 'bg-emerald-500',
             icone: Zap
         }
     };
@@ -154,17 +172,17 @@ export default function Turmas() {
                 sala: novaTurma.sala
             });
 
-            toast.success(turmaEmEdicao ? 'Configurações de turma atualizadas' : 'Turma operacional inicializada');
+            toast.success(turmaEmEdicao ? 'Configurações de turma atualizadas' : 'Turma criada com sucesso');
             definirModalAberto(false);
             carregarTurmas();
         } catch (erro) {
             log.error('Erro ao salvar', erro);
-            toast.error('Falha crítica ao persistir dados da turma.');
+            toast.error('Não foi possível salvar os dados da turma.');
         }
     };
 
     const excluirTurma = async (id: string) => {
-        if (!window.confirm(`Confirma a desativação permanente da turma ${id}?`)) return;
+        if (!window.confirm(`Tem certeza que deseja excluir a turma ${id}?`)) return;
 
         try {
             const banco = await bancoLocal.iniciarBanco();
@@ -180,11 +198,11 @@ export default function Turmas() {
 
             await Registrador.registrar('TURMA_EXCLUIR', 'turma', id, {});
 
-            toast.success('Turma removida do ecossistema');
+            toast.success('Turma excluída com sucesso');
             carregarTurmas();
         } catch (erro) {
             log.error('Erro ao excluir', erro);
-            toast.error('Falha ao remover registro.');
+            toast.error('Não foi possível excluir a turma.');
         }
     };
 
@@ -208,10 +226,10 @@ export default function Turmas() {
 
     if (!podeAcessar('turmas', 'visualizar')) {
         return (
-            <LayoutAdministrativo titulo="Gestão de Turmas" subtitulo="" acoes={null}>
+            <LayoutAdministrativo titulo="Lista de Turmas" subtitulo="" acoes={null}>
                 <div className="flex flex-col items-center justify-center h-96 gap-4 text-slate-400 opacity-50 grayscale">
                     <BookOpen size={64} strokeWidth={1} />
-                    <p className="font-black uppercase tracking-widest text-[11px]">Nível de acesso insuficiente</p>
+                    <p className="font-black uppercase tracking-widest text-[11px]">Você não tem permissão para ver esta página</p>
                 </div>
             </LayoutAdministrativo>
         );
@@ -230,34 +248,34 @@ export default function Turmas() {
 
     return (
         <LayoutAdministrativo
-            titulo="Gestão de Turmas"
-            subtitulo="Controle de classes, enturmação e ocupação de vagas"
+            titulo="Lista de Turmas"
+            subtitulo="Gerencie as turmas, professores e a ocupação das salas"
             acoes={AcoesHeader}
         >
-            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-[2rem]">
-                <div className="flex flex-col gap-2.5 flex-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Pesquisa de Classes</label>
+            <BarraFiltro className="bg-white border-slate-200 shadow-sm p-3 rounded-xl">
+                <div className="flex flex-col gap-1.5 flex-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Turma</label>
                     <InputBusca
                         icone={Search}
-                        placeholder="Nome, regente ou identificador de turno..."
+                        placeholder="Nome, professor ou turno..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-12 rounded-2xl"
+                        className="w-full h-9 rounded-lg"
                     />
                 </div>
 
                 <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
                     {/* Filtro de Ano */}
-                    <div className="flex flex-col gap-2.5">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Ciclo Acadêmico</label>
-                        <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
+                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-9">
                             {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                                 <button
                                     key={ano}
                                     onClick={() => definirFiltroAnoLetivo(ano)}
-                                    className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${filtroAnoLetivo === ano
-                                        ? 'bg-indigo-600 text-white shadow-md'
-                                        : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                                    className={`px-4 h-full rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
+                                        ? 'bg-white text-slate-900 border-slate-200 shadow-sm'
+                                        : 'text-slate-400 border-transparent hover:text-slate-600'
                                         }`}
                                 >
                                     <Calendar size={12} /> {ano}
@@ -267,18 +285,18 @@ export default function Turmas() {
                     </div>
 
                     {/* Filtro de Turno */}
-                    <div className="flex flex-col gap-2.5">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Regime de Turno</label>
-                        <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Turno</label>
+                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-9">
                             {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
                                 const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIG_TURNO[filtro as keyof typeof CONFIG_TURNO]?.icone || Clock);
                                 return (
                                     <button
                                         key={filtro}
                                         onClick={() => definirFiltroTurno(filtro)}
-                                        className={`px-4 h-full rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 ${filtroTurno === filtro
-                                            ? 'bg-slate-900 text-white shadow-md'
-                                            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                                        className={`px-3 h-full rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
+                                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                            : 'text-slate-400 border-transparent hover:text-slate-600'
                                             }`}
                                     >
                                         <IconeTurno size={12} />
@@ -292,17 +310,17 @@ export default function Turmas() {
             </BarraFiltro>
 
             {/* Listagem em Tabela SaaS */}
-            <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-[2.5rem] overflow-hidden mt-8">
+            <CartaoConteudo className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden mt-8">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
-                            <tr className="bg-slate-50/80 border-b border-slate-200">
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificação / Classe</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Responsável (Regente)</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Localização</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Regime / Turno</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Ocupação vs Vagas</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações de Gestão</th>
+                            <tr className="bg-slate-50/50 border-b border-slate-200">
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turma</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Regente</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Sala</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turno</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupação</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -317,7 +335,7 @@ export default function Turmas() {
                                     <td colSpan={6} className="py-24 text-center">
                                         <div className="flex flex-col items-center gap-4 opacity-50 grayscale">
                                             <BookOpen size={48} className="text-slate-400" />
-                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhum cluster de turma localizado</p>
+                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhuma turma encontrada</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -336,54 +354,54 @@ export default function Turmas() {
                                             className="hover:bg-indigo-50/30 transition-colors group cursor-pointer"
                                             onClick={() => navegar(`/${escola.id}/admin/alunos?turma=${turma.id}`)}
                                         >
-                                            <td className="py-5 px-8">
+                                            <td className="py-4 px-8">
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{turma.serie}º {turma.letra}</span>
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ano {turma.ano_letivo}</span>
+                                                    <span className="text-sm font-black text-slate-800 group-hover:text-slate-950 transition-colors uppercase tracking-tight">{turma.serie}º {turma.letra}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Ano {turma.ano_letivo}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-5 px-8">
+                                            <td className="py-4 px-8">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                                                        <GraduationCap size={16} />
+                                                    <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 border border-slate-200/50 transition-colors">
+                                                        <GraduationCap size={14} />
                                                     </div>
-                                                    <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{turma.professor_regente || 'Não designado'}</span>
+                                                    <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{turma.professor_regente || 'Não designado'}</span>
                                                 </div>
                                             </td>
-                                            <td className="py-5 px-8 text-center">
-                                                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-lg border border-slate-200">
+                                            <td className="py-4 px-8 text-center">
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-slate-200/60">
                                                     <MapPin size={12} /> {turma.sala || 'N/A'}
                                                 </div>
                                             </td>
-                                            <td className="py-5 px-8">
-                                                <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.1em] border-2 shadow-sm ${turnoCfg.bg} ${turnoCfg.text} ${turnoCfg.border}`}>
-                                                    <div className={`w-2 h-2 rounded-full ${turnoCfg.indicator}`}></div>
-                                                    <turnoCfg.icone size={12} />
+                                            <td className="py-4 px-8">
+                                                <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.1em] border ${turnoCfg.bg} ${turnoCfg.text} ${turnoCfg.border}`}>
+                                                    <div className={`w-1 h-1 rounded-full ${turnoCfg.indicator}`}></div>
+                                                    <turnoCfg.icone size={10} />
                                                     {turma.turno}
                                                 </span>
                                             </td>
-                                            <td className="py-5 px-8">
-                                                <div className="flex flex-col gap-2 min-w-[140px]">
-                                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-tight">
-                                                        <span className={ocupacao >= 100 ? 'text-rose-600' : 'text-slate-900'}>
-                                                            {totalAlunos} / {lotacao} ALUNOS
+                                            <td className="py-4 px-8">
+                                                <div className="flex flex-col gap-1.5 min-w-[120px]">
+                                                    <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-tight">
+                                                        <span className={ocupacao >= 100 ? 'text-rose-600' : 'text-slate-400'}>
+                                                            {totalAlunos} / {lotacao}
                                                         </span>
-                                                        <span className={ocupacao >= 90 ? 'text-rose-600 font-black' : 'text-slate-500'}>
+                                                        <span className={ocupacao >= 90 ? 'text-rose-600' : 'text-slate-400'}>
                                                             {Math.round(ocupacao)}%
                                                         </span>
                                                     </div>
-                                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner border border-slate-200/50">
+                                                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/30">
                                                         <div
-                                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${ocupacao >= 100 ? 'bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]' :
-                                                                ocupacao >= 85 ? 'bg-amber-500' :
-                                                                    'bg-indigo-600'
+                                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${ocupacao >= 100 ? 'bg-rose-500' :
+                                                                ocupacao >= 85 ? 'bg-amber-400' :
+                                                                    'bg-slate-900'
                                                                 }`}
                                                             style={{ width: `${Math.min(ocupacao, 100)}%` }}
                                                         ></div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-5 px-8 text-right">
+                                            <td className="py-4 px-8 text-right">
                                                 <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                                                     <Botao variante="ghost" tamanho="sm" icone={Edit2} onClick={() => abrirEdicao(turma)} title="Configurar Turma" className="hover:text-indigo-600" />
                                                     <Botao variante="ghost" tamanho="sm" icone={Trash2} onClick={() => excluirTurma(turma.id)} title="Remover Registro" className="hover:text-rose-600" />

@@ -62,7 +62,7 @@ export default function TelaLoginResponsavel() {
             </div>
 
             {/* Login Card */}
-            <form onSubmit={lidarComBusca} className="w-full max-w-sm bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8">
+            <form onSubmit={lidarComBusca} className="w-full max-w-sm bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8">
 
                 <div className="space-y-4 mb-8">
                     <div>

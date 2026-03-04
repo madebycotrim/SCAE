@@ -76,20 +76,20 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
         >
             {!resultado ? (
                 <div className="space-y-8 pb-4">
-                    {/* Seletor de Método (Tabs Premium) */}
-                    <div className="flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200 shadow-inner group">
+                    {/* Seletor de Método (Tabs Premium V2) */}
+                    <div className="flex p-1 bg-slate-50 rounded-lg border border-slate-200">
                         <button
                             onClick={() => definirAbaAtiva('arquivo')}
-                            className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'arquivo' ? 'bg-white text-indigo-600 shadow-md border border-indigo-100' : 'text-slate-500 hover:text-slate-800'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'arquivo' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                         >
-                            <FileSpreadsheet size={16} />
+                            <FileSpreadsheet size={14} />
                             Planilha (XLSX/CSV)
                         </button>
                         <button
                             onClick={() => definirAbaAtiva('colar')}
-                            className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'colar' ? 'bg-white text-indigo-600 shadow-md border border-indigo-100' : 'text-slate-500 hover:text-slate-800'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'colar' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                         >
-                            <Clipboard size={16} />
+                            <Clipboard size={14} />
                             Input Direto
                         </button>
                     </div>
@@ -97,7 +97,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                     <div className="animate-fade-in min-h-[220px]">
                         {abaAtiva === 'arquivo' ? (
                             <div className="space-y-6">
-                                <div className="relative group overflow-hidden border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center hover:border-indigo-400 hover:bg-slate-50 transition-all cursor-pointer bg-white">
+                                <div className="relative group overflow-hidden border-2 border-dashed border-slate-200 rounded-xl p-10 text-center hover:border-slate-400 hover:bg-slate-50 transition-all cursor-pointer bg-white">
                                     <input
                                         type="file"
                                         accept=".xlsx, .xls, .csv"
@@ -106,22 +106,22 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                         disabled={importando}
                                     />
                                     <div className="flex flex-col items-center">
-                                        <div className="w-16 h-16 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-sm">
-                                            <Upload size={28} />
+                                        <div className="w-14 h-14 bg-slate-50 text-slate-400 border border-slate-200 rounded-lg flex items-center justify-center mb-4 transition-transform shadow-sm">
+                                            <Upload size={24} />
                                         </div>
-                                        <h4 className="font-black text-slate-800 text-sm uppercase tracking-tight">Solte o arquivo ou clique para buscar</h4>
-                                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest leading-relaxed">Formatos aceitos: .xlsx, .xls, .csv</p>
+                                        <h4 className="font-black text-slate-800 text-xs uppercase tracking-tight">Selecione ou arraste a planilha</h4>
+                                        <p className="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest leading-none">Formatos aceitos: .xlsx, .xls, .csv</p>
                                     </div>
                                 </div>
 
-                                <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 flex items-start gap-4 shadow-xl">
-                                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
-                                        <Info size={18} />
+                                <div className="bg-slate-900 rounded-xl p-4 border border-slate-800 flex items-start gap-4">
+                                    <div className="p-2 bg-slate-800 rounded-lg text-slate-400 shrink-0">
+                                        <Info size={16} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1.5">Estrutura de Colunas</p>
-                                        <p className="text-xs text-slate-400 leading-relaxed font-bold">
-                                            O arquivo operacional deve conter as colunas <span className="text-white">NOME_COMPLETO</span>, <span className="text-white">MATRICULA</span> e <span className="text-white">TURMA_ID</span>.
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1 leading-none">Estrutura de Colunas</p>
+                                        <p className="text-[10px] text-slate-500 leading-normal font-bold">
+                                            Utilize as colunas <span className="text-slate-300">NOME_COMPLETO</span>, <span className="text-slate-300">MATRICULA</span> e <span className="text-slate-300">TURMA_ID</span>.
                                         </p>
                                     </div>
                                 </div>
@@ -129,17 +129,17 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                         ) : (
                             <div className="space-y-6">
                                 <div className="relative group">
-                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1 transition-colors group-focus-within:text-indigo-600">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 transition-colors group-focus-within:text-slate-900">
                                         <Clipboard size={14} /> Buffer de Colagem
                                     </label>
                                     <textarea
-                                        className="w-full h-48 p-6 bg-slate-50 border border-slate-200 rounded-[2rem] text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all placeholder:text-slate-400 resize-none font-mono custom-scrollbar"
+                                        className="w-full h-44 p-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 resize-none font-mono custom-scrollbar"
                                         placeholder="Selecione os dados no Excel (Ctrl+C), e cole aqui (Ctrl+V)..."
                                         value={textoColado}
                                         onChange={(e) => definirTextoColado(e.target.value)}
                                     />
-                                    <div className="absolute right-6 bottom-6 px-3 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-500 pointer-events-none uppercase tracking-widest shadow-sm">
-                                        {textoColado.length > 0 ? `${textoColado.trim().split('\n').length} Registros` : 'Aguardando Dados'}
+                                    <div className="absolute right-4 bottom-4 px-2 py-1 bg-white border border-slate-200 rounded text-[9px] font-black text-slate-500 pointer-events-none uppercase tracking-widest shadow-sm">
+                                        {textoColado.length > 0 ? `${textoColado.trim().split('\n').length} Linhas` : 'Vazio'}
                                     </div>
                                 </div>
 
@@ -159,31 +159,31 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                     </div>
                 </div>
             ) : (
-                <div className="py-6 animate-zoom-in">
-                    <div className="text-center mb-10">
-                        <div className="w-20 h-20 bg-indigo-600 text-white rounded-[2rem] flex items-center justify-center mb-6 mx-auto shadow-2xl shadow-indigo-200 animate-bounce-subtle">
-                            <CheckCircle size={40} strokeWidth={2.5} />
+                <div className="py-2 animate-zoom-in">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-slate-900 text-white rounded-xl flex items-center justify-center mb-5 mx-auto shadow-lg shadow-slate-900/10">
+                            <CheckCircle size={32} strokeWidth={2.5} />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-1">Batch Concluído</h3>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Processamento de fluxo de dados finalizado</p>
+                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-1">Batch Concluído</h3>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Processamento massivo finalizado</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6 mb-10">
-                        <div className="bg-emerald-50 p-8 rounded-[2rem] border border-emerald-100 text-center shadow-lg shadow-emerald-900/5">
-                            <p className="text-emerald-700 font-black text-4xl mb-2 tracking-tighter">{resultado.sucessos}</p>
-                            <p className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em]">Sincronizados</p>
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 text-center shadow-sm">
+                            <p className="text-slate-900 font-black text-3xl mb-1 tracking-tighter">{resultado.sucessos}</p>
+                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em]">Sincronizados</p>
                         </div>
 
-                        <div className="bg-rose-50 p-8 rounded-[2rem] border border-rose-100 text-center shadow-lg shadow-rose-900/5 transition-all hover:scale-105">
-                            <p className="text-rose-700 font-black text-4xl mb-2 tracking-tighter">{resultado.erros}</p>
-                            <p className="text-[10px] text-rose-600 font-black uppercase tracking-[0.2em]">Inconsistências</p>
+                        <div className="bg-rose-50 p-6 rounded-xl border border-rose-100 text-center shadow-sm">
+                            <p className="text-rose-700 font-black text-3xl mb-1 tracking-tighter">{resultado.erros}</p>
+                            <p className="text-[9px] text-rose-500 font-black uppercase tracking-[0.2em]">Inconsistências</p>
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 mb-8 flex items-center gap-4">
-                        <AlertCircle className="text-slate-400 shrink-0" size={20} />
-                        <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-wide">
-                            Registros com falha podem ser corrigidos manualmente ou revisados na planilha de origem para nova tentativa.
+                    <div className="bg-slate-50 rounded-lg p-5 border border-slate-200 mb-8 flex items-center gap-4">
+                        <AlertCircle className="text-slate-400 shrink-0" size={18} />
+                        <p className="text-[9px] font-bold text-slate-500 leading-normal uppercase tracking-wide">
+                            Registros com incidência de erro devem ser validados individualmente no próximo painel.
                         </p>
                     </div>
 

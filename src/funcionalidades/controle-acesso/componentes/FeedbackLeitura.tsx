@@ -31,7 +31,7 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
         `} onClick={aoEncerrar}>
 
             {/* Moldura de Segurança (Cor do Dia) */}
-            <div className="absolute inset-4 border-[8px] rounded-[3rem] pointer-events-none opacity-40 transition-all" style={corDiaEstilo}></div>
+            <div className="absolute inset-4 border-[8px] rounded-2xl pointer-events-none opacity-40 transition-all" style={corDiaEstilo}></div>
 
             <div className="relative z-10 max-w-2xl w-full text-center space-y-8 animate-in slide-in-from-bottom-12 duration-700">
 
@@ -58,7 +58,7 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
                     `}>
                         {ehSucesso ? 'Liberado' : 'Bloqueado'}
                     </h2>
-                    <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] ml-2">Protocolo de Segurança SCAE</p>
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] ml-2">Sistema de Controle de Acesso</p>
                 </div>
 
                 {/* Card do Aluno Premium */}
@@ -96,7 +96,7 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
                     </div>
                     {ehSucesso && (
                         <div className="text-[10px] font-black text-emerald-400/60 uppercase tracking-[0.2em] border-l border-white/10 pl-6">
-                            Fluxo Registrado <br /> Sincronismo Pendente
+                            Acesso Registrado <br /> Sincronizando...
                         </div>
                     )}
                 </div>
