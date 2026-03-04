@@ -32,6 +32,7 @@ import { Registrador } from '@compartilhado/servicos/auditoria';
 import { usarEscola } from '@escola/ProvedorEscola';
 
 import FormTurmaModal from './FormTurmaModal';
+import { turmaServico } from '../servicos/turma.servico';
 
 export default function Turmas() {
     const navegar = useNavigate();
@@ -134,50 +135,24 @@ export default function Turmas() {
             lotacao_maxima,
             professor_regente: dadosTurma.professor_regente,
             sala: dadosTurma.sala,
-            criado_em: turmaEmEdicao ? turmaEmEdicao.criado_em : new Date().toISOString(),
-            atualizado_em: new Date().toISOString()
+            criado_em: turmaEmEdicao ? (turmaEmEdicao as any).criado_em : new Date().toISOString()
         };
 
         try {
-            const banco = await bancoLocal.iniciarBanco();
-
-            if (!turmaEmEdicao) {
-                const existente = await banco.get('turmas', idTurma);
-                if (existente) {
-                    toast.error('Identificador de turma já existente no cluster local.');
-                    return;
-                }
+            // Lógica de renomeação de ID (se o ID mudou na edição)
+            if (turmaEmEdicao && (turmaEmEdicao as any).id !== idTurma) {
+                const banco = await bancoLocal.iniciarBanco();
+                await banco.delete('turmas', (turmaEmEdicao as any).id);
             }
 
-            if (turmaEmEdicao && turmaEmEdicao.id !== idTurma) {
-                await banco.delete('turmas', turmaEmEdicao.id);
-            }
-
-            await banco.put('turmas', novaTurma);
-
-            if (navigator.onLine) {
-                try {
-                    await api.enviar(`/turmas/${idTurma}`, novaTurma);
-                } catch (e) {
-                    log.warn('Erro sync nuvem', e);
-                }
-            }
-
-            const acaoLog = turmaEmEdicao ? 'TURMA_EDITAR' : 'TURMA_CRIAR';
-            await Registrador.registrar(acaoLog, 'turma', idTurma, {
-                ano_letivo: novaTurma.ano_letivo,
-                turno: novaTurma.turno,
-                lotacao_maxima: novaTurma.lotacao_maxima,
-                professor_regente: novaTurma.professor_regente,
-                sala: novaTurma.sala
-            });
+            await turmaServico.salvarTurma(novaTurma, !!turmaEmEdicao);
 
             toast.success(turmaEmEdicao ? 'Configurações de turma atualizadas' : 'Turma criada com sucesso');
             definirModalAberto(false);
             carregarTurmas();
-        } catch (erro) {
+        } catch (erro: any) {
             log.error('Erro ao salvar', erro);
-            toast.error('Não foi possível salvar os dados da turma.');
+            toast.error(erro.message || 'Não foi possível salvar os dados da turma.');
         }
     };
 
@@ -185,19 +160,7 @@ export default function Turmas() {
         if (!window.confirm(`Tem certeza que deseja excluir a turma ${id}?`)) return;
 
         try {
-            const banco = await bancoLocal.iniciarBanco();
-            await banco.delete('turmas', id);
-
-            if (navigator.onLine) {
-                try {
-                    await api.remover(`/turmas/${id}`);
-                } catch (e) {
-                    log.warn('Erro sync nuvem', e);
-                }
-            }
-
-            await Registrador.registrar('TURMA_EXCLUIR', 'turma', id, {});
-
+            await turmaServico.excluirTurma(id);
             toast.success('Turma excluída com sucesso');
             carregarTurmas();
         } catch (erro) {

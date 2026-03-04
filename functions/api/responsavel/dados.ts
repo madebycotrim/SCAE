@@ -53,7 +53,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
 
         // Validação adicional de Segurança JWT
         const check = await contexto.env.DB_SCAE.prepare(`
-            SELECT 1 FROM vinculo_responsavel_aluno 
+            SELECT 1 FROM vinculos_responsavel_aluno 
             WHERE responsavel_id = ? AND aluno_matricula = ? AND escola_id = ?
         `).bind(responsavelId, alunoMatricula, idEscola).first();
         if (!check) throw new Error('Vínculo rompido');

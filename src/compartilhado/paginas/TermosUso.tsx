@@ -1,7 +1,7 @@
 ﻿import { Scale, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usarEscolaOpcional } from '@escola/ProvedorEscola';
-import { usarConteudoLegal } from '@funcionalidades/acesso-usuario/hooks/usarConteudoLegal';
+import { usarConteudoLegal } from '@funcionalidades/usuarios/hooks/usarConteudoLegal';
 import { Botao } from '@compartilhado/componentes/UI';
 
 /**

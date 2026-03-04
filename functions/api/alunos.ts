@@ -85,12 +85,12 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
 
             // 2. Criar o vínculo usando IF NOT EXISTS logic
             await contexto.env.DB_SCAE.prepare(
-                `INSERT INTO vinculo_responsavel_aluno (responsavel_id, aluno_matricula, escola_id)
+                `INSERT INTO vinculos_responsavel_aluno (responsavel_id, aluno_matricula, escola_id)
                  SELECT ?, ?, ?
                  WHERE NOT EXISTS (
-                     SELECT 1 FROM vinculo_responsavel_aluno 
-                     WHERE responsavel_id = ? AND aluno_matricula = ? AND escola_id = ?
-                 )`
+                      SELECT 1 FROM vinculos_responsavel_aluno 
+                      WHERE responsavel_id = ? AND aluno_matricula = ? AND escola_id = ?
+                  )`
             ).bind(responsavelId, matricula, idEscola, responsavelId, matricula, idEscola).run();
         }
 

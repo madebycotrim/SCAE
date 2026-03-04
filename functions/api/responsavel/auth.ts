@@ -29,7 +29,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
         const consulta = await contexto.env.DB_SCAE.prepare(`
             SELECT r.id 
             FROM responsaveis r 
-            INNER JOIN vinculo_responsavel_aluno v ON r.id = v.responsavel_id AND r.escola_id = v.escola_id
+            INNER JOIN vinculos_responsavel_aluno v ON r.id = v.responsavel_id AND r.escola_id = v.escola_id
             WHERE r.escola_id = ? 
               AND v.aluno_matricula = ? 
               AND r.email = ?

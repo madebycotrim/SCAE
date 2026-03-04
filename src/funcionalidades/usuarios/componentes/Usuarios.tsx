@@ -25,6 +25,7 @@ import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import type { UsuarioLocal } from '@compartilhado/types/bancoLocal.tipos';
 import { api } from '@compartilhado/servicos/api';
+import { usuarioServico } from '../servicos/usuario.servico';
 
 const log = criarRegistrador('Usuarios');
 
@@ -59,32 +60,11 @@ export default function Usuarios() {
 
     const salvarUsuario = async (dados: any) => {
         try {
-            const banco = await bancoLocal.iniciarBanco();
-            const usuarioNovo = {
-                ...dados,
-                atualizado_em: new Date().toISOString(),
-                sincronizado: 0
-            };
-
-            await banco.put('usuarios', usuarioNovo);
-
-            if (navigator.onLine) {
-                try {
-                    await api.enviar(`/usuarios/${usuarioNovo.email}`, usuarioNovo);
-                    usuarioNovo.sincronizado = 1;
-                    await banco.put('usuarios', usuarioNovo);
-                } catch (e) {
-                    log.warn('Falha ao sincronizar usuário', e);
-                }
-            }
+            await usuarioServico.salvarUsuario(dados, !!usuarioEmEdicao);
 
             toast.success(usuarioEmEdicao ? 'Usuário atualizado!' : 'Usuário convidado com sucesso!');
             definirModalAberto(false);
             carregarUsuarios();
-
-            await Registrador.registrar(usuarioEmEdicao ? 'USUARIO_EDITAR' : 'USUARIO_CONVIDAR', 'usuario', usuarioNovo.email, {
-                papel: usuarioNovo.papel
-            });
         } catch (erro) {
             log.error('Erro ao salvar usuário', erro);
             toast.error('Erro ao salvar dados do usuário');
@@ -93,26 +73,9 @@ export default function Usuarios() {
 
     const toggleStatus = async (user: UsuarioLocal) => {
         try {
-            const novoStatus = !user.ativo;
-            const banco = await bancoLocal.iniciarBanco();
-            const atualizado = { ...user, ativo: novoStatus, sincronizado: 0 };
-
-            await banco.put('usuarios', atualizado);
-
-            if (navigator.onLine) {
-                try {
-                    await api.atualizar(`/usuarios/${user.email}`, { ativo: novoStatus });
-                    atualizado.sincronizado = 1;
-                    await banco.put('usuarios', atualizado);
-                } catch (e) {
-                    log.warn('Erro sync nuvem', e);
-                }
-            }
-
-            toast.success(novoStatus ? 'Usuário liberado!' : 'Usuário bloqueado!');
+            await usuarioServico.toggleStatus(user);
+            toast.success(!user.ativo ? 'Usuário liberado!' : 'Usuário bloqueado!');
             carregarUsuarios();
-
-            await Registrador.registrar(novoStatus ? 'USUARIO_LIBERAR' : 'USUARIO_BLOQUEAR', 'usuario', user.email, {});
         } catch (erro) {
             toast.error('Erro ao alterar status');
         }
@@ -124,23 +87,8 @@ export default function Usuarios() {
         }
 
         try {
-            const banco = await bancoLocal.iniciarBanco();
-            await banco.delete('usuarios', user.email);
-
-            if (navigator.onLine) {
-                try {
-                    await api.remover(`/usuarios/${user.email}`);
-                } catch (e) {
-                    log.warn('Falha ao deletar usuário na API', e);
-                }
-            }
-
+            await usuarioServico.excluirUsuario(user.email);
             definirUsuarios(usuarios.filter(u => (u as any).email !== user.email));
-
-            await Registrador.registrar('USUARIO_EXCLUIR', 'usuario', user.email, {
-                email: user.email
-            });
-
             toast.success(`Usuário ${user.email} excluído com sucesso!`);
         } catch (erro) {
             log.error('Erro ao excluir usuário', erro);
@@ -261,10 +209,10 @@ export default function Usuarios() {
                                             </td>
                                             <td className="py-5 px-8 text-center">
                                                 <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                                                        papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                            papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                                                papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                                                                    'bg-slate-50 text-slate-700 border-slate-200'
+                                                    papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                        papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                            papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                                                'bg-slate-50 text-slate-700 border-slate-200'
                                                     }`}>
                                                     {papelNome}
                                                 </span>
