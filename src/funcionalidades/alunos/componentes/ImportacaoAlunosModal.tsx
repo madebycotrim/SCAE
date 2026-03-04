@@ -1,9 +1,10 @@
 ﻿import { useState } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
-import { FileSpreadsheet, Clipboard, Upload, CheckCircle, XCircle, Info, ChevronRight } from 'lucide-react';
+import { FileSpreadsheet, Clipboard, Upload, CheckCircle, XCircle, Info, ChevronRight, AlertCircle } from 'lucide-react';
 import { read, utils } from 'xlsx';
 import toast from 'react-hot-toast';
 import { ResultadoImportacao } from '../types/aluno';
+import { Botao } from '@compartilhado/componentes/UI';
 
 interface ImportacaoAlunosModalProps {
     aoFechar: () => void;
@@ -30,7 +31,8 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
             const res = await onImport(jsonData);
             definirResultado(res);
         } catch (erro) {
-            toast.error("Falha ao processar arquivo.");
+            console.error(erro);
+            toast.error("Falha ao processar arquivo de dados.");
         } finally {
             definirImportando(false);
         }
@@ -38,7 +40,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
 
     const processarColagem = async () => {
         if (!textoColado.trim()) {
-            toast.error("Cole os dados primeiro.");
+            toast.error("É necessário colar dados para processar.");
             return;
         }
 
@@ -57,7 +59,8 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
             const res = await onImport(data);
             definirResultado(res);
         } catch (erro) {
-            toast.error("Falha ao processar texto colado.");
+            console.error(erro);
+            toast.error("Falha ao processar dados colados.");
         } finally {
             definirImportando(false);
         }
@@ -65,115 +68,135 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
 
     return (
         <ModalUniversal
-            titulo="Importação de Alunos"
-            subtitulo="Adicione múltiplos registros simultaneamente via arquivo ou colagem."
+            titulo="Importação Inteligente"
+            subtitulo="Adição massiva de registros via Excel ou Buffer"
             aoFechar={aoFechar}
+            icone={FileSpreadsheet}
+            tamanho="lg"
         >
             {!resultado ? (
-                <div className="space-y-6">
-                    {/* Seletor de Método (Abas) Discreto */}
-                    <div className="flex p-1 bg-gray-100 rounded border border-gray-200">
+                <div className="space-y-8 pb-4">
+                    {/* Seletor de Método (Tabs Premium) */}
+                    <div className="flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200 shadow-inner group">
                         <button
                             onClick={() => definirAbaAtiva('arquivo')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-sm text-sm font-semibold transition-colors ${abaAtiva === 'arquivo' ? 'bg-white text-blue-700 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'arquivo' ? 'bg-white text-indigo-600 shadow-md border border-indigo-100' : 'text-slate-500 hover:text-slate-800'}`}
                         >
                             <FileSpreadsheet size={16} />
-                            Arquivo Excel
+                            Planilha (XLSX/CSV)
                         </button>
                         <button
                             onClick={() => definirAbaAtiva('colar')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-sm text-sm font-semibold transition-colors ${abaAtiva === 'colar' ? 'bg-white text-blue-700 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'colar' ? 'bg-white text-indigo-600 shadow-md border border-indigo-100' : 'text-slate-500 hover:text-slate-800'}`}
                         >
                             <Clipboard size={16} />
-                            Colagem Rápida
+                            Input Direto
                         </button>
                     </div>
 
-                    {abaAtiva === 'arquivo' ? (
-                        <div className="space-y-4">
-                            <div className="relative group overflow-hidden border border-dashed border-gray-300 rounded p-8 text-center hover:border-blue-500 hover:bg-gray-50 transition-colors cursor-pointer bg-white">
-                                <input
-                                    type="file"
-                                    accept=".xlsx, .xls, .csv"
-                                    onChange={processarArquivo}
-                                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                                    disabled={importando}
-                                />
-                                <div className="flex flex-col items-center">
-                                    <div className="w-10 h-10 bg-blue-50 text-blue-600 border border-blue-100 rounded flex items-center justify-center mb-3">
-                                        <Upload size={20} />
+                    <div className="animate-fade-in min-h-[220px]">
+                        {abaAtiva === 'arquivo' ? (
+                            <div className="space-y-6">
+                                <div className="relative group overflow-hidden border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center hover:border-indigo-400 hover:bg-slate-50 transition-all cursor-pointer bg-white">
+                                    <input
+                                        type="file"
+                                        accept=".xlsx, .xls, .csv"
+                                        onChange={processarArquivo}
+                                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                        disabled={importando}
+                                    />
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-16 h-16 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-sm">
+                                            <Upload size={28} />
+                                        </div>
+                                        <h4 className="font-black text-slate-800 text-sm uppercase tracking-tight">Solte o arquivo ou clique para buscar</h4>
+                                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest leading-relaxed">Formatos aceitos: .xlsx, .xls, .csv</p>
                                     </div>
-                                    <h4 className="font-semibold text-gray-800 text-sm">Arraste ou Clique para fazer upload</h4>
-                                    <p className="text-xs text-gray-500 mt-1">Suporta .xlsx, .xls e .csv</p>
                                 </div>
-                            </div>
 
-                            <div className="bg-gray-50 rounded p-4 border border-gray-200 flex items-start gap-3">
-                                <Info size={16} className="text-gray-500 shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Dica de Formatação</p>
-                                    <p className="text-sm text-gray-600">
-                                        O arquivo deve conter as colunas <span className="font-bold text-gray-900">NOME</span>, <span className="font-bold text-gray-900">MATRICULA</span> e <span className="font-bold text-gray-900">TURMA</span>.
-                                    </p>
+                                <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 flex items-start gap-4 shadow-xl">
+                                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
+                                        <Info size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1.5">Estrutura de Colunas</p>
+                                        <p className="text-xs text-slate-400 leading-relaxed font-bold">
+                                            O arquivo operacional deve conter as colunas <span className="text-white">NOME_COMPLETO</span>, <span className="text-white">MATRICULA</span> e <span className="text-white">TURMA_ID</span>.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            <div className="relative">
-                                <textarea
-                                    className="w-full h-48 p-4 bg-white border border-gray-300 rounded text-sm text-gray-700 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors placeholder:text-gray-400 resize-none font-mono"
-                                    placeholder="Dica: Selecione os dados no Excel, copie e cole aqui..."
-                                    value={textoColado}
-                                    onChange={(e) => definirTextoColado(e.target.value)}
-                                />
-                                <div className="absolute right-3 bottom-3 text-xs font-semibold text-gray-400 pointer-events-none">
-                                    {textoColado.length > 0 ? `${textoColado.split('\n').length} linhas` : ''}
+                        ) : (
+                            <div className="space-y-6">
+                                <div className="relative group">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1 transition-colors group-focus-within:text-indigo-600">
+                                        <Clipboard size={14} /> Buffer de Colagem
+                                    </label>
+                                    <textarea
+                                        className="w-full h-48 p-6 bg-slate-50 border border-slate-200 rounded-[2rem] text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all placeholder:text-slate-400 resize-none font-mono custom-scrollbar"
+                                        placeholder="Selecione os dados no Excel (Ctrl+C), e cole aqui (Ctrl+V)..."
+                                        value={textoColado}
+                                        onChange={(e) => definirTextoColado(e.target.value)}
+                                    />
+                                    <div className="absolute right-6 bottom-6 px-3 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-500 pointer-events-none uppercase tracking-widest shadow-sm">
+                                        {textoColado.length > 0 ? `${textoColado.trim().split('\n').length} Registros` : 'Aguardando Dados'}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <button
-                                onClick={processarColagem}
-                                disabled={importando || !textoColado.trim()}
-                                className="w-full h-10 bg-blue-600 text-white rounded font-semibold text-sm uppercase tracking-wider hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:bg-gray-400"
-                            >
-                                {importando ? 'Processando registros...' : 'Processar Agora'}
-                                {!importando && <ChevronRight size={16} />}
-                            </button>
-                        </div>
-                    )}
+                                <Botao
+                                    onClick={processarColagem}
+                                    disabled={!textoColado.trim()}
+                                    loading={importando}
+                                    fullWidth
+                                    tamanho="lg"
+                                    icone={ChevronRight}
+                                    className="flex-row-reverse"
+                                >
+                                    Fase de Processamento
+                                </Botao>
+                            </div>
+                        )}
+                    </div>
                 </div>
             ) : (
-                <div className="py-4 animate-in zoom-in-95 duration-300">
-                    <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4 mx-auto">
-                            <CheckCircle size={32} />
+                <div className="py-6 animate-zoom-in">
+                    <div className="text-center mb-10">
+                        <div className="w-20 h-20 bg-indigo-600 text-white rounded-[2rem] flex items-center justify-center mb-6 mx-auto shadow-2xl shadow-indigo-200 animate-bounce-subtle">
+                            <CheckCircle size={40} strokeWidth={2.5} />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-800 mb-1">Importação Finalizada</h3>
-                        <p className="text-sm text-slate-500">O processamento dos registros foi concluído.</p>
+                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-1">Batch Concluído</h3>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Processamento de fluxo de dados finalizado</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                        <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200 text-center">
-                            <p className="text-emerald-700 font-bold text-3xl mb-1">{resultado.sucessos}</p>
-                            <p className="text-xs text-emerald-600 font-semibold uppercase tracking-wider">Sucessos</p>
+                    <div className="grid grid-cols-2 gap-6 mb-10">
+                        <div className="bg-emerald-50 p-8 rounded-[2rem] border border-emerald-100 text-center shadow-lg shadow-emerald-900/5">
+                            <p className="text-emerald-700 font-black text-4xl mb-2 tracking-tighter">{resultado.sucessos}</p>
+                            <p className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em]">Sincronizados</p>
                         </div>
 
-                        <div className="bg-rose-50 p-4 rounded-lg border border-rose-200 text-center">
-                            <p className="text-rose-700 font-bold text-3xl mb-1">{resultado.erros}</p>
-                            <p className="text-xs text-rose-600 font-semibold uppercase tracking-wider">Falhas</p>
+                        <div className="bg-rose-50 p-8 rounded-[2rem] border border-rose-100 text-center shadow-lg shadow-rose-900/5 transition-all hover:scale-105">
+                            <p className="text-rose-700 font-black text-4xl mb-2 tracking-tighter">{resultado.erros}</p>
+                            <p className="text-[10px] text-rose-600 font-black uppercase tracking-[0.2em]">Inconsistências</p>
                         </div>
                     </div>
 
-                    <button
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 mb-8 flex items-center gap-4">
+                        <AlertCircle className="text-slate-400 shrink-0" size={20} />
+                        <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-wide">
+                            Registros com falha podem ser corrigidos manualmente ou revisados na planilha de origem para nova tentativa.
+                        </p>
+                    </div>
+
+                    <Botao
+                        variante="secundario"
+                        fullWidth
+                        tamanho="lg"
                         onClick={aoFechar}
-                        className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm hover:bg-slate-200 transition-colors flex items-center justify-center border border-slate-200"
                     >
-                        Fechar e Continuar
-                    </button>
+                        Pular para Listagem Atualizada
+                    </Botao>
                 </div>
             )}
         </ModalUniversal>
     );
 }
-

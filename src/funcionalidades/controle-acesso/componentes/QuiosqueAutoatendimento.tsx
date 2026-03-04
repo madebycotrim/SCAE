@@ -1,10 +1,3 @@
-// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
-﻿/**
- * QuiosqueAutoatendimento — Tela principal do tablet (fullscreen, sem navbar, sem menus).
- *
- * Integra com as restrições Offline-first: Html5Qrcode otimizado, TTS assíncrono,
- * Clock drift protection e Gravação persistente no IndexedDB.
- */
 import { useState, useCallback, useEffect } from 'react';
 import type { DadosAluno } from '../servicos/cacheMemoria';
 
@@ -29,7 +22,8 @@ import { Registrador, ACOES_AUDITORIA } from '@compartilhado/servicos/auditoria'
 import { TIPO_ACESSO, TipoAcesso } from '../types/controleAcesso.tipos';
 import { StatusConexao } from './StatusConexao';
 import { format } from 'date-fns';
-import { ShieldCheck, UserX, ScanLine, Zap, Clock } from 'lucide-react';
+import { ShieldCheck, UserX, ScanLine, Zap, Clock, Radar, Fingerprint } from 'lucide-react';
+import { CartaoConteudo } from '@compartilhado/componentes/UI';
 
 const log = criarRegistrador('ControleAcesso:Quiosque');
 
@@ -43,7 +37,6 @@ export default function QuiosqueAutoatendimento() {
     const [ultimoAcesso, definirUltimoAcesso] = useState<FeedbackAcesso | null>(null);
     const [statusLeitura, definirStatusLeitura] = useState<'AGUARDANDO' | 'SUCESSO' | 'ERRO'>('AGUARDANDO');
 
-    // Inicializa carregamento da PK ECDSA no boot do Tablet
     useEffect(() => {
         obterChavePublica().catch(e => log.error('Falha ao obter chave pública', e));
     }, []);
@@ -53,15 +46,12 @@ export default function QuiosqueAutoatendimento() {
         pararCamera: () => void,
         retomarCamera: () => void
     ) => {
-        pararCamera(); // Pausa o sensor imediatamente (Evita engarrafamento de CPU)
+        pararCamera();
 
         try {
-            // O Payload hipotético do QR: "matricula|timestamp|assinatura_b64"
             const partesQR = textoDecodificado.split('|');
-
-            // Caso QR inválido visualmente:
             if (partesQR.length !== 3) {
-                lancarErroValidacao("QR Code Incompatível com o Sistema.", retomarCamera);
+                lancarErroValidacao("QR Code Incompatível.", retomarCamera);
                 return;
             }
 
@@ -72,29 +62,24 @@ export default function QuiosqueAutoatendimento() {
             const chaveValida = await verificarAssinaturaECDSA(payloadAssinado, assinatura, pk);
 
             if (!chaveValida) {
-                lancarErroValidacao("Crachá falsificado (ECDSA Incorreta).", retomarCamera);
+                lancarErroValidacao("Crachá não autenticado.", retomarCamera);
                 return;
             }
 
-            // O(1) Cache Memoria Sem I/O de disco
             if (alunoEstaRevogado(matricula)) {
-                lancarErroValidacao("Crachá revogado ou bloqueado.", retomarCamera);
+                lancarErroValidacao("Acesso Revogado.", retomarCamera);
                 return;
             }
 
             const infoAluno = buscarAlunoEmCache(matricula);
             if (!infoAluno) {
-                lancarErroValidacao("Aluno não consta na base local atualizada.", retomarCamera);
+                lancarErroValidacao("Base local desatualizada.", retomarCamera);
                 return;
             }
 
-            const tipoMovimentacao: TipoAcesso = (tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO)
-                ? 'ENTRADA' // Fallback para Manual entry posteriormente 
-                : tipoAcessoAtual as TipoAcesso;
-
+            const tipoMovimentacao: TipoAcesso = (tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO) ? 'ENTRADA' : tipoAcessoAtual as TipoAcesso;
             const momentoLeituraLocal = Date.now();
 
-            // Fila IndexedDB
             const eventoId = crypto.randomUUID();
             const logIdempotente: RegistroOffline = {
                 id: eventoId,
@@ -108,7 +93,7 @@ export default function QuiosqueAutoatendimento() {
             };
 
             await filaOffline.enfileirarRegistro(logIdempotente);
-            acionarWorker(); // Acorda a thread de fundo (se pausada)
+            acionarWorker();
 
             if (confFila.ttsAtivado) {
                 anunciarNome(infoAluno.nome_completo);
@@ -117,23 +102,21 @@ export default function QuiosqueAutoatendimento() {
             definirStatusLeitura('SUCESSO');
             definirUltimoAcesso({
                 aluno: infoAluno,
-                mensagem: (tipoMovimentacao === 'ENTRADA') ? 'Entrada Registrada' : 'Saída Registrada',
+                mensagem: (tipoMovimentacao === 'ENTRADA') ? 'Acesso Liberado (Entrada)' : 'Acesso Liberado (Saída)',
                 hora: format(momentoLeituraLocal, 'HH:mm:ss')
             });
 
-            // Reiniciar Câmera instantaneamente com Feedback na Tela rodando paralelamente
             retomarCamera();
 
-            // Desapagar Painel de Resultado baseando-se no Modo de Fila
             setTimeout(() => {
                 definirStatusLeitura('AGUARDANDO');
             }, confFila.duracaoFeedbackMs);
 
         } catch (e) {
             log.error('Erro na leitura do QR offline', (e as Error).message);
-            lancarErroValidacao("Falha técnica no processamento do Qr Code.", retomarCamera);
+            lancarErroValidacao("Falha técnica no núcleo.", retomarCamera);
         }
-    }, [tipoAcessoAtual, confFila, escola.id]);
+    }, [tipoAcessoAtual, confFila, escola.id, acionarWorker]);
 
     const lancarErroValidacao = (mensagem: string, hookRestart: () => void) => {
         definirStatusLeitura('ERRO');
@@ -142,7 +125,6 @@ export default function QuiosqueAutoatendimento() {
             hora: format(Date.now(), 'HH:mm:ss')
         });
 
-        // Registrar Auditoria de Segurança (LGPD #8)
         Registrador.registrar(
             mensagem.includes('ECDSA') ? ACOES_AUDITORIA.QR_CODE_INVALIDO : ACOES_AUDITORIA.TENTATIVA_ACESSO_NEGADO,
             'controle-acesso',
@@ -150,168 +132,212 @@ export default function QuiosqueAutoatendimento() {
             { mensagem }
         );
 
-        hookRestart(); // Retorna o funcionamento
+        hookRestart();
 
         setTimeout(() => {
             definirStatusLeitura('AGUARDANDO');
-        }, confFila.duracaoFeedbackMs * 1.5); // Demora mais quando erra para porteiro ler
+        }, confFila.duracaoFeedbackMs * 1.5);
     }
 
-    // Instanciação Pura (Sobe em Loop Câmera ao dar mount)
     usarLeitorQR('quiosque-camera', processarDecodificacao);
 
     return (
-        <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col overflow-hidden text-slate-900 font-sans">
+        <div className="fixed inset-0 bg-slate-900 z-50 flex flex-col overflow-hidden text-slate-100 font-sans selection:bg-indigo-500">
+            {/* HUD / Background effects matching TerminalAcesso */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 opacity-50"></div>
+
             <StatusConexao />
 
-            {/* Header / Top Bar */}
-            <div className="h-20 border-b border-slate-200 bg-white flex items-center justify-between px-8 z-20 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-escola-claro flex items-center justify-center border border-escola-claro">
-                        <ScanLine size={24} className="text-escola" />
+            {/* Header High-Tech */}
+            <header className="h-[80px] border-b border-white/5 bg-slate-900/50 backdrop-blur-xl flex items-center justify-between px-8 z-20 shadow-2xl shrink-0">
+                <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center border border-indigo-500 shadow-xl shadow-indigo-900/40">
+                        <ScanLine size={24} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                            {escola?.nomeEscola || 'SCAE'} <span className="text-slate-400 font-medium">| Quiosque de Autoatendimento</span>
-                        </h1>
-                        <p className="text-xs font-medium text-slate-500 mt-0.5">Terminal de Controle de Fluxo</p>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-xl font-black text-white uppercase tracking-tighter leading-none">
+                                {escola?.nomeEscola || 'SCAE UNIT'}
+                            </h1>
+                            <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[8px] font-black rounded border border-white/5 uppercase tracking-widest">AUTO-QUICK V2</span>
+                        </div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-1.5">Unidade de Operação Autônoma</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-bold uppercase transition-colors ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                    <div className={`flex items-center gap-3 px-5 py-2.5 rounded-2xl border-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-2xl ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                         : tipoAcessoAtual === TIPO_ACESSO.SAIDA
-                            ? 'bg-rose-50 border-rose-200 text-rose-700'
-                            : 'bg-slate-100 border-slate-200 text-slate-600'
+                            ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                            : 'bg-slate-800 border-slate-700 text-slate-400'
                         }`}>
-                        <div className={`w-2 h-2 rounded-full animate-pulse ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
-                        {tipoAcessoAtual === TIPO_ACESSO.ENTRADA && 'Modo Entrada'}
-                        {tipoAcessoAtual === TIPO_ACESSO.SAIDA && 'Modo Saída'}
-                        {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'Modo Off-Fluxo'}
+                        <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_12px_currentColor] ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+                        {tipoAcessoAtual === TIPO_ACESSO.ENTRADA && 'MODO: ENTRADA'}
+                        {tipoAcessoAtual === TIPO_ACESSO.SAIDA && 'MODO: SAÍDA'}
+                        {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'MODO: MONITORAMENTO'}
                     </div>
 
-                    <div className="text-right hidden sm:block border-l border-slate-200 pl-6">
-                        <p className="text-sm font-semibold text-slate-800 leading-tight">{usuarioAtual?.email?.split('@')[0]}</p>
-                        <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            Operador Logado
-                        </p>
+                    <div className="text-right hidden sm:block border-l border-white/10 pl-6">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 italic">Authorized Context</p>
+                        <p className="text-xs font-black text-white leading-tight uppercase tracking-tight">{usuarioAtual?.email?.split('@')[0]}</p>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            {/* Main Tablet Content Area */}
-            <div className="flex-1 flex flex-col lg:flex-row relative p-8 gap-8 max-w-[1400px] mx-auto w-full">
+            {/* Main Tablet Content Area - High Impact */}
+            <main className="flex-1 flex flex-col lg:flex-row relative p-8 gap-8 max-w-[1600px] mx-auto w-full overflow-hidden z-10">
 
-                {/* Scanner Section */}
-                <div className="flex-[3] bg-white rounded-3xl border border-slate-200 flex flex-col items-center justify-center p-8 overflow-hidden shadow-sm">
-                    <h2 className="text-xl font-semibold text-slate-800 mb-8 flex items-center gap-2">
-                        <ScanLine size={24} className="text-escola" /> Leitor de Crachá
-                    </h2>
+                {/* Industrial Imaging Sector */}
+                <CartaoConteudo className="flex-[5] flex flex-col items-center justify-center p-12 bg-slate-900/40 border-white/5 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
 
-                    {/* Target Frame */}
-                    <div className="relative w-full max-w-2xl aspect-[4/3] bg-black rounded-2xl border border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
+                    <div className="text-center space-y-3 mb-12">
+                        <h2 className="text-xs font-black text-indigo-400 uppercase tracking-[0.5em] flex items-center justify-center gap-3">
+                            <Radar size={18} className="animate-spin-slow" /> Sensores Biomátricos
+                        </h2>
+                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Posicionamento de Credencial</h3>
+                    </div>
 
-                        {/* DOM Element p/ Sensor Camera */}
-                        <div id="quiosque-camera" className="w-full h-full object-cover"></div>
+                    {/* Heavy Duty Frame */}
+                    <div className="relative w-full max-w-2xl aspect-[16/10] bg-black rounded-[3rem] border border-white/10 overflow-hidden shadow-[0_0_150px_rgba(0,0,0,0.8)] flex items-center justify-center ring-1 ring-white/5 group-hover:ring-indigo-500/20 transition-all duration-700">
 
-                        {/* Overlay Clearer */}
-                        <div className="absolute inset-0 pointer-events-none z-10">
+                        {/* Camera Core */}
+                        <div id="quiosque-camera" className="w-full h-full object-cover scale-[1.05] grayscale opacity-70 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-1000"></div>
+
+                        {/* Scanner HUD Overlay */}
+                        <div className="absolute inset-10 border border-white/5 rounded-3xl pointer-events-none z-10 flex flex-col justify-between p-6 overflow-hidden">
+                            <div className="flex justify-between">
+                                <div className="w-10 h-10 border-t-4 border-l-4 border-white/20 rounded-tl-2xl"></div>
+                                <div className="w-10 h-10 border-t-4 border-r-4 border-white/20 rounded-tr-2xl"></div>
+                            </div>
+
+                            {/* Central Laser Line */}
                             {confFila.animacoesAtivadas && statusLeitura === 'AGUARDANDO' && (
-                                <div className="absolute top-0 left-0 w-full h-1 bg-escola shadow-[0_0_15px_var(--cor-primaria)] animate-[varredura_2.2s_infinite]"></div>
+                                <div className="w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_20px_#6366f1] animate-[varredura_2.5s_infinite]"></div>
                             )}
 
-                            {statusLeitura !== 'AGUARDANDO' && (
-                                <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity z-20 
-                                    ${confFila.animacoesAtivadas ? 'duration-300' : 'duration-0'} 
-                                    ${statusLeitura === 'SUCESSO' ? 'bg-emerald-500/95' : 'bg-rose-500/95'}
-                                    `}>
-                                    <div className="w-32 h-32 rounded-full bg-white flex items-center justify-center mb-6 shadow-lg animate-bounce">
-                                        {statusLeitura === 'SUCESSO'
-                                            ? <ShieldCheck size={64} className="text-emerald-600" />
-                                            : <UserX size={64} className="text-rose-600" />
-                                        }
-                                    </div>
-                                    <h2 className="text-4xl font-bold text-white mb-2">
-                                        {statusLeitura === 'SUCESSO' ? 'Acesso Liberado' : 'Acesso Negado'}
-                                    </h2>
-                                    <p className="text-white/90 text-lg font-medium">
-                                        {ultimoAcesso?.mensagem || 'Processando...'}
-                                    </p>
-                                </div>
-                            )}
+                            <div className="flex justify-between">
+                                <div className="w-10 h-10 border-b-4 border-l-4 border-white/20 rounded-bl-2xl"></div>
+                                <div className="w-10 h-10 border-b-4 border-r-4 border-white/20 rounded-br-2xl"></div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Event Sidebar Utility Style */}
-                <div className="w-full lg:w-[450px] bg-white rounded-3xl border border-slate-200 p-8 flex flex-col gap-8 shadow-sm">
-                    <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-3 pb-4 border-b border-slate-100">
-                        <Zap size={20} className="text-amber-500" />
-                        Registro de Atividade
+                        {/* Fullscreen Feedback Overlay with Backdrop Blur */}
+                        {statusLeitura !== 'AGUARDANDO' && (
+                            <div className={`absolute inset-0 flex flex-col items-center justify-center transition-all z-20 backdrop-blur-3xl 
+                                ${confFila.animacoesAtivadas ? 'duration-500 animate-in fade-in zoom-in-95' : 'duration-0'} 
+                                ${statusLeitura === 'SUCESSO' ? 'bg-emerald-600/90' : 'bg-rose-600/90'}
+                                `}>
+                                <div className="w-48 h-48 rounded-[3rem] bg-white flex items-center justify-center mb-10 shadow-2xl animate-bounce">
+                                    {statusLeitura === 'SUCESSO'
+                                        ? <ShieldCheck size={100} strokeWidth={2.5} className="text-emerald-600" />
+                                        : <UserX size={100} strokeWidth={2.5} className="text-rose-600" />
+                                    }
+                                </div>
+                                <h2 className="text-7xl font-black text-white uppercase tracking-tighter drop-shadow-2xl">
+                                    {statusLeitura === 'SUCESSO' ? 'Liberado' : 'Negado'}
+                                </h2>
+                                <p className="text-white font-black text-xl uppercase tracking-[0.3em] mt-6 bg-black/20 px-10 py-3 rounded-full border border-white/10">
+                                    {ultimoAcesso?.mensagem}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="mt-12 text-center opacity-40 uppercase tracking-[0.3em] font-black text-[10px] text-slate-500">
+                        O sensor está ativo. Aproxime seu Qr Code Institucional.
+                    </div>
+                </CartaoConteudo>
+
+                {/* Real-time Event Sidebar */}
+                <CartaoConteudo className="w-full lg:w-[480px] p-10 flex flex-col bg-slate-900 border-white/10 shadow-2xl relative overflow-hidden group/side">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full"></div>
+
+                    <h3 className="text-xs font-black text-slate-400 flex items-center gap-3 pb-6 border-b border-white/5 mb-10 uppercase tracking-[0.2em] z-10 relative">
+                        <Zap size={20} className="text-amber-500 animate-pulse" />
+                        Fluxo de Telemetria
                     </h3>
 
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar z-10 relative">
                         {ultimoAcesso ? (
-                            <div className="space-y-8 animate-fade-in">
+                            <div className="space-y-10 animate-in slide-in-from-right-10 duration-500">
                                 {ultimoAcesso.aluno && (
-                                    <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 text-center relative overflow-hidden">
-
-                                        <h2 className="text-xl font-bold text-slate-900 mb-1 leading-tight">
+                                    <div className="bg-white/5 rounded-[3rem] p-10 border border-white/10 text-center relative overflow-hidden backdrop-blur-3xl shadow-2xl group-hover/side:border-indigo-500/30 transition-all">
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
+                                        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6 text-white/30 border border-white/5">
+                                            <Fingerprint size={32} />
+                                        </div>
+                                        <h2 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter leading-tight">
                                             {ultimoAcesso.aluno.nome_completo}
                                         </h2>
-                                        <p className="text-sm font-medium text-slate-500 mb-6">
-                                            Matrícula: {'***' + ultimoAcesso.aluno.matricula.slice(-3)}
+                                        <p className="text-[10px] font-mono font-black text-slate-500 mb-8 uppercase tracking-[0.3em] italic">
+                                            PID: {ultimoAcesso.aluno.matricula}
                                         </p>
 
-                                        <div className="inline-flex items-center gap-2 bg-escola-claro text-escola px-4 py-1.5 rounded-lg text-sm font-semibold border border-escola-claro">
-                                            <ShieldCheck size={16} /> Turma {ultimoAcesso.aluno.turma_id}
+                                        <div className="inline-flex items-center gap-3 bg-indigo-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black border border-indigo-400/50 shadow-xl shadow-indigo-900/40 uppercase tracking-widest leading-none">
+                                            <ShieldCheck size={18} strokeWidth={2.5} /> {ultimoAcesso.aluno.turma_id}
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="space-y-3">
-                                    <div className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${statusLeitura === 'SUCESSO' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
-                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</span>
-                                        <div className={`text-sm font-bold flex items-center gap-2 ${statusLeitura === 'SUCESSO' ? 'text-emerald-700' : 'text-rose-700'}`}>
-                                            {statusLeitura === 'SUCESSO' ? <ShieldCheck size={18} /> : <UserX size={18} />}
+                                <div className="space-y-4">
+                                    <div className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all shadow-xl ${statusLeitura === 'SUCESSO' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'}`}>
+                                        <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Diagnóstico</span>
+                                        <div className="text-[10px] font-black flex items-center gap-3 uppercase tracking-widest whitespace-nowrap">
+                                            {statusLeitura === 'SUCESSO' ? <ShieldCheck size={20} strokeWidth={2.5} /> : <UserX size={20} strokeWidth={2.5} />}
                                             {ultimoAcesso.mensagem}
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Horário</span>
-                                        <div className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                            <Clock size={16} className="text-slate-400" />
+                                    <div className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-3xl backdrop-blur-md">
+                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Timestamp</span>
+                                        <div className="text-sm font-mono font-black text-slate-300 flex items-center gap-3">
+                                            <Clock size={18} className="text-slate-600" />
                                             {ultimoAcesso.hora}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-6 opacity-60">
-                                <div className="w-24 h-24 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center">
-                                    <ScanLine size={40} className="text-slate-300" />
+                            <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-8 opacity-20 group-hover/side:opacity-40 transition-opacity">
+                                <div className="w-32 h-32 rounded-[3rem] border-2 border-dashed border-slate-700 flex items-center justify-center relative bg-slate-800/20">
+                                    <ScanLine size={48} className="animate-pulse" />
                                 </div>
-                                <p className="text-sm font-medium text-center">
-                                    Aguardando aproximação<br />do crachá...
+                                <p className="text-[10px] font-black text-center uppercase tracking-[0.5em] max-w-[200px] leading-loose">
+                                    AGUARDANDO<br />PACOTE DE DADOS
                                 </p>
                             </div>
                         )}
                     </div>
 
-                    {/* Device Status Info */}
-                    <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span className="text-xs font-semibold text-slate-500">Terminal Operante</span>
+                    {/* Operational Guardrails */}
+                    <div className="pt-8 border-t border-white/5 flex items-center justify-between z-10 relative">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)] animate-pulse"></div>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Nucleo Ativo</span>
                         </div>
-                        <p className="text-xs text-slate-400 font-medium">
-                            {statusWorker.pendentes > 0 ? `Sincronizando: ${statusWorker.pendentes}` : 'Sincronizado'}
+                        <p className="text-[10px] font-mono font-black text-indigo-400/40 uppercase tracking-widest">
+                            {statusWorker.pendentes > 0 ? `SYNC: ${statusWorker.pendentes}` : 'TELEMETRIA OK'}
                         </p>
                     </div>
-                </div>
-            </div>
+                </CartaoConteudo>
+            </main>
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes varredura {
+                    0% { top: 0% }
+                    50% { top: 100% }
+                    100% { top: 0% }
+                }
+                .animate-spin-slow {
+                    animation: spin 10s linear infinite;
+                }
+                @keyframes spin {
+                    from { transform: rotate(0deg) }
+                    to { transform: rotate(360deg) }
+                }
+            ` }} />
         </div>
     );
 }
-

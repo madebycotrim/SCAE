@@ -1,5 +1,7 @@
-﻿import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+﻿import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import toast from 'react-hot-toast';
 
 const log = criarRegistrador('Notificacoes');
 
@@ -26,30 +28,39 @@ interface ContextoNotificacoesType {
 const ContextoNotificacoes = createContext<ContextoNotificacoesType | undefined>(undefined);
 
 export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
+    const { usuarioAtual } = usarAutenticacao();
     const [notificacoes, definirNotificacoes] = useState<Notificacao[]>([]);
     const [naoLidas, definirNaoLidas] = useState(0);
 
-    // Carregar notificações do localStorage ao iniciar
+    // Chave única por usuário para não misturar notificações no mesmo PC
+    const chaveStorage = usuarioAtual?.email
+        ? `notificacoes_${usuarioAtual.email}`
+        : 'notificacoes_visitante';
+
+    // Carregar notificações do localStorage ao iniciar ou mudar de usuário
     useEffect(() => {
-        const salvas = localStorage.getItem('notificacoes');
+        const salvas = localStorage.getItem(chaveStorage);
         if (salvas) {
             try {
                 const parsed = JSON.parse(salvas);
                 definirNotificacoes(parsed);
             } catch (e) {
                 log.error('Erro ao carregar notificações', e);
+                definirNotificacoes([]);
             }
+        } else {
+            definirNotificacoes([]);
         }
-    }, []);
+    }, [chaveStorage]);
 
     // Atualizar contador e salvar
     useEffect(() => {
         const count = notificacoes.filter(n => !n.lida).length;
         definirNaoLidas(count);
-        localStorage.setItem('notificacoes', JSON.stringify(notificacoes));
-    }, [notificacoes]);
+        localStorage.setItem(chaveStorage, JSON.stringify(notificacoes));
+    }, [notificacoes, chaveStorage]);
 
-    const adicionarNotificacao = (dados: string | Partial<Notificacao>) => {
+    const adicionarNotificacao = useCallback((dados: string | Partial<Notificacao>) => {
         // Suporta string simples ou objeto
         const conteudo = typeof dados === 'string' ? { titulo: 'Novo Aviso', mensagem: dados } : dados;
 
@@ -63,11 +74,24 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
             timestamp: new Date().toISOString()
         };
 
-        definirNotificacoes(anterior => [nova, ...anterior
-        ]);
+        // Adiciona e mantém no máximo as últimas 50 notificações para não pesar o storage
+        definirNotificacoes(anterior => {
+            const novaLista = [nova, ...anterior];
+            if (novaLista.length > 50) return novaLista.slice(0, 50);
+            return novaLista;
+        });
 
-        // Tocar som suave se desejar (opcional)
-    };
+        // Feedback Visual Imediato via Toast
+        if (nova.tipo === 'error') {
+            toast.error(nova.titulo);
+        } else if (nova.tipo === 'success') {
+            toast.success(nova.titulo);
+        } else if (nova.tipo === 'warning') {
+            toast(nova.titulo, { icon: '⚠️' });
+        } else {
+            toast(nova.titulo, { icon: 'ℹ️' });
+        }
+    }, []);
 
     const marcarComoLida = (id: string) => {
         definirNotificacoes(prev => prev.map(n =>

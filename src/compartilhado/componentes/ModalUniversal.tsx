@@ -79,7 +79,7 @@ export default function ModalUniversal({
             aria-labelledby="modal-titulo"
         >
             <div className={`
-                bg-white rounded-2xl shadow-2xl w-full ${larguras[tamanho] || larguras.md} 
+                bg-white rounded-[2.5rem] shadow-2xl w-full ${larguras[tamanho] || larguras.md} 
                 flex flex-col max-h-[90vh] border border-slate-100 ring-1 ring-black/5 overflow-hidden
                 animate-zoom-in relative transform transition-all
             `}>

@@ -1,15 +1,19 @@
 ﻿import { useState, useEffect } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
-import { BookOpen, Users, GraduationCap, ChevronRight } from 'lucide-react';
+import { BookOpen, Users, GraduationCap, ChevronRight, CheckCircle, MapPin, Calendar, Clock } from 'lucide-react';
+import { Botao } from '@compartilhado/componentes/UI';
 
 interface FormTurmaModalProps {
-    turma?: any | null; // Tipagem simplificada conforme o arquivo original
+    turma?: any | null;
     aoFechar: () => void;
     aoSalvar: (dados: any) => Promise<void>;
 }
 
 export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaModalProps) {
     const [etapa, definirEtapa] = useState(1);
+    const [carregando, definirCarregando] = useState(false);
+
+    // Estados do formulário
     const [serieTurma, definirSerieTurma] = useState('');
     const [letraTurma, definirLetraTurma] = useState('');
     const [turno, definirTurno] = useState('Matutino');
@@ -33,67 +37,78 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
     const podeAvancar = serieTurma !== '' && letraTurma !== '';
 
     const manipularSalvar = async () => {
-        await aoSalvar({
-            serie: serieTurma,
-            letra: letraTurma,
-            turno,
-            ano_letivo: parseInt(anoLetivo),
-            lotacao_maxima: parseInt(lotacaoMaxima) || 40,
-            professor_regente: professorRegente,
-            sala
-        });
+        try {
+            definirCarregando(true);
+            await aoSalvar({
+                serie: serieTurma,
+                letra: letraTurma,
+                turno,
+                ano_letivo: parseInt(anoLetivo),
+                lotacao_maxima: parseInt(lotacaoMaxima) || 40,
+                professor_regente: professorRegente,
+                sala
+            });
+        } finally {
+            definirCarregando(false);
+        }
     };
 
     return (
         <ModalUniversal
-            titulo={turma ? "Editar Turma" : "Nova Turma"}
-            subtitulo={etapa === 1 ? "Identidade e Turno da Classe" : "Parâmetros de Gestão e Localização"}
+            titulo={turma ? "Editar Turma" : "Criar Nova Turma"}
+            subtitulo={etapa === 1 ? "Defina a identidade básica e o turno" : "Gestão acadêmica e localização física"}
             aoFechar={aoFechar}
+            icone={GraduationCap}
+            tamanho="lg"
         >
-            <div className="flex flex-col">
-                {/* Indicador de Etapa - Contraste Reforçado */}
-                <div className="flex items-center justify-center gap-2 mb-8">
-                    <div className={`h-2 rounded transition-colors duration-200 ${etapa === 1 ? 'w-12 bg-blue-600' : 'w-4 bg-gray-200'}`}></div>
-                    <div className={`h-2 rounded transition-colors duration-200 ${etapa === 2 ? 'w-12 bg-blue-600' : 'w-4 bg-gray-200'}`}></div>
+            <div className="flex flex-col min-h-[400px]">
+                {/* Stepper Moderno */}
+                <div className="flex items-center justify-center gap-3 mb-10">
+                    <div className={`h-1.5 rounded-full transition-all duration-500 ${etapa === 1 ? 'w-12 bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.3)]' : 'w-4 bg-slate-200'}`}></div>
+                    <div className={`h-1.5 rounded-full transition-all duration-500 ${etapa === 2 ? 'w-12 bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.3)]' : 'w-4 bg-slate-200'}`}></div>
                 </div>
 
-                <div className="flex-1 px-1">
+                <div className="flex-1 animate-fade-in">
                     {etapa === 1 ? (
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             {/* Série */}
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">1. Selecione a Série (Obrigatório)</label>
-                                <div className="grid grid-cols-3 gap-3">
+                            <div className="group">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 ml-1">
+                                    <Hash size={14} /> 1. Qual a Série da Turma?
+                                </label>
+                                <div className="grid grid-cols-3 gap-4">
                                     {['1', '2', '3'].map((s) => (
                                         <button
                                             key={s}
                                             type="button"
                                             disabled={!!turma}
                                             onClick={() => definirSerieTurma(s)}
-                                            className={`h-14 rounded text-lg font-semibold transition-colors border ${serieTurma === s
-                                                ? 'bg-blue-600 border-blue-600 text-white'
-                                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:bg-gray-100'
+                                            className={`h-16 rounded-2xl text-base font-black transition-all border-2 active:scale-[0.98] ${serieTurma === s
+                                                ? 'bg-indigo-600 border-indigo-700 text-white shadow-xl shadow-indigo-100'
+                                                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed'
                                                 }`}
                                         >
-                                            {s}Âº Ano
+                                            {s}º Ano
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Letra */}
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">2. Identificação / Letra (Obrigatório)</label>
+                            <div className="group">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 ml-1">
+                                    <MapPin size={14} /> 2. Identificação da Letra
+                                </label>
                                 <div className="flex flex-wrap gap-3">
-                                    {['A', 'B', 'C', 'D', 'E'].map((l) => (
+                                    {['A', 'B', 'C', 'D', 'E', 'F'].map((l) => (
                                         <button
                                             key={l}
                                             type="button"
                                             disabled={!!turma}
                                             onClick={() => definirLetraTurma(l)}
-                                            className={`w-14 h-14 rounded text-xl font-semibold transition-colors border ${letraTurma === l
-                                                ? 'bg-gray-900 border-gray-900 text-white'
-                                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:bg-gray-100'
+                                            className={`w-14 h-14 rounded-2xl text-xl font-black transition-all border-2 active:scale-[0.98] ${letraTurma === l
+                                                ? 'bg-slate-900 border-slate-950 text-white shadow-xl shadow-slate-200'
+                                                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:bg-slate-50'
                                                 }`}
                                         >
                                             {l}
@@ -103,17 +118,19 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                             </div>
 
                             {/* Turno */}
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">3. Horário de Aula</label>
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div className="group">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 ml-1">
+                                    <Clock size={14} /> 3. Regime de Horário
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     {['Matutino', 'Vespertino', 'Noturno', 'Integral'].map((t) => (
                                         <button
                                             key={t}
                                             type="button"
                                             onClick={() => definirTurno(t)}
-                                            className={`h-10 rounded text-xs font-semibold uppercase tracking-wider border transition-colors ${turno === t
-                                                ? 'bg-gray-900 border-gray-900 text-white'
-                                                : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                                            className={`h-11 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all active:scale-[0.98] ${turno === t
+                                                ? 'bg-slate-900 border-slate-950 text-white shadow-md'
+                                                : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
                                                 }`}
                                         >
                                             {t}
@@ -123,69 +140,66 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Ano Letivo</label>
-                                    <div className="relative border border-gray-300 rounded focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600 bg-white flex items-center overflow-hidden">
-                                        <div className="pl-3 pr-2 text-gray-500">
-                                            <Users size={16} />
-                                        </div>
-                                        <input
-                                            type="number"
-                                            value={anoLetivo}
-                                            onChange={(e) => definirAnoLetivo(e.target.value)}
-                                            className="w-full h-10 bg-transparent text-sm font-medium text-gray-900 outline-none disabled:bg-gray-50 disabled:text-gray-500"
-                                            disabled={!!turma}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2 flex justify-between">
-                                        <span>Capacidade de Alunos</span>
-                                        <span className="text-blue-700 font-bold">{lotacaoMaxima}</span>
+                        <div className="space-y-8 animate-fade-in shadow-inner p-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Ano Letivo */}
+                                <div className="relative group">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5 ml-1">
+                                        <Calendar size={14} /> Ano Letivo
                                     </label>
-                                    <div className="pt-2 px-1">
+                                    <input
+                                        type="number"
+                                        value={anoLetivo}
+                                        onChange={(e) => definirAnoLetivo(e.target.value)}
+                                        className="w-full px-5 h-12 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all disabled:bg-slate-100 disabled:text-slate-500"
+                                        disabled={!!turma}
+                                    />
+                                </div>
+
+                                {/* Capacidade */}
+                                <div className="relative">
+                                    <label className="flex items-center justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5 ml-1">
+                                        <div className="flex items-center gap-2"><Users size={14} /> Capacidade de Alunos</div>
+                                        <span className="text-indigo-600 font-black">{lotacaoMaxima} Vagas</span>
+                                    </label>
+                                    <div className="pt-4 pb-2 px-1">
                                         <input
                                             type="range" min="1" max="60"
                                             value={lotacaoMaxima}
                                             onChange={(e) => definirLotacaoMaxima(e.target.value)}
-                                            className="w-full accent-blue-600 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer"
+                                            className="w-full h-1.5 bg-slate-200 rounded-full appearance-none cursor-pointer accent-indigo-600"
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="pt-6 border-t border-gray-200 space-y-5">
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Professor Regente</label>
-                                    <div className="relative border border-gray-300 rounded focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600 bg-white flex items-center overflow-hidden">
-                                        <div className="pl-3 pr-2 text-gray-500">
-                                            <GraduationCap size={16} />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={professorRegente}
-                                            onChange={(e) => definirProfessorRegente(e.target.value)}
-                                            placeholder="Nome do professor responsável"
-                                            className="w-full h-10 bg-transparent text-sm font-medium text-gray-900 placeholder:text-gray-400 outline-none"
-                                        />
-                                    </div>
+                            <div className="pt-8 border-t border-slate-100 space-y-8">
+                                {/* Professor Regente */}
+                                <div className="group">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5 ml-1">
+                                        <GraduationCap size={14} /> Professor(a) Regente
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={professorRegente}
+                                        onChange={(e) => definirProfessorRegente(e.target.value)}
+                                        placeholder="Nome do docente responsável"
+                                        className="w-full px-5 h-12 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                                    />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Lugar de Aula / Sala</label>
-                                    <div className="relative border border-gray-300 rounded focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600 bg-white flex items-center overflow-hidden">
-                                        <div className="pl-3 pr-2 text-gray-500">
-                                            <BookOpen size={16} />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={sala}
-                                            onChange={(e) => definirSala(e.target.value)}
-                                            placeholder="Ex: Bloco B - Sala 12"
-                                            className="w-full h-10 bg-transparent text-sm font-medium text-gray-900 placeholder:text-gray-400 outline-none"
-                                        />
-                                    </div>
+
+                                {/* Sala */}
+                                <div className="group">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5 ml-1">
+                                        <BookOpen size={14} /> Sala / Bloco Acadêmico
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={sala}
+                                        onChange={(e) => definirSala(e.target.value)}
+                                        placeholder="Ex: Bloco B - Sala 12"
+                                        className="w-full px-5 h-12 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -193,45 +207,41 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                 </div>
 
                 {/* Footer Navegação */}
-                <div className="flex gap-3 pt-6 mt-4 border-t border-gray-200 justify-end">
+                <div className="flex gap-4 pt-8 mt-auto border-t border-slate-100 justify-end">
                     {etapa === 2 && (
-                        <button
-                            type="button"
+                        <Botao
+                            variante="secundario"
                             onClick={() => definirEtapa(1)}
-                            className="px-6 h-10 rounded border border-gray-300 text-gray-700 font-semibold text-xs tracking-wider hover:bg-gray-50 transition-colors flex items-center"
+                            disabled={carregando}
                         >
                             Voltar
-                        </button>
+                        </Botao>
                     )}
 
                     {etapa === 1 ? (
-                        <button
-                            type="button"
+                        <Botao
+                            variante="primario"
+                            tamanho="lg"
+                            icone={ChevronRight}
                             onClick={() => definirEtapa(2)}
                             disabled={!podeAvancar}
-                            className="px-6 h-10 rounded bg-blue-600 text-white font-semibold text-xs tracking-wider hover:bg-blue-700 disabled:opacity-50 disabled:bg-gray-400 transition-colors flex items-center gap-2"
+                            className="flex-row-reverse"
                         >
                             Próximo Passo
-                            <ChevronRight size={16} />
-                        </button>
+                        </Botao>
                     ) : (
-                        <button
-                            type="button"
+                        <Botao
+                            variante="primario"
+                            tamanho="lg"
+                            icone={CheckCircle}
                             onClick={manipularSalvar}
-                            className="px-6 h-10 rounded bg-blue-600 text-white font-semibold text-xs tracking-wider hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            loading={carregando}
                         >
-                            <CheckCircleIcon size={16} />
-                            Concluir
-                        </button>
+                            {turma ? 'Salvar Alterações' : 'Criar Turma'}
+                        </Botao>
                     )}
                 </div>
             </div>
         </ModalUniversal>
     );
 }
-
-// Ãcones simplificados para evitar problemas de importação no componente
-const CheckCircleIcon = ({ size, strokeWidth = 2, className }: { size: number, strokeWidth?: number, className?: string }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-);
-

@@ -5,6 +5,7 @@ import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
+import { Botao, BarraFiltro, CartaoConteudo, InputBusca } from '@compartilhado/componentes/UI';
 
 import {
     FileText,
@@ -12,16 +13,21 @@ import {
     BarChart2,
     FileSpreadsheet,
     FileCheck,
-    Clock
+    Clock,
+    ChevronDown,
+    Calendar,
+    Layers,
+    ShieldCheck,
+    ArrowRight,
+    Search,
+    CheckCircle2
 } from 'lucide-react';
-import { format, subDays, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 import { relatorioServico } from '../servicos/relatorioServico';
 
 const log = criarRegistrador('Relatorios');
 
 export default function Relatorios() {
-
     const { podeVerLogs } = usarPermissoes();
     const anoAtual = new Date().getFullYear();
 
@@ -56,203 +62,253 @@ export default function Relatorios() {
     );
 
     const gerarRelatorio = async (tipo: string) => {
-        const toastId = toast.loading(`Processando relatório: ${tipo}...`);
+        const toastId = toast.loading(`Compilando matriz de dados: ${tipo}...`);
         try {
             if (tipo === 'Risco de Evasão' || tipo === 'Fechamento Mensal') {
                 await relatorioServico.gerarRelatorioEspecial(tipo, filtros);
             } else {
                 const dados = await relatorioServico.obterDadosFiltrados(filtros);
-                if (dados.length === 0) throw new Error('Nenhum dado encontrado.');
+                if (dados.length === 0) throw new Error('Nenhuma ocorrência localizada no período');
                 relatorioServico.gerarPDF(dados, `Relatório de ${tipo}`, filtros);
             }
 
             await Registrador.registrar('EXPORTAR_RELATORIO', 'relatorio', tipo, { filtros, formato: 'PDF' });
-            toast.success('Relatório gerado com sucesso!', { id: toastId });
+            toast.success('Relatório processado e disponível', { id: toastId });
         } catch (e: any) {
             log.error('Erro ao exportar relatório', e);
-            toast.error(e.message || 'Erro ao gerar relatório.', { id: toastId });
+            toast.error(e.message || 'Falha na geração do documento.', { id: toastId });
         }
     };
 
     const CARDS_RELATORIO = [
         {
-            titulo: 'Frequência Diária',
-            descricao: 'Relatório detalhado de entradas e saídas do período selecionado.',
+            titulo: 'Folha de Frequência',
+            descricao: 'Registro cronológico detalhado de entradas e saídas.',
             icone: Clock,
-            badgeTxt: 'PDF',
-            badgeCor: 'bg-blue-50 text-blue-700 border-blue-200',
-            iconeCor: 'bg-blue-50 text-blue-600',
+            badgeTxt: 'PDF Oferecido',
+            badgeCor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+            iconeCor: 'bg-indigo-50 text-indigo-600',
             acao: () => gerarRelatorio('Frequência Diária'),
         },
         {
-            titulo: 'Fechamento Mensal',
-            descricao: 'Consolidado de presença do mês para secretaria e direção.',
+            titulo: 'Fechamento de Ciclo',
+            descricao: 'Consolidado institucional para secretaria e direção técnica.',
             icone: FileSpreadsheet,
-            badgeTxt: 'PDF',
+            badgeTxt: 'Auditado',
             badgeCor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
             iconeCor: 'bg-emerald-50 text-emerald-600',
             acao: () => gerarRelatorio('Fechamento Mensal'),
         },
         {
-            titulo: 'Risco de Evasão',
-            descricao: 'Alunos com baixo índice de frequência nos últimos 30 dias.',
+            titulo: 'Análise de Abandono',
+            descricao: 'Identificação de vulnerabilidade por ausência prolongada.',
             icone: BarChart2,
-            badgeTxt: 'PDF',
+            badgeTxt: 'Prioritário',
             badgeCor: 'bg-amber-50 text-amber-700 border-amber-200',
             iconeCor: 'bg-amber-50 text-amber-600',
             acao: () => gerarRelatorio('Risco de Evasão'),
         },
-        // Log de Auditoria: apenas ADMIN e COORDENACAO
         ...(podeVerLogs ? [{
-            titulo: 'Log de Auditoria',
-            descricao: 'Histórico completo de acessos e ações registradas no sistema.',
+            titulo: 'Audit Trail Local',
+            descricao: 'Histórico de transações e logs de segurança da unidade.',
             icone: FileCheck,
-            badgeTxt: 'PDF',
+            badgeTxt: 'Segurança',
             badgeCor: 'bg-slate-100 text-slate-700 border-slate-200',
             iconeCor: 'bg-slate-100 text-slate-600',
             acao: () => gerarRelatorio('Log de Auditoria'),
         }] : []),
     ];
 
+    const [termoBusca, definirTermoBusca] = useState('');
+
+    const relatoriosFiltrados = CARDS_RELATORIO.filter(r =>
+        r.titulo.toLowerCase().includes(termoBusca.toLowerCase()) ||
+        r.descricao.toLowerCase().includes(termoBusca.toLowerCase())
+    );
+
     return (
         <LayoutAdministrativo
-            titulo="Central de Relatórios"
-            subtitulo="Análise de dados e exportação oficial"
+            titulo="Dados e Relatórios"
+            subtitulo="Gestão de informações e exportações institucionais"
             acoes={null}
         >
-            <div className="space-y-6 pb-10">
-
-                {/* Toolbar de Filtros */}
-                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col lg:flex-row lg:items-end gap-4 sticky top-4 z-20">
-
-                    {/* Ano Letivo */}
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Ano Letivo</label>
-                        <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 h-10">
-                            {[anoAtual - 1, anoAtual, anoAtual + 1].map((ano) => (
-                                <button
-                                    key={ano}
-                                    onClick={() => {
-                                        const periodo = calcularPeriodo(ano, filtros.semestre);
-                                        definirFiltros({ ...filtros, anoLetivo: ano, ...periodo });
-                                    }}
-                                    className={`px-4 h-full rounded text-sm font-medium transition-colors outline-none cursor-pointer ${filtros.anoLetivo === ano ? 'bg-white text-blue-700 shadow-sm border border-gray-200' : 'text-gray-600 hover:text-gray-900'}`}
-                                >
-                                    {ano}
-                                </button>
-                            ))}
-                        </div>
+            <div className="space-y-8 pb-12">
+                <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-[2rem]">
+                    <div className="flex flex-col gap-2.5 flex-1">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Pesquisa de Relatórios</label>
+                        <InputBusca
+                            icone={Search}
+                            placeholder="Buscar por módulo ou tipo de exportação..."
+                            value={termoBusca}
+                            onChange={(e) => definirTermoBusca(e.target.value)}
+                            className="w-full h-12 rounded-2xl"
+                        />
                     </div>
 
-                    <div className="hidden md:block h-6 w-px bg-gray-200 self-end mb-2" />
-
-                    {/* Semestre */}
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Semestre</label>
-                        <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 h-10">
-                            {([1, 2] as const).map((sem) => (
-                                <button
-                                    key={sem}
-                                    onClick={() => {
-                                        const periodo = calcularPeriodo(filtros.anoLetivo, sem);
-                                        definirFiltros({ ...filtros, semestre: sem, ...periodo });
-                                    }}
-                                    className={`px-4 h-full rounded text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors outline-none cursor-pointer ${filtros.semestre === sem ? 'bg-gray-800 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'}`}
-                                >
-                                    {sem}º Sem.
-                                </button>
-                            ))}
+                    <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
+                        {/* Ano Letivo */}
+                        <div className="flex flex-col gap-2.5">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Ciclo Acadêmico</label>
+                            <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                                {[anoAtual - 1, anoAtual, anoAtual + 1].map((ano) => (
+                                    <button
+                                        key={ano}
+                                        onClick={() => {
+                                            const periodo = calcularPeriodo(ano, filtros.semestre);
+                                            definirFiltros({ ...filtros, anoLetivo: ano, ...periodo });
+                                        }}
+                                        className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filtros.anoLetivo === ano ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <Calendar size={12} /> {ano}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="hidden md:block h-6 w-px bg-gray-200 self-end mb-2" />
+                        {/* Semestre */}
+                        <div className="flex flex-col gap-2.5">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Etapa Semestral</label>
+                            <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                                {([1, 2] as const).map((sem) => (
+                                    <button
+                                        key={sem}
+                                        onClick={() => {
+                                            const periodo = calcularPeriodo(filtros.anoLetivo, sem);
+                                            definirFiltros({ ...filtros, semestre: sem, ...periodo });
+                                        }}
+                                        className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filtros.semestre === sem ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'}`}
+                                    >
+                                        {sem}º SEMESTRE
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
-                    {/* Turma */}
-                    <div className="flex flex-col gap-1 flex-1" ref={refDropdownTurma}>
-                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Turma</label>
-                        <div className="relative">
-                            <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={15} />
-                            <input
-                                type="text"
-                                placeholder="Turma (vazio = todas)"
-                                value={filtros.turma === 'Todas' ? '' : filtros.turma}
-                                onFocus={() => definirMostrarDropdownTurma(true)}
-                                onBlur={() => setTimeout(() => definirMostrarDropdownTurma(false), 150)}
-                                onChange={(e) => definirFiltros({ ...filtros, turma: e.target.value || 'Todas' })}
-                                className="w-full pl-9 pr-3 h-10 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all text-gray-800 placeholder:text-gray-400"
-                            />
-                            {mostrarDropdownTurma && (() => {
-                                const termo = filtros.turma === 'Todas' ? '' : filtros.turma.toLowerCase();
-                                const sugestoes = (turmasDisponiveis ?? [])
-                                    .filter((t: string) => t.toLowerCase().includes(termo))
-                                    .slice(0, 4);
-                                return sugestoes.length > 0 ? (
-                                    <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 overflow-hidden">
-                                        {sugestoes.map((t: string) => (
+                        {/* Turma */}
+                        <div className="flex flex-col gap-2.5 relative" ref={refDropdownTurma}>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Filtro por Unidade / Turma</label>
+                            <div className="relative group min-w-[280px]">
+                                <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none" size={16} />
+                                <input
+                                    type="text"
+                                    placeholder="Consolidado (Todas as turmas)"
+                                    value={filtros.turma === 'Todas' ? '' : filtros.turma}
+                                    onFocus={() => definirMostrarDropdownTurma(true)}
+                                    onBlur={() => setTimeout(() => definirMostrarDropdownTurma(false), 200)}
+                                    onChange={(e) => definirFiltros({ ...filtros, turma: e.target.value || 'Todas' })}
+                                    className="w-full pl-11 pr-12 h-12 bg-white border border-slate-200 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none transition-all text-slate-800 placeholder:text-slate-400 shadow-sm"
+                                />
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:rotate-180 transition-transform" size={18} />
+
+                                {mostrarDropdownTurma && (() => {
+                                    const termo = filtros.turma === 'Todas' ? '' : filtros.turma.toLowerCase();
+                                    const sugestoes = (turmasDisponiveis ?? [])
+                                        .filter((t: string) => t.toLowerCase().includes(termo))
+                                        .slice(0, 5);
+                                    return (
+                                        <ul className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white border border-slate-200 rounded-3xl shadow-2xl z-50 overflow-hidden animate-zoom-in p-2 ring-1 ring-black/5">
                                             <li
-                                                key={t}
                                                 onMouseDown={() => {
-                                                    definirFiltros({ ...filtros, turma: t });
+                                                    definirFiltros({ ...filtros, turma: 'Todas' });
                                                     definirMostrarDropdownTurma(false);
                                                 }}
-                                                className="px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer transition-colors"
+                                                className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors rounded-xl border-b border-slate-50 last:border-0 flex items-center justify-between group"
                                             >
-                                                {t}
+                                                Consolidado (Todas as turmas)
+                                                {filtros.turma === 'Todas' && <CheckCircle2 size={12} className="text-indigo-600" />}
                                             </li>
-                                        ))}
-                                    </ul>
-                                ) : null;
-                            })()}
+                                            {sugestoes.map((t: string) => (
+                                                <li
+                                                    key={t}
+                                                    onMouseDown={() => {
+                                                        definirFiltros({ ...filtros, turma: t });
+                                                        definirMostrarDropdownTurma(false);
+                                                    }}
+                                                    className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors rounded-xl border-b border-slate-50 last:border-0 flex items-center justify-between group"
+                                                >
+                                                    {t}
+                                                    <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                })()}
+                            </div>
                         </div>
                     </div>
-                </div>
+                </BarraFiltro>
 
-                {/* Lista de Relatórios */}
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-gray-800">Relatórios Disponíveis</h2>
-                        <span className="text-xs font-medium text-gray-400">{CARDS_RELATORIO.length} tipos de exportação</span>
+                {/* Grid de Relatórios SaaS Style */}
+                <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-[2.5rem] overflow-hidden mt-8">
+                    <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                        <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Fluxos de Exportação Oficiais</h2>
+                        <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400 shadow-sm">
+                            {CARDS_RELATORIO.length} Módulos Disponíveis
+                        </span>
                     </div>
 
-                    <div className="divide-y divide-gray-100">
-                        {CARDS_RELATORIO.map((item, idx) => {
-                            const Icone = item.icone;
-                            return (
-                                <button
-                                    key={idx}
-                                    onClick={item.acao}
-                                    disabled={carregando}
-                                    className="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed text-left"
-                                >
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${item.iconeCor} border-gray-200`}>
-                                        <Icone size={18} strokeWidth={2} />
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">{item.titulo}</p>
-                                        <p className="text-xs text-gray-500 mt-0.5 truncate">{item.descricao}</p>
-                                    </div>
-
-                                    <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded border ${item.badgeCor} shrink-0`}>
-                                        {item.badgeTxt}
-                                    </span>
-
-                                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 group-hover:text-blue-600 transition-colors shrink-0">
-                                        <Download size={14} />
-                                        <span className="hidden sm:inline">Exportar</span>
-                                    </div>
-                                </button>
-                            );
-                        })}
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-100">
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Módulo / Relatório</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Finalidade Institucional</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Protocolo</th>
+                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ação de Exportação</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {relatoriosFiltrados.map((item, idx) => {
+                                    const Icone = item.icone;
+                                    return (
+                                        <tr key={idx} className="hover:bg-indigo-50/20 transition-all group">
+                                            <td className="py-5 px-8">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${item.iconeCor} border-slate-200 shadow-sm group-hover:scale-110 transition-transform group-hover:bg-white`}>
+                                                        <Icone size={20} strokeWidth={2} />
+                                                    </div>
+                                                    <p className="text-sm font-black text-slate-900 group-hover:text-indigo-700 transition-colors uppercase tracking-tight">{item.titulo}</p>
+                                                </div>
+                                            </td>
+                                            <td className="py-5 px-8">
+                                                <p className="text-xs font-bold text-slate-400 group-hover:text-slate-500 transition-colors leading-relaxed truncate max-w-xs">{item.descricao}</p>
+                                            </td>
+                                            <td className="py-5 px-8 text-center">
+                                                <span className={`text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-xl border ${item.badgeCor} shadow-sm inline-block`}>
+                                                    {item.badgeTxt}
+                                                </span>
+                                            </td>
+                                            <td className="py-5 px-8 text-right">
+                                                <button
+                                                    onClick={item.acao}
+                                                    disabled={carregando}
+                                                    className="inline-flex items-center gap-2 text-[10px] font-black text-slate-400 group-hover:text-white transition-all bg-slate-50 px-5 py-2.5 rounded-2xl border border-slate-200 group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:shadow-lg tracking-widest active:scale-95 disabled:opacity-50"
+                                                >
+                                                    <Download size={14} className="group-hover:translate-y-0.5 transition-transform" />
+                                                    EXPORTAR PDF
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
+                </CartaoConteudo>
 
-                {/* Rodapé LGPD */}
-                <div className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-500">
-                    <FileText size={16} className="text-gray-400 mt-0.5 shrink-0" />
-                    <p>
-                        <strong className="text-gray-700">LGPD — Art. 37:</strong> Todos os relatórios exportados são registrados no log de auditoria com a identidade do operador e o período consultado.
-                    </p>
+                {/* Compliance LGPD */}
+                <div className="flex items-start gap-5 p-8 rounded-[2.5rem] border border-indigo-100 bg-indigo-50/30 text-slate-600 shadow-inner group">
+                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center border border-indigo-100 text-indigo-500 shrink-0 shadow-lg group-hover:rotate-6 transition-transform">
+                        <ShieldCheck size={24} />
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em]">Compliance & Audit Trail (LGPD Art. 37)</p>
+                        <p className="text-sm font-bold leading-relaxed text-slate-600">
+                            Toda exportação de dados é registrada imutavelmente com o selo institucional do operador. A manipulação de dados de segurança de menores deve seguir as diretrizes rigorosas da SEEDF e do ECA.
+                        </p>
+                    </div>
                 </div>
             </div>
         </LayoutAdministrativo>

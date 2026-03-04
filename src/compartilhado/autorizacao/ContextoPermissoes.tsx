@@ -49,7 +49,7 @@ const MATRIZ_PERMISSOES: Record<string, Record<string, Record<string, boolean>>>
         terminal_acesso: { acessar: true },
         relatorios: { visualizar: true, exportar: true },
         risco_abandono: { visualizar: true },
-        usuarios: { visualizar: true, criar: true, editar: true, desativar: true },
+        usuarios: { visualizar: true, criar: true, editar: true, desativar: true, deletar: true },
         auditoria: { visualizar: true, exportar: true }
     },
 
@@ -60,7 +60,7 @@ const MATRIZ_PERMISSOES: Record<string, Record<string, Record<string, boolean>>>
         terminal_acesso: { acessar: true },
         relatorios: { visualizar: true, exportar: true },
         risco_abandono: { visualizar: true },
-        usuarios: { visualizar: true, criar: true, editar: true, desativar: true },
+        usuarios: { visualizar: true, criar: true, editar: true, desativar: true, deletar: true },
         auditoria: { visualizar: true, exportar: true }
     },
 

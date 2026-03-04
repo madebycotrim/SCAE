@@ -2,6 +2,7 @@
 import { Users, Search, Edit2, KeyRound, ShieldAlert, Loader2, AlertTriangle } from 'lucide-react';
 import { mascararDadoPessoal } from '@compartilhado/utils/registrarLocal';
 import { api } from '@compartilhado/servicos/api';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
 
 interface UsuarioCentral {
     id: string;
@@ -22,7 +23,6 @@ export function PaginaUsuariosCentral() {
         const buscarUsuarios = async () => {
             try {
                 definirCarregando(true);
-                // No Módulo Central, não enviamos X-Escola-ID para listagem global
                 const resposta = await api.obter<{ dados: UsuarioCentral[] }>('/central/usuarios');
                 definirUsuarios(resposta.dados);
             } catch (err: any) {
@@ -44,129 +44,129 @@ export function PaginaUsuariosCentral() {
 
     if (carregando) {
         return (
-            <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-4">
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
-                <p className="font-medium animate-pulse">Sincronizando contas globais...</p>
+            <div className="flex flex-col items-center justify-center py-32 text-slate-500 gap-6">
+                <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Autenticando na Federação de Usuários...</p>
             </div>
         );
     }
 
     if (erro) {
         return (
-            <div className="bg-rose-500/10 border border-rose-500/20 p-8 rounded-xl flex flex-col items-center text-center gap-4">
-                <AlertTriangle className="w-12 h-12 text-rose-500" />
-                <p className="text-slate-400">{erro}</p>
-                <button onClick={() => window.location.reload()} className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded-lg font-bold">
-                    Tentar Novamente
-                </button>
+            <div className="bg-rose-500/5 border border-rose-500/20 p-12 rounded-3xl flex flex-col items-center text-center gap-6 max-w-lg mx-auto">
+                <div className="w-16 h-16 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500 shadow-lg shadow-rose-900/10">
+                    <AlertTriangle size={32} />
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-tight">Erro no Barramento de Identidade</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">{erro}</p>
+                </div>
+                <Botao variante="perigo" onClick={() => window.location.reload()}>Recarregar Gateway</Botao>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20 text-indigo-400">
-                        <Users size={24} />
+        <div className="space-y-8 animate-fade-in pb-12">
+            {/* Header Técnico */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[100px] rounded-full pointer-events-none"></div>
+
+                <div className="flex items-center gap-5 relative z-10">
+                    <div className="w-14 h-14 bg-indigo-600/10 rounded-2xl flex items-center justify-center border border-indigo-500/20 text-indigo-400 shadow-lg">
+                        <Users size={28} />
                     </div>
                     <div>
-                        <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-0.5">Controle de Acesso</p>
-                        <h2 className="text-2xl font-bold text-white">Usuários da Plataforma</h2>
-                        <p className="text-slate-400 text-sm mt-0.5">Busca omni-direcional de qualquer operador (Admin, Porteiro, Coordenador).</p>
+                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">Identity Access Management</p>
+                        <h2 className="text-3xl font-black text-white uppercase tracking-tight">Usuários do Ecossistema</h2>
                     </div>
                 </div>
             </div>
 
-            {/* Busca */}
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row gap-4 shadow-sm">
-                <div className="relative w-full md:w-96">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-500">
-                        <Search size={16} />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Buscar por e-mail, nome ou slug..."
-                        value={busca}
-                        onChange={(e) => definirBusca(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-500 transition-shadow"
-                    />
-                </div>
-            </div>
+            {/* Barra de Busca / Filtros */}
+            <BarraFiltro className="bg-slate-900 border-slate-800 shadow-xl">
+                <InputBusca
+                    icone={Search}
+                    placeholder="Buscar por e-mail institucional, nome ou identificador de unidade..."
+                    value={busca}
+                    onChange={(e) => definirBusca(e.target.value)}
+                    className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500/10 text-white"
+                />
+            </BarraFiltro>
 
-            {/* Tabela */}
-            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-sm">
+            {/* Matrix de Dados (Tabela) */}
+            <CartaoConteudo className="bg-slate-900 border-slate-800 shadow-2xl">
                 <div className="overflow-x-auto custom-scrollbar">
-                    <table className="min-w-full divide-y divide-slate-700">
-                        <thead className="bg-slate-900/50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Usuário</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Papel</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Vinculação (escola)</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Perfil Criado Em</th>
-                                <th scope="col" className="relative px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Ações</th>
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr className="bg-slate-950/50 border-b border-slate-800">
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Usuário / Credencial</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Nível de Acesso</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Vinculação (Tenant)</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Última Atividade</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-slate-800 divide-y divide-slate-700">
-                            {filtrados.map((usuario) => (
-                                <tr key={usuario.id} className="hover:bg-slate-700/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="text-sm font-medium text-white">{usuario.nome}</span>
-                                            <span className="text-xs text-slate-500 font-mono">{mascararDadoPessoal(usuario.email, 'email')}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {usuario.papel === 'CENTRAL' ? (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                                                <ShieldAlert size={14} /> SUPER ADMIN
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-700 text-slate-300">
-                                                {usuario.papel}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`text-sm ${usuario.escolaslug === 'GLOBAL' ? 'text-indigo-400 font-semibold' : 'text-slate-400 font-mono'}`}>
-                                            {usuario.escolaslug || 'S/ T'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-slate-300">
-                                            {usuario.ultimoAcesso ? new Date(usuario.ultimoAcesso).toLocaleDateString('pt-BR') : 'N/A'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                                        <div className="inline-flex items-center justify-end gap-2">
-                                            <button className="p-1.5 rounded text-slate-400 hover:text-indigo-400 hover:bg-slate-700 transition-colors" title="Forçar redefinição de senha">
-                                                <KeyRound size={16} />
-                                            </button>
-                                            <button className="p-1.5 rounded text-slate-400 hover:text-indigo-400 hover:bg-slate-700 transition-colors" title="Editar Permissões">
-                                                <Edit2 size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {filtrados.length === 0 && (
+                        <tbody className="divide-y divide-slate-800">
+                            {filtrados.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-16 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-slate-600">
-                                                <Users size={20} />
-                                            </div>
-                                            <p className="text-sm font-medium text-slate-400">Nenhuma conta encontrada na base.</p>
+                                    <td colSpan={5} className="py-24 text-center">
+                                        <div className="flex flex-col items-center gap-4 opacity-50 grayscale">
+                                            <Users size={48} className="text-slate-600" />
+                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhum registro encontrado</p>
                                         </div>
                                     </td>
                                 </tr>
+                            ) : (
+                                filtrados.map((usuario) => (
+                                    <tr key={usuario.id} className="hover:bg-indigo-500/5 transition-colors group">
+                                        <td className="py-5 px-8">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors uppercase tracking-tight">{usuario.nome}</span>
+                                                <span className="text-[10px] font-mono font-bold text-slate-600 group-hover:text-indigo-400 transition-colors">{mascararDadoPessoal(usuario.email, 'email')}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-5 px-8 text-center">
+                                            <BadgePapel papel={usuario.papel} />
+                                        </td>
+                                        <td className="py-5 px-8">
+                                            <span className={`text-xs font-bold uppercase tracking-widest ${usuario.escolaslug === 'GLOBAL' ? 'text-indigo-400' : 'text-slate-500'}`}>
+                                                {usuario.escolaslug || 'DESVINCULADO'}
+                                            </span>
+                                        </td>
+                                        <td className="py-5 px-8">
+                                            <span className="text-xs font-mono font-bold text-slate-500">
+                                                {usuario.ultimoAcesso ? new Date(usuario.ultimoAcesso).toLocaleDateString('pt-BR') : 'SEM LOGS'}
+                                            </span>
+                                        </td>
+                                        <td className="py-5 px-8 text-right">
+                                            <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
+                                                <Botao variante="ghost" tamanho="sm" icone={KeyRound} title="Redefinir Credencial" className="hover:text-amber-400" />
+                                                <Botao variante="ghost" tamanho="sm" icone={Edit2} title="Alterar Permissões" className="hover:text-indigo-400" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
                             )}
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </CartaoConteudo>
         </div>
     );
 }
 
+function BadgePapel({ papel }: { papel: string }) {
+    if (papel === 'CENTRAL') {
+        return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 shadow-lg shadow-indigo-950/20">
+                <ShieldAlert size={14} className="animate-pulse" /> MASTER
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-slate-800 text-slate-400 border border-slate-700">
+            {papel}
+        </span>
+    );
+}

@@ -29,24 +29,24 @@ export default function ListaAlunos({
 }: ListaAlunosProps) {
     if (alunos.length === 0) {
         return (
-            <div className="bg-white rounded-xl border border-slate-200 p-12 text-center animate-fade-in">
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 mx-auto border border-slate-100">
-                    <Users size={32} className="text-slate-400" />
+            <div className="bg-white rounded-[2rem] border border-slate-200/60 p-24 text-center animate-fade-in shadow-xl shadow-slate-900/5">
+                <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 mx-auto border border-slate-100 shadow-inner">
+                    <Users size={40} className="text-slate-300" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-1">Nenhum aluno encontrado</h3>
-                <p className="text-slate-500 max-w-sm mx-auto text-sm">Tente ajustar seus filtros ou adicione um novo aluno ao sistema.</p>
+                <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.3em] mb-2">Cluster de dados vazio</h3>
+                <p className="text-[10px] font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest">Nenhum registro de discente identificado para os filtros aplicados.</p>
             </div>
         );
     }
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
+            <div className="bg-white rounded-[2.5rem] border border-slate-200/60 shadow-2xl overflow-hidden mt-8">
+                <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="py-3 px-6 w-12 text-center">
+                            <tr className="bg-slate-50/80 border-b border-slate-200">
+                                <th className="py-5 px-8 w-12 text-center">
                                     <input
                                         type="checkbox"
                                         checked={alunosSelecionados.length === alunos.length && alunos.length > 0}
@@ -57,79 +57,79 @@ export default function ListaAlunos({
                                                 alunos.forEach(a => { if (alunosSelecionados.includes(a.matricula)) aoSelecionar(a.matricula) });
                                             }
                                         }}
-                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                        className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-600/20 cursor-pointer transition-all shadow-sm"
                                     />
                                 </th>
-                                <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Aluno</th>
-                                <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Matrícula / ID</th>
-                                <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Unidade/Turma</th>
-                                <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                                <th className="py-3 px-6 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Ações Rápidas</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificação do Discente</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Registro Acadêmico (RA)</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Unidade / Classe</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status Operacional</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações de Gestão</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-slate-100">
                             {alunos.map((aluno) => (
-                                <tr key={aluno.matricula} className={`hover:bg-gray-50 transition-colors ${alunosSelecionados.includes(aluno.matricula) ? 'bg-blue-50/50' : ''}`}>
-                                    <td className="py-3 px-4 text-center">
+                                <tr key={aluno.matricula} className={`hover:bg-indigo-50/20 transition-all group ${alunosSelecionados.includes(aluno.matricula) ? 'bg-indigo-50/40' : ''}`}>
+                                    <td className="py-5 px-8 text-center">
                                         <input
                                             type="checkbox"
                                             checked={alunosSelecionados.includes(aluno.matricula)}
                                             onChange={() => aoSelecionar(aluno.matricula)}
-                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600 cursor-pointer transition-colors"
+                                            className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-600/20 cursor-pointer transition-all shadow-sm"
                                         />
                                     </td>
-                                    <td className="py-3 px-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-700 font-bold text-xs shrink-0 border border-gray-200">
+                                    <td className="py-5 px-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 font-black text-[10px] shrink-0 border border-slate-200 group-hover:bg-white group-hover:scale-110 transition-all shadow-sm">
                                                 {aluno.nome_completo.split(' ').map((n, i, arr) => i === 0 || i === arr.length - 1 ? n[0] : '').join('').toUpperCase().substring(0, 2)}
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="font-semibold text-gray-900 text-sm">{aluno.nome_completo}</span>
-                                                <span className="text-xs text-gray-500">{aluno.email ? mascararDadoPessoal(aluno.email, 'email') : 'Sem e-mail'}</span>
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="font-black text-slate-900 text-sm uppercase tracking-tight group-hover:text-indigo-700 transition-colors">{aluno.nome_completo}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{aluno.email ? mascararDadoPessoal(aluno.email, 'email') : 'CONTATO NÃO CATALOGADO'}</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="py-3 px-4">
-                                        <span className="text-sm font-medium text-gray-900 bg-gray-100 border border-gray-200 px-2 py-1 rounded">
+                                    <td className="py-5 px-8">
+                                        <span className="text-[10px] font-mono font-black text-slate-900 bg-slate-100 border border-slate-200 px-3 py-1 rounded-lg shadow-inner">
                                             {aluno.matricula}
                                         </span>
                                     </td>
-                                    <td className="py-3 px-4">
-                                        <span className="text-sm font-medium text-gray-900">{aluno.turma_id || 'Não Definida'}</span>
+                                    <td className="py-5 px-8">
+                                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{aluno.turma_id || 'NÃO ENTURMADO'}</span>
                                     </td>
-                                    <td className="py-3 px-4">
+                                    <td className="py-5 px-8">
                                         {aluno.ativo !== false ? (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-green-700 bg-green-50 border border-green-200">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-green-600"></div> Ativo
+                                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border-2 border-emerald-100 shadow-sm transition-all hover:scale-110">
+                                                <div className="w-2 h-2 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Operacional
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-red-700 bg-red-50 border border-red-200">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-red-600"></div> Inativo
+                                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border-2 border-rose-100 shadow-sm transition-all hover:scale-110">
+                                                <div className="w-2 h-2 rounded-full bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Registro Suspenso
                                             </span>
                                         )}
                                     </td>
-                                    <td className="py-3 px-4 text-right">
-                                        <div className="flex items-center justify-end gap-1">
+                                    <td className="py-5 px-8 text-right">
+                                        <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => aoVerQRCode(aluno.matricula)}
-                                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded transition-colors"
-                                                title="Credencial"
+                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-2xl transition-all hover:shadow-lg border border-transparent hover:border-slate-100 active:scale-90"
+                                                title="Visualizar Credencial"
                                             >
-                                                <QrCode size={16} />
+                                                <QrCode size={18} />
                                             </button>
                                             <button
                                                 onClick={() => aoEditar(aluno)}
-                                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded transition-colors"
-                                                title="Editar"
+                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-2xl transition-all hover:shadow-lg border border-transparent hover:border-slate-100 active:scale-90"
+                                                title="Configurar Registro"
                                             >
-                                                <Edit2 size={16} />
+                                                <Edit2 size={18} />
                                             </button>
                                             <button
                                                 onClick={() => aoExcluir(aluno)}
-                                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-gray-100 rounded transition-colors"
-                                                title="Excluir"
+                                                className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-2xl transition-all hover:shadow-lg border border-transparent hover:border-slate-100 active:scale-90"
+                                                title="Remover do Sistema"
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={18} />
                                             </button>
                                         </div>
                                     </td>
@@ -141,20 +141,23 @@ export default function ListaAlunos({
             </div>
 
             {totalPaginas > 1 && (
-                <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm mt-6">
-                    <span className="text-sm text-gray-500">
-                        Mostrando página <span className="font-semibold text-gray-900">{paginaAtual}</span> de <span className="font-semibold text-gray-900">{totalPaginas}</span>
-                    </span>
-                    <div className="flex gap-1.5">
+                <div className="bg-white rounded-[2rem] border border-slate-200/60 p-5 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-slate-900/5 mt-8">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-2 rounded-2xl shadow-inner">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Cluster de Visualização</span>
+                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{paginaAtual} / {totalPaginas}</span>
+                        </div>
+                    </div>
+                    <div className="flex gap-2.5">
                         <button
                             onClick={() => aoMudarPagina(paginaAtual - 1)}
                             disabled={paginaAtual === 1}
-                            className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                            className="w-11 h-11 flex items-center justify-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 disabled:opacity-30 disabled:hover:bg-transparent transition-all active:scale-90"
                         >
-                            <ChevronLeft size={16} />
+                            <ChevronLeft size={18} />
                         </button>
 
-                        <div className="flex gap-1">
+                        <div className="flex gap-1.5 items-center">
                             {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                                 let pageNum = i + 1;
                                 if (totalPaginas > 5 && paginaAtual > 3) {
@@ -164,9 +167,9 @@ export default function ListaAlunos({
                                     <button
                                         key={pageNum}
                                         onClick={() => aoMudarPagina(pageNum)}
-                                        className={`w-8 h-8 rounded text-sm font-medium transition-colors ${paginaAtual === pageNum
-                                            ? 'bg-blue-600 text-white shadow-sm'
-                                            : 'text-gray-600 hover:bg-gray-50'
+                                        className={`w-11 h-11 rounded-2xl text-[10px] font-black tracking-widest transition-all active:scale-90 ${paginaAtual === pageNum
+                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                                            : 'text-slate-500 hover:bg-slate-50'
                                             }`}
                                     >
                                         {pageNum}
@@ -178,9 +181,9 @@ export default function ListaAlunos({
                         <button
                             onClick={() => aoMudarPagina(paginaAtual + 1)}
                             disabled={paginaAtual === totalPaginas}
-                            className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                            className="w-11 h-11 flex items-center justify-center rounded-2xl border border-slate-200 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 disabled:opacity-30 disabled:hover:bg-transparent transition-all active:scale-90"
                         >
-                            <ChevronRight size={16} />
+                            <ChevronRight size={18} />
                         </button>
                     </div>
                 </div>

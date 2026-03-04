@@ -2,6 +2,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { usarEscolaOpcional } from '@escola/ProvedorEscola';
 import { usarConteudoLegal } from '@funcionalidades/acesso-usuario/hooks/usarConteudoLegal';
+import { Botao } from '@compartilhado/componentes/UI';
 
 /**
  * Página pública de Política de Privacidade.
@@ -28,25 +29,28 @@ export default function PoliticaPrivacidade() {
 
     return (
         <div className="min-h-screen bg-slate-100 font-[Arial,Helvetica,sans-serif] selection:bg-indigo-100 pb-12">
-            {/* Header Funcional */}
-            <div className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm print:hidden">
-                <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Header Funcional - Alinhado a h-18 (72px) */}
+            <header className="h-[72px] bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm print:hidden">
+                <div className="max-w-5xl h-full mx-auto px-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <ShieldCheck className="text-emerald-600 w-6 h-6" />
+                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center border border-emerald-100 shadow-sm">
+                            <ShieldCheck className="text-emerald-600 w-6 h-6" />
+                        </div>
                         <div>
-                            <h1 className="text-xl font-bold text-slate-800 tracking-tight">Política de Privacidade</h1>
-                            {daEscola && <p className="text-xs uppercase text-slate-500">{nomeAmigavel}</p>}
+                            <h1 className="text-base font-bold text-slate-800 tracking-tight uppercase">Política de Privacidade</h1>
+                            {daEscola && <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none mt-1">{nomeAmigavel}</p>}
                         </div>
                     </div>
-                    <button
+                    <Botao
+                        variante="ghost"
+                        tamanho="md"
+                        icone={ArrowLeft}
                         onClick={() => navegar(-1)}
-                        className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
                     >
-                        <ArrowLeft className="w-4 h-4" />
                         Voltar
-                    </button>
+                    </Botao>
                 </div>
-            </div>
+            </header>
 
             {/* Documento Formato A4 (ABNT) */}
             <div className="max-w-[210mm] mx-auto bg-white shadow-2xl mt-8 sm:mt-12 px-8 py-12 sm:px-[3cm] sm:py-[3cm] text-black">
@@ -144,7 +148,7 @@ export default function PoliticaPrivacidade() {
                         <li className="mb-2">
                             Logs de auditoria: mantidos por {prazoRetencaoAuditoria}.
                             <span className="font-normal"> (Logs de auditoria são registros técnicos automáticos das operações realizadas no sistema,
-                            utilizados exclusivamente para fins de segurança e rastreabilidade de acessos.)</span>
+                                utilizados exclusivamente para fins de segurança e rastreabilidade de acessos.)</span>
                         </li>
                         <li className="mb-2">Dados do aluno ativo: mantidos durante o período de matrícula ativa na instituição, acrescido de 90 dias após o encerramento do vínculo.</li>
                         <li className="mb-2">Dados de responsável desvinculado: excluídos em até 30 dias após a desvinculação.</li>

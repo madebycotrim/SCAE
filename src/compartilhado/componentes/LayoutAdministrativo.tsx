@@ -1,5 +1,5 @@
 // TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
@@ -24,7 +24,10 @@ import {
     X,
     Check,
     Clock,
-    AlertTriangle
+    AlertTriangle,
+    Info,
+    CheckCircle,
+    XCircle
 } from 'lucide-react';
 import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
@@ -45,7 +48,7 @@ interface LayoutAdministrativoProps {
 
 export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }: LayoutAdministrativoProps) {
     const { usuarioAtual, sair } = usarAutenticacao();
-    const { ehAdmin, podeVerLogs, usuario, pode } = usarPermissoes();
+    const { ehAdmin, podeVerLogs, usuario, pode, ehCentral } = usarPermissoes();
     const navegar = useNavigate();
     const localizacao = useLocation();
     const { id: slugEscola, nomeEscola } = usarEscola();
@@ -104,7 +107,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         ? [{ icone: FileText, texto: 'Logs de Auditoria', rota: '/logs' }]
         : [];
 
-    const itensMenuAdmin = ehAdmin
+    const itensMenuAdmin = (ehAdmin || ehCentral)
         ? [{ icone: Shield, texto: 'Usuários do Sistema', rota: '/usuarios' }]
         : [];
 
@@ -392,7 +395,10 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             <div className="flex-1 flex flex-col min-w-0 bg-gray-50 relative overflow-hidden">
 
                 {/* Cabeçalho */}
-                <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-30 flex items-center justify-between px-6">
+                <header
+                    className="bg-white border-b border-gray-100 sticky top-0 z-30 flex items-center justify-between px-8 shadow-[0_1px_5px_rgba(0,0,0,0.02)]"
+                    style={{ height: '80px' }}
+                >
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => definirSidebarAberto(!sidebarAberto)}
@@ -473,9 +479,17 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                         >
                                                             <div className="flex gap-3">
                                                                 <div className={`
-                                                                    shrink-0 w-2 h-2 mt-2 rounded-full ring-2 ring-white
-                                                                    ${!notificacao.lida ? 'bg-escola' : 'bg-slate-300'}
-                                                                `}></div>
+                                                                    shrink-0 w-8 h-8 rounded-full flex items-center justify-center
+                                                                    ${notificacao.tipo === 'error' ? 'bg-rose-100 text-rose-600' :
+                                                                        notificacao.tipo === 'success' ? 'bg-emerald-100 text-emerald-600' :
+                                                                            notificacao.tipo === 'warning' ? 'bg-amber-100 text-amber-600' :
+                                                                                'bg-blue-100 text-blue-600'}
+                                                                `}>
+                                                                    {notificacao.tipo === 'error' && <XCircle size={16} />}
+                                                                    {notificacao.tipo === 'success' && <CheckCircle size={16} />}
+                                                                    {notificacao.tipo === 'warning' && <AlertTriangle size={16} />}
+                                                                    {(notificacao.tipo === 'info' || !notificacao.tipo) && <Info size={16} />}
+                                                                </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex justify-between items-start">
                                                                         <h4 className={`text-sm font-bold truncate ${!notificacao.lida ? 'text-slate-900' : 'text-slate-600'}`}>
@@ -529,7 +543,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 </header>
 
                 {/* Conteúdo da Página */}
-                <main className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10 scroll-smooth z-10 custom-scrollbar">
+                <main className="flex-1 overflow-y-auto p-8 md:p-10 lg:p-12 scroll-smooth z-10 custom-scrollbar bg-slate-50/30">
                     <div className="max-w-[1600px] mx-auto animate-slide-up">
                         {children}
                     </div>

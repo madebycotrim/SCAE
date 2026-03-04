@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
-import { FileText, Search, Filter, Loader2, AlertTriangle } from 'lucide-react';
+import { FileText, Search, Filter, Loader2, AlertTriangle, Clock, ShieldAlert, Info, AlertOctagon } from 'lucide-react';
 import { api } from '@compartilhado/servicos/api';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
 
 interface LogGlobal {
     id: string;
@@ -42,121 +43,146 @@ export function PaginaAuditoriaCentral() {
 
     if (carregando) {
         return (
-            <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-4">
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
-                <p className="font-medium animate-pulse">Consultando ledger de eventos...</p>
+            <div className="flex flex-col items-center justify-center py-32 text-slate-500 gap-6">
+                <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Lendo Ledger de Eventos Imutável...</p>
             </div>
         );
     }
 
     if (erro) {
         return (
-            <div className="bg-rose-500/10 border border-rose-500/20 p-8 rounded-xl flex flex-col items-center text-center gap-4">
-                <AlertTriangle className="w-12 h-12 text-rose-500" />
-                <p className="text-slate-400">{erro}</p>
-                <button onClick={() => window.location.reload()} className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded-lg font-bold">
-                    Tentar Novamente
-                </button>
+            <div className="bg-rose-500/5 border border-rose-500/20 p-12 rounded-3xl flex flex-col items-center text-center gap-6 max-w-lg mx-auto">
+                <div className="w-16 h-16 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500 shadow-lg shadow-rose-900/10">
+                    <AlertOctagon size={32} />
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-tight">Falha no Subsistema de Auditoria</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">{erro}</p>
+                </div>
+                <Botao variante="perigo" onClick={() => window.location.reload()}>Recarregar Trail</Botao>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            {/* Monitor de Eventos / Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20 text-indigo-400">
-                        <FileText size={24} />
+        <div className="space-y-8 animate-fade-in pb-12">
+            {/* Header Técnico */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[100px] rounded-full pointer-events-none"></div>
+
+                <div className="flex items-center gap-5 relative z-10">
+                    <div className="w-14 h-14 bg-indigo-600/10 rounded-2xl flex items-center justify-center border border-indigo-500/20 text-indigo-400 shadow-lg">
+                        <FileText size={28} />
                     </div>
                     <div>
-                        <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-0.5">Audit Trail Master</p>
-                        <h2 className="text-2xl font-bold text-white">Logs do Sistema</h2>
+                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">Global Audit Trail</p>
+                        <h2 className="text-3xl font-black text-white uppercase tracking-tight">Logs do Ecossistema</h2>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3 relative z-10">
+                    <div className="px-5 py-3 bg-slate-800/50 rounded-2xl border border-slate-700/50 flex items-center gap-3">
+                        <Clock size={16} className="text-indigo-400" />
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Tempo Real</span>
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
                     </div>
                 </div>
             </div>
 
-            {/* Hub de Busca */}
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row gap-4 shadow-sm">
-                <div className="relative w-full md:w-96">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-500">
-                        <Search size={16} />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Pesquisar por autor, ação ou escola..."
-                        value={busca}
-                        onChange={(e) => definirBusca(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder:text-slate-500 transition-shadow"
-                    />
-                </div>
-            </div>
+            {/* Barra de Busca / Filtros */}
+            <BarraFiltro className="bg-slate-900 border-slate-800 shadow-xl">
+                <InputBusca
+                    icone={Search}
+                    placeholder="Pesquisar por autor, ação descritiva ou identificador de escola..."
+                    value={busca}
+                    onChange={(e) => definirBusca(e.target.value)}
+                    className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500/10 text-white"
+                />
+            </BarraFiltro>
 
-            {/* Ledger de Eventos (Tabela SaaS) */}
-            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-sm">
+            {/* Matrix de Dados (Tabela) */}
+            <CartaoConteudo className="bg-slate-900 border-slate-800 shadow-2xl">
                 <div className="overflow-x-auto custom-scrollbar">
-                    <table className="min-w-full divide-y divide-slate-700">
-                        <thead className="bg-slate-900/50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Timestamp</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Origem (escola)</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Operador</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Evento</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Severidade</th>
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr className="bg-slate-950/50 border-b border-slate-800">
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Timestamp (UTC-3)</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Origem</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Operador</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Evento / Transação</th>
+                                <th className="py-4 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Nível</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-slate-800 divide-y divide-slate-700 text-sm">
-                            {filtrados.map((log) => (
-                                <tr key={log.id} className="hover:bg-slate-700/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-slate-300 font-mono">
-                                            {new Date(log.timestamp).toLocaleString('pt-BR')}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {log.escolaslug === 'GLOBAL' || !log.escolaslug ? (
-                                            <span className="bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded-md text-xs font-medium">GLOBAL</span>
-                                        ) : (
-                                            <span className="text-slate-400 font-mono text-xs">{log.escolaslug}</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="font-medium text-white">
-                                            {log.quem}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 max-w-md truncate">
-                                        <span className={`font-mono ${log.gravidade === 'CRITICAL' ? 'text-rose-400' : log.gravidade === 'WARN' ? 'text-amber-400' : 'text-slate-300'}`}>
-                                            {log.acaoDescricao}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${log.gravidade === 'CRITICAL' ? 'bg-rose-500/10 text-rose-400' :
-                                            log.gravidade === 'WARN' ? 'bg-amber-500/10 text-amber-400' :
-                                                'bg-slate-700 text-slate-300'
-                                            }`}>
-                                            {log.gravidade}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                            {filtrados.length === 0 && (
+                        <tbody className="divide-y divide-slate-800">
+                            {filtrados.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-16 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-slate-600">
-                                                <FileText size={20} />
-                                            </div>
-                                            <p className="text-sm font-medium text-slate-400">Nenhum evento encontrado no período.</p>
+                                    <td colSpan={5} className="py-24 text-center">
+                                        <div className="flex flex-col items-center gap-4 opacity-50 grayscale">
+                                            <FileText size={48} className="text-slate-600" />
+                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhum evento registrado</p>
                                         </div>
                                     </td>
                                 </tr>
+                            ) : (
+                                filtrados.map((log) => (
+                                    <tr key={log.id} className="hover:bg-indigo-500/5 transition-colors group">
+                                        <td className="py-5 px-8">
+                                            <span className="text-xs font-mono font-bold text-slate-500 group-hover:text-indigo-300 transition-colors">
+                                                {new Date(log.timestamp).toLocaleString('pt-BR')}
+                                            </span>
+                                        </td>
+                                        <td className="py-5 px-8">
+                                            {log.escolaslug === 'GLOBAL' || !log.escolaslug ? (
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">GLOBAL</span>
+                                            ) : (
+                                                <span className="text-xs font-mono font-bold text-slate-500 uppercase">{log.escolaslug}</span>
+                                            )}
+                                        </td>
+                                        <td className="py-5 px-8">
+                                            <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">
+                                                {log.quem}
+                                            </span>
+                                        </td>
+                                        <td className="py-5 px-8">
+                                            <div className="max-w-md truncate">
+                                                <span className={`text-xs font-mono font-bold ${log.gravidade === 'CRITICAL' ? 'text-rose-400' : log.gravidade === 'WARN' ? 'text-amber-400' : 'text-slate-400'}`}>
+                                                    {log.acaoDescricao}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="py-5 px-8 text-center">
+                                            <BadgeGravidade gravidade={log.gravidade} />
+                                        </td>
+                                    </tr>
+                                ))
                             )}
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </CartaoConteudo>
         </div>
     );
 }
 
+function BadgeGravidade({ gravidade }: { gravidade: 'INFO' | 'WARN' | 'CRITICAL' }) {
+    if (gravidade === 'CRITICAL') {
+        return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-rose-400 bg-rose-500/10 border border-rose-500/20">
+                <ShieldAlert size={12} /> CRITICAL
+            </span>
+        );
+    }
+    if (gravidade === 'WARN') {
+        return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/20">
+                <AlertTriangle size={12} /> WARN
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 border border-indigo-500/20">
+            <Info size={12} /> INFO
+        </span>
+    );
+}

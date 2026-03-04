@@ -1,9 +1,8 @@
 ﻿import { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
-import { Plus, Search, Filter, Upload, QrCode, ChevronDown } from 'lucide-react';
+import { Botao, BarraFiltro, InputBusca } from '@compartilhado/componentes/UI';
+import { Plus, Search, Upload, Calendar, Layers, CheckCircle2, XCircle, Grid } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { alunoServico } from '../servicos/aluno.servico';
@@ -19,9 +18,6 @@ import FormAlunoModal from './FormAlunoModal';
 import ImportacaoAlunosModal from './ImportacaoAlunosModal';
 import PromocaoLoteModal from './PromocaoLoteModal';
 
-/**
- * Página principal de Gestão de Alunos.
- */
 export default function Alunos() {
     const { adicionarNotificacao } = usarNotificacoes();
     const escola = usarEscola();
@@ -74,36 +70,36 @@ export default function Alunos() {
     const salvarAluno = async (dadosForm: any) => {
         try {
             await alunoServico.salvarAluno({ ...dadosForm, criado_em: alunoEmEdicao?.criado_em || new Date().toISOString() }, !!alunoEmEdicao);
-            toast.success(alunoEmEdicao ? 'Aluno atualizado!' : 'Aluno cadastrado!');
+            toast.success(alunoEmEdicao ? 'Registro de aluno atualizado' : 'Novo aluno matriculado com sucesso');
             definirModalForm(false);
             recarregar();
-        } catch (erro: any) { toast.error(erro.message || 'Falha ao salvar aluno.'); }
+        } catch (erro: any) { toast.error(erro.message || 'Falha ao processar registro.'); }
     };
 
     const excluirAluno = async (aluno: Aluno) => {
-        if (!window.confirm(`Excluir aluno ${aluno.nome_completo}?`)) return;
+        if (!window.confirm(`Tem certeza que deseja remover o registro de ${aluno.nome_completo}?`)) return;
         try {
             await alunoServico.excluirAluno(aluno.matricula);
-            toast.success('Aluno removido.');
+            toast.success('Registro removido do sistema');
             recarregar();
-        } catch (erro) { toast.error('Erro ao excluir aluno.'); }
+        } catch (erro) { toast.error('Erro na exclusão do registro.'); }
     };
 
     const promoverLote = async (novaTurmaId: string) => {
         try {
             await alunoServico.promoverEmLote(alunosSelecionados, novaTurmaId);
-            toast.success(`${alunosSelecionados.length} alunos promovidos!`);
+            toast.success(`Enturmação em lote concluída para ${alunosSelecionados.length} alunos`);
             definirAlunosSelecionados([]);
             definirModalPromocao(false);
             recarregar();
-        } catch (erro) { toast.error('Falha ao promover alunos.'); }
+        } catch (erro) { toast.error('Falha na operação em lote.'); }
     };
 
     const importarAlunos = async (jsonData: any[]) => {
         const resultado = await alunoServico.importarAlunos(jsonData, alunos);
         adicionarNotificacao({
-            titulo: 'Importação Concluída',
-            mensagem: `Processados ${resultado.total} registros. Sucessos: ${resultado.sucessos}, Falhas: ${resultado.erros}.`,
+            titulo: 'Importação Finalizada',
+            mensagem: `Lote de ${resultado.total} processado. Sucessos: ${resultado.sucessos}, Falhas: ${resultado.erros}.`,
             tipo: resultado.erros > 0 ? 'warning' : 'success',
             link: `/${escola.id}/admin/alunos`
         });
@@ -117,41 +113,103 @@ export default function Alunos() {
     };
 
     const AcoesHeader = (
-        <div className="flex gap-2">
-            <button onClick={() => definirModalImport(true)} className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors">
-                <Upload size={18} /> Importar
-            </button>
-            <button onClick={() => { definirAlunoEmEdicao(null); definirModalForm(true); }} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm">
-                <Plus size={18} /> <span className="hidden sm:inline">Matricular Aluno</span>
-            </button>
+        <div className="flex gap-3">
+            <Botao
+                variante="secundario"
+                tamanho="lg"
+                icone={Upload}
+                onClick={() => definirModalImport(true)}
+                className="hidden md:flex"
+            >
+                Importar Dados
+            </Botao>
+            <Botao
+                variante="primario"
+                tamanho="lg"
+                icone={Plus}
+                onClick={() => { definirAlunoEmEdicao(null); definirModalForm(true); }}
+            >
+                Matricular Aluno
+            </Botao>
         </div>
     );
 
     return (
-        <LayoutAdministrativo titulo="Gestão de Alunos" subtitulo="Cadastro e controle de matrículas" acoes={AcoesHeader}>
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20">
-                <div className="relative flex-1 group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={18} />
-                    <input type="text" placeholder="Buscar por nome, matrícula ou turma..." value={termoBusca} onChange={(e) => definirTermoBusca(e.target.value)} className="w-full pl-11 pr-4 h-10 bg-white border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-md text-sm outline-none transition-all placeholder:text-gray-400" />
+        <LayoutAdministrativo
+            titulo="Gestão de Discentes"
+            subtitulo="Controle unificado de matrículas e identidades digitais"
+            acoes={AcoesHeader}
+        >
+            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-[2rem]">
+                <div className="flex flex-col gap-2.5 flex-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Pesquisa de Discentes</label>
+                    <InputBusca
+                        icone={Search}
+                        placeholder="Nome, matrícula ou identificador de turma..."
+                        value={termoBusca}
+                        onChange={(e) => definirTermoBusca(e.target.value)}
+                        className="w-full h-12 rounded-2xl"
+                    />
                 </div>
-                <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
-                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 h-10">
-                        {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
-                            <button key={ano} onClick={() => definirFiltroAnoLetivo(ano)} className={`px-4 h-full rounded text-sm font-medium transition-colors outline-none cursor-pointer flex items-center justify-center ${filtroAnoLetivo === ano ? 'bg-white text-blue-700 shadow-sm border border-gray-200' : 'text-gray-600 hover:text-gray-900'}`}>{ano}</button>
-                        ))}
+
+                <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
+                    {/* Filtro de Ano Letivo */}
+                    <div className="flex flex-col gap-2.5">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Ciclo Acadêmico</label>
+                        <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                            {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
+                                <button
+                                    key={ano}
+                                    onClick={() => definirFiltroAnoLetivo(ano)}
+                                    className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filtroAnoLetivo === ano ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <Calendar size={12} /> {ano}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                    <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
-                    <div className="flex items-center bg-gray-100 p-1 rounded-md border border-gray-200 h-10 overflow-x-auto">
-                        {(['ativos', 'inativos', 'todos'] as const).map((status) => (
-                            <button key={status} onClick={() => definirFiltroStatus(status)} className={`px-4 h-full rounded text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors outline-none cursor-pointer flex items-center justify-center ${filtroStatus === status ? 'bg-gray-800 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'}`}>{status === 'ativos' ? 'Matriculados' : status === 'inativos' ? 'Inativos' : 'Todos'}</button>
-                        ))}
+
+                    {/* Filtro de Status */}
+                    <div className="flex flex-col gap-2.5">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Status de Matrícula</label>
+                        <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-12 shadow-sm">
+                            {(['ativos', 'inativos', 'todos'] as const).map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => definirFiltroStatus(status)}
+                                    className={`px-4 h-full rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 ${filtroStatus === status ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                                >
+                                    {status === 'ativos' && <CheckCircle2 size={12} />}
+                                    {status === 'inativos' && <XCircle size={12} />}
+                                    {status === 'todos' && <Grid size={12} />}
+                                    {status === 'ativos' ? 'Matriculados' : status === 'inativos' ? 'Inativos' : 'Todos'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </BarraFiltro>
 
-            <ListaAlunos alunos={paginados} alunosSelecionados={alunosSelecionados} paginaAtual={paginaAtual} totalPaginas={totalPaginas} aoSelecionar={(m) => definirAlunosSelecionados(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])} aoVerQRCode={(m) => { definirQrcodeAtual(m); definirModalQRCode(true); }} aoEditar={(a) => { definirAlunoEmEdicao(a); definirModalForm(true); }} aoExcluir={excluirAluno} aoMudarPagina={definirPaginaAtual} obterCorAvatar={obterCorAvatar} />
+            <ListaAlunos
+                alunos={paginados}
+                alunosSelecionados={alunosSelecionados}
+                paginaAtual={paginaAtual}
+                totalPaginas={totalPaginas}
+                aoSelecionar={(m) => definirAlunosSelecionados(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])}
+                aoVerQRCode={(m) => { definirQrcodeAtual(m); definirModalQRCode(true); }}
+                aoEditar={(a) => { definirAlunoEmEdicao(a); definirModalForm(true); }}
+                aoExcluir={excluirAluno}
+                aoMudarPagina={definirPaginaAtual}
+                obterCorAvatar={obterCorAvatar}
+            />
 
-            <BarraSelecaoLote quantidade={alunosSelecionados.length} aoPromover={() => definirModalPromocao(true)} aoCancelar={() => definirAlunosSelecionados([])} />
+            <BarraSelecaoLote
+                quantidade={alunosSelecionados.length}
+                aoPromover={() => definirModalPromocao(true)}
+                aoCancelar={() => definirAlunosSelecionados([])}
+            />
 
             {modalForm && <FormAlunoModal aluno={alunoEmEdicao} turmas={turmas} aoFechar={() => definirModalForm(false)} aoSalvar={salvarAluno} />}
             {modalImport && <ImportacaoAlunosModal aoFechar={() => definirModalImport(false)} onImport={importarAlunos} />}

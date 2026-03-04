@@ -1,7 +1,6 @@
-// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
 import {
     Users,
@@ -13,32 +12,32 @@ import {
     Edit2,
     Trash2,
     Lock,
-    RefreshCw
+    RefreshCw,
+    Mail,
+    ShieldCheck,
+    ShieldAlert,
+    UserCircle2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
+import { Registrador } from '@compartilhado/servicos/auditoria';
+import type { UsuarioLocal } from '@compartilhado/types/bancoLocal.tipos';
+import { api } from '@compartilhado/servicos/api';
 
 const log = criarRegistrador('Usuarios');
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
-import { Registrador } from '@compartilhado/servicos/auditoria';
-import type { UsuarioLocal, PapelUsuario } from '@compartilhado/types/bancoLocal.tipos';
-import { api } from '@compartilhado/servicos/api';
-import { usarEscola } from '@escola/ProvedorEscola';
-
-import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
 
 import FormUsuarioModal from './FormUsuarioModal';
 
 export default function Usuarios() {
-    const { id: idEscola } = usarEscola();
-    const { adicionarNotificacao } = usarNotificacoes();
     const { usuarioAtual } = usarAutenticacao();
-    const [usuarios, definirUsuarios] = useState([]);
+    const { ehCentral } = usarPermissoes();
+    const [usuarios, definirUsuarios] = useState<UsuarioLocal[]>([]);
     const [carregando, definirCarregando] = useState(true);
-    const [modalAberto, definirModalAberto] = useState(false);
-    const [usuarioEmEdicao, definirUsuarioEmEdicao] = useState(null);
     const [busca, definirBusca] = useState('');
+    const [modalAberto, definirModalAberto] = useState(false);
+    const [usuarioEmEdicao, definirUsuarioEmEdicao] = useState<UsuarioLocal | null>(null);
 
     useEffect(() => {
         carregarUsuarios();
@@ -47,94 +46,105 @@ export default function Usuarios() {
     const carregarUsuarios = async () => {
         try {
             definirCarregando(true);
-            const listaUsuarios = await bancoLocal.listarUsuarios();
-            definirUsuarios(listaUsuarios);
-        } catch (e) {
-            log.error('Erro ao carregar usuários', e);
-            toast.error("Erro ao carregar usuários");
+            const banco = await bancoLocal.iniciarBanco();
+            const todos = await banco.getAll('usuarios');
+            definirUsuarios(todos);
+        } catch (erro) {
+            log.error('Erro ao carregar usuários', erro);
+            toast.error('Erro ao carregar lista de usuários');
         } finally {
             definirCarregando(false);
         }
     };
 
     const salvarUsuario = async (dados: any) => {
-        if (!dados.email) {
-            toast.error("Email é obrigatório");
-            return;
-        }
-
         try {
-            const novoUsuario: UsuarioLocal = {
-                email: dados.email,
-                escola_id: idEscola,
-                papel: dados.papel.toUpperCase() as PapelUsuario,
-                ativo: dados.ativo,
-                pendente: !usuarioEmEdicao,
-                nome_completo: usuarioEmEdicao?.nome_completo || dados.email.split('@')[0],
-                // Removed criado_em to prevent D1 schema errors during sync
-                atualizado_em: new Date().toISOString()
+            const banco = await bancoLocal.iniciarBanco();
+            const usuarioNovo = {
+                ...dados,
+                atualizado_em: new Date().toISOString(),
+                sincronizado: 0
             };
 
-            await bancoLocal.salvarUsuario(novoUsuario);
+            await banco.put('usuarios', usuarioNovo);
 
-            // Notificação de Segurança
-            if (!usuarioEmEdicao) {
-                adicionarNotificacao({
-                    titulo: 'Segurança: Novo Usuário',
-                    mensagem: `Um novo usuário (${novoUsuario.email}) foi criado com o papel de ${novoUsuario.papel}.`,
-                    tipo: 'info',
-                    link: `/${idEscola}/admin/usuarios`
-                });
+            if (navigator.onLine) {
+                try {
+                    await api.enviar(`/usuarios/${usuarioNovo.email}`, usuarioNovo);
+                    usuarioNovo.sincronizado = 1;
+                    await banco.put('usuarios', usuarioNovo);
+                } catch (e) {
+                    log.warn('Falha ao sincronizar usuário', e);
+                }
             }
 
-            // Log de Auditoria
-            const acaoLog = usuarioEmEdicao ? 'USUARIO_EDITAR' : 'USUARIO_CRIAR';
-            await Registrador.registrar(acaoLog, 'usuario', novoUsuario.email, {
-                email: novoUsuario.email,
-                papel: novoUsuario.papel,
-                ativo: novoUsuario.ativo
-            });
-
-            toast.success("Usuário salvo com sucesso!");
+            toast.success(usuarioEmEdicao ? 'Usuário atualizado!' : 'Usuário convidado com sucesso!');
             definirModalAberto(false);
             carregarUsuarios();
+
+            await Registrador.registrar(usuarioEmEdicao ? 'USUARIO_EDITAR' : 'USUARIO_CONVIDAR', 'usuario', usuarioNovo.email, {
+                papel: usuarioNovo.papel
+            });
         } catch (erro) {
             log.error('Erro ao salvar usuário', erro);
-            toast.error("Erro ao salvar usuário");
+            toast.error('Erro ao salvar dados do usuário');
         }
     };
 
     const toggleStatus = async (user: UsuarioLocal) => {
         try {
-            const usuarioAtualizado = { ...user, ativo: !user.ativo };
-            await bancoLocal.salvarUsuario(usuarioAtualizado);
+            const novoStatus = !user.ativo;
+            const banco = await bancoLocal.iniciarBanco();
+            const atualizado = { ...user, ativo: novoStatus, sincronizado: 0 };
+
+            await banco.put('usuarios', atualizado);
 
             if (navigator.onLine) {
                 try {
-                    const payload = {
-                        email: usuarioAtualizado.email,
-                        nome_completo: usuarioAtualizado.nome_completo,
-                        papel: usuarioAtualizado.papel || (usuarioAtualizado as any).role,
-                        ativo: usuarioAtualizado.ativo,
-                        criado_por: (usuarioAtualizado as any).criado_por,
-                        // Removed criado_em to prevent D1 schema errors during sync
-                    };
-                    await api.enviar('/usuarios', payload);
+                    await api.atualizar(`/usuarios/${user.email}`, { ativo: novoStatus });
+                    atualizado.sincronizado = 1;
+                    await banco.put('usuarios', atualizado);
                 } catch (e) {
-                    log.warn('Sync status falhou', e);
+                    log.warn('Erro sync nuvem', e);
                 }
             }
 
-            definirUsuarios(usuarios.map(u => (u as any).email === user.email ? usuarioAtualizado : u));
+            toast.success(novoStatus ? 'Usuário liberado!' : 'Usuário bloqueado!');
+            carregarUsuarios();
 
-            await Registrador.registrar('USUARIO_STATUS_ALTERAR', 'usuario', user.email, {
-                novo_status: usuarioAtualizado.ativo ? 'ATIVO' : 'INATIVO'
+            await Registrador.registrar(novoStatus ? 'USUARIO_LIBERAR' : 'USUARIO_BLOQUEAR', 'usuario', user.email, {});
+        } catch (erro) {
+            toast.error('Erro ao alterar status');
+        }
+    };
+
+    const excluirUsuario = async (user: any) => {
+        if (!window.confirm(`Tem certeza que deseja EXCLUIR permanentemente o usuário ${user.email}? Esta ação não pode ser desfeita.`)) {
+            return;
+        }
+
+        try {
+            const banco = await bancoLocal.iniciarBanco();
+            await banco.delete('usuarios', user.email);
+
+            if (navigator.onLine) {
+                try {
+                    await api.remover(`/usuarios/${user.email}`);
+                } catch (e) {
+                    log.warn('Falha ao deletar usuário na API', e);
+                }
+            }
+
+            definirUsuarios(usuarios.filter(u => (u as any).email !== user.email));
+
+            await Registrador.registrar('USUARIO_EXCLUIR', 'usuario', user.email, {
+                email: user.email
             });
 
-            toast.success(`Usuário ${usuarioAtualizado.ativo ? 'ativado' : 'desativado'}!`);
+            toast.success(`Usuário ${user.email} excluído com sucesso!`);
         } catch (erro) {
-            log.error('Erro ao alternar status', erro);
-            toast.error("Erro ao atualizar status");
+            log.error('Erro ao excluir usuário', erro);
+            toast.error("Erro ao excluir usuário");
         }
     };
 
@@ -150,147 +160,151 @@ export default function Usuarios() {
 
     const usuariosFiltrados = usuarios.filter(u =>
         (u as any).nome_completo?.toLowerCase().includes(busca.toLowerCase()) ||
-        (u as any).email.toLowerCase().includes(busca.toLowerCase())
+        (u as any).email.toLowerCase().includes(busca.toLowerCase()) ||
+        (u as any).papel?.toLowerCase().includes(busca.toLowerCase())
     );
 
     const PapeisDisponiveis = [
-        { id: 'ADMIN', nome: 'Administrador', desc: 'Acesso total ao sistema' },
-        { id: 'COORDENACAO', nome: 'Coordenação', desc: 'Gestão pedagógica' },
-        { id: 'SECRETARIA', nome: 'Secretaria', desc: 'Gestão de alunos e turmas' },
-        { id: 'PORTEIRO', nome: 'Controle de Acesso', desc: 'Apenas registro de acesso' },
-        { id: 'VISUALIZACAO', nome: 'Visitante', desc: 'Apenas visualização' }
+        { id: 'ADMIN', nome: 'Administrador', cor: 'indigo' },
+        { id: 'COORDENACAO', nome: 'Coordenação', cor: 'emerald' },
+        { id: 'SECRETARIA', nome: 'Secretaria', cor: 'amber' },
+        { id: 'PORTEIRO', nome: 'Controle de Acesso', cor: 'rose' },
+        { id: 'VISUALIZACAO', nome: 'Visitante', cor: 'slate' }
     ];
+
+    const AcoesHeader = (
+        <Botao
+            variante="primario"
+            tamanho="lg"
+            icone={Plus}
+            onClick={novoUsuario}
+        >
+            Convidar Usuário
+        </Botao>
+    );
 
     return (
         <LayoutAdministrativo
-            titulo="Gerenciamento de Usuários"
-            subtitulo="Controle de acesso e permissões"
-            acoes={
-                <div className="flex gap-2">
-                    <button
-                        onClick={novoUsuario}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
-                    >
-                        <Plus size={18} /> <span className="hidden sm:inline">Convidar Usuário</span>
-                    </button>
-                </div>
-            }
+            titulo="Time Acadêmico"
+            subtitulo="Gestão de operadores, permissões e privilégios da unidade"
+            acoes={AcoesHeader}
         >
-            {/* Toolbar de Busca */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 sticky top-0 z-20">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Buscar usuário por nome ou e-mail..."
+            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-[2rem]">
+                <div className="flex flex-col gap-2.5 flex-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Pesquisa de Operadores</label>
+                    <InputBusca
+                        icone={Search}
+                        placeholder="Filtrar por nome, email ou perfil de acesso..."
                         value={busca}
                         onChange={(e) => definirBusca(e.target.value)}
-                        className="w-full pl-10 pr-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 outline-none focus:ring-1 focus:ring-indigo-400 focus:bg-white transition-colors placeholder:text-slate-400"
+                        className="w-full h-12 rounded-2xl"
                     />
                 </div>
-            </div>
-
-            {usuariosFiltrados.length === 0 ? (
-                <div className="bg-white rounded-xl border border-slate-200 p-12 text-center animate-fade-in">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 mx-auto border border-slate-100">
-                        <Users size={32} className="text-slate-400" />
+                <div className="flex items-center gap-4 ml-6 self-end pb-1">
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-sm">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Contingente Ativo</span>
+                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Operadores</span>
                     </div>
-                    <h3 className="text-lg font-bold text-slate-800 mb-1">Nenhum usuário encontrado</h3>
-                    <p className="text-slate-500 max-w-sm mx-auto text-sm">
-                        Não existem usuários cadastrados com os critérios de busca informados.
-                    </p>
                 </div>
-            ) : (
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-slide-up">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse whitespace-nowrap">
-                            <thead>
-                                <tr className="bg-slate-50 border-b border-slate-200">
-                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Usuário</th>
-                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Perfil de Acesso</th>
-                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                    <th className="py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+            </BarraFiltro>
+
+            <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-[2.5rem] overflow-hidden mt-8">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200">
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identificação do Usuário</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Perfil / Privilégios</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações de Gestão</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {carregando ? (
+                                [...Array(5)].map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td colSpan={4} className="py-8 px-8 h-20 bg-slate-50/30"></td>
+                                    </tr>
+                                ))
+                            ) : usuariosFiltrados.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="py-24 text-center">
+                                        <div className="flex flex-col items-center justify-center gap-4 opacity-40 grayscale">
+                                            <UserCircle2 size={48} className="text-slate-400" />
+                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhum operador localizado</p>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {usuariosFiltrados.map((u: any) => {
-                                    const roleDesc = PapeisDisponiveis.find(p => p.id === u.papel)?.nome || u.papel || 'Visitante';
-
-                                    let statusBadge = '';
-                                    let statusText = '';
-
-                                    if (u.pendente) {
-                                        statusBadge = 'bg-amber-50 text-amber-600 border-amber-200';
-                                        statusText = 'Pendente';
-                                    } else if (u.ativo) {
-                                        statusBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                                        statusText = 'Ativo';
-                                    } else {
-                                        statusBadge = 'bg-rose-50 text-rose-700 border-rose-200';
-                                        statusText = 'Bloqueado';
-                                    }
+                            ) : (
+                                usuariosFiltrados.map((u: any) => {
+                                    const papelInfo = PapeisDisponiveis.find(p => p.id === u.papel);
+                                    const papelNome = papelInfo?.nome || u.papel || 'Visitante';
+                                    const papelCor = papelInfo?.cor || 'slate';
 
                                     return (
-                                        <tr key={u.email} className={`hover:bg-slate-50 transition-colors ${!u.ativo ? 'bg-rose-50/10' : ''}`}>
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${u.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                                                        {u.papel === 'ADMIN' ? <Shield size={14} strokeWidth={2.5} /> : <Users size={14} strokeWidth={2.5} />}
+                                        <tr key={u.email} className={`hover:bg-indigo-50/20 transition-all group ${!u.ativo ? 'opacity-70 grayscale' : ''}`}>
+                                            <td className="py-5 px-8">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-900/10' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                                                        {u.papel === 'ADMIN' ? <ShieldCheck size={20} strokeWidth={2.5} /> : <UserCircle2 size={20} />}
                                                     </div>
                                                     <div>
-                                                        <p className="font-semibold text-slate-900 text-sm leading-none mb-1">
+                                                        <p className="font-black text-slate-900 text-sm uppercase tracking-tight group-hover:text-indigo-700 transition-colors">
                                                             {u.nome_completo || u.email.split('@')[0]}
                                                         </p>
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                                                            <Lock size={10} />
+                                                        <div className="flex items-center gap-2 text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest">
+                                                            <Mail size={10} className="text-slate-300" />
                                                             {u.email}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-3 px-4">
-                                                <span className="text-sm font-medium text-slate-600">
-                                                    {roleDesc}
+                                            <td className="py-5 px-8 text-center">
+                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all hover:shadow-lg ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                    papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                        papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                            papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                                                'bg-slate-50 text-slate-700 border-slate-200'
+                                                    }`}>
+                                                    {papelNome}
                                                 </span>
                                             </td>
-                                            <td className="py-3 px-4">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${statusBadge}`}>
-                                                    {statusText}
-                                                </span>
+                                            <td className="py-5 px-8">
+                                                <BadgeStatus ativo={u.ativo} pendente={u.pendente} />
                                             </td>
-                                            <td className="py-3 px-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
+                                            <td className="py-5 px-8 text-right">
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <Botao
+                                                        variante="ghost"
+                                                        tamanho="sm"
+                                                        icone={Edit2}
                                                         onClick={() => abrirEdicao(u)}
-                                                        className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded hover:bg-slate-50 transition-colors"
+                                                        className="hover:text-indigo-600 font-black text-[10px] tracking-widest"
                                                     >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => toggleStatus(u)}
-                                                        disabled={u.email === usuarioAtual?.email}
-                                                        className={`px-3 py-1.5 text-xs font-medium border rounded transition-colors flex items-center gap-1.5
-                                                            ${u.email === usuarioAtual?.email
-                                                                ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed'
-                                                                : u.ativo
-                                                                    ? 'bg-white text-rose-600 border-rose-200 hover:bg-rose-50'
-                                                                    : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
-                                                            }`}
-                                                    >
-                                                        {u.ativo ? 'Bloquear' : 'Liberar'}
-                                                    </button>
+                                                        EDITAR
+                                                    </Botao>
+
+                                                    {u.email !== usuarioAtual?.email && (
+                                                        <Botao
+                                                            tamanho="sm"
+                                                            variante={ehCentral ? 'perigo' : u.ativo ? 'secundario' : 'primario'}
+                                                            onClick={() => ehCentral ? excluirUsuario(u) : toggleStatus(u)}
+                                                            className={!ehCentral && u.ativo ? 'text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 font-black text-[10px] tracking-widest' : 'font-black text-[10px] tracking-widest'}
+                                                        >
+                                                            {ehCentral ? 'EXCLUIR' : u.ativo ? 'BLOQUEAR' : 'LIBERAR'}
+                                                        </Botao>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
                                     );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                                })
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            )}
+            </CartaoConteudo>
 
-            {/* Modal Padronizado */}
             {modalAberto && (
                 <FormUsuarioModal
                     usuario={usuarioEmEdicao}
@@ -302,3 +316,24 @@ export default function Usuarios() {
     );
 }
 
+function BadgeStatus({ ativo, pendente }: { ativo: boolean, pendente?: boolean }) {
+    if (pendente) {
+        return (
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 shadow-sm transition-all hover:scale-110">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> Pendente
+            </span>
+        );
+    }
+    if (ativo) {
+        return (
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-sm transition-all hover:scale-110">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Operacional
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 shadow-sm transition-all hover:scale-110">
+            <div className="w-1.5 h-1.5 rounded-full bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Suspenso
+        </span>
+    );
+}
