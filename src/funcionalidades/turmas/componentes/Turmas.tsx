@@ -24,14 +24,14 @@ import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 const log = criarRegistrador('Turmas');
 import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 import { Registrador } from '@compartilhado/servicos/auditoria';
-import { usarTenant } from '@tenant/provedorTenant';
+import { usarEscola } from '@escola/ProvedorEscola';
 
 import FormTurmaModal from './FormTurmaModal';
 
 export default function Turmas() {
     const navegar = useNavigate();
     const { podeAcessar } = usarPermissoes();
-    const tenant = usarTenant();
+    const escola = usarEscola();
     const { dados, carregando, recarregar: carregarTurmas } = usarConsulta(
         ['turmas-com-contagem'],
         async () => {
@@ -316,7 +316,7 @@ export default function Turmas() {
                                             <tr
                                                 key={turma.id}
                                                 className="hover:bg-gray-50 transition-colors cursor-pointer"
-                                                onClick={() => navegar(`/${tenant.id}/admin/alunos?turma=${turma.id}`)}
+                                                onClick={() => navegar(`/${escola.id}/admin/alunos?turma=${turma.id}`)}
                                             >
                                                 <td className="py-4 px-4">
                                                     <div className="flex items-center gap-2">

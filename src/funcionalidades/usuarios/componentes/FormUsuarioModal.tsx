@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { Users, Shield, UserCheck, Plus, Lock, Mail } from 'lucide-react';
 
@@ -17,7 +17,7 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
         { id: 'ADMIN', nome: 'Administrador', desc: 'Acesso total ao sistema', icone: Shield },
         { id: 'COORDENACAO', nome: 'Coordenação', desc: 'Gestão pedagógica', icone: Users },
         { id: 'SECRETARIA', nome: 'Secretaria', desc: 'Gestão de alunos e turmas', icone: Users },
-        { id: 'PORTARIA', nome: 'Portaria', desc: 'Apenas registro de acesso', icone: UserCheck },
+        { id: 'PORTEIRO', nome: 'Controle de Acesso', desc: 'Apenas registro de acesso', icone: UserCheck },
         { id: 'VISUALIZACAO', nome: 'Visitante', desc: 'Apenas visualização', icone: Lock }
     ];
 
@@ -44,7 +44,7 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
     return (
         <ModalUniversal
             titulo={usuario ? "Gerenciar Permissões" : "Convidar Novo Membro"}
-            subtitulo={usuario ? `Ajustando nível de acesso para ${usuario.email}` : "Adicione um novo integrante à equipe administrativa do SCAE."}
+            subtitulo={usuario ? `Ajustando nível de acesso para ${usuario.email}` : "Adicione um novo integrante Ã  equipe administrativa do SCAE."}
             icone={usuario ? Shield : Plus}
             aoFechar={aoFechar}
             tamanho="lg"
@@ -105,3 +105,4 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
         </ModalUniversal >
     );
 }
+

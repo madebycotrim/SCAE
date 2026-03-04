@@ -10,7 +10,7 @@ import { alunoServico } from '../servicos/aluno.servico';
 import { Aluno } from '../types/aluno';
 
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
-import { usarTenant } from '@tenant/provedorTenant';
+import { usarEscola } from '@escola/ProvedorEscola';
 
 import CredencialModal from './CredencialModal';
 import BarraSelecaoLote from './BarraSelecaoLote';
@@ -24,7 +24,7 @@ import PromocaoLoteModal from './PromocaoLoteModal';
  */
 export default function Alunos() {
     const { adicionarNotificacao } = usarNotificacoes();
-    const tenant = usarTenant();
+    const escola = usarEscola();
 
     const { dados, carregando, recarregar } = usarConsulta(
         ['alunos-e-turmas'],
@@ -105,7 +105,7 @@ export default function Alunos() {
             titulo: 'Importação Concluída',
             mensagem: `Processados ${resultado.total} registros. Sucessos: ${resultado.sucessos}, Falhas: ${resultado.erros}.`,
             tipo: resultado.erros > 0 ? 'warning' : 'success',
-            link: `/${tenant.id}/admin/alunos`
+            link: `/${escola.id}/admin/alunos`
         });
         if (resultado.sucessos > 0) recarregar();
         return resultado;

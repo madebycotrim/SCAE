@@ -1,15 +1,15 @@
 ﻿/**
  * Worker CRUD de Alunos.
  * GET: Todos os alunos ativos do tenant
- * POST: UPSERT aluno (matrícula + tenant_id)
+ * POST: UPSERT aluno (matrícula + escola_id)
  * DELETE: Remover aluno por matrícula
  */
 import type { ContextoSCAE, PayloadCriacaoAluno } from '../tipos/ambiente';
 
 async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
     try {
-        const tenantId = contexto.request.headers.get('X-Tenant-ID');
-        if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+        const idEscola = contexto.request.headers.get('X-Escola-ID');
+        if (!idEscola) return new Response("escola_id ausente", { status: 400 });
 
         // RBAC: Apenas ADMIN, COORDENACAO e SECRETARIA
         const papel = contexto.data.usuarioScae?.papel;
@@ -21,8 +21,8 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
         }
 
         const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT matricula, tenant_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses, data_anonimizacao, anonimizado, criado_em, atualizado_em, data_exclusao FROM alunos WHERE tenant_id = ?"
-        ).bind(tenantId).all();
+            "SELECT matricula, escola_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses, data_anonimizacao, anonimizado, criado_em, atualizado_em, data_exclusao FROM alunos WHERE escola_id = ?"
+        ).bind(idEscola).all();
 
         return Response.json(results);
     } catch (erro) {
@@ -33,8 +33,8 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
 
 async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> {
     try {
-        const tenantId = contexto.request.headers.get('X-Tenant-ID');
-        if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+        const idEscola = contexto.request.headers.get('X-Escola-ID');
+        if (!idEscola) return new Response("escola_id ausente", { status: 400 });
 
         // RBAC: Apenas ADMIN, COORDENACAO e SECRETARIA
         const papel = contexto.data.usuarioScae?.papel;
@@ -53,13 +53,13 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
 
         // UPSERT: Inserir ou Atualizar
         await contexto.env.DB_SCAE.prepare(
-            `INSERT INTO alunos (matricula, tenant_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses) VALUES (?, ?, ?, ?, ?, 'obrigacao_legal', 'registro_acesso', 24)
-             ON CONFLICT(matricula, tenant_id) DO UPDATE SET
+            `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses) VALUES (?, ?, ?, ?, ?, 'obrigacao_legal', 'registro_acesso', 24)
+             ON CONFLICT(matricula, escola_id) DO UPDATE SET
              nome_completo = excluded.nome_completo,
              turma_id = excluded.turma_id,
              ativo = excluded.ativo,
              atualizado_em = CURRENT_TIMESTAMP`
-        ).bind(matricula, tenantId, nome_completo, turma_id ?? null, ativo ? 1 : 0).run();
+        ).bind(matricula, idEscola, nome_completo, turma_id ?? null, ativo ? 1 : 0).run();
 
         return new Response("Criado", { status: 201 });
     } catch (erro) {
@@ -70,8 +70,8 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
 
 async function processarRemocaoAluno(contexto: ContextoSCAE): Promise<Response> {
     try {
-        const tenantId = contexto.request.headers.get('X-Tenant-ID');
-        if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+        const idEscola = contexto.request.headers.get('X-Escola-ID');
+        if (!idEscola) return new Response("escola_id ausente", { status: 400 });
 
         // RBAC: Apenas ADMIN
         const papel = contexto.data.usuarioScae?.papel;
@@ -89,8 +89,8 @@ async function processarRemocaoAluno(contexto: ContextoSCAE): Promise<Response> 
         }
 
         await contexto.env.DB_SCAE.prepare(
-            "DELETE FROM alunos WHERE matricula = ? AND tenant_id = ?"
-        ).bind(matricula, tenantId).run();
+            "DELETE FROM alunos WHERE matricula = ? AND escola_id = ?"
+        ).bind(matricula, idEscola).run();
 
         return new Response("Aluno removido", { status: 200 });
     } catch (erro) {

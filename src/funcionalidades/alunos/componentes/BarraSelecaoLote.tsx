@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+﻿import { Plus } from 'lucide-react';
 
 interface BarraSelecaoLoteProps {
     quantidade: number;

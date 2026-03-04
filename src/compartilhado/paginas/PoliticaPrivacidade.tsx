@@ -1,19 +1,19 @@
-import { ShieldCheck, ArrowLeft } from 'lucide-react';
+﻿import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usarTenantOpcional } from '@tenant/provedorTenant';
+import { usarEscolaOpcional } from '@escola/ProvedorEscola';
 import { usarConteudoLegal } from '@funcionalidades/autenticacao/hooks/usarConteudoLegal';
 
 /**
  * Página pública de Política de Privacidade.
- * Documento estritamente alinhado à LGPD, formatado em ABNT, com conteúdo 100% dinâmico e linguagem didática.
+ * Documento estritamente alinhado Ã  LGPD, formatado em ABNT, com conteúdo 100% dinâmico e linguagem didática.
  */
 export default function PoliticaPrivacidade() {
     const navegar = useNavigate();
     const { slugEscola } = useParams();
-    const tenant = usarTenantOpcional();
-    const nomeEscola = tenant?.nomeEscola || 'Desenvolvedor SCAE';
-    const nomeAmigavel = tenant?.nomeEscola || 'SCAE';
-    const daEscola = !!tenant;
+    const escola = usarEscolaOpcional();
+    const nomeEscola = escola?.nomeEscola || 'Desenvolvedor SCAE';
+    const nomeAmigavel = escola?.nomeEscola || 'SCAE';
+    const daEscola = !!escola;
     const {
         basesLegais,
         prazoRetencaoRegistros,
@@ -52,7 +52,7 @@ export default function PoliticaPrivacidade() {
                 {/* Cabeçalho do Documento */}
                 <div className="text-center mb-12 font-bold uppercase">
                     {daEscola && <p className="text-[12pt]">{nomeAmigavel}</p>}
-                    <p className="text-[12pt] mt-8">POLÍTICA DE PRIVACIDADE E PROTEÇÃO DE DADOS (LGPD)</p>
+                    <p className="text-[12pt] mt-8">POLÃTICA DE PRIVACIDADE E PROTEÇÃƒO DE DADOS (LGPD)</p>
                 </div>
 
                 <div className="text-[12pt] leading-[1.5] text-justify space-y-4">
@@ -64,7 +64,7 @@ export default function PoliticaPrivacidade() {
                         )} como os dados pessoais de alunos, responsáveis
                         e colaboradores são coletados, tratados e protegidos pela plataforma SCAE,
                         operada tecnicamente por <strong>{nomeFornecedor}</strong> (Operador de Dados), em conformidade
-                        com a Lei nº 13.709/2018 (LGPD).
+                        com a Lei nÂº 13.709/2018 (LGPD).
                     </p>
 
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">1. DADOS COLETADOS</h2>
@@ -80,7 +80,7 @@ export default function PoliticaPrivacidade() {
                         <li className="mb-2">Método de leitura (QR Code do celular, carteirinha ou manual).</li>
                     </ul>
                     <p className="indent-[1.25cm] font-bold mt-4">
-                        O sistema NÃO coleta foto, biometria, localização GPS, dados de saúde ou qualquer outro dado além dos listados acima.
+                        O sistema NÃƒO coleta foto, biometria, localização GPS, dados de saúde ou qualquer outro dado além dos listados acima.
                     </p>
 
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">2. DAS BASES LEGAIS</h2>
@@ -98,7 +98,7 @@ export default function PoliticaPrivacidade() {
                         Conforme o <strong>Art. 14 da LGPD</strong>, o tratamento de dados de crianças e adolescentes é realizado no melhor interesse desses alunos, com o objetivo de garantir sua segurança no ambiente escolar.
                     </p>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">3. CICLO DE RETENÇÃO E DESCARTE</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">3. CICLO DE RETENÇÃƒO E DESCARTE</h2>
                     <p className="indent-[1.25cm]">
                         Os dados são mantidos pelo tempo necessário para cumprir a finalidade para a qual foram coletados:
                     </p>
@@ -112,7 +112,7 @@ export default function PoliticaPrivacidade() {
                         Após o prazo aplicável, os dados são anonimizados de forma irreversível, conforme o Art. 16 da LGPD. Apenas estatísticas agregadas sem identificação individual são mantidas.
                     </p>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. INFRAESTRUTURA E TRANSFERÊNCIA INTERNACIONAL</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. INFRAESTRUTURA E TRANSFERÃŠNCIA INTERNACIONAL</h2>
                     <p className="indent-[1.25cm]">
                         Os dados são processados em infraestrutura de nuvem internacional (Cloudflare e Google Firebase), com servidores fora do Brasil.
                     </p>
@@ -129,7 +129,7 @@ export default function PoliticaPrivacidade() {
                     </p>
                     <ol className="list-decimal pl-[2.5cm]">
                         <li className="mb-2">Com os provedores de infraestrutura (Cloudflare e Google Firebase), que atuam exclusivamente como Operadores de Dados.</li>
-                        <li className="mb-2">Com órgãos governamentais de educação, exclusivamente por meio de dados estatísticos agregados e anonimizados — nunca dados individuais identificáveis — e somente após a formalização de Acordo de Operação de Dados (Art. 39 LGPD).</li>
+                        <li className="mb-2">Com órgãos governamentais de educação, exclusivamente por meio de dados estatísticos agregados e anonimizados â€” nunca dados individuais identificáveis â€” e somente após a formalização de Acordo de Operação de Dados (Art. 39 LGPD).</li>
                         <li className="mb-2">Mediante ordem judicial formal de autoridade competente.</li>
                     </ol>
 
@@ -149,12 +149,12 @@ export default function PoliticaPrivacidade() {
                         <li className="mb-2">Informação sobre com quem os dados são compartilhados.</li>
                     </ul>
                     <p className="indent-[1.25cm]">
-                        As solicitações serão respondidas em até 15 (quinze) dias úteis, conforme o §3º do Art. 18 da LGPD.
+                        As solicitações serão respondidas em até 15 (quinze) dias úteis, conforme o Â§3Âº do Art. 18 da LGPD.
                     </p>
                     <p className="indent-[1.25cm]">
                         Para exercer seus direitos, acesse o Portal do Titular:
                         {slugEscola ? (
-                            <span className="font-bold text-blue-600 underline cursor-pointer ml-1" onClick={() => navegar(`/${slugEscola}/portal-titular`)}>Acessar o Portal do Titular</span>
+                            <span className="font-bold text-blue-600 underline cursor-pointer ml-1" onClick={() => navegar(`/${slugEscola}/responsavel`)}>Acessar o Portal do Responsável</span>
                         ) : (
                             <span className="font-bold ml-1">Para usuários escolares, acesse a URL específica da sua escola.</span>
                         )}
@@ -172,7 +172,7 @@ export default function PoliticaPrivacidade() {
                     </p>
                     {!emailEncarregadoDPO && daEscola && (
                         <p className="indent-[1.25cm]">
-                            Para exercer seus direitos, compareça presencialmente à secretaria do <strong>{nomeEscola}</strong> com documento de identificação com foto e solicite abertura de "Chamado - Direitos do Titular".
+                            Para exercer seus direitos, compareça presencialmente Ã  secretaria do <strong>{nomeEscola}</strong> com documento de identificação com foto e solicite abertura de "Chamado - Direitos do Titular".
                         </p>
                     )}
 
@@ -188,11 +188,12 @@ export default function PoliticaPrivacidade() {
                     </p>
 
                     <div className="mt-16 text-center border-t border-slate-200 pt-8">
-                        <p className="font-bold uppercase">Lei nº 13.709/2018 (BR)</p>
-                        <p className="text-slate-500 mt-2">Última revisão: {dataUltimaRevisao}.</p>
+                        <p className="font-bold uppercase">Lei nÂº 13.709/2018 (BR)</p>
+                        <p className="text-slate-500 mt-2">Ãšltima revisão: {dataUltimaRevisao}.</p>
                     </div>
                 </div>
             </div>
         </div>
     );
 }
+

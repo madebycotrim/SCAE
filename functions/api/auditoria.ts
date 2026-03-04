@@ -7,8 +7,8 @@ import type { ContextoSCAE, LogAuditoriaDB, ResultadoSincronizacao } from '../ti
 
 async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Response> {
     try {
-        const tenantId = contexto.request.headers.get('X-Tenant-ID');
-        if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+        const idEscola = contexto.request.headers.get('X-Escola-ID');
+        if (!idEscola) return new Response("escola_id ausente", { status: 400 });
 
         const logs: LogAuditoriaDB[] = await contexto.request.json();
 
@@ -23,11 +23,11 @@ async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Respons
                 // IDEMPOTÊNCIA: Inserir ou ignorar se já existe
                 await contexto.env.DB_SCAE.prepare(
                     `INSERT OR IGNORE INTO logs_auditoria 
-                    (id, tenant_id, data_criacao, usuario_email, acao, entidade_tipo, entidade_id, dados_anteriores, dados_novos, ip_address, user_agent) 
+                    (id, escola_id, data_criacao, usuario_email, acao, entidade_tipo, entidade_id, dados_anteriores, dados_novos, ip_address, user_agent) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
                 ).bind(
                     log.id,
-                    tenantId,
+                    idEscola,
                     log.data_criacao || new Date().toISOString(),
                     log.usuario_email ?? null,
                     log.acao ?? null,
@@ -56,15 +56,15 @@ async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Respons
 
 async function processarVerificacaoLogs(contexto: ContextoSCAE): Promise<Response> {
     const { request, env } = contexto;
-    const tenantId = request.headers.get('X-Tenant-ID');
-    if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+    const idEscola = request.headers.get('X-Escola-ID');
+    if (!idEscola) return new Response("escola_id ausente", { status: 400 });
 
     const url = new URL(request.url);
     const desde = url.searchParams.get('desde');
 
     try {
-        let query = `SELECT * FROM logs_auditoria WHERE tenant_id = ?`;
-        const params: string[] = [tenantId];
+        let query = `SELECT * FROM logs_auditoria WHERE escola_id = ?`;
+        const params: string[] = [idEscola];
 
         if (desde) {
             query += ` AND data_criacao > ?`;

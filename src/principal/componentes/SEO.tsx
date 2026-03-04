@@ -1,4 +1,4 @@
-interface SEOProps {
+﻿interface SEOProps {
     titulo: string;
     descricao?: string;
 }

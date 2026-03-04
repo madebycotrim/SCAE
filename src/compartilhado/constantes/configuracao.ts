@@ -1,10 +1,9 @@
-/**
+﻿/**
  * Constantes centralizadas da aplicação SCAE.
- * Importar sempre daqui — nunca hardcodar valores inline.
+ * Este arquivo agora contém apenas IDs de sistema imutáveis.
+ * Dados de escola (escolas) e domínios devem vir do Banco de Dados.
  */
 
-/** Email do administrador raiz (bypass de permissões) */
-export const EMAIL_ADMIN_RAIZ = 'madebycotrim@gmail.com';
+// IDs de auditoria ou chaves de sistema podem ficar aqui.
+// Configurações de escolas foram removidas para cumprir a regra "NADA FIXO".
 
-/** Domínio institucional aceito para login de usuários */
-export const DOMINIO_INSTITUCIONAL = '@edu.se.df.gov.br';

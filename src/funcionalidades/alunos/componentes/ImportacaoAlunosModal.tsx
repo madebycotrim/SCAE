@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { FileSpreadsheet, Clipboard, Upload, CheckCircle, XCircle, Info, ChevronRight } from 'lucide-react';
 import { read, utils } from 'xlsx';
@@ -176,3 +176,4 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
         </ModalUniversal>
     );
 }
+

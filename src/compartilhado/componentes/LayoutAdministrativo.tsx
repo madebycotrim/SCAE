@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
-import { usarTenant } from '@tenant/provedorTenant';
+import { usarEscola } from '@escola/ProvedorEscola';
 import {
     LayoutDashboard,
     Users,
@@ -26,7 +26,6 @@ import {
     AlertTriangle
 } from 'lucide-react';
 import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
-import { EMAIL_ADMIN_RAIZ } from '@compartilhado/constantes/configuracao';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
@@ -48,7 +47,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     const { ehAdmin, podeVerLogs, usuario, pode } = usarPermissoes();
     const navegar = useNavigate();
     const localizacao = useLocation();
-    const { id: slugEscola } = usarTenant();
+    const { id: slugEscola } = usarEscola();
 
     /** Prefixo base para todas as rotas admin desta escola */
     const prefixoAdmin = `/${slugEscola}/admin`;
@@ -93,7 +92,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             titulo: 'Controle',
             itens: [
                 { icone: Clock, texto: 'Acessos', rota: '/horarios' },
-                { icone: AlertTriangle, texto: 'Evasão', rota: '/evasao' },
+                { icone: AlertTriangle, texto: 'Risco de Abandono', rota: '/risco-abandono' },
                 { icone: FileText, texto: 'Relatórios', rota: '/relatorios' },
             ]
         }

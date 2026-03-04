@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Tipos compartilhados para o backend Cloudflare Pages Functions.
  * Define bindings D1, variáveis de ambiente e contexto tipado.
  */
@@ -15,7 +15,7 @@ export interface AmbienteSCAE {
     /** Bypass de autenticação para desenvolvimento local (valor: '1') */
     DEV_AUTH_BYPASS?: string;
     /** Tenant padrão quando não enviado no header */
-    DEFAULT_TENANT_ID?: string;
+    DEFAULT_escola_id?: string;
 }
 
 // ============================================================
@@ -53,7 +53,7 @@ export interface DadosTokenFirebase {
 
 export interface AlunoDB {
     matricula: string;
-    tenant_id: string;
+    escola_id: string;
     nome_completo?: string;
     turma_id?: string;
     ativo: number;
@@ -69,7 +69,7 @@ export interface AlunoDB {
 
 export interface TurmaDB {
     id: string;
-    tenant_id: string;
+    escola_id: string;
     ano_letivo?: string;
     serie?: string;
     letra?: string;
@@ -82,7 +82,7 @@ export interface TurmaDB {
 
 export interface RegistroAcessoDB {
     id: string;
-    tenant_id: string;
+    escola_id: string;
     aluno_matricula: string;
     tipo_movimentacao: string;
     metodo_leitura?: string;
@@ -93,7 +93,7 @@ export interface RegistroAcessoDB {
 
 export interface UsuarioDB {
     email: string;
-    tenant_id: string;
+    escola_id: string;
     papel?: string;
     ativo: number;
     nome_completo?: string;
@@ -106,7 +106,7 @@ export interface UsuarioDB {
 
 export interface LogAuditoriaDB {
     id: string;
-    tenant_id?: string;           // nullable: logs offline sem tenant
+    escola_id?: string;           // nullable: logs offline sem tenant
     timestamp?: string;           // campo local do app
     created_at?: string;          // alias
     data_criacao?: string;        // campo canônico
@@ -123,7 +123,7 @@ export interface LogAuditoriaDB {
 
 export interface AlertaEvasaoDB {
     id: string;
-    tenant_id: string;
+    escola_id: string;
     aluno_matricula: string;
     motivo: string;
     status: 'PENDENTE' | 'EM_ANALISE' | 'RESOLVIDO';
@@ -133,11 +133,9 @@ export interface AlertaEvasaoDB {
 
 export interface ResponsavelDB {
     id: string;
-    tenant_id: string;
+    escola_id: string;
     nome_completo: string;
-    telefone: string;
     email?: string;
-    fcm_token?: string;
     // LGPD
     id_consentimento?: string;
     base_legal?: string;
@@ -192,7 +190,7 @@ export interface PayloadCriacaoUsuario {
 }
 
 export interface PayloadAutenticacaoPortal {
-    telefone: string;
+    email: string;
     aluno_matricula: string;
 }
 
@@ -205,3 +203,4 @@ export interface ResultadoSincronizacao {
     status: 'sincronizado' | 'erro';
     erro?: string;
 }
+

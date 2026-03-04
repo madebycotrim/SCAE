@@ -1,7 +1,14 @@
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+﻿import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { Search, X, Building, MapPin, ChevronRight, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ESCOLAS_CADASTRADAS_SISTEMA } from '@compartilhado/constantes/escolas';
+
+// Interface para resultados da busca vindo da API
+interface EscolaResultado {
+    id: string;
+    nome: string;
+    slug: string;
+    cidade: string;
+}
 
 interface BuscadorEscolasProps {
     temaEscuro: boolean;
@@ -13,12 +20,32 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
     const [termoBusca, definirTermoBusca] = useState('');
     const [estaFocado, definirEstaFocado] = useState(false);
     const [indiceFocado, definirIndiceFocado] = useState(-1);
+    const [resultados, definirResultados] = useState<EscolaResultado[]>([]);
+    const [carregando, definirCarregando] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const escolasFiltradas = ESCOLAS_CADASTRADAS_SISTEMA.filter(escola =>
-        escola.nome.toLowerCase().includes(termoBusca.toLowerCase()) ||
-        escola.cidade.toLowerCase().includes(termoBusca.toLowerCase())
-    );
+    // Efeito para busca dinâmica (debounce simples)
+    useEffect(() => {
+        if (termoBusca.length < 3) {
+            definirResultados([]);
+            return;
+        }
+
+        const delayBusca = setTimeout(async () => {
+            definirCarregando(true);
+            try {
+                // Aqui no futuro chamaremos a API de busca global: /api/search/escolas?q=...
+                // Por enquanto, como a regra é NADA FIXO, não retornamos nada fixo.
+                definirResultados([]);
+            } catch (error) {
+                console.error('Erro ao buscar escolas:', error);
+            } finally {
+                definirCarregando(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayBusca);
+    }, [termoBusca]);
 
     useEffect(() => {
         const lidarComCliqueFora = (evento: MouseEvent) => {
@@ -30,32 +57,11 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
         return () => document.removeEventListener('mousedown', lidarComCliqueFora);
     }, []);
 
-    useEffect(() => {
-        definirIndiceFocado(-1); // Resetar navegação quando altera busca
-    }, [termoBusca]);
-
-    useEffect(() => {
-        if (!estaFocado) {
-            definirIndiceFocado(-1);
-        }
-    }, [estaFocado]);
-
     const aoPressionarTecla = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (!estaFocado) return;
-
-        if (e.key === 'ArrowDown') {
+        if (e.key === 'Enter') {
             e.preventDefault();
-            definirIndiceFocado(prev => (prev < escolasFiltradas.length - 1 ? prev + 1 : prev));
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            definirIndiceFocado(prev => (prev > 0 ? prev - 1 : 0));
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (indiceFocado >= 0 && indiceFocado < escolasFiltradas.length) {
-                aoSelecionarEscola(escolasFiltradas[indiceFocado].slug);
-            } else if (escolasFiltradas.length === 1) {
-                aoSelecionarEscola(escolasFiltradas[0].slug);
-            }
+            const slug = termoBusca.trim().toLowerCase().replace(/\s+/g, '-');
+            if (slug) aoSelecionarEscola(slug);
         } else if (e.key === 'Escape') {
             definirEstaFocado(false);
             const input = dropdownRef.current?.querySelector('input');
@@ -72,7 +78,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
             ref={dropdownRef}
         >
             <div className={`relative flex items-center rounded-2xl border transition-all duration-500 group overflow-hidden ${estaFocado
-                ? 'border-indigo-500 shadow-[0_0_40px_rgba(99,102,241,0.4)] ring-4 ring-indigo-500/30'
+                ? 'border-indigo-50 shadow-[0_0_40px_rgba(99,102,241,0.4)] ring-4 ring-indigo-500/30'
                 : temaEscuro ? 'border-slate-700/60 bg-[#0B0F19]/60 shadow-2xl hover:border-indigo-500/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)]' : 'border-white/80 bg-white/70 shadow-2xl shadow-indigo-900/5 hover:border-indigo-300 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)]'
                 } ${estaFocado && temaEscuro ? 'bg-[#111827]' : estaFocado ? 'bg-white' : 'backdrop-blur-xl'}`}
             >
@@ -86,7 +92,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                     id="search-input"
                     type="text"
                     className={`w-full bg-transparent py-5 px-4 text-lg outline-none font-medium relative z-10 transition-colors ${temaEscuro ? 'text-white placeholder-slate-500' : 'text-slate-800 placeholder-slate-400'}`}
-                    placeholder="Digite o nome da sua escola ou cidade..."
+                    placeholder="Digite o código da sua escola (Ex: cem03-taguatinga)"
                     value={termoBusca}
                     onChange={(e) => definirTermoBusca(e.target.value)}
                     onFocus={() => definirEstaFocado(true)}
@@ -106,17 +112,20 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                     )}
                     <button
                         className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] hover:-translate-y-0.5 active:scale-95 active:translate-y-0 overflow-hidden relative group/btn"
-                        onClick={() => document.getElementById('search-input')?.focus()}
+                        onClick={() => {
+                            const slug = termoBusca.trim().toLowerCase().replace(/\s+/g, '-');
+                            if (slug) aoSelecionarEscola(slug);
+                        }}
                     >
-                        <span className="relative z-10">Procurar</span>
+                        <span className="relative z-10">Acessar</span>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] skew-x-[-30deg] group-hover/btn:translate-x-[150%] transition-transform duration-700 ease-in-out"></div>
                     </button>
                 </div>
             </div>
 
-            {/* Dropdown Results */}
+            {/* Dropdown Results - Only for search matches in DB in the future */}
             <AnimatePresence>
-                {estaFocado && (
+                {estaFocado && termoBusca.length > 2 && (
                     <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -125,9 +134,9 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                         className={`absolute top-[calc(100%+12px)] left-0 w-full rounded-2xl border shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] overflow-hidden ${temaEscuro ? 'bg-[#111827] border-slate-700/80 shadow-indigo-500/5' : 'bg-white border-slate-100'}`}
                     >
                         <div className="max-h-[350px] overflow-y-auto overscroll-contain pb-2">
-                            {escolasFiltradas.length > 0 ? (
+                            {resultados.length > 0 ? (
                                 <ul className="py-2">
-                                    {escolasFiltradas.map((escola, indice) => {
+                                    {resultados.map((escola, indice) => {
                                         const estaSelecionado = indice === indiceFocado;
                                         return (
                                             <li key={escola.id}>
@@ -178,11 +187,11 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                             ) : (
                                 <div className="py-12 px-6 text-center flex flex-col items-center">
                                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${temaEscuro ? 'bg-slate-800/80 ring-1 ring-slate-700' : 'bg-slate-50 ring-1 ring-slate-100'}`}>
-                                        <Search className={`w-6 h-6 ${temaEscuro ? 'text-slate-500' : 'text-slate-300'}`} />
+                                        <AlertCircle className={`w-6 h-6 ${temaEscuro ? 'text-slate-500' : 'text-slate-300'}`} />
                                     </div>
-                                    <p className={`font-medium text-lg ${temaEscuro ? 'text-slate-300' : 'text-slate-600'}`}>Nenhuma escola encontrada</p>
+                                    <p className={`font-medium text-lg ${temaEscuro ? 'text-slate-300' : 'text-slate-600'}`}>Acesse pelo código da escola</p>
                                     <p className={`text-sm mt-2 max-w-sm mx-auto ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>
-                                        Sua instituição não está na lista? O SCAE pode transformar a gestão e a segurança da sua escola.
+                                        Digite o código fornecido pela sua instituição (Ex: cem03-taguatinga) e clique em Acessar.
                                     </p>
                                     <button
                                         onClick={() => { definirEstaFocado(false); aoAbrirModalContato(); }}
@@ -191,26 +200,25 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                                                 ? 'bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/30 hover:border-indigo-500/50'
                                                 : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-100 hover:border-indigo-200'}`}
                                     >
-                                        <AlertCircle className="w-4 h-4" />
-                                        Indique o SCAE para a direção!
+                                        Indique o SCAE para sua escola!
                                     </button>
                                 </div>
                             )}
                         </div>
 
-                        {escolasFiltradas.length > 0 && (
+                        {resultados.length > 0 && (
                             <div className={`px-6 py-3 border-t flex items-center justify-between
                                 ${temaEscuro ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
                             >
                                 <span className={`text-xs font-semibold uppercase tracking-wider ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>
-                                    {escolasFiltradas.length} resultado(s)
+                                    {resultados.length} resultado(s)
                                 </span>
                                 <div className={`flex items-center gap-1.5 text-xs font-medium ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>
                                     <span>Navegar</span>
-                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↓</kbd>
-                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↑</kbd>
+                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>â†“</kbd>
+                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>â†‘</kbd>
                                     <span className="ml-1">Selecionar</span>
-                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↵</kbd>
+                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>â†µ</kbd>
                                 </div>
                             </div>
                         )}
@@ -220,3 +228,4 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
         </motion.div>
     );
 }
+

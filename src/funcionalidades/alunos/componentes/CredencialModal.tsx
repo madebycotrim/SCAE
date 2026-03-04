@@ -1,4 +1,4 @@
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
+﻿import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { QrCode } from 'lucide-react';
 
 interface CredencialModalProps {
@@ -34,9 +34,10 @@ export default function CredencialModal({ matricula, aoFechar }: CredencialModal
                 <div className="w-full h-px bg-slate-200" />
 
                 <p className="text-[11px] font-bold text-slate-400 text-center leading-relaxed max-w-[200px] uppercase tracking-wider">
-                    Apresente esta credencial na portaria para registro automático de entrada e saída.
+                    Apresente esta credencial no terminal de acesso para registro automático de entrada e saída.
                 </p>
             </div>
         </ModalUniversal>
     );
 }
+

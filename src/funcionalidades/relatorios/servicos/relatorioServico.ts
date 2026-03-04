@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+﻿import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, parseISO, subDays } from 'date-fns';
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
@@ -27,7 +27,7 @@ export const relatorioServico = {
                 nome: aluno ? aluno.nome_completo : 'Aluno Removido/Desconhecido',
                 matricula: r.aluno_matricula,
                 turma: aluno ? aluno.turma_id : '-',
-                tipo: r.tipo_movimentacao === 'ENTRADA' ? 'ENTRADA' : 'SAÍDA',
+                tipo: r.tipo_movimentacao === 'ENTRADA' ? 'ENTRADA' : 'SAÃDA',
                 sincronizado: r.sincronizado ? 'Sim' : 'Não'
             };
         });
@@ -70,7 +70,7 @@ export const relatorioServico = {
             });
             const dadosRelatorio = alunos.map((aluno: any) => {
                 const presencas = presencasPorAluno[aluno.matricula] || 0;
-                return { nome: aluno.nome_completo, matricula: aluno.matricula, turma: aluno.turma_id || '-', presencas_30d: presencas, status: presencas === 0 ? 'CRÍTICO (0)' : presencas < 10 ? 'ALERTA' : 'NORMAL' };
+                return { nome: aluno.nome_completo, matricula: aluno.matricula, turma: aluno.turma_id || '-', presencas_30d: presencas, status: presencas === 0 ? 'CRÃTICO (0)' : presencas < 10 ? 'ALERTA' : 'NORMAL' };
             }).filter((d: any) => d.status !== 'NORMAL' && (filtros.turma === 'Todas' || d.turma === filtros.turma));
             dadosRelatorio.sort((a: any, b: any) => a.presencas_30d - b.presencas_30d);
             const doc = new jsPDF();
@@ -79,7 +79,7 @@ export const relatorioServico = {
             doc.setFontSize(10);
             doc.text('Alunos com baixa frequência nos últimos 30 dias.', 14, 28);
             autoTable(doc, { startY: 35, head: [['Nome do Aluno', 'Matrícula', 'Turma', 'Presenças (30d)', 'Status']], body: dadosRelatorio.map((d: any) => [d.nome, d.matricula, d.turma, d.presencas_30d, d.status]), theme: 'striped', headStyles: { fillColor: [220, 38, 38] } });
-            doc.save(`Risco_Evasao_${Date.now()}.pdf`);
+            doc.save(`Risco_Abandono_${Date.now()}.pdf`);
         } else if (tipo === 'Fechamento Mensal') {
             const regsNoPeriodo = registros.filter((r: any) => { const data = r.timestamp.split('T')[0]; return data >= filtros.dataInicio && data <= filtros.dataFim; });
             const presencaGlobal: Record<string, number> = {};
@@ -95,3 +95,4 @@ export const relatorioServico = {
         }
     }
 };
+

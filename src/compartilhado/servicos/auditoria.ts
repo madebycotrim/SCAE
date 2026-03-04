@@ -38,12 +38,12 @@ export const ACOES_AUDITORIA = {
     CORRECAO_REGISTRO: 'CORRECAO_REGISTRO',
     EXCLUSAO_REGISTRO: 'EXCLUSAO_REGISTRO',
 
-    // Evasão
-    EVASAO_LISTAR_FALHA: 'EVASAO_LISTAR_FALHA',
-    EVASAO_STATUS_ATUALIZAR: 'EVASAO_STATUS_ATUALIZAR',
-    EVASAO_STATUS_FALHA: 'EVASAO_STATUS_FALHA',
-    EVASAO_MOTOR_EXECUCAO: 'EVASAO_MOTOR_EXECUCAO',
-    EVASAO_MOTOR_FALHA: 'EVASAO_MOTOR_FALHA'
+    // Risco de Abandono
+    RISCO_ABANDONO_LISTAR_FALHA: 'RISCO_ABANDONO_LISTAR_FALHA',
+    RISCO_ABANDONO_STATUS_ATUALIZAR: 'RISCO_ABANDONO_STATUS_ATUALIZAR',
+    RISCO_ABANDONO_STATUS_FALHA: 'RISCO_ABANDONO_STATUS_FALHA',
+    RISCO_ABANDONO_MOTOR_EXECUCAO: 'RISCO_ABANDONO_MOTOR_EXECUCAO',
+    RISCO_ABANDONO_MOTOR_FALHA: 'RISCO_ABANDONO_MOTOR_FALHA'
 };
 
 export interface ParamsAuditoria {
@@ -156,7 +156,7 @@ export async function registrarAuditoria({
 /**
  * Busca logs de auditoria com filtros.
  */
-export async function buscarLogs(filtros: Partial<import('@compartilhado/types/bancoLocal.tipos').FiltrosLog> = {}) {
+export async function buscarLogs(filtros: Partial<import('@compartilhado/types/bancoLocal.tipos').FiltrosAuditoria> = {}) {
     try {
         const banco = await bancoLocal.iniciarBanco();
         let logs = await banco.getAll('logs_auditoria');

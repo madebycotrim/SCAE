@@ -1,1 +1,1 @@
-export { default as Relatorios } from './componentes/Relatorios';
+﻿export { default as Relatorios } from './componentes/Relatorios';

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Building, User, Phone, CheckCircle2 } from 'lucide-react';
 import FocusTrap from 'focus-trap-react';
@@ -185,3 +185,4 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
         </AnimatePresence>
     );
 }
+

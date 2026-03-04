@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Hook genérico para consulta de dados com suporte a recarregamento.
@@ -61,3 +61,4 @@ export function usarConsulta<T = any>(
         recarregar: carregar
     };
 }
+

@@ -1,15 +1,15 @@
 ﻿/**
  * Worker CRUD de Usuários (RBAC).
  * GET: Todos os usuários do tenant
- * POST: UPSERT usuário (email + tenant_id)
+ * POST: UPSERT usuário (email + escola_id)
  * DELETE: Remover usuário por email
  */
 import type { ContextoSCAE, PayloadCriacaoUsuario } from '../tipos/ambiente';
 
 async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response> {
     try {
-        const tenantId = contexto.request.headers.get('X-Tenant-ID');
-        if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+        const idEscola = contexto.request.headers.get('X-Escola-ID');
+        if (!idEscola) return new Response("escola_id ausente", { status: 400 });
 
         // RBAC: Apenas ADMIN
         const papel = contexto.data.usuarioScae?.papel;
@@ -20,8 +20,8 @@ async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response>
         }
 
         const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT email, tenant_id, nome_completo, papel, ativo, criado_por, pendente, criado_em, atualizado_em, data_exclusao FROM usuarios WHERE tenant_id = ?"
-        ).bind(tenantId).all();
+            "SELECT email, escola_id, nome_completo, papel, ativo, criado_por, pendente, criado_em, atualizado_em, data_exclusao FROM usuarios WHERE escola_id = ?"
+        ).bind(idEscola).all();
         return Response.json(results);
     } catch (erro) {
         const mensagem = erro instanceof Error ? erro.message : 'Erro interno';
@@ -31,8 +31,8 @@ async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response>
 
 async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response> {
     try {
-        const tenantId = contexto.request.headers.get('X-Tenant-ID');
-        if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+        const idEscola = contexto.request.headers.get('X-Escola-ID');
+        if (!idEscola) return new Response("escola_id ausente", { status: 400 });
 
         // RBAC: Apenas ADMIN
         const papel = contexto.data.usuarioScae?.papel;
@@ -49,9 +49,9 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
         }
 
         const stmt = contexto.env.DB_SCAE.prepare(
-            `INSERT INTO usuarios (email, tenant_id, papel, ativo, nome_completo, criado_por, pendente, criado_em, atualizado_em)
+            `INSERT INTO usuarios (email, escola_id, papel, ativo, nome_completo, criado_por, pendente, criado_em, atualizado_em)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-             ON CONFLICT(email, tenant_id) DO UPDATE SET
+             ON CONFLICT(email, escola_id) DO UPDATE SET
              papel = excluded.papel,
              ativo = excluded.ativo,
              nome_completo = excluded.nome_completo,
@@ -61,7 +61,7 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
 
         await stmt.bind(
             usuario.email,
-            tenantId,
+            idEscola,
             usuario.papel || usuario.role,
             usuario.ativo ? 1 : 0,
             usuario.nome_completo ?? null,
@@ -80,8 +80,8 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
 
 async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response> {
     try {
-        const tenantId = contexto.request.headers.get('X-Tenant-ID');
-        if (!tenantId) return new Response("Tenant_id ausente", { status: 400 });
+        const idEscola = contexto.request.headers.get('X-Escola-ID');
+        if (!idEscola) return new Response("escola_id ausente", { status: 400 });
 
         // RBAC: Apenas ADMIN
         const papel = contexto.data.usuarioScae?.papel;
@@ -104,8 +104,8 @@ async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response
         }
 
         await contexto.env.DB_SCAE.prepare(
-            "DELETE FROM usuarios WHERE email = ? AND tenant_id = ?"
-        ).bind(email, tenantId).run();
+            "DELETE FROM usuarios WHERE email = ? AND escola_id = ?"
+        ).bind(email, idEscola).run();
 
         return new Response("Usuário removido", { status: 200 });
     } catch (erro) {

@@ -85,7 +85,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@tenant': path.resolve(__dirname, './src/tenant'),
+      '@escola': path.resolve(__dirname, './src/contexto-escola'),
       '@funcionalidades': path.resolve(__dirname, './src/funcionalidades'),
       '@compartilhado': path.resolve(__dirname, './src/compartilhado'),
       '@configuracoes': path.resolve(__dirname, './src/configuracoes'),

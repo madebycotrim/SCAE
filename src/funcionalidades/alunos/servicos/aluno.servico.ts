@@ -1,4 +1,4 @@
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
+﻿import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
 import { api } from '@compartilhado/servicos/api';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
@@ -35,7 +35,7 @@ export const alunoServico = {
 
     /**
      * Salva ou atualiza um aluno.
-     * @lgpd Base legal: Execução de contrato (Art. 7º, V)
+     * @lgpd Base legal: Execução de contrato (Art. 7Âº, V)
      */
     async salvarAluno(aluno: Aluno, ehEdicao: boolean): Promise<void> {
         try {
@@ -76,7 +76,7 @@ export const alunoServico = {
 
     /**
      * Remove um aluno do sistema.
-     * @lgpd Base legal: Obrigação legal (Art. 7º, II) - Retenção de 5 anos para fins fiscais/acadêmicos.
+     * @lgpd Base legal: Obrigação legal (Art. 7Âº, II) - Retenção de 5 anos para fins fiscais/acadêmicos.
      */
     async excluirAluno(matricula: string): Promise<void> {
         try {
@@ -187,3 +187,4 @@ export const alunoServico = {
         };
     }
 };
+

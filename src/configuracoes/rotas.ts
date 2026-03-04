@@ -1,46 +1,46 @@
-/**
+﻿/**
  * Definição centralizada de rotas com lazy loading.
  * Duas árvores de rotas completamente separadas:
- *   /:slugEscola/quiosque  → tablet da portaria (GuardaQuiosque)
- *   /:slugEscola/admin/*   → painel administrativo (GuardaRota)
- *   /:slugEscola/responsavel/cadastro → público (sem login)
+ *   /:slugEscola/quiosque  â†’ Quiosque de Autoatendimento (GuardaQuiosque)
+ *   /:slugEscola/admin/*   â†’ painel administrativo (GuardaRota)
+ *   /:slugEscola/responsavel/cadastro â†’ público (sem login)
  *
  * Rotas legadas (sem slug) são mantidas para compatibilidade.
  */
 import { lazy } from 'react';
 
 // --- Lazy loading de todas as páginas ---
-export const PaginaLogin = lazy(() => import('@funcionalidades/autenticacao/componentes/Login'));
+export const PaginaLogin = lazy(() => import('@funcionalidades/acesso-usuario/componentes/TelaAcesso'));
 export const PaginaPainel = lazy(() => import('@funcionalidades/dashboard/componentes/Painel'));
 export const PaginaAlunos = lazy(() => import('@funcionalidades/alunos/componentes/Alunos'));
 export const PaginaTurmas = lazy(() => import('@funcionalidades/turmas/componentes/Turmas'));
-export const PaginaLeitorPortaria = lazy(() => import('@funcionalidades/portaria/componentes/LeitorPortaria'));
-export const PaginaTelaQuiosque = lazy(() => import('@funcionalidades/portaria/componentes/TelaQuiosque'));
+export const PaginaTerminalAcesso = lazy(() => import('@funcionalidades/controle-acesso/componentes/TerminalAcesso'));
+export const PaginaQuiosqueAutoatendimento = lazy(() => import('@funcionalidades/controle-acesso/componentes/QuiosqueAutoatendimento'));
 export const PaginaRelatorios = lazy(() => import('@funcionalidades/relatorios/componentes/Relatorios'));
-export const PaginaLogs = lazy(() => import('@funcionalidades/logs/componentes/Logs'));
+export const PaginaAuditoria = lazy(() => import('@funcionalidades/auditoria/componentes/RegistroAuditoria'));
 export const PaginaUsuarios = lazy(() => import('@funcionalidades/usuarios/componentes/Usuarios'));
-export const PaginaHorarios = lazy(() => import('@funcionalidades/configuracaoEscola/componentes/FormHorariosAcesso'));
-export const PaginaEvasao = lazy(() => import('@funcionalidades/evasao/componentes/PainelEvasao'));
-import PaginaLoginPortalComp from '@funcionalidades/portal-titular/componentes/TelaLoginPortal';
-import PaginaPainelTitularComp from '@funcionalidades/portal-titular/componentes/PainelTitular';
+export const PaginaConfiguracaoHorarios = lazy(() => import('@funcionalidades/configuracao-horarios/componentes/FormHorariosAcesso'));
+export const PaginaRiscoAbandono = lazy(() => import('@funcionalidades/risco-abandono/componentes/PainelRiscoAbandono'));
+import PaginaLoginResponsavelComp from '@funcionalidades/responsavel/componentes/TelaLoginResponsavel';
+import PaginaPainelResponsavelComp from '@funcionalidades/responsavel/componentes/PainelResponsavel';
 
-export const PaginaLoginPortal = PaginaLoginPortalComp;
-export const PaginaPainelTitular = PaginaPainelTitularComp;
+export const PaginaLoginResponsavel = PaginaLoginResponsavelComp;
+export const PaginaPainelResponsavel = PaginaPainelResponsavelComp;
 export const PaginaTermosUso = lazy(() => import('@compartilhado/paginas/TermosUso'));
 export const PaginaPoliticaPrivacidade = lazy(() => import('@compartilhado/paginas/PoliticaPrivacidade'));
 export const PaginaInicial = lazy(() => import('@principal/PaginaInicial'));
 
-// --- AGM (Root Mestre) ---
-export const PaginaLoginAGM = lazy(() => import('@funcionalidades/agm/componentes/LoginAGM'));
-export const PaginaPainelAGM = lazy(() => import('@funcionalidades/agm/componentes/PainelAGM'));
-export const PaginaEscolasAGM = lazy(() => import('@funcionalidades/agm/componentes/PaginaEscolasAGM').then(m => ({ default: m.PaginaEscolasAGM })));
-export const PaginaUsuariosAGM = lazy(() => import('@funcionalidades/agm/componentes/PaginaUsuariosAGM').then(m => ({ default: m.PaginaUsuariosAGM })));
-export const PaginaLogsAGM = lazy(() => import('@funcionalidades/agm/componentes/PaginaLogsAGM').then(m => ({ default: m.PaginaLogsAGM })));
-export const LayoutAGM = lazy(() => import('@funcionalidades/agm/componentes/LayoutAGM').then(m => ({ default: m.LayoutAGM })));
+// --- Gestão Central ---
+export const PaginaLoginCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/LoginCentral'));
+export const PaginaPainelCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/PainelCentral'));
+export const PaginaGestaoEscolas = lazy(() => import('@funcionalidades/gestao-central/componentes/PaginaGestaoEscolas').then(m => ({ default: m.PaginaGestaoEscolas })));
+export const PaginaUsuariosCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/PaginaUsuariosCentral').then(m => ({ default: m.PaginaUsuariosCentral })));
+export const PaginaAuditoriaCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/PaginaAuditoriaCentral').then(m => ({ default: m.PaginaAuditoriaCentral })));
+export const LayoutCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/LayoutCentral').then(m => ({ default: m.LayoutCentral })));
 
 /**
  * Rotas do painel administrativo (desktop/mobile).
- * Protegidas por GuardaRota com verificação de papel + tenant.
+ * Protegidas por GuardaRota com verificação de papel + escola.
  */
 export interface RotaAplicacao {
     caminho: string;
@@ -71,9 +71,9 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
     },
     {
         caminho: '/leitor',
-        componente: PaginaLeitorPortaria,
+        componente: PaginaTerminalAcesso,
         protegida: true,
-        papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTARIA'],
+        papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO'],
     },
     {
         caminho: '/relatorios',
@@ -83,7 +83,7 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
     },
     {
         caminho: '/logs',
-        componente: PaginaLogs,
+        componente: PaginaAuditoria,
         protegida: true,
         papeis: ['ADMIN', 'COORDENACAO'], // COORDENACAO pode visualizar (não exportar)
     },
@@ -94,14 +94,14 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
         papeis: ['ADMIN'],
     },
     {
-        caminho: '/horarios',
-        componente: PaginaHorarios,
+        caminho: '/configuracao-horarios',
+        componente: PaginaConfiguracaoHorarios,
         protegida: true,
         papeis: ['ADMIN', 'COORDENACAO'],
     },
     {
-        caminho: '/evasao',
-        componente: PaginaEvasao,
+        caminho: '/risco-abandono',
+        componente: PaginaRiscoAbandono,
         protegida: true,
         papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA'],
     }
@@ -120,19 +120,20 @@ export const ROTAS: RotaAplicacao[] = [
     ...ROTAS_ADMIN,
     {
         caminho: '/quiosque',
-        componente: PaginaTelaQuiosque,
+        componente: PaginaQuiosqueAutoatendimento,
         protegida: true,
-        papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTARIA'],
+        papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO'],
         quiosque: true, // Flag para App.jsx saber que é rota de quiosque
     },
     {
         caminho: '/responsavel',
-        componente: PaginaLoginPortal,
+        componente: PaginaLoginResponsavel,
         protegida: false, // Proteção é via JWT do LGPD local
     },
     {
         caminho: '/responsavel/painel',
-        componente: PaginaPainelTitular,
+        componente: PaginaPainelResponsavel,
         protegida: false, // Proteção feita pelo Fetch e render loading no PWA
     }
 ];
+

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+﻿import { motion } from 'framer-motion';
 
 interface PainelMockupProps {
     temaEscuro: boolean;
@@ -229,3 +229,4 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
         </>
     );
 }
+

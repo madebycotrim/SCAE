@@ -1,5 +1,5 @@
-/**
- * Cliente de consultas — wrapper sobre @tanstack/react-query.
+﻿/**
+ * Cliente de consultas â€” wrapper sobre @tanstack/react-query.
  *
  * Defaults otimizados para SCAE:
  * - staleTime 5min (dados não mudam entre leituras QR)
@@ -21,3 +21,4 @@ export const clienteConsulta = new QueryClient({
         },
     },
 });
+

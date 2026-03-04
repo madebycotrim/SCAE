@@ -1,5 +1,5 @@
-/**
- * Instância centralizada da API com injeção automática de tenant_id e JWT.
+﻿/**
+ * Instância centralizada da API com injeção automática de escola_id e JWT.
  * Mantém compatibilidade com os métodos existentes: obter, enviar, remover.
  */
 import { autenticacao } from '@compartilhado/servicos/firebase.config';
@@ -9,12 +9,12 @@ const URL_BASE = import.meta.env.VITE_API_URL || '/api';
 interface CabecalhosApi {
     'Content-Type': string;
     Authorization?: string;
-    'X-Tenant-ID'?: string;
+    'X-Escola-ID'?: string;
     [key: string]: string | undefined;
 }
 
 /**
- * Monta os cabeçalhos com token JWT e tenant_id.
+ * Monta os cabeçalhos com token JWT e escola_id.
  */
 async function obterCabecalhos(): Promise<CabecalhosApi> {
     const cabecalhos: CabecalhosApi = {
@@ -27,10 +27,10 @@ async function obterCabecalhos(): Promise<CabecalhosApi> {
         cabecalhos['Authorization'] = `Bearer ${token}`;
     }
 
-    // Injetar tenant_id (salvo pelo ProvedorTenant na sessão)
-    const tenantId = sessionStorage.getItem('tenant_id');
-    if (tenantId) {
-        cabecalhos['X-Tenant-ID'] = tenantId;
+    // Injetar escola_id (salvo pelo ProvedorEscola na sessão)
+    const idEscola = sessionStorage.getItem('escola_id');
+    if (idEscola) {
+        cabecalhos['X-Escola-ID'] = idEscola;
     }
 
     return cabecalhos;
@@ -108,3 +108,4 @@ export const api = {
         return true;
     }
 };
+

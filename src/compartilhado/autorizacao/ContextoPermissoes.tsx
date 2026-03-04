@@ -3,8 +3,8 @@ import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticac
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 import { api } from '@compartilhado/servicos/api';
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { EMAIL_ADMIN_RAIZ } from '@compartilhado/constantes/configuracao';
 
+const EMAIL_RAIZ = 'madebycotrim@gmail.com';
 const log = criarRegistrador('Permissoes');
 
 export interface UsuarioPermissoes {
@@ -26,10 +26,11 @@ interface PermissoesContextType {
     podeAcessar: (acao: string, recurso: string) => boolean;
     temPapel: (papel: string) => boolean;
     temAlgumPapel: (papeis: string[]) => boolean;
+    ehCentral: boolean;
     ehAdmin: boolean;
     ehCoordenacao: boolean;
     ehSecretaria: boolean;
-    ehPortaria: boolean;
+    ehPorteiro: boolean;
     ehVisualizacao: boolean;
     podeGerenciarAlunos: boolean;
     podeGerenciarTurmas: boolean;
@@ -41,59 +42,70 @@ const ContextoPermissoes = createContext<PermissoesContextType | undefined>(unde
 
 // Matriz de Permissões por Papel
 const MATRIZ_PERMISSOES: Record<string, Record<string, Record<string, boolean>>> = {
+    CENTRAL: {
+        dashboard: { visualizar: true },
+        alunos: { visualizar: true, criar: true, editar: true, deletar: true },
+        turmas: { visualizar: true, criar: true, editar: true, deletar: true },
+        terminal_acesso: { acessar: true },
+        relatorios: { visualizar: true, exportar: true },
+        risco_abandono: { visualizar: true },
+        usuarios: { visualizar: true, criar: true, editar: true, desativar: true },
+        auditoria: { visualizar: true, exportar: true }
+    },
+
     ADMIN: {
         dashboard: { visualizar: true },
         alunos: { visualizar: true, criar: true, editar: true, deletar: true },
         turmas: { visualizar: true, criar: true, editar: true, deletar: true },
-        leitor_portaria: { acessar: true },
+        terminal_acesso: { acessar: true },
         relatorios: { visualizar: true, exportar: true },
-        alertas_evasao: { visualizar: true },
+        risco_abandono: { visualizar: true },
         usuarios: { visualizar: true, criar: true, editar: true, desativar: true },
-        logs_auditoria: { visualizar: true, exportar: true }
+        auditoria: { visualizar: true, exportar: true }
     },
 
     COORDENACAO: {
         dashboard: { visualizar: true },
         alunos: { visualizar: true, criar: false, editar: false, deletar: false },
         turmas: { visualizar: true, criar: false, editar: false, deletar: false },
-        leitor_portaria: { acessar: true },
+        terminal_acesso: { acessar: true },
         relatorios: { visualizar: true, exportar: true },
-        alertas_evasao: { visualizar: true },
+        risco_abandono: { visualizar: true },
         usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
-        logs_auditoria: { visualizar: true, exportar: false }
+        auditoria: { visualizar: true, exportar: false }
     },
 
     SECRETARIA: {
         dashboard: { visualizar: true },
         alunos: { visualizar: true, criar: true, editar: true, deletar: false },
         turmas: { visualizar: true, criar: true, editar: true, deletar: false },
-        leitor_portaria: { acessar: true },
+        terminal_acesso: { acessar: true },
         relatorios: { visualizar: true, exportar: true },
-        alertas_evasao: { visualizar: false },
+        risco_abandono: { visualizar: false },
         usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
-        logs_auditoria: { visualizar: false, exportar: false }
+        auditoria: { visualizar: false, exportar: false }
     },
 
-    PORTARIA: {
+    PORTEIRO: {
         dashboard: { visualizar: false },
         alunos: { visualizar: false, criar: false, editar: false, deletar: false },
         turmas: { visualizar: false, criar: false, editar: false, deletar: false },
-        leitor_portaria: { acessar: true },
+        terminal_acesso: { acessar: true },
         relatorios: { visualizar: false, exportar: false },
-        alertas_evasao: { visualizar: false },
+        risco_abandono: { visualizar: false },
         usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
-        logs_auditoria: { visualizar: false, exportar: false }
+        auditoria: { visualizar: false, exportar: false }
     },
 
     VISUALIZACAO: {
         dashboard: { visualizar: true },
         alunos: { visualizar: true, criar: false, editar: false, deletar: false },
         turmas: { visualizar: true, criar: false, editar: false, deletar: false },
-        leitor_portaria: { acessar: false },
+        terminal_acesso: { acessar: false },
         relatorios: { visualizar: true, exportar: false },
-        alertas_evasao: { visualizar: false },
+        risco_abandono: { visualizar: false },
         usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
-        logs_auditoria: { visualizar: false, exportar: false }
+        auditoria: { visualizar: false, exportar: false }
     }
 };
 
@@ -118,13 +130,13 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
                 if (usuarioBD) {
                     definirUsuario(usuarioBD);
                 } else {
-                    // Usuário não cadastrado - APENAS EMAIL_ADMIN_RAIZ é ADMIN
-                    if (usuarioAtual.email === EMAIL_ADMIN_RAIZ) {
-                        log.info(`Admin principal detectado: ${log.mascarar(usuarioAtual.email, 'email')}`);
+                    // Usuário não cadastrado - APENAS EMAIL_RAIZ é CENTRAL
+                    if (usuarioAtual.email === EMAIL_RAIZ) {
+                        log.info(`Admin principal (CENTRAL) detectado: ${log.mascarar(usuarioAtual.email, 'email')}`);
                         const adminUser = {
                             email: usuarioAtual.email,
                             nome_completo: 'Administrador Principal',
-                            papel: 'ADMIN',
+                            papel: 'CENTRAL',
                             ativo: true
                         };
                         definirUsuario(adminUser);
@@ -200,8 +212,8 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
      * @returns {boolean}
      */
     const pode = (acao: string, recurso: string): boolean => {
-        // BYPASS: EMAIL_ADMIN_RAIZ tem acesso total sempre
-        if (usuarioAtual?.email === EMAIL_ADMIN_RAIZ) {
+        // BYPASS: EMAIL_RAIZ tem acesso total sempre
+        if (usuarioAtual?.email === EMAIL_RAIZ) {
             return true;
         }
 
@@ -242,17 +254,18 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
         temAlgumPapel,
 
         // Atalhos úteis
+        ehCentral: usuario?.papel === 'CENTRAL',
         ehAdmin: usuario?.papel === 'ADMIN',
         ehCoordenacao: usuario?.papel === 'COORDENACAO',
         ehSecretaria: usuario?.papel === 'SECRETARIA',
-        ehPortaria: usuario?.papel === 'PORTARIA',
+        ehPorteiro: usuario?.papel === 'PORTEIRO',
         ehVisualizacao: usuario?.papel === 'VISUALIZACAO',
 
         // Permissões compostas comuns
         podeGerenciarAlunos: pode('editar', 'alunos') || pode('criar', 'alunos'),
         podeGerenciarTurmas: pode('editar', 'turmas') || pode('criar', 'turmas'),
         podeVerRelatorios: pode('visualizar', 'relatorios'),
-        podeVerLogs: pode('visualizar', 'logs_auditoria')
+        podeVerLogs: pode('visualizar', 'auditoria')
     };
 
     return (

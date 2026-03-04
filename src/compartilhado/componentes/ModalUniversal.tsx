@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Info } from 'lucide-react';
 import { ReactNode } from 'react';
@@ -127,4 +127,5 @@ export default function ModalUniversal({
         document.body
     );
 }
+
 

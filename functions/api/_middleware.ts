@@ -1,6 +1,6 @@
 ﻿/**
- * Middleware de Autenticação â€” Intercepta TODAS as rotas /api/*.
- * Valida JWT Firebase via JWKS (jose) e impõe restrição de domínio.
+ * Middleware de Autenticação — Intercepta TODAS as rotas /api/*.
+ * Valida JWT Firebase via JWKS (jose) e impõe restrição de domínio dinâmica.
  */
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import type { ContextoSCAE, DadosTokenFirebase } from '../tipos/ambiente';
@@ -18,7 +18,7 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
     try {
         const cabecalhoAutenticacao = requisicao.headers.get('Authorization');
 
-        // DEV BYPASS: Só permite bypass se DEV_AUTH_BYPASS=1 estiver explicitamente configurado
+        // DEV BYPASS
         const url = new URL(requisicao.url);
         const ehAmbienteLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
         const bypassHabilitado = contexto.env?.DEV_AUTH_BYPASS === '1';
@@ -30,63 +30,70 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         }
 
         if (!cabecalhoAutenticacao || !cabecalhoAutenticacao.startsWith('Bearer ')) {
-            // Rejeitar se não houver token (exceto no bypass acima)
             throw new Error('Cabeçalho de autorização ausente ou inválido');
         }
 
         const token = cabecalhoAutenticacao.split(' ')[1];
 
-        // 1. Verificar Assinatura do Token e Reivindicações (Claims)
+        // 1. Verificar Assinatura
         const CONJUNTO_CHAVES_JSON = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 
         const { payload: dadosToken } = await jwtVerify(token, CONJUNTO_CHAVES_JSON, {
-            issuer: `https://securetoken.google.com/${ID_PROJETO_FIREBASE}`,
+            issuer: https://securetoken.google.com/,
             audience: ID_PROJETO_FIREBASE,
         });
 
-        // 2. Impor Restrição de Domínio
         const email = (dadosToken.email as string) || '';
-
-        // Permitir APENAS domínios específicos ou emails de admin/dev
-        const dominiosPermitidos = ['@edu.se.df.gov.br'];
         const emailsPermitidos = ['madebycotrim@gmail.com'];
+        const eAdminGlobal = emailsPermitidos.includes(email);
 
-        const acessoPermitido = dominiosPermitidos.some(dominio => email.endsWith(dominio)) || emailsPermitidos.includes(email);
+        // 2. Validar Escola e Buscar Domínio
+        const idEscola = requisicao.headers.get('X-Escola-ID');
 
-        if (!acessoPermitido) {
-            // Registrar tentativa bloqueada
-            console.warn(`Tentativa de login bloqueada de: ${email}`);
-            throw new Error('Email não autorizado. Use uma conta institucional.');
+        if (eAdminGlobal && !idEscola) {
+            contexto.data.user = dadosToken as DadosTokenFirebase;
+            return proximo();
         }
 
-        // 3. Validar Tenant e Buscar Papel do Usuário no SCAE
-        const tenantId = requisicao.headers.get('X-Tenant-ID');
-
-        // Se houver tenant_id, validamos se o usuário existe e está ativo NAQUELE tenant
-        if (tenantId) {
-            const usuarioScae = await contexto.env.DB_SCAE.prepare(
-                "SELECT * FROM usuarios WHERE email = ? AND tenant_id = ? AND ativo = 1"
-            ).bind(email, tenantId).first();
-
-            if (!usuarioScae && !emailsPermitidos.includes(email)) {
-                return new Response(JSON.stringify({ erro: 'Usuário não vinculado a esta escola ou inativo.' }), {
-                    status: 403,
-                    headers: { 'Content-Type': 'application/json' }
-                });
-            }
-
-            // Anexar dados do SCAE ao contexto
-            contexto.data.usuarioScae = usuarioScae as any;
+        if (!idEscola) {
+            throw new Error('ID da Escola (X-Escola-ID) obrigatório para esta operação.');
         }
 
-        // Anexar usuário do Firebase ao contexto
+        const escola = await contexto.env.DB_SCAE.prepare(
+            "SELECT dominio_email FROM escolas WHERE id = ?"
+        ).bind(idEscola).first<{ dominio_email: string | null }>();
+
+        if (!escola) {
+            throw new Error('Escola não cadastrada ou inválida.');
+        }
+
+        // 3. Impor Restrição de Domínio
+        const dominioEscola = escola.dominio_email;
+        const temRelacaoComDominio = dominioEscola && email.endsWith(@);
+
+        if (!temRelacaoComDominio && !eAdminGlobal) {
+            throw new Error(Email não autorizado para esta escola. Use sua conta institucional @.);
+        }
+
+        // 4. Validar usuário NAQUELA escola
+        const usuarioScae = await contexto.env.DB_SCAE.prepare(
+            "SELECT * FROM usuarios WHERE email = ? AND escola_id = ? AND ativo = 1"
+        ).bind(email, idEscola).first();
+
+        if (!usuarioScae && !eAdminGlobal) {
+            return new Response(JSON.stringify({ erro: 'Usuário não vinculado a esta escola ou inativo.' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
         contexto.data.user = dadosToken as DadosTokenFirebase;
+        contexto.data.usuarioScae = usuarioScae as any;
 
         return proximo();
 
     } catch (erro) {
         const mensagem = erro instanceof Error ? erro.message : 'Erro de autenticação';
-        console.error('Erro de Autenticação:', mensagem);
         return new Response(JSON.stringify({ erro: mensagem }), {
             status: 401,
             headers: { 'Content-Type': 'application/json' }
@@ -94,5 +101,5 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-// Exportação com Alias para o Framework
 export { processarRequisicao as onRequest };
+

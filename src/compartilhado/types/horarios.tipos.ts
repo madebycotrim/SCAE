@@ -1,4 +1,4 @@
-export type TipoAcessoHorario = 'ENTRADA' | 'SAIDA' | 'AMBOS';
+﻿export type TipoAcessoHorario = 'ENTRADA' | 'SAIDA' | 'AMBOS';
 
 export const TIPO_ACESSO_HORARIO = {
     ENTRADA: 'ENTRADA' as TipoAcessoHorario,
@@ -6,7 +6,7 @@ export const TIPO_ACESSO_HORARIO = {
     AMBOS: 'AMBOS' as TipoAcessoHorario
 } as const;
 
-export interface JanelaHorario {
+export interface JanelaHorarioAcesso {
     id?: string;
     diaSemana?: number; // 0-6 (Domingo a Sábado)
     horaInicio: string; // HH:mm
@@ -17,7 +17,8 @@ export interface JanelaHorario {
 }
 
 export interface ConfiguracaoHorarios {
-    tenant_id: string;
-    janelas: JanelaHorario[];
+    escola_id: string;
+    janelas: JanelaHorarioAcesso[];
     atualizado_em: string;
 }
+

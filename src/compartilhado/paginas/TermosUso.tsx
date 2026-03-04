@@ -1,6 +1,6 @@
-import { Scale, ArrowLeft } from 'lucide-react';
+﻿import { Scale, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usarTenantOpcional } from '@tenant/provedorTenant';
+import { usarEscolaOpcional } from '@escola/ProvedorEscola';
 import { usarConteudoLegal } from '@funcionalidades/autenticacao/hooks/usarConteudoLegal';
 
 /**
@@ -10,9 +10,9 @@ import { usarConteudoLegal } from '@funcionalidades/autenticacao/hooks/usarConte
 export default function TermosUso() {
     const navegar = useNavigate();
     const { slugEscola } = useParams();
-    const tenant = usarTenantOpcional();
-    const nomeEscola = tenant?.nomeEscola || 'Sistema de Controle de Acesso Escolar (SCAE)';
-    const daEscola = !!tenant;
+    const escola = usarEscolaOpcional();
+    const nomeEscola = escola?.nomeEscola || 'Sistema de Controle de Acesso Escolar (SCAE)';
+    const daEscola = !!escola;
     const { caraterUso, nomeFornecedor, foro, dataUltimaRevisao } = usarConteudoLegal();
 
     return (
@@ -61,7 +61,7 @@ export default function TermosUso() {
                         O uso do sistema é concedido em caráter {caraterUso}.
                     </p>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">2. DEVERES DO USUÁRIO ADMINISTRATIVO</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">2. DEVERES DO USUÃRIO ADMINISTRATIVO</h2>
                     <p className="indent-[1.25cm]">
                         O acesso aos módulos administrativos é restrito aos profissionais autorizados pelo
                         <strong> {nomeEscola}</strong>. O usuário se compromete a:
@@ -72,7 +72,7 @@ export default function TermosUso() {
                         <li className="mb-2">Utilizar exclusivamente o e-mail institucional validado para login.</li>
                     </ul>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">3. PROIBIÇÕES E SANÇÕES</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">3. PROIBIÇÃ•ES E SANÇÃ•ES</h2>
                     <p className="indent-[1.25cm]">
                         Violações a estes Termos podem resultar em suspensão imediata do acesso, sem prejuízo de
                         sanções administrativas, civis e criminais. É proibido:
@@ -84,7 +84,7 @@ export default function TermosUso() {
                         <li className="mb-2">Compartilhar credenciais de acesso com terceiros.</li>
                     </ul>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. RESTRIÇÕES DE DOMÍNIO E AUTENTICAÇÃO</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. RESTRIÇÃ•ES DE DOMÃNIO E AUTENTICAÇÃƒO</h2>
                     <p className="indent-[1.25cm]">
                         O acesso administrativo exige e-mail institucional previamente configurado, com autenticação
                         via Google OAuth.
@@ -94,7 +94,7 @@ export default function TermosUso() {
                         automaticamente pelo sistema.
                     </p>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">5. DISPONIBILIDADE E MODIFICAÇÕES</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">5. DISPONIBILIDADE E MODIFICAÇÃ•ES</h2>
                     <p className="indent-[1.25cm]">
                         O <strong>{nomeFornecedor}</strong> reserva-se o direito de modificar, suspender ou descontinuar
                         o serviço para melhorias técnicas ou de segurança.
@@ -104,10 +104,10 @@ export default function TermosUso() {
                         Não há garantia de disponibilidade ininterrupta.
                     </p>
                     <p className="indent-[1.25cm]">
-                        Sempre que possível, modificações serão comunicadas previamente à escola.
+                        Sempre que possível, modificações serão comunicadas previamente Ã  escola.
                     </p>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">6. LIMITAÇÃO DE RESPONSABILIDADE</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">6. LIMITAÇÃƒO DE RESPONSABILIDADE</h2>
                     <p className="indent-[1.25cm]">
                         Os dados são armazenados em nuvem (Cloudflare). Não há hardware local da escola envolvido
                         no armazenamento.
@@ -131,7 +131,7 @@ export default function TermosUso() {
                         Nenhum direito além dos previstos no contrato é transferido pelo simples uso do sistema.
                     </p>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">8. PRIVACIDADE E PROTEÇÃO DE DADOS</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">8. PRIVACIDADE E PROTEÇÃƒO DE DADOS</h2>
                     <p className="indent-[1.25cm]">
                         O tratamento de dados realizado por este sistema segue a Política de Privacidade do SCAE,
                         em conformidade com a LGPD.
@@ -144,7 +144,7 @@ export default function TermosUso() {
                         <span className="text-blue-600 underline cursor-pointer ml-1 font-bold" onClick={() => navegar(slugEscola ? `/${slugEscola}/politica-de-privacidade` : '/politica-de-privacidade')}>Política de Privacidade</span>.
                     </p>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">9. FORO E LEGISLAÇÃO APLICÁVEL</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">9. FORO E LEGISLAÇÃƒO APLICÃVEL</h2>
                     <p className="indent-[1.25cm]">
                         Estes Termos são regidos pelas leis da República Federativa do Brasil.
                     </p>
@@ -154,10 +154,11 @@ export default function TermosUso() {
                     </p>
 
                     <div className="mt-16 text-center border-t border-slate-200 pt-8">
-                        <p className="text-slate-500">Última revisão: {dataUltimaRevisao}.</p>
+                        <p className="text-slate-500">Ãšltima revisão: {dataUltimaRevisao}.</p>
                     </div>
                 </div>
             </div>
         </div>
     );
 }
+

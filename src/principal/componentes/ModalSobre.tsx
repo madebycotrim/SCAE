@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Smartphone, Users, ShieldCheck } from 'lucide-react';
 import FocusTrap from 'focus-trap-react';
@@ -82,7 +82,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                             {/* Modal Content */}
                             <div className={`p-6 md:p-8 overflow-y-auto ${temaEscuro ? 'bg-[#0B0F19]' : 'bg-white'}`}>
                                 <div className="space-y-12">
-                                    {/* Passo 1 - Portaria */}
+                                    {/* Passo 1 - Controle de Acesso */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
                                         ${temaEscuro ? 'bg-indigo-900/30 border-indigo-800/50 text-indigo-400' : 'bg-indigo-50 border-indigo-100 text-indigo-600'}`}>
@@ -90,7 +90,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">1</div>
                                         </div>
                                         <div>
-                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Controle Inteligente de Portaria</h3>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Controle de Acesso Inteligente</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
                                                 A validação no portão ocorre em milissegundos via leitura de <strong>QR Code Dinâmico</strong> ou biometria. O sistema gerencia não apenas alunos, mas também o acesso de funcionários e visitantes, operando de forma descentralizada para garantir o funcionamento ininterrupto durante os horários de pico, mesmo que ocorram instabilidades na rede.
                                             </p>
@@ -152,7 +152,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Dashboards Gerenciais (BI) e Relatórios</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                Painéis visuais fornecem à gestão institucional total clareza processual. Por meio de <strong>relatórios gráficos em tempo real</strong>, o diretor audita picos de ocupação do colégio e gargalos na rotina de entrada e saída. Em redes de franquias e múltiplas unidades, esse comando sobe para a Área de Gerenciamento Mestre (AGM), consolidando dados num só lugar.
+                                                Painéis visuais fornecem à gestão institucional total clareza processual. Por meio de <strong>relatórios gráficos em tempo real</strong>, o diretor audita picos de ocupação do colégio e gargalos na rotina de entrada e saída. Em redes de franquias e múltiplas unidades, esse comando sobe para a Gestão Central, consolidando dados num só lugar.
                                             </p>
                                         </div>
                                     </div>
@@ -178,7 +178,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                                     <h4 className="text-white font-extrabold text-2xl mb-3 relative z-10">O próximo passo lógico para a sua instituição.</h4>
                                     <p className="text-indigo-200/80 text-base font-medium mb-6 max-w-lg mx-auto relative z-10">
-                                        Assuma o controle da portaria e eleve a percepção de valor e segurança da sua escola perante as famílias.
+                                        Assuma o controle de acesso e eleve a percepção de valor e segurança da sua escola perante as famílias.
                                     </p>
                                     <button
                                         onClick={() => {
@@ -198,3 +198,4 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
         </AnimatePresence>
     );
 }
+

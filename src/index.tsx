@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+﻿import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 // O interceptador global DEVE ser o primeiro a carregar

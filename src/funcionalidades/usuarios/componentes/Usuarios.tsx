@@ -23,14 +23,14 @@ import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import type { UsuarioLocal, PapelUsuario } from '@compartilhado/types/bancoLocal.tipos';
 import { api } from '@compartilhado/servicos/api';
-import { usarTenant } from '@tenant/provedorTenant';
+import { usarEscola } from '@escola/ProvedorEscola';
 
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
 
 import FormUsuarioModal from './FormUsuarioModal';
 
 export default function Usuarios() {
-    const { id: tenantId } = usarTenant();
+    const { id: idEscola } = usarEscola();
     const { adicionarNotificacao } = usarNotificacoes();
     const { usuarioAtual } = usarAutenticacao();
     const [usuarios, definirUsuarios] = useState([]);
@@ -81,7 +81,7 @@ export default function Usuarios() {
                     titulo: 'Segurança: Novo Usuário',
                     mensagem: `Um novo usuário (${novoUsuario.email}) foi criado com o papel de ${novoUsuario.papel}.`,
                     tipo: 'info',
-                    link: `/${tenantId}/admin/usuarios`
+                    link: `/${idEscola}/admin/usuarios`
                 });
             }
 
@@ -155,7 +155,7 @@ export default function Usuarios() {
         { id: 'ADMIN', nome: 'Administrador', desc: 'Acesso total ao sistema' },
         { id: 'COORDENACAO', nome: 'Coordenação', desc: 'Gestão pedagógica' },
         { id: 'SECRETARIA', nome: 'Secretaria', desc: 'Gestão de alunos e turmas' },
-        { id: 'PORTARIA', nome: 'Portaria', desc: 'Apenas registro de acesso' },
+        { id: 'PORTEIRO', nome: 'Controle de Acesso', desc: 'Apenas registro de acesso' },
         { id: 'VISUALIZACAO', nome: 'Visitante', desc: 'Apenas visualização' }
     ];
 

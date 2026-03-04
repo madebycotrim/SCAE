@@ -1,1 +1,1 @@
-export { default as Alunos } from './componentes/Alunos';
+﻿export { default as Alunos } from './componentes/Alunos';

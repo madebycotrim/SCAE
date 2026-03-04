@@ -1,6 +1,6 @@
-/**
- * Tokens de design base — podem ser sobrescritos pelo tenant.
- * Valores padrão usados quando o tenant não define tema.
+﻿/**
+ * Tokens de design base â€” podem ser sobrescritos pelo escola.
+ * Valores padrão usados quando o escola não define tema.
  */
 export interface DefTemaBase {
     cores: Record<string, string>;
@@ -35,3 +35,4 @@ export const TEMA_BASE: DefTemaBase = {
         lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
     },
 };
+

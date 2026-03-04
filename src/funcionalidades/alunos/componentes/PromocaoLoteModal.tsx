@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { SelectComBusca } from '@compartilhado/componentes/SelectComBusca';
 import { CheckCircle, Users, ArrowRight } from 'lucide-react';
@@ -28,7 +28,7 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
                             <Users size={24} strokeWidth={2} />
                         </div>
                         <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">MOVIMENTAÇÃO EM LOTE</p>
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">MOVIMENTAÇÃƒO EM LOTE</p>
                             <h3 className="text-2xl font-bold text-gray-900 leading-none">
                                 {quantidade} <span className="text-sm text-gray-600">Alunos Selecionados</span>
                             </h3>
@@ -76,3 +76,4 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
         </ModalUniversal>
     );
 }
+

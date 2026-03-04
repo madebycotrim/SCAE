@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { SelectComBusca } from '@compartilhado/componentes/SelectComBusca';
 import { CheckCircle } from 'lucide-react';
@@ -58,7 +58,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     {/* Matrícula */}
                     <div className="relative pb-6">
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Nº de Matrícula</label>
+                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">NÂº de Matrícula</label>
                         <input
                             type="text"
                             className="w-full px-3 h-10 bg-white border border-gray-300 rounded text-sm font-medium text-gray-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors disabled:bg-gray-50 disabled:text-gray-500"
@@ -114,7 +114,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                 </button>
                             </div>
                             <p className="mt-3 text-xs text-gray-500 flex items-start gap-1">
-                                <span className="text-gray-700 mt-0.5">ℹ</span>
+                                <span className="text-gray-700 mt-0.5">â„¹</span>
                                 <span>Alunos inativos são preservados no histórico acadêmico.</span>
                             </p>
                         </div>
@@ -140,3 +140,4 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
         </ModalUniversal>
     );
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * registrarLocal.ts - Utilitário de log padronizado para o sistema.
  * Segue as regras do Agents.md e PrintLog para mascaramento de PII.
  * Agora com interceptador global para permitir logs EXCLUSIVAMENTE para a conta do desenvolvedor.
@@ -78,3 +78,4 @@ export function criarRegistrador(modulo: string) {
         mascarar: mascararDadoPessoal
     };
 }
+

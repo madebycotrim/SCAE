@@ -1,4 +1,4 @@
-import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+﻿import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Aluno } from '../types/aluno';
 import { mascararDadoPessoal } from '@compartilhado/utils/registrarLocal';
 
@@ -188,3 +188,4 @@ export default function ListaAlunos({
         </div>
     );
 }
+

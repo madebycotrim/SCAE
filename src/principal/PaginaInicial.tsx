@@ -1,9 +1,7 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Smartphone, Bell, ShieldCheck, Zap, Users, GraduationCap, BookOpen, Library, Landmark } from 'lucide-react';
-
-import { ESCOLAS_CADASTRADAS_SISTEMA } from '@compartilhado/constantes/escolas';
 
 import { CabecalhoInicial } from './componentes/CabecalhoInicial';
 import { BuscadorEscolas } from './componentes/BuscadorEscolas';
@@ -100,35 +98,10 @@ export default function PaginaInicial() {
 
             </main>
 
-            {/* Partner Logos Strip (Social Proof - Moved up) */}
+            {/* Partner Logos Strip (Social Proof - Simplified) */}
             <div className={`w-full py-10 border-y relative z-10 ${temaEscuro ? 'border-slate-800/60 bg-[#0B0F19]/40' : 'border-slate-200/60 bg-white/40'}`}>
-                <div className="max-w-5xl mx-auto px-6 text-center text-slate-500 font-medium text-sm uppercase tracking-widest mb-6">
-                    Confiado por instituições de ensino de excelência
-                </div>
-                <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-                    {ESCOLAS_CADASTRADAS_SISTEMA.map((escola, index) => {
-                        const Icone = [GraduationCap, BookOpen, Library, Landmark][index % 4];
-                        const estilosTexto = [
-                            "font-bold text-lg font-serif tracking-tight",
-                            "font-black text-base tracking-wide uppercase",
-                            "font-bold text-lg font-serif italic",
-                            "font-black text-base tracking-widest uppercase"
-                        ][index % 4];
-
-                        return (
-                            <div
-                                key={escola.id}
-                                className={`flex items-center gap-3 select-none group ${index === 3 ? 'hidden sm:flex' : ''}`}
-                            >
-                                <div className={`p-2 rounded-lg transition-colors ${temaEscuro ? 'bg-slate-800 text-slate-400 group-hover:text-indigo-400' : 'bg-white shadow-sm border border-slate-200/60 text-slate-500 group-hover:text-indigo-600'}`}>
-                                    <Icone className="w-5 h-5" />
-                                </div>
-                                <span className={`${estilosTexto} transition-colors ${temaEscuro ? 'text-slate-400 group-hover:text-slate-200' : 'text-slate-500 group-hover:text-slate-800'}`}>
-                                    {escola.nome}
-                                </span>
-                            </div>
-                        );
-                    })}
+                <div className="max-w-5xl mx-auto px-6 text-center text-slate-500 font-medium text-sm uppercase tracking-widest">
+                    Segurança e Controle para Instituições de Ensino
                 </div>
             </div>
 
@@ -155,7 +128,7 @@ export default function PaginaInicial() {
                             </div>
                             <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}>1. O Aluno Chega</h3>
                             <p className={`text-sm font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                                Aproxima o crachá ou o smartphone do totem inteligente de validação na portaria.
+                                Aproxima o crachá ou o smartphone do terminal de acesso inteligente de validação.
                             </p>
                         </div>
 
@@ -201,3 +174,4 @@ export default function PaginaInicial() {
         </div>
     );
 }
+

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 
 interface RodapeInicialProps {
     temaEscuro: boolean;
@@ -19,3 +19,4 @@ export function RodapeInicial({ temaEscuro }: RodapeInicialProps) {
         </footer>
     );
 }
+

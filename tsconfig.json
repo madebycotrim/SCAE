@@ -26,8 +26,8 @@
         /* Path aliases (espelho do vite.config.js) */
         "baseUrl": ".",
         "paths": {
-            "@tenant/*": [
-                "src/tenant/*"
+            "@escola/*": [
+                "src/contexto-escola/*"
             ],
             "@funcionalidades/*": [
                 "src/funcionalidades/*"

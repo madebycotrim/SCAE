@@ -1,5 +1,5 @@
-/**
- * GuardaQuiosque — protege a rota do tablet (sessão permanente).
+﻿/**
+ * GuardaQuiosque â€” protege a rota do tablet (sessão permanente).
  * Verifica se há um usuário autenticado com sessão persistente.
  * Redireciona para login da escola com slug.
  */
@@ -10,11 +10,12 @@ export default function GuardaQuiosque({ children }: { children?: React.ReactNod
     const { usuarioAtual } = usarAutenticacao();
     const { slugEscola } = useParams();
 
-    // Sem sessão ativa → redirecionar para login da escola
+    // Sem sessão ativa â†’ redirecionar para login da escola
     if (!usuarioAtual) {
         return <Navigate to={`/${slugEscola}/login`} replace />;
     }
 
-    // Sessão ativa → renderizar conteúdo do quiosque
+    // Sessão ativa â†’ renderizar conteúdo do quiosque
     return children || <Outlet />;
 }
+

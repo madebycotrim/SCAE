@@ -1,12 +1,13 @@
-/**
+﻿/**
  * Enum de papéis do sistema (RBAC).
  * Papéis ordenados por nível de acesso decrescente.
  */
 export const PAPEIS = {
+    CENTRAL: 'CENTRAL',
     ADMIN: 'ADMIN',
     COORDENACAO: 'COORDENACAO',
     SECRETARIA: 'SECRETARIA',
-    PORTARIA: 'PORTARIA',
+    PORTEIRO: 'PORTEIRO',
     VISUALIZACAO: 'VISUALIZACAO',
 };
 
@@ -14,22 +15,24 @@ export const PAPEIS = {
  * Labels amigáveis para exibição na UI.
  */
 export const PAPEIS_LABELS = {
+    [PAPEIS.CENTRAL]: 'Gestão Central',
     [PAPEIS.ADMIN]: 'Administrador',
     [PAPEIS.COORDENACAO]: 'Coordenação',
     [PAPEIS.SECRETARIA]: 'Secretaria',
-    [PAPEIS.PORTARIA]: 'Portaria',
+    [PAPEIS.PORTEIRO]: 'Controle de Acesso',
     [PAPEIS.VISUALIZACAO]: 'Visualização',
 };
 
 /**
- * Hierarquia de papéis — maior número = mais permissões.
+ * Hierarquia de papéis â€” maior número = mais permissões.
  */
 export const HIERARQUIA_PAPEIS = {
     [PAPEIS.VISUALIZACAO]: 1,
-    [PAPEIS.PORTARIA]: 2,
+    [PAPEIS.PORTEIRO]: 2,
     [PAPEIS.SECRETARIA]: 3,
     [PAPEIS.COORDENACAO]: 4,
     [PAPEIS.ADMIN]: 5,
+    [PAPEIS.CENTRAL]: 6,
 };
 
 /**
@@ -41,3 +44,4 @@ export const HIERARQUIA_PAPEIS = {
 export function temNivelMinimo(papelUsuario, papelRequerido) {
     return (HIERARQUIA_PAPEIS[papelUsuario] || 0) >= (HIERARQUIA_PAPEIS[papelRequerido] || 0);
 }
+

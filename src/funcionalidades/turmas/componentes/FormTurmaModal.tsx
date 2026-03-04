@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { BookOpen, Users, GraduationCap, ChevronRight } from 'lucide-react';
 
@@ -75,7 +75,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                                 : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:bg-gray-100'
                                                 }`}
                                         >
-                                            {s}º Ano
+                                            {s}Âº Ano
                                         </button>
                                     ))}
                                 </div>
@@ -230,7 +230,8 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
     );
 }
 
-// Ícones simplificados para evitar problemas de importação no componente
+// Ãcones simplificados para evitar problemas de importação no componente
 const CheckCircleIcon = ({ size, strokeWidth = 2, className }: { size: number, strokeWidth?: number, className?: string }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
 );
+

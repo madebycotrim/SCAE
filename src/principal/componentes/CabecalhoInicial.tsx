@@ -1,4 +1,4 @@
-import { ShieldCheck, Sun, Moon } from 'lucide-react';
+﻿import { ShieldCheck, Sun, Moon } from 'lucide-react';
 
 interface CabecalhoInicialProps {
     temaEscuro: boolean;

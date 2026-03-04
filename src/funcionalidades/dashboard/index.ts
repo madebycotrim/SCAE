@@ -1,1 +1,1 @@
-export { default as Painel } from './componentes/Painel';
+﻿export { default as Painel } from './componentes/Painel';
