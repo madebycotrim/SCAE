@@ -12,7 +12,7 @@ interface ListaAlunosProps {
     aoEditar: (aluno: Aluno) => void;
     aoExcluir: (aluno: Aluno) => void;
     aoMudarPagina: (pagina: number) => void;
-    getAvatarColor: (id: string) => string;
+    obterCorAvatar: (id: string) => string;
 }
 
 export default function ListaAlunos({
@@ -25,7 +25,7 @@ export default function ListaAlunos({
     aoEditar,
     aoExcluir,
     aoMudarPagina,
-    getAvatarColor
+    obterCorAvatar
 }: ListaAlunosProps) {
     if (alunos.length === 0) {
         return (

@@ -111,7 +111,7 @@ export default function Alunos() {
         return resultado;
     };
 
-    const getAvatarColor = (id: string) => {
+    const obterCorAvatar = (id: string) => {
         const cores = ['from-indigo-500 to-purple-600', 'from-emerald-400 to-teal-600', 'from-rose-400 to-pink-600', 'from-amber-400 to-orange-500', 'from-sky-400 to-blue-600', 'from-violet-500 to-fuchsia-600'];
         return cores[parseInt(id.slice(-1)) % cores.length || 0];
     };
@@ -149,7 +149,7 @@ export default function Alunos() {
                 </div>
             </div>
 
-            <ListaAlunos alunos={paginados} alunosSelecionados={alunosSelecionados} paginaAtual={paginaAtual} totalPaginas={totalPaginas} aoSelecionar={(m) => definirAlunosSelecionados(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])} aoVerQRCode={(m) => { definirQrcodeAtual(m); definirModalQRCode(true); }} aoEditar={(a) => { definirAlunoEmEdicao(a); definirModalForm(true); }} aoExcluir={excluirAluno} aoMudarPagina={definirPaginaAtual} getAvatarColor={getAvatarColor} />
+            <ListaAlunos alunos={paginados} alunosSelecionados={alunosSelecionados} paginaAtual={paginaAtual} totalPaginas={totalPaginas} aoSelecionar={(m) => definirAlunosSelecionados(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])} aoVerQRCode={(m) => { definirQrcodeAtual(m); definirModalQRCode(true); }} aoEditar={(a) => { definirAlunoEmEdicao(a); definirModalForm(true); }} aoExcluir={excluirAluno} aoMudarPagina={definirPaginaAtual} obterCorAvatar={obterCorAvatar} />
 
             <BarraSelecaoLote quantidade={alunosSelecionados.length} aoPromover={() => definirModalPromocao(true)} aoCancelar={() => definirAlunosSelecionados([])} />
 

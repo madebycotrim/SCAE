@@ -1,3 +1,4 @@
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿import { api } from './api';
 import { bancoLocal } from './bancoLocal';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';

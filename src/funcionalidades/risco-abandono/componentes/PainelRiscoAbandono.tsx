@@ -1,3 +1,4 @@
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿import { useState, useMemo, useEffect } from 'react';
 import type { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
 import { usarRiscoAbandono } from '../hooks/usarRiscoAbandono';

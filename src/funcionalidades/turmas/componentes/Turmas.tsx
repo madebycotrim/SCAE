@@ -1,3 +1,4 @@
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usarConsulta } from '@compartilhado/hooks/usarConsulta';

@@ -1,3 +1,4 @@
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿import { openDB, IDBPDatabase, IDBPTransaction } from 'idb';
 import type { EsquemaSCAE, AlunoLocal, TurmaLocal, RegistroAcessoLocal, UsuarioLocal, AlunoPresente } from '@compartilhado/types/bancoLocal.tipos';
 

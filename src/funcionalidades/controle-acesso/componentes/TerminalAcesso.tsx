@@ -1,3 +1,4 @@
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿import { useEffect, useState, useRef, useCallback } from 'react';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';

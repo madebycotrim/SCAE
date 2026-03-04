@@ -1,3 +1,4 @@
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿/**
  * FormHorariosAcesso — Formulário administrativo para configurar janelas de horário.
  * A escola define quando é período de ENTRADA e quando é período de SAÍDA.

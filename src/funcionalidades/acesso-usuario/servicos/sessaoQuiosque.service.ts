@@ -5,7 +5,7 @@
  *
  * @module autenticacao/servicos/sessaoQuiosque.service
  */
-import { getAuth, setPersistence, indexedDBLocalPersistence } from 'firebase/auth';
+import { setPersistence, indexedDBLocalPersistence } from 'firebase/auth';
 import { autenticacao } from '@compartilhado/servicos/firebase.config';
 
 /**

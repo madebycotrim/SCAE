@@ -9,7 +9,7 @@ import { TIPO_ACESSO } from '../types/controleAcesso.tipos';
  * Outros -> INDEFINIDO
  */
 export function usarTipoAcesso() {
-    const [tipo, setTipo] = useState<string>(TIPO_ACESSO.INDEFINIDO);
+    const [tipo, definirTipo] = useState<string>(TIPO_ACESSO.INDEFINIDO);
 
     useEffect(() => {
         const atualizarTipo = () => {
@@ -17,11 +17,11 @@ export function usarTipoAcesso() {
             const hora = agora.getHours();
 
             if (hora >= 6 && hora < 13) {
-                setTipo(TIPO_ACESSO.ENTRADA);
+                definirTipo(TIPO_ACESSO.ENTRADA);
             } else if (hora >= 13 && hora < 22) {
-                setTipo(TIPO_ACESSO.SAIDA);
+                definirTipo(TIPO_ACESSO.SAIDA);
             } else {
-                setTipo(TIPO_ACESSO.INDEFINIDO);
+                definirTipo(TIPO_ACESSO.INDEFINIDO);
             }
         };
 

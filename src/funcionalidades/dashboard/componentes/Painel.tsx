@@ -1,3 +1,4 @@
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';

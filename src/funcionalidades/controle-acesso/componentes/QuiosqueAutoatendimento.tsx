@@ -1,3 +1,4 @@
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 ﻿/**
  * QuiosqueAutoatendimento — Tela principal do tablet (fullscreen, sem navbar, sem menus).
  *
