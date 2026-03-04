@@ -39,7 +39,7 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         const CONJUNTO_CHAVES_JSON = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 
         const { payload: dadosToken } = await jwtVerify(token, CONJUNTO_CHAVES_JSON, {
-            issuer: https://securetoken.google.com/,
+            issuer: `https://securetoken.google.com/${ID_PROJETO_FIREBASE}`,
             audience: ID_PROJETO_FIREBASE,
         });
 
@@ -69,10 +69,10 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
 
         // 3. Impor Restrição de Domínio
         const dominioEscola = escola.dominio_email;
-        const temRelacaoComDominio = dominioEscola && email.endsWith(@);
+        const temRelacaoComDominio = dominioEscola && email.endsWith(`@${dominioEscola}`);
 
         if (!temRelacaoComDominio && !eAdminGlobal) {
-            throw new Error(Email não autorizado para esta escola. Use sua conta institucional @.);
+            throw new Error(`Email não autorizado para esta escola. Use sua conta institucional @${dominioEscola}.`);
         }
 
         // 4. Validar usuário NAQUELA escola
