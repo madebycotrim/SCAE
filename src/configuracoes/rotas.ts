@@ -10,10 +10,10 @@
 import { lazy } from 'react';
 
 // --- Lazy loading de todas as páginas ---
-export const PaginaLogin = lazy(() => import('@funcionalidades/acesso-usuario/componentes/TelaAcesso'));
+export const PaginaLogin = lazy(() => import('@funcionalidades/usuarios/componentes/TelaAcesso'));
 export const PaginaPainel = lazy(() => import('@funcionalidades/dashboard/componentes/Painel'));
-export const PaginaAlunos = lazy(() => import('@funcionalidades/alunos/componentes/Alunos'));
-export const PaginaTurmas = lazy(() => import('@funcionalidades/turmas/componentes/Turmas'));
+export const PaginaAlunos = lazy(() => import('@funcionalidades/academico/componentes/Alunos'));
+export const PaginaTurmas = lazy(() => import('@funcionalidades/academico/componentes/Turmas'));
 export const PaginaTerminalAcesso = lazy(() => import('@funcionalidades/controle-acesso/componentes/TerminalAcesso'));
 export const PaginaQuiosqueAutoatendimento = lazy(() => import('@funcionalidades/controle-acesso/componentes/QuiosqueAutoatendimento'));
 export const PaginaRelatorios = lazy(() => import('@funcionalidades/relatorios/componentes/Relatorios'));
@@ -21,8 +21,8 @@ export const PaginaAuditoria = lazy(() => import('@funcionalidades/auditoria/com
 export const PaginaUsuarios = lazy(() => import('@funcionalidades/usuarios/componentes/Usuarios'));
 export const PaginaConfiguracaoHorarios = lazy(() => import('@funcionalidades/configuracao-horarios/componentes/FormHorariosAcesso'));
 export const PaginaRiscoAbandono = lazy(() => import('@funcionalidades/risco-abandono/componentes/PainelRiscoAbandono'));
-import PaginaLoginResponsavelComp from '@funcionalidades/responsavel/componentes/TelaLoginResponsavel';
-import PaginaPainelResponsavelComp from '@funcionalidades/responsavel/componentes/PainelResponsavel';
+import PaginaLoginResponsavelComp from '@funcionalidades/academico/componentes/TelaLoginResponsavel';
+import PaginaPainelResponsavelComp from '@funcionalidades/academico/componentes/PainelResponsavel';
 
 export const PaginaLoginResponsavel = PaginaLoginResponsavelComp;
 export const PaginaPainelResponsavel = PaginaPainelResponsavelComp;

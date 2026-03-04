@@ -2,7 +2,7 @@
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { SelectComBusca } from '@compartilhado/componentes/SelectComBusca';
 import { CheckCircle, User, Hash, GraduationCap, Power, Mail, ChevronRight, ArrowLeft } from 'lucide-react';
-import { Aluno, TurmaLocal } from '../types/aluno';
+import { Aluno, TurmaLocal } from '../tipos/academico';
 import { Botao } from '@compartilhado/componentes/UI';
 
 interface FormAlunoModalProps {

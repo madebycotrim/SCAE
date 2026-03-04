@@ -7,7 +7,7 @@ import { Plus, Search, Upload, Calendar, Layers, CheckCircle2, XCircle, Grid } f
 import toast from 'react-hot-toast';
 
 import { alunoServico } from '../servicos/aluno.servico';
-import { Aluno } from '../types/aluno';
+import { Aluno } from '../tipos/academico';
 
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
 import { usarEscola } from '@escola/ProvedorEscola';

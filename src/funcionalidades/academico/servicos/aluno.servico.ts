@@ -2,7 +2,7 @@
 import { api } from '@compartilhado/servicos/api';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import { Aluno, ResultadoImportacao, FiltrosAluno } from '../types/aluno';
+import { Aluno, ResultadoImportacao, FiltrosAluno } from '../tipos/academico';
 import toast from 'react-hot-toast';
 
 const log = criarRegistrador('AlunoServico');

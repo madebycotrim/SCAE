@@ -3,7 +3,7 @@ import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { FileSpreadsheet, Clipboard, Upload, CheckCircle, XCircle, Info, ChevronRight, AlertCircle } from 'lucide-react';
 import { read, utils } from 'xlsx';
 import toast from 'react-hot-toast';
-import { ResultadoImportacao } from '../types/aluno';
+import { ResultadoImportacao } from '../tipos/academico';
 import { Botao } from '@compartilhado/componentes/UI';
 
 interface ImportacaoAlunosModalProps {

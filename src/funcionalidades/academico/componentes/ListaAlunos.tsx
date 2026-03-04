@@ -1,5 +1,5 @@
 ﻿import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
-import { Aluno } from '../types/aluno';
+import { Aluno } from '../tipos/academico';
 import { mascararDadoPessoal } from '@compartilhado/utils/registrarLocal';
 
 interface ListaAlunosProps {
@@ -85,7 +85,7 @@ export default function ListaAlunos({
                                             </div>
                                             <div className="flex flex-col gap-0.5">
                                                 <span className="font-black text-slate-800 text-xs uppercase tracking-tight group-hover:text-slate-950 transition-colors">{aluno.nome_completo}</span>
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{aluno.email ? mascararDadoPessoal(aluno.email, 'email') : 'CONTATO NÃO CATALOGADO'}</span>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{aluno.email_responsavel ? mascararDadoPessoal(aluno.email_responsavel, 'email') : 'CONTATO NÃO CATALOGADO'}</span>
                                             </div>
                                         </div>
                                     </td>

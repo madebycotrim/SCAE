@@ -2,7 +2,7 @@
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { SelectComBusca } from '@compartilhado/componentes/SelectComBusca';
 import { CheckCircle, Users, ArrowRight, GraduationCap } from 'lucide-react';
-import { TurmaLocal } from '../types/aluno';
+import { TurmaLocal } from '../tipos/academico';
 import { Botao } from '@compartilhado/componentes/UI';
 
 interface PromocaoLoteModalProps {
