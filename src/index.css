@@ -11,21 +11,62 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* Premium High-End Palette */
+  /* Identidade Visual da Escola (White Label)
+     Valores padrão — sobrescritos por ProvedorEscola.tsx com dados do banco */
+  --cor-primaria: #6366f1;
+  --cor-secundaria: #ffffff;
+
+  /* Premium High-End Palette (fallback) */
   --color-primary: #6366f1;
-  /* Indigo 500 */
   --color-primary-dark: #4f46e5;
-  /* Indigo 600 */
   --color-secondary: #a855f7;
-  /* Purple 500 */
 
   --bg-app: #ffffff;
-  /* Aura Pure White */
   --bg-surface: #ffffff;
 
   --glass-border: rgba(255, 255, 255, 0.4);
   --glass-surface: rgba(255, 255, 255, 0.85);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+/* ═══════════════════════════════════════════
+   Utility Classes — Identidade Visual Escola
+   Usam --cor-primaria definida por escola
+   ═══════════════════════════════════════════ */
+.bg-escola {
+  background-color: var(--cor-primaria);
+}
+
+.text-escola {
+  color: var(--cor-primaria);
+}
+
+.border-escola {
+  border-color: var(--cor-primaria);
+}
+
+.bg-escola-claro {
+  background-color: color-mix(in srgb, var(--cor-primaria) 10%, transparent);
+}
+
+.bg-escola-hover:hover {
+  background-color: color-mix(in srgb, var(--cor-primaria) 90%, black);
+}
+
+.border-escola-claro {
+  border-color: color-mix(in srgb, var(--cor-primaria) 20%, transparent);
+}
+
+.text-escola-claro {
+  color: color-mix(in srgb, var(--cor-primaria) 70%, white);
+}
+
+.shadow-escola {
+  box-shadow: 0 10px 25px -5px color-mix(in srgb, var(--cor-primaria) 20%, transparent);
+}
+
+.ring-escola {
+  --tw-ring-color: color-mix(in srgb, var(--cor-primaria) 30%, transparent);
 }
 
 body {

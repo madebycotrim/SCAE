@@ -97,7 +97,7 @@ export const servicoSincronizacao = {
                     metodo_leitura: (r as any).metodo_validacao || 'manual'
                 }));
 
-                const resposta = await api.enviar<Array<{ id: string; status: string }>>('/acessos', payloadFinal);
+                const resposta = await api.enviar<Array<{ id: string; status: string }>>('/registros-acesso', payloadFinal);
                 const idsSincronizados = resposta
                     .filter(r => r.status === 'sincronizado')
                     .map(r => r.id);
@@ -111,7 +111,7 @@ export const servicoSincronizacao = {
             // O histórico completo só é baixado na primeira instalação ou demanda específica
             try {
                 const hoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                const registrosServidor = await api.obter<RegistroAcessoLocal[]>(`/acessos?data=${hoje}&limite=5000`);
+                const registrosServidor = await api.obter<RegistroAcessoLocal[]>(`/registros-acesso?data=${hoje}&limite=5000`);
 
                 const banco = await bancoLocal.iniciarBanco();
                 const tx = banco.transaction('registros_acesso', 'readwrite');

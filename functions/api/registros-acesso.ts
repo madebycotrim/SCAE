@@ -23,8 +23,8 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
                 // IDEMPOTÊNCIA: Usar INSERT OR IGNORE.
                 await contexto.env.DB_SCAE.prepare(
                     `INSERT OR IGNORE INTO registros_acesso 
-                    (id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, timestamp_acesso, sincronizado, prazo_retencao_meses) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+                    (id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, timestamp_acesso, sincronizado) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)`
                 ).bind(
                     registro.id,
                     idEscola,
@@ -32,8 +32,7 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
                     registro.tipo_movimentacao,
                     registro.metodo_validacao || 'manual',
                     registro.timestamp,
-                    1,
-                    24
+                    1
                 ).run();
 
                 resultados.push({ id: registro.id, status: 'sincronizado' });
@@ -71,7 +70,7 @@ async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> 
         const data = searchParams.get('data');
         const desde = searchParams.get('desde');
 
-        let query = "SELECT id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura as metodo_validacao, timestamp_acesso as timestamp, sincronizado, prazo_retencao_meses FROM registros_acesso WHERE escola_id = ?";
+        let query = "SELECT id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura as metodo_validacao, timestamp_acesso as timestamp, sincronizado FROM registros_acesso WHERE escola_id = ?";
         const params: (string | number)[] = [idEscola];
 
         if (data) {

@@ -41,11 +41,11 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
             <div className="flex items-center justify-center h-screen bg-slate-950">
                 <div className="text-center max-w-md p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
                     <div className="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-500/30">
-                        <span className="text-2xl">ðŸ›‘</span>
+                        <span className="text-2xl">🛡️</span>
                     </div>
                     <h2 className="text-xl font-bold text-white mb-2">Acesso Classificado Root</h2>
                     <p className="text-slate-400 mb-6">Apenas a conta madebycotrim@gmail.com possui permissão para enxergar o Módulo Central.</p>
-                    <a href="/" className="inline-block px-6 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition-colors border border-slate-700">
+                    <a href="/" className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-xl font-bold hover:bg-[#0a1628] transition-colors border border-transparent shadow-sm">
                         Sair desta área
                     </a>
                 </div>
@@ -54,12 +54,14 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
     }
 
     // Se papéis foram definidos, verificar se o usuário tem permissão
-    if (papeis && papeis.length > 0 && usuario) {
-        let temPermissao = papeis.includes(usuario.papel);
+    if (papeis && papeis.length > 0) {
+        let temPermissao = false;
 
-        // Bypass implícito absoluto: Root é inerentemente CENTRAL independentemente de ser ADMIN nas permissões locais.
-        if (papeis.includes('CENTRAL') && usuarioAtual.email === 'madebycotrim@gmail.com') {
+        if (usuarioAtual.email === 'madebycotrim@gmail.com') {
+            // Bypass global para o root account
             temPermissao = true;
+        } else if (usuario) {
+            temPermissao = papeis.includes(usuario.papel);
         }
 
         if (!temPermissao) {
@@ -67,11 +69,11 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
                 <div className="flex items-center justify-center h-screen bg-slate-50">
                     <div className="text-center max-w-md p-8">
                         <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-2xl">ðŸ”’</span>
+                            <span className="text-2xl">🔒</span>
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">Acesso Restrito</h2>
                         <p className="text-slate-500 mb-6">Você não tem permissão para acessar esta página.</p>
-                        <a href={desabilitarEscolaCheck ? '/central/login' : `/${slugEscola}/admin/painel`} className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors">
+                        <a href={desabilitarEscolaCheck ? '/central/login' : `/${slugEscola}/admin/painel`} className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-xl font-bold hover:bg-[#0a1628] transition-colors shadow-sm">
                             {desabilitarEscolaCheck ? 'Voltar para Login Central' : 'Voltar ao Painel'}
                         </a>
                     </div>

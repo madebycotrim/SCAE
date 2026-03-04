@@ -46,6 +46,15 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                 document.documentElement.style.setProperty('--cor-secundaria', data.corSecundaria);
                 document.title = data.nomeEscola;
 
+                // Meta theme-color para mobile browsers
+                let metaTheme = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
+                if (!metaTheme) {
+                    metaTheme = document.createElement('meta');
+                    metaTheme.name = 'theme-color';
+                    document.head.appendChild(metaTheme);
+                }
+                metaTheme.content = data.corPrimaria;
+
                 // Salvar escola_id para uso pelo interceptor da API
                 sessionStorage.setItem('escola_id', data.id);
 

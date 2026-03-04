@@ -78,12 +78,14 @@ export default function TerminalAcesso() {
 
                 // Registrar Acesso
                 const novoRegistro = {
+                    id: crypto.randomUUID(),
+                    escola_id: escola.id,
                     aluno_matricula: aluno.matricula,
                     aluno_nome: aluno.nome_completo,
                     aluno_turma: aluno.turma_id,
-                    timestamp: new Date().toISOString(),
+                    timestamp_acesso: new Date().toISOString(),
                     tipo_movimentacao: tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO ? 'ENTRADA' : tipoAcessoAtual,
-                    sincronizado: false
+                    sincronizado: 0
                 };
 
                 await banco.add('registros_acesso', novoRegistro);

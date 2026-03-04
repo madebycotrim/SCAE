@@ -6,38 +6,14 @@ import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 
 const registrar = criarRegistrador('ServicoRiscoAbandono');
 
-// Mocks temporários em memória para suportar a UI enquanto o Backend não possui a rota /risco-abandono
-const mockAlertasRiscoAbandono: AlertaRiscoAbandono[] = [
-    {
-        id: '1',
-        aluno_matricula: '2023001',
-        aluno_nome: 'João Silva',
-        turma_nome: '1º Ano A',
-        motivo: '3 dias consecutivos de falta',
-        status: 'PENDENTE',
-        data_criacao: new Date().toISOString(),
-        data_resolucao: null
-    },
-    {
-        id: '2',
-        aluno_matricula: '2023002',
-        aluno_nome: 'Maria Souza',
-        turma_nome: '2º Ano B',
-        motivo: 'Falta sistemática em dias de prova',
-        status: 'EM_ANALISE',
-        data_criacao: new Date(Date.now() - 86400000).toISOString(),
-        data_resolucao: null
-    }
-];
-
 export const riscoAbandonoServico = {
     buscarAlertas: async (): Promise<AlertaRiscoAbandono[]> => {
         try {
             const response = await api.obter<AlertaRiscoAbandono[]>('/risco-abandono');
             return response || [];
         } catch (erro) {
-            registrar.warn('Endpoint /risco-abandono indisponível ou retornando HTML. Utilizando Fallback Mocks em memória.');
-            return [...mockAlertasRiscoAbandono];
+            registrar.warn('Endpoint /risco-abandono indisponível ou erro na busca de alertas. Retornando vazio.');
+            return [];
         }
     },
 
@@ -56,17 +32,8 @@ export const riscoAbandonoServico = {
             const response = await api.atualizar<{ success: boolean }>(`/risco-abandono/${alertaId}`, { status: novoStatus });
             return response?.success === true;
         } catch (erro) {
-            registrar.warn(`Endpoint /risco-abandono indisponível para atualização do alerta ${alertaId}. Simulando sucesso no Mock.`);
-            const alertaIdx = mockAlertasRiscoAbandono.findIndex(a => a.id === alertaId);
-            if (alertaIdx !== -1) {
-                mockAlertasRiscoAbandono[alertaIdx].status = novoStatus;
-                if (novoStatus === 'RESOLVIDO') {
-                    mockAlertasRiscoAbandono[alertaIdx].data_resolucao = new Date().toISOString();
-                } else {
-                    mockAlertasRiscoAbandono[alertaIdx].data_resolucao = null;
-                }
-            }
-            return true;
+            registrar.error(`Erro ao atualizar o alerta ${alertaId}.`, erro);
+            return false;
         }
     },
 
@@ -75,10 +42,10 @@ export const riscoAbandonoServico = {
             const response = await api.enviar<{ gerados: number; mensagem: string }>('/risco-abandono/processar', {});
             return response;
         } catch (erro) {
-            registrar.warn('Endpoint /risco-abandono/processar indisponível. Simulando varredura do Motor de Faltas no Mock.');
+            registrar.error('Erro ao processar o Motor de Faltas.', erro);
             return {
                 gerados: 0,
-                mensagem: '(Mock Mapeado) O Motor de Faltas virtual foi simulado com sucesso.'
+                mensagem: 'Erro ao executar o motor.'
             };
         }
     }

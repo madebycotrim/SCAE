@@ -1,6 +1,6 @@
 ﻿import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, Smartphone, Users, ShieldCheck } from 'lucide-react';
+import { X, Zap, Smartphone, Users, ShieldCheck, Palette, WifiOff, AlertTriangle } from 'lucide-react';
 import FocusTrap from 'focus-trap-react';
 
 interface ModalSobreProps {
@@ -72,7 +72,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                 <button
                                     onClick={aoFechar}
                                     className={`p-2.5 rounded-xl transition-colors shadow-sm
-                                    ${temaEscuro ? 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                    ${temaEscuro ? 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-200'}`}
                                     aria-label="Fechar Modal"
                                 >
                                     <X className="w-5 h-5" />
@@ -82,22 +82,23 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                             {/* Modal Content */}
                             <div className={`p-6 md:p-8 overflow-y-auto ${temaEscuro ? 'bg-[#0B0F19]' : 'bg-white'}`}>
                                 <div className="space-y-12">
-                                    {/* Passo 1 - Controle de Acesso */}
+                                    {/* 1 — Controle de Acesso */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
-                                        ${temaEscuro ? 'bg-indigo-900/30 border-indigo-800/50 text-indigo-400' : 'bg-indigo-50 border-indigo-100 text-indigo-600'}`}>
+                                        ${temaEscuro ? 'bg-sky-900/30 border-sky-800/50 text-sky-400' : 'bg-sky-50 border-sky-100 text-sky-600'}`}>
                                             <Zap className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">1</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-sky-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">1</div>
                                         </div>
                                         <div>
-                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Controle de Acesso Inteligente</h3>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Controle de Acesso no Portão</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                A validação no portão ocorre em milissegundos via leitura de <strong>QR Code Dinâmico</strong> ou biometria. O sistema gerencia não apenas alunos, mas também o acesso de funcionários e visitantes, operando de forma descentralizada para garantir o funcionamento ininterrupto durante os horários de pico, mesmo que ocorram instabilidades na rede.
+                                                <em className="block mb-2 opacity-80">A portaria da escola não pode depender da internet para funcionar.</em>
+                                                A validação ocorre em milissegundos via leitura de <strong>QR Code com assinatura digital</strong>. O tablet do quiosque valida o crachá localmente, sem precisar consultar nenhum servidor — se a rede cair, o portão continua operando normalmente. Cada leitura é registrada com data, hora e tipo de movimentação (entrada ou saída).
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Passo 2 - Responsáveis */}
+                                    {/* 2 — Portal do Responsável */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
                                         ${temaEscuro ? 'bg-emerald-900/30 border-emerald-800/50 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
@@ -105,44 +106,47 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">2</div>
                                         </div>
                                         <div>
-                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Aplicativo e Painel do Responsável</h3>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Portal do Responsável</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                Uma ponte de confiança digital entre o colégio e a família. Assim que a catraca é acionada, os pais recebem <strong>notificações automáticas</strong> (push ou e-mail) indicando a entrada, saída antecipada ou possíveis atrasos dos filhos. Além do monitoramento de acesso, o painel centraliza avisos e históricos consolidados de frequência.
+                                                <em className="block mb-2 opacity-80">Pais tranquilos produzem alunos mais seguros.</em>
+                                                Uma ponte de confiança entre a escola e a família. Os pais se cadastram pelo <strong>link público da escola</strong>, vinculam-se aos filhos e acessam um painel com o histórico completo de entradas e saídas. Cada responsável vê <strong>apenas os dados dos seus próprios filhos</strong> — ninguém mais.
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Passo 3 - Alunos e Turmas */}
+                                    {/* 3 — Alertas de Risco de Evasão */}
+                                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        ${temaEscuro ? 'bg-rose-900/30 border-rose-800/50 text-rose-400' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
+                                            <AlertTriangle className="w-8 h-8" />
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">3</div>
+                                        </div>
+                                        <div>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Alertas de Risco de Evasão Escolar</h3>
+                                            <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                <em className="block mb-2 opacity-80">Uma falta não deveria se tornar uma evasão por falta de informação.</em>
+                                                O sistema monitora a frequência diariamente e <strong>sinaliza alunos com 3 ou mais faltas consecutivas</strong> sem justificativa. Esses alertas aparecem em um painel exclusivo da coordenação pedagógica, permitindo que o orientador educacional entre em contato com a família <strong>antes</strong> que o quadro se agrave. Quando o aluno retorna, o alerta é arquivado automaticamente — sem burocracia e sem intervenção manual.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* 4 — Gestão de Turmas e Horários */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
                                         ${temaEscuro ? 'bg-amber-900/30 border-amber-800/50 text-amber-400' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="16" x="4" y="4" rx="2" /><rect width="6" height="6" x="9" y="9" rx="1" /><path d="M15 2v2" /><path d="M15 20v2" /><path d="M2 15h2" /><path d="M2 9h2" /><path d="M20 15h2" /><path d="M20 9h2" /><path d="M9 2v2" /><path d="M9 20v2" /></svg>
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">3</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">4</div>
                                         </div>
                                         <div>
-                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Gestão Centralizada de Turmas e Horários</h3>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Gestão de Turmas e Horários de Acesso</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                O motor de acesso do SCAE vai muito além de um "abre-portas". A secretaria cadastra o mapa de turmas, turnos e integra essas informações com as <strong>janelas de acesso exclusivas de cada série</strong>. Alunos do turno vespertino, por exemplo, não conseguem acessar as dependências da instituição durante o período matutino sem autorização prévia registrada no sistema.
+                                                <em className="block mb-2 opacity-80">O controle do portão começa no mapa de turmas.</em>
+                                                A secretaria cadastra turmas por série, letra, turno e sala. O sistema permite configurar <strong>janelas de acesso por turno</strong>, restringindo a entrada de alunos fora do seu horário autorizado. Alunos do vespertino, por exemplo, não conseguem validar o acesso no período matutino sem autorização prévia registrada.
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Passo 4 - Evasão */}
-                                    <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
-                                        ${temaEscuro ? 'bg-rose-900/30 border-rose-800/50 text-rose-400' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
-                                            <Users className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">4</div>
-                                        </div>
-                                        <div>
-                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Módulo Preditivo de Evasão Escolar</h3>
-                                            <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                Ao cruzar as métricas de frequência, a inteligência do sistema <strong>sinaliza alunos em zona crítica</strong> de faltas ou com atrasos crônicos. A coordenação pedagógica visualiza estes painéis de risco e dispara medidas de engajamento antes do agravamento do quadro, transformando o "controle de faltas" numa ferramenta real de sucesso e retenção do estudante.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Passo 5 - Dashboard */}
+                                    {/* 5 — Painel Administrativo */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
                                         ${temaEscuro ? 'bg-fuchsia-900/30 border-fuchsia-800/50 text-fuchsia-400' : 'bg-fuchsia-50 border-fuchsia-100 text-fuchsia-600'}`}>
@@ -150,34 +154,69 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-fuchsia-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">5</div>
                                         </div>
                                         <div>
-                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Dashboards Gerenciais (BI) e Relatórios</h3>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Painel Administrativo e Gestão Central</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                Painéis visuais fornecem à gestão institucional total clareza processual. Por meio de <strong>relatórios gráficos em tempo real</strong>, o diretor audita picos de ocupação do colégio e gargalos na rotina de entrada e saída. Em redes de franquias e múltiplas unidades, esse comando sobe para a Gestão Central, consolidando dados num só lugar.
+                                                <em className="block mb-2 opacity-80">Direção que enxerga tudo, decide melhor.</em>
+                                                O painel da administração reúne <strong>registros de acesso, alunos, turmas e relatórios</strong> em um único lugar. Para redes com múltiplas unidades, a <strong>Gestão Central</strong> consolida todas as escolas em um painel unificado — permitindo acompanhar cada unidade sem precisar acessar escola por escola.
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Passo 6 - LGPD e Logs */}
+                                    {/* 6 — Modo Offline */}
+                                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        ${temaEscuro ? 'bg-orange-900/30 border-orange-800/50 text-orange-400' : 'bg-orange-50 border-orange-100 text-orange-600'}`}>
+                                            <WifiOff className="w-8 h-8" />
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">6</div>
+                                        </div>
+                                        <div>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Funciona Mesmo Sem Internet</h3>
+                                            <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                <em className="block mb-2 opacity-80">A rede pode cair. O sistema, não.</em>
+                                                O terminal de acesso opera <strong>100% offline</strong>. Todos os registros são armazenados localmente no dispositivo com identificador único, garantindo que nenhuma leitura se perca ou se duplique. Quando a conexão retorna, o sistema <strong>sincroniza automaticamente</strong> os registros pendentes, corrige a hora do dispositivo se necessário e atualiza a lista de crachás bloqueados — tudo sem intervenção humana.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* 7 — Identidade Visual (White Label) */}
+                                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        ${temaEscuro ? 'bg-cyan-900/30 border-cyan-800/50 text-cyan-400' : 'bg-cyan-50 border-cyan-100 text-cyan-600'}`}>
+                                            <Palette className="w-8 h-8" />
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-cyan-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">7</div>
+                                        </div>
+                                        <div>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>A Cara da Sua Escola</h3>
+                                            <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                <em className="block mb-2 opacity-80">O sistema veste a identidade da sua instituição.</em>
+                                                Cada escola recebe uma <strong>URL exclusiva</strong> (ex: <code className="text-xs px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">seuapp.com/sua-escola</code>) e as cores da instituição são aplicadas automaticamente em <strong>todas as telas</strong> — da tela de login ao quiosque do portão, passando pelo painel administrativo. Para os pais, a experiência é a de um sistema próprio da escola, não de uma plataforma genérica.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* 8 — LGPD */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
                                         ${temaEscuro ? 'bg-blue-900/30 border-blue-800/50 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
                                             <ShieldCheck className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">6</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">8</div>
                                         </div>
                                         <div>
-                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Portal LGPD e Auditoria de Logs</h3>
+                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Conformidade LGPD desde o Primeiro Dia</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                Construído com conformidade integral à Lei Geral de Proteção de Dados sob a base de <strong>obrigação legal e segurança</strong>. O sistema registra de forma autônoma a validação de cada QR Code na catraca e conta com um rigoroso módulo de Logs de Atividades para auditar acessos manuais de exceção. No 'Portal do Titular', os pais acompanham com total transparência o histórico exato de entradas e saídas exclusivamente dos seus respectivos filhos.
+                                                <em className="block mb-2 opacity-80">Dados de menores exigem cuidado redobrado — e o SCAE foi construído com isso em mente.</em>
+                                                O sistema coleta apenas o <strong>mínimo necessário</strong> para funcionar (matrícula, nome, turma e horário). Cada ação administrativa é registrada em <strong>logs de auditoria imutáveis</strong>, permitindo rastrear quem acessou o quê e quando. A base legal de tratamento segue o Art. 14 da LGPD, com proteção reforçada para dados de crianças e adolescentes.
                                             </p>
                                         </div>
                                     </div>
 
+
                                 </div>
 
-                                <div className="mt-12 p-8 bg-gradient-to-br from-slate-900 to-indigo-950 rounded-3xl text-center shadow-lg relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                                <div className="mt-12 p-8 bg-gradient-to-br from-slate-900 to-sky-950 rounded-3xl text-center shadow-lg relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                                     <h4 className="text-white font-extrabold text-2xl mb-3 relative z-10">O próximo passo lógico para a sua instituição.</h4>
-                                    <p className="text-indigo-200/80 text-base font-medium mb-6 max-w-lg mx-auto relative z-10">
+                                    <p className="text-sky-200/80 text-base font-medium mb-6 max-w-lg mx-auto relative z-10">
                                         Assuma o controle de acesso e eleve a percepção de valor e segurança da sua escola perante as famílias.
                                     </p>
                                     <button
@@ -185,9 +224,9 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                             aoFechar();
                                             aoAbrirModalContato();
                                         }}
-                                        className="relative z-10 inline-flex items-center gap-2 bg-white text-indigo-900 hover:bg-indigo-50 hover:scale-105 active:scale-95 px-8 py-3.5 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                                        className="relative z-10 inline-flex items-center gap-2 bg-white text-sky-900 hover:bg-sky-50 hover:scale-105 active:scale-95 px-8 py-3.5 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                                     >
-                                        Falar com um Consultor
+                                        Entre em contato
                                     </button>
                                 </div>
                             </div>

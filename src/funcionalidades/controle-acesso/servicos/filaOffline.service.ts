@@ -23,9 +23,10 @@ export async function enfileirarRegistro(registro: RegistroOffline): Promise<voi
     try {
         await bancoLocal.salvarRegistro({
             id: registro.id,
+            escola_id: registro.idEscola,
             aluno_matricula: registro.alunoMatricula,
             tipo_movimentacao: registro.tipoMovimentacao,
-            timestamp: new Date(registro.timestampAjustado).toISOString()
+            timestamp_acesso: new Date(registro.timestampAjustado).toISOString(),
         });
     } catch (e) {
         log.error('Falha de I/O Crítica no idb', e);

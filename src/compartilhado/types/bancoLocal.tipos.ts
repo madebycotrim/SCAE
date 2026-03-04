@@ -7,10 +7,6 @@ export interface AlunoLocal {
     turma_id: string;
     ativo: boolean;
     // LGPD
-    base_legal?: string;
-    finalidade_coleta?: string;
-    data_exclusao?: string;
-    // Tracking
     criado_em?: string;
     atualizado_em?: string;
     sincronizado?: number; // 0 = pendente | 1 = sincronizado
@@ -37,7 +33,8 @@ export interface RegistroAcessoLocal {
     escola_id: string;
     aluno_matricula: string;
     tipo_movimentacao: 'ENTRADA' | 'SAIDA';
-    timestamp: string;           // campo local (mapeado p/ timestamp_acesso no servidor)
+    timestamp_acesso: string;    // campo do servidor
+    timestamp?: string;          // campo local
     metodo_leitura?: string;     // 'qr_celular' | 'qr_carteirinha' | 'manual'
     sincronizado: number;        // 0 = pendente | 1 = sincronizado
 }
@@ -96,7 +93,7 @@ export interface EsquemaSCAE {
     registros_acesso: {
         key: string;
         value: RegistroAcessoLocal;
-        indexes: { escola_id: string; aluno_matricula: string; tipo_movimentacao: string; timestamp: string; sincronizado: number };
+        indexes: { escola_id: string; aluno_matricula: string; tipo_movimentacao: string; timestamp_acesso: string; timestamp: string; sincronizado: number };
     };
     fila_pendencias: {
         key: string;

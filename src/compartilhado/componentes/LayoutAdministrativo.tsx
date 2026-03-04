@@ -47,7 +47,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     const { ehAdmin, podeVerLogs, usuario, pode } = usarPermissoes();
     const navegar = useNavigate();
     const localizacao = useLocation();
-    const { id: slugEscola } = usarEscola();
+    const { id: slugEscola, nomeEscola } = usarEscola();
 
     /** Prefixo base para todas as rotas admin desta escola */
     const prefixoAdmin = `/${slugEscola}/admin`;
@@ -91,7 +91,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         {
             titulo: 'Controle',
             itens: [
-                { icone: Clock, texto: 'Acessos', rota: '/horarios' },
+                { icone: Clock, texto: 'Acessos', rota: '/configuracao-horarios' },
                 { icone: AlertTriangle, texto: 'Risco de Abandono', rota: '/risco-abandono' },
                 { icone: FileText, texto: 'Relatórios', rota: '/relatorios' },
             ]
@@ -163,18 +163,18 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         return (
             <div className="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-slate-100">
-                    <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-indigo-50/50">
-                        <Crown size={40} className="text-indigo-600" />
+                    <div className="w-20 h-20 bg-escola-claro rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-escola">
+                        <Crown size={40} className="text-escola" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 mb-2">Bem-vindo(a) ao SCAE!</h2>
                     <p className="text-slate-500 mb-8 leading-relaxed">
-                        Você recebeu acesso de <span className="font-bold text-indigo-600">{usuario.papel}</span>.
+                        Você recebeu acesso de <span className="font-bold text-escola">{usuario.papel}</span>.
                         Para continuar, confirme seus dados e aceite o convite para utilizar o sistema.
                     </p>
 
                     <button
                         onClick={confirmarAcesso}
-                        className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-indigo-600/20"
+                        className="w-full py-4 bg-escola text-white rounded-xl font-bold text-lg bg-escola-hover hover:scale-[1.02] active:scale-95 transition-all shadow-escola"
                     >
                         Confirmar e Acessar
                     </button>
@@ -204,29 +204,30 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             <aside
                 className={`
                     fixed lg:static inset-y-0 left-0 z-50
-                    bg-[#0f172a] border-r border-slate-800
+                    border-r border-[rgba(255,255,255,0.06)]
                     flex flex-col transition-all duration-300 ease-in-out shadow-lg relative
                     ${sidebarAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     ${sidebarMinimizado ? 'lg:w-20' : 'lg:w-64'}
                     w-64
                 `}
+                style={{ background: 'linear-gradient(145deg, #060d1f 0%, #0a1628 60%, #0d1f3c 100%)' }}
             >
                 {/* Seção do Logo (Clean) */}
                 <div className={`
-                    h-16 flex items-center border-b border-slate-800/50 relative z-10
+                    h-16 flex items-center relative z-10
                     ${sidebarMinimizado ? 'justify-center px-0' : 'justify-between px-6'}
                 `}>
                     <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="shrink-0 w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 rounded-[14px] flex items-center justify-center text-indigo-400 shadow-sm">
-                            <ShieldCheck className="w-5 h-5" strokeWidth={2} />
+                        <div className="shrink-0 flex items-center justify-center">
+                            <ShieldCheck className="w-6 h-6 text-sky-400" strokeWidth={2} />
                         </div>
 
                         {!sidebarMinimizado && (
-                            <div className="flex flex-col ml-1">
-                                <h1 className="font-bold text-lg text-white leading-tight flex items-center">
-                                    SCAE<span className="text-indigo-400">.</span>
+                            <div className="flex flex-col">
+                                <h1 className="font-bold text-lg text-white leading-tight">
+                                    SCAE
                                 </h1>
-                                <p className="text-xs text-slate-400">CEM 03 Taguatinga</p>
+                                <p className="text-xs text-slate-400 font-normal truncate max-w-[160px]">{nomeEscola}</p>
                             </div>
                         )}
                     </div>
@@ -236,8 +237,8 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         onClick={() => definirSidebarMinimizado(!sidebarMinimizado)}
                         className={`
                             absolute -right-3 top-1/2 -translate-y-1/2 
-                            w-6 h-6 bg-slate-800 border border-slate-700 rounded-full 
-                            flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700
+                            w-6 h-6 bg-[#0d1f3c] border border-[rgba(255,255,255,0.06)] rounded-full 
+                            flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800
                             z-50 hidden lg:flex transition-colors
                         `}
                     >
@@ -257,7 +258,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             {gruposMenu.map((grupo, idx) => (
                                 <div key={idx} className="space-y-1">
                                     {!sidebarMinimizado && (
-                                        <p className="px-3 text-xs font-semibold text-slate-500 mb-2 mt-4 first:mt-0">
+                                        <p className="pl-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 first:mt-0">
                                             {grupo.titulo}
                                         </p>
                                     )}
@@ -271,22 +272,22 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                     key={item.rota}
                                                     onClick={() => navegar(`${prefixoAdmin}${item.rota}`)}
                                                     className={`
-                                                        w-full flex items-center transition-colors
-                                                        ${sidebarMinimizado ? 'justify-center p-2.5 rounded-lg' : 'gap-3 px-3 py-2 rounded-lg'}
+                                                        w-full flex items-center transition-all duration-150 group
+                                                        ${sidebarMinimizado ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'}
                                                         ${ativo
-                                                            ? 'bg-gray-800 text-white'
-                                                            : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                                                            ? 'bg-[rgba(56,189,248,0.08)] border-l-2 border-sky-400 text-white font-semibold rounded-r-lg'
+                                                            : 'bg-transparent text-slate-300 font-medium hover:bg-[rgba(255,255,255,0.05)] hover:text-white rounded-lg'
                                                         }
                                                     `}
                                                     title={sidebarMinimizado ? item.texto : ""}
                                                 >
                                                     <Icone
                                                         size={18}
-                                                        className={ativo ? 'text-indigo-400' : ''}
+                                                        className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-200 transition-colors'}
                                                     />
 
                                                     {!sidebarMinimizado && (
-                                                        <span className="text-sm font-medium">
+                                                        <span className="text-sm">
                                                             {item.texto}
                                                         </span>
                                                     )}
@@ -304,7 +305,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         <div>
                             {!sidebarMinimizado && (
                                 <div className="mt-6 mb-2">
-                                    <p className="px-3 text-xs font-semibold text-slate-500">
+                                    <p className="pl-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                         Administração
                                     </p>
                                 </div>
@@ -320,21 +321,21 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                             key={item.rota}
                                             onClick={() => navegar(`${prefixoAdmin}${item.rota}`)}
                                             className={`
-                                                w-full flex items-center transition-colors
-                                                ${sidebarMinimizado ? 'justify-center p-2.5 rounded-lg' : 'gap-3 px-3 py-2 rounded-lg'}
+                                                w-full flex items-center transition-all duration-150 group
+                                                ${sidebarMinimizado ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'}
                                                 ${ativo
-                                                    ? 'bg-gray-800 text-white'
-                                                    : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                                                    ? 'bg-[rgba(56,189,248,0.08)] border-l-2 border-sky-400 text-white font-semibold rounded-r-lg'
+                                                    : 'bg-transparent text-slate-300 font-medium hover:bg-[rgba(255,255,255,0.05)] hover:text-white rounded-lg'
                                                 }
                                             `}
                                             title={sidebarMinimizado ? item.texto : ""}
                                         >
                                             <Icone
                                                 size={18}
-                                                className={ativo ? 'text-white' : ''}
+                                                className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-200 transition-colors'}
                                             />
                                             {!sidebarMinimizado && (
-                                                <span className="text-sm font-medium">
+                                                <span className="text-sm">
                                                     {item.texto}
                                                 </span>
                                             )}
@@ -347,39 +348,40 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 </nav>
 
                 {/* Rodapé - Perfil do Usuário */}
-                <div className="p-4 border-t border-gray-800 bg-gray-950 z-10">
-                    <div className={`flex items-center ${sidebarMinimizado ? 'justify-center flex-col gap-4' : 'gap-3 mb-4 px-1'}`}>
-                        <div className="relative group cursor-pointer">
-                            <div className="w-9 h-9 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center text-gray-300 font-bold text-sm">
-                                {usuarioAtual?.email?.[0]?.toUpperCase() || 'U'}
+                <div className="p-4 border-t border-[rgba(255,255,255,0.06)] z-10">
+                    <div className={`flex items-center ${sidebarMinimizado ? 'justify-center flex-col gap-4' : 'justify-between px-1'}`}>
+
+                        {/* Avatar e Infos */}
+                        <div className={`flex items-center ${sidebarMinimizado ? 'flex-col gap-4' : 'gap-3 min-w-0'}`}>
+                            <div className="relative shrink-0 cursor-pointer">
+                                <div className="w-9 h-9 bg-[#0d1f3c] border-[1.5px] border-[rgba(56,189,248,0.3)] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                    {usuarioAtual?.email?.[0]?.toUpperCase() || 'U'}
+                                </div>
+                                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#060d1f]"></div>
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-gray-950"></div>
+
+                            {!sidebarMinimizado && (
+                                <div className="flex-1 min-w-0 pr-2">
+                                    <p className="text-sm font-medium text-white truncate">
+                                        {usuarioAtual?.email?.split('@')[0] || 'Usuário'}
+                                    </p>
+                                    <p className="text-xs text-slate-400 truncate" title={usuarioAtual?.email}>
+                                        {usuarioAtual?.email}
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
-                        {!sidebarMinimizado && (
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-white truncate">
-                                    {usuarioAtual?.email?.split('@')[0] || 'Usuário'}
-                                </p>
-                                <p className="text-xs text-slate-400 truncate" title={usuarioAtual?.email}>
-                                    {usuarioAtual?.email}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className={`mt-2 ${sidebarMinimizado ? 'flex flex-col gap-3 items-center' : 'space-y-2'}`}>
+                        {/* Botão Sair */}
                         <button
                             onClick={aoSair}
                             className={`
-                                flex items-center justify-center transition-colors
-                                bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white
-                                ${sidebarMinimizado ? 'w-9 h-9 rounded-lg p-0' : 'w-full gap-2 px-3 py-2 rounded-lg'}
+                                flex items-center justify-center shrink-0 transition-all duration-150 group rounded-lg
+                                ${sidebarMinimizado ? 'w-9 h-9 hover:bg-[rgba(239,68,68,0.08)]' : 'w-8 h-8 hover:bg-[rgba(239,68,68,0.08)]'}
                             `}
-                            title={sidebarMinimizado ? "Sair" : ""}
+                            title="Sair"
                         >
-                            <LogOut size={16} />
-                            {!sidebarMinimizado && <span className="text-sm font-medium">Sair</span>}
+                            <LogOut size={16} className="text-slate-400 group-hover:text-red-400 transition-colors" />
                         </button>
                     </div>
                 </div>
@@ -465,13 +467,13 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                             key={notificacao.id}
                                                             className={`
                                                                 relative p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors group
-                                                                ${!notificacao.lida ? 'bg-indigo-50/40' : ''}
+                                                                ${!notificacao.lida ? 'bg-escola-claro' : ''}
                                                             `}
                                                         >
                                                             <div className="flex gap-3">
                                                                 <div className={`
                                                                     shrink-0 w-2 h-2 mt-2 rounded-full ring-2 ring-white
-                                                                    ${!notificacao.lida ? 'bg-indigo-500' : 'bg-slate-300'}
+                                                                    ${!notificacao.lida ? 'bg-escola' : 'bg-slate-300'}
                                                                 `}></div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex justify-between items-start">

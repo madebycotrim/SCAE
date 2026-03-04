@@ -84,7 +84,7 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                 <button
                                     onClick={aoFechar}
                                     className={`p-2 rounded-xl transition-colors shadow-sm
-                                    ${temaEscuro ? 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                    ${temaEscuro ? 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-200'}`}
                                     aria-label="Fechar"
                                 >
                                     <X className="w-5 h-5" />
@@ -123,8 +123,8 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                                     onChange={(e) => definirNome(e.target.value)}
                                                     className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none focus:ring-2 transition-all
                                                     ${temaEscuro
-                                                            ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20'
-                                                            : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500/20'}`}
+                                                            ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-sky-500 focus:ring-sky-500/20'
+                                                            : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:ring-sky-500/20'}`}
                                                 />
                                             </div>
                                         </div>
@@ -143,8 +143,8 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                                     onChange={(e) => definirEscola(e.target.value)}
                                                     className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none focus:ring-2 transition-all
                                                     ${temaEscuro
-                                                            ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20'
-                                                            : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500/20'}`}
+                                                            ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-sky-500 focus:ring-sky-500/20'
+                                                            : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:ring-sky-500/20'}`}
                                                 />
                                             </div>
                                         </div>
@@ -163,14 +163,14 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                                     onChange={(e) => definirTelefone(e.target.value)}
                                                     className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none focus:ring-2 transition-all
                                                     ${temaEscuro
-                                                            ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20'
-                                                            : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500/20'}`}
+                                                            ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-sky-500 focus:ring-sky-500/20'
+                                                            : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:ring-sky-500/20'}`}
                                                 />
                                             </div>
                                         </div>
                                         <button
                                             type="submit"
-                                            className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-600/20 transition-all hover:shadow-indigo-500/30 active:scale-[0.98]"
+                                            className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-sky-600/20 transition-all hover:shadow-sky-500/30 active:scale-[0.98]"
                                         >
                                             <Send className="w-5 h-5" />
                                             Enviar Solicitação

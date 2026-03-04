@@ -65,6 +65,7 @@ export default function Usuarios() {
         try {
             const novoUsuario: UsuarioLocal = {
                 email: dados.email,
+                escola_id: idEscola,
                 papel: dados.papel.toUpperCase() as PapelUsuario,
                 ativo: dados.ativo,
                 pendente: !usuarioEmEdicao,

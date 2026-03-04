@@ -166,8 +166,8 @@ export default function QuiosqueAutoatendimento() {
             {/* Header / Top Bar */}
             <div className="h-20 border-b border-slate-200 bg-white flex items-center justify-between px-8 z-20 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200">
-                        <ScanLine size={24} className="text-slate-700" />
+                    <div className="w-12 h-12 rounded-lg bg-escola-claro flex items-center justify-center border border-escola-claro">
+                        <ScanLine size={24} className="text-escola" />
                     </div>
                     <div>
                         <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -205,7 +205,7 @@ export default function QuiosqueAutoatendimento() {
                 {/* Scanner Section */}
                 <div className="flex-[3] bg-white rounded-3xl border border-slate-200 flex flex-col items-center justify-center p-8 overflow-hidden shadow-sm">
                     <h2 className="text-xl font-semibold text-slate-800 mb-8 flex items-center gap-2">
-                        <ScanLine size={24} className="text-indigo-600" /> Leitor de Crachá
+                        <ScanLine size={24} className="text-escola" /> Leitor de Crachá
                     </h2>
 
                     {/* Target Frame */}
@@ -217,7 +217,7 @@ export default function QuiosqueAutoatendimento() {
                         {/* Overlay Clearer */}
                         <div className="absolute inset-0 pointer-events-none z-10">
                             {confFila.animacoesAtivadas && statusLeitura === 'AGUARDANDO' && (
-                                <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500/80 shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-[varredura_2.2s_infinite]"></div>
+                                <div className="absolute top-0 left-0 w-full h-1 bg-escola shadow-[0_0_15px_var(--cor-primaria)] animate-[varredura_2.2s_infinite]"></div>
                             )}
 
                             {statusLeitura !== 'AGUARDANDO' && (
@@ -263,7 +263,7 @@ export default function QuiosqueAutoatendimento() {
                                             Matrícula: {'***' + ultimoAcesso.aluno.matricula.slice(-3)}
                                         </p>
 
-                                        <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-lg text-sm font-semibold border border-indigo-100">
+                                        <div className="inline-flex items-center gap-2 bg-escola-claro text-escola px-4 py-1.5 rounded-lg text-sm font-semibold border border-escola-claro">
                                             <ShieldCheck size={16} /> Turma {ultimoAcesso.aluno.turma_id}
                                         </div>
                                     </div>
