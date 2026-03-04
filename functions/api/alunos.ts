@@ -45,13 +45,13 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
             return new Response("Acesso negado: Papel insuficiente para cadastrar alunos", { status: 403 });
         }
 
-        const { matricula, nome_completo, turma_id, ativo }: PayloadCriacaoAluno = await contexto.request.json();
+        const { matricula, nome_completo, turma_id, ativo, email_responsavel }: PayloadCriacaoAluno = await contexto.request.json();
 
         if (!matricula || !nome_completo) {
             return new Response("Campos obrigatórios ausentes", { status: 400 });
         }
 
-        // UPSERT: Inserir ou Atualizar
+        // UPSERT: Inserir ou Atualizar Aluno
         await contexto.env.DB_SCAE.prepare(
             `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses) VALUES (?, ?, ?, ?, ?, 'obrigacao_legal', 'registro_acesso', 24)
              ON CONFLICT(matricula, escola_id) DO UPDATE SET
@@ -60,6 +60,39 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
              ativo = excluded.ativo,
              atualizado_em = CURRENT_TIMESTAMP`
         ).bind(matricula, idEscola, nome_completo, turma_id ?? null, ativo ? 1 : 0).run();
+
+        // Se houver e-mail de responsável, processar inserção + vínculo
+        if (email_responsavel && email_responsavel.trim() !== '') {
+            const emailLimpo = email_responsavel.trim().toLowerCase();
+
+            // 1. Tentar achar um responsavel existente com esse e-mail na escola
+            const { results: respExistente } = await contexto.env.DB_SCAE.prepare(
+                "SELECT id FROM responsaveis WHERE email = ? AND escola_id = ?"
+            ).bind(emailLimpo, idEscola).all();
+
+            let responsavelId = '';
+
+            if (respExistente && respExistente.length > 0) {
+                responsavelId = respExistente[0].id as string;
+            } else {
+                // Cria novo responsável
+                responsavelId = crypto.randomUUID();
+                await contexto.env.DB_SCAE.prepare(
+                    `INSERT INTO responsaveis (id, escola_id, email, nome_completo, base_legal, finalidade_coleta, prazo_retencao_meses) 
+                     VALUES (?, ?, ?, ?, 'consentimento', 'portal_familia', 24)`
+                ).bind(responsavelId, idEscola, emailLimpo, 'Responsável de ' + nome_completo).run();
+            }
+
+            // 2. Criar o vínculo usando IF NOT EXISTS logic
+            await contexto.env.DB_SCAE.prepare(
+                `INSERT INTO vinculo_responsavel_aluno (responsavel_id, aluno_matricula, escola_id)
+                 SELECT ?, ?, ?
+                 WHERE NOT EXISTS (
+                     SELECT 1 FROM vinculo_responsavel_aluno 
+                     WHERE responsavel_id = ? AND aluno_matricula = ? AND escola_id = ?
+                 )`
+            ).bind(responsavelId, matricula, idEscola, responsavelId, matricula, idEscola).run();
+        }
 
         return new Response("Criado", { status: 201 });
     } catch (erro) {

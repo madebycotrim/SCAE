@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 import { SelectComBusca } from '@compartilhado/componentes/SelectComBusca';
-import { CheckCircle, User, Hash, GraduationCap, Power } from 'lucide-react';
+import { CheckCircle, User, Hash, GraduationCap, Power, Mail, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Aluno, TurmaLocal } from '../types/aluno';
 import { Botao } from '@compartilhado/componentes/UI';
 
@@ -19,8 +19,10 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
         nome_completo: '',
         matricula: '',
         turma_id: '',
-        ativo: true
+        ativo: true,
+        email_responsavel: ''
     });
+    const [etapaAtual, definirEtapaAtual] = useState<1 | 2>(1);
 
     useEffect(() => {
         if (aluno) {
@@ -28,7 +30,8 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                 nome_completo: aluno.nome_completo,
                 matricula: aluno.matricula,
                 turma_id: aluno.turma_id,
-                ativo: aluno.ativo ?? true
+                ativo: aluno.ativo ?? true,
+                email_responsavel: aluno.email_responsavel || ''
             });
         }
     }, [aluno]);
@@ -51,105 +54,168 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
             tamanho="lg"
         >
             <div className="space-y-8">
-                {/* Nome Completo */}
-                <div className="relative group">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 transition-colors group-focus-within:text-slate-900">
-                        <User size={14} /> Nome Completo
-                    </label>
-                    <input
-                        type="text"
-                        required
-                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 placeholder:font-medium"
-                        value={dadosFormulario.nome_completo}
-                        onChange={(e) => definirDadosFormulario({ ...dadosFormulario, nome_completo: e.target.value })}
-                        placeholder="Ex: Mateus Felipe Cotrim"
-                    />
+                {/* Stepper Moderno (Compacto) */}
+                <div className="flex items-center justify-center gap-2.5 mb-8">
+                    <div className={`h-1 rounded-full transition-all duration-500 ${etapaAtual === 1 ? 'w-8 bg-slate-900' : 'w-3 bg-slate-200'}`}></div>
+                    <div className={`h-1 rounded-full transition-all duration-500 ${etapaAtual === 2 ? 'w-8 bg-slate-900' : 'w-3 bg-slate-200'}`}></div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                    {/* Matrícula */}
-                    <div className="relative">
-                        <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
-                            <Hash size={14} /> Matrícula
-                        </label>
-                        <input
-                            type="text"
-                            className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all disabled:bg-slate-100 disabled:text-slate-500 placeholder:text-slate-400"
-                            value={dadosFormulario.matricula}
-                            onChange={(e) => definirDadosFormulario({ ...dadosFormulario, matricula: e.target.value })}
-                            disabled={!!aluno}
-                            placeholder="Ex: 20240001"
-                        />
-                        <p className="mt-1.5 ml-1 text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">ID único permanente</p>
-                    </div>
-
-                    {/* Turma Dropdown */}
-                    <div className="relative">
-                        <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
-                            <GraduationCap size={14} /> Turma Designada
-                        </label>
-                        <SelectComBusca
-                            options={turmas.map(t => ({ value: t.id, label: t.id }))}
-                            value={dadosFormulario.turma_id}
-                            onChange={(valor) => definirDadosFormulario({ ...dadosFormulario, turma_id: valor as string })}
-                            placeholder="Selecione..."
-                            className={`w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold transition-all flex items-center justify-between ${dadosFormulario.turma_id ? 'text-slate-800 border-slate-300' : 'text-slate-400'}`}
-                        />
-                    </div>
-
-                    {/* Status Toggle */}
-                    {ehEdicao && (
-                        <div className="md:col-span-2 p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-inner">
-                            <label className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">
-                                <Power size={12} /> Situação da Matrícula
+                {etapaAtual === 1 && (
+                    <div className="space-y-8 animate-fade-in">
+                        {/* Nome Completo */}
+                        <div className="relative group">
+                            <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 transition-colors group-focus-within:text-slate-900">
+                                <User size={14} /> Nome Completo
                             </label>
-                            <div className="flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: true })}
-                                    className={`flex-1 h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${dadosFormulario.ativo
-                                        ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                                        : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
-                                        }`}
-                                >
-                                    Aluno Ativo
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: false })}
-                                    className={`flex-1 h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${!dadosFormulario.ativo
-                                        ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                                        : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
-                                        }`}
-                                >
-                                    Trancado / Inativo
-                                </button>
+                            <input
+                                type="text"
+                                required
+                                className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                                value={dadosFormulario.nome_completo}
+                                onChange={(e) => definirDadosFormulario({ ...dadosFormulario, nome_completo: e.target.value })}
+                                placeholder="Ex: João da Silva"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                            {/* Matrícula */}
+                            <div className="relative">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+                                    <Hash size={14} /> Matrícula
+                                </label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all disabled:bg-slate-100 disabled:text-slate-500 placeholder:text-slate-400"
+                                    value={dadosFormulario.matricula}
+                                    onChange={(e) => definirDadosFormulario({ ...dadosFormulario, matricula: e.target.value })}
+                                    disabled={!!aluno}
+                                    placeholder="Ex: 20240001"
+                                />
+                                <p className="mt-1.5 ml-1 text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">ID único permanente</p>
                             </div>
-                            <p className="mt-3 text-[9px] font-bold text-slate-400 leading-relaxed italic text-center">
-                                Matrículas trancadas revogam o acesso imediato ao terminal.
+
+                            {/* Turma Dropdown */}
+                            <div className="relative">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+                                    <GraduationCap size={14} /> Turma Designada
+                                </label>
+                                <SelectComBusca
+                                    options={turmas.map(t => ({ value: t.id, label: t.id }))}
+                                    value={dadosFormulario.turma_id}
+                                    onChange={(valor) => definirDadosFormulario({ ...dadosFormulario, turma_id: valor as string })}
+                                    placeholder="Selecione..."
+                                    className={`w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold transition-all flex items-center justify-between ${dadosFormulario.turma_id ? 'text-slate-800 border-slate-300' : 'text-slate-400'}`}
+                                />
+                            </div>
+
+                            {/* Status Toggle */}
+                            {ehEdicao && (
+                                <div className="md:col-span-2 p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-inner">
+                                    <label className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">
+                                        <Power size={12} /> Situação da Matrícula
+                                    </label>
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: true })}
+                                            className={`flex-1 h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${dadosFormulario.ativo
+                                                ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                                : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
+                                                }`}
+                                        >
+                                            Aluno Ativo
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: false })}
+                                            className={`flex-1 h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${!dadosFormulario.ativo
+                                                ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                                                : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
+                                                }`}
+                                        >
+                                            Trancado / Inativo
+                                        </button>
+                                    </div>
+                                    <p className="mt-3 text-[9px] font-bold text-slate-400 leading-relaxed italic text-center">
+                                        Matrículas trancadas revogam o acesso imediato ao terminal.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {etapaAtual === 2 && (
+                    <div className="space-y-8 animate-fade-in">
+                        <div className="p-5 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                            <h4 className="text-[11px] font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2 mb-2">
+                                <Mail size={14} className="text-indigo-600" /> Acesso ao Portal do Responsável
+                            </h4>
+                            <p className="text-[11px] text-indigo-700/80 font-medium leading-relaxed">
+                                Cadastre o e-mail do pai ou responsável legal. Eles receberão acesso ao painel familiar exclusivo para acompanhamento em tempo real das notificações de acesso.
                             </p>
                         </div>
-                    )}
-                </div>
+
+                        <div className="relative group">
+                            <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 transition-colors group-focus-within:text-slate-900">
+                                E-mail do Responsável (Opcional)
+                            </label>
+                            <input
+                                type="email"
+                                className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                                value={dadosFormulario.email_responsavel}
+                                onChange={(e) => definirDadosFormulario({ ...dadosFormulario, email_responsavel: e.target.value })}
+                                placeholder="Ex: responsável@email.com"
+                            />
+                            <p className="mt-1.5 ml-1 text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">Pode ser adicionado futuramente pelas configurações.</p>
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex gap-4 pt-8 mt-4 border-t border-slate-100 justify-end">
-                    <Botao
-                        variante="secundario"
-                        tamanho="lg"
-                        onClick={aoFechar}
-                        disabled={carregando}
-                    >
-                        Cancelar
-                    </Botao>
-                    <Botao
-                        variante="primario"
-                        tamanho="lg"
-                        icone={CheckCircle}
-                        onClick={manipularSalvar}
-                        loading={carregando}
-                    >
-                        {aluno ? 'Atualizar Aluno' : 'Finalizar Matrícula'}
-                    </Botao>
+                    {etapaAtual === 1 ? (
+                        <>
+                            <Botao
+                                variante="secundario"
+                                tamanho="lg"
+                                onClick={aoFechar}
+                                disabled={carregando}
+                            >
+                                Cancelar
+                            </Botao>
+                            <Botao
+                                variante="primario"
+                                tamanho="lg"
+                                icone={ChevronRight}
+                                onClick={() => definirEtapaAtual(2)}
+                                disabled={!dadosFormulario.nome_completo || !dadosFormulario.matricula || !dadosFormulario.turma_id}
+                                className="flex-row-reverse"
+                            >
+                                Próximo Passo
+                            </Botao>
+                        </>
+                    ) : (
+                        <>
+                            <Botao
+                                variante="secundario"
+                                tamanho="lg"
+                                icone={ArrowLeft}
+                                onClick={() => definirEtapaAtual(1)}
+                                disabled={carregando}
+                            >
+                                Voltar
+                            </Botao>
+                            <Botao
+                                variante="primario"
+                                tamanho="lg"
+                                icone={CheckCircle}
+                                onClick={manipularSalvar}
+                                loading={carregando}
+                            >
+                                {aluno ? 'Salvar Tudo' : 'Finalizar Matrícula'}
+                            </Botao>
+                        </>
+                    )}
                 </div>
             </div>
         </ModalUniversal>

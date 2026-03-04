@@ -15,11 +15,12 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         return proximo();
     }
 
-    // Rotas públicas — não exigem autenticação
+    // Rotas públicas — não exigem autenticação Firebase admin
     const url = new URL(requisicao.url);
-    const rotasPublicas = ['/api/escola/'];
-    const ehRotaPublica = rotasPublicas.some(rota => url.pathname.startsWith(rota));
-    if (ehRotaPublica && requisicao.method === 'GET') {
+    const rotaResponsavel = url.pathname.startsWith('/api/responsavel/');
+    const ehPublicaGet = url.pathname.startsWith('/api/escola/') && requisicao.method === 'GET';
+
+    if (rotaResponsavel || ehPublicaGet) {
         return proximo();
     }
 

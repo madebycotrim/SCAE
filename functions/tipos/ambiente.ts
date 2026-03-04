@@ -165,6 +165,7 @@ export interface PayloadCriacaoAluno {
     nome_completo: string;
     turma_id?: string;
     ativo?: boolean;
+    email_responsavel?: string;
 }
 
 export interface PayloadCriacaoTurma {

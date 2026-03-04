@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
-import { BookOpen, Users, GraduationCap, ChevronRight, CheckCircle, MapPin, Calendar, Clock, Hash } from 'lucide-react';
+import { BookOpen, Users, GraduationCap, ChevronRight, CheckCircle, MapPin, Calendar, Clock, Hash, ArrowLeft } from 'lucide-react';
 import { Botao } from '@compartilhado/componentes/UI';
 
 interface FormTurmaModalProps {
@@ -140,7 +140,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-8 animate-fade-in shadow-inner p-1">
+                        <div className="space-y-8 animate-fade-in">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* Ano Letivo */}
                                 <div className="relative group">
@@ -206,39 +206,49 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                     )}
                 </div>
 
-                {/* Footer Navegação */}
-                <div className="flex gap-4 pt-8 mt-auto border-t border-slate-100 justify-end">
-                    {etapa === 2 && (
-                        <Botao
-                            variante="secundario"
-                            onClick={() => definirEtapa(1)}
-                            disabled={carregando}
-                        >
-                            Voltar
-                        </Botao>
-                    )}
-
+                <div className="flex gap-4 pt-8 mt-4 border-t border-slate-100 justify-end">
                     {etapa === 1 ? (
-                        <Botao
-                            variante="primario"
-                            tamanho="lg"
-                            icone={ChevronRight}
-                            onClick={() => definirEtapa(2)}
-                            disabled={!podeAvancar}
-                            className="flex-row-reverse"
-                        >
-                            Próximo Passo
-                        </Botao>
+                        <>
+                            <Botao
+                                variante="secundario"
+                                tamanho="lg"
+                                onClick={aoFechar}
+                                disabled={carregando}
+                            >
+                                Cancelar
+                            </Botao>
+                            <Botao
+                                variante="primario"
+                                tamanho="lg"
+                                icone={ChevronRight}
+                                onClick={() => definirEtapa(2)}
+                                disabled={!podeAvancar}
+                                className="flex-row-reverse"
+                            >
+                                Próximo Passo
+                            </Botao>
+                        </>
                     ) : (
-                        <Botao
-                            variante="primario"
-                            tamanho="lg"
-                            icone={CheckCircle}
-                            onClick={manipularSalvar}
-                            loading={carregando}
-                        >
-                            {turma ? 'Salvar Alterações' : 'Criar Turma'}
-                        </Botao>
+                        <>
+                            <Botao
+                                variante="secundario"
+                                tamanho="lg"
+                                icone={ArrowLeft}
+                                onClick={() => definirEtapa(1)}
+                                disabled={carregando}
+                            >
+                                Voltar
+                            </Botao>
+                            <Botao
+                                variante="primario"
+                                tamanho="lg"
+                                icone={CheckCircle}
+                                onClick={manipularSalvar}
+                                loading={carregando}
+                            >
+                                {turma ? 'Salvar Alterações' : 'Criar Turma'}
+                            </Botao>
+                        </>
                     )}
                 </div>
             </div>
