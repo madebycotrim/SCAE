@@ -15,11 +15,18 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         return proximo();
     }
 
+    // Rotas públicas — não exigem autenticação
+    const url = new URL(requisicao.url);
+    const rotasPublicas = ['/api/escola/'];
+    const ehRotaPublica = rotasPublicas.some(rota => url.pathname.startsWith(rota));
+    if (ehRotaPublica && requisicao.method === 'GET') {
+        return proximo();
+    }
+
     try {
         const cabecalhoAutenticacao = requisicao.headers.get('Authorization');
 
         // DEV BYPASS
-        const url = new URL(requisicao.url);
         const ehAmbienteLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
         const bypassHabilitado = contexto.env?.DEV_AUTH_BYPASS === '1';
 
