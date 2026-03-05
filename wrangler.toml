@@ -5,3 +5,9 @@ pages_build_output_dir = "dist"
 binding = "DB_SCAE"
 database_name = "scae_db"
 database_id = "6c8d714d-582a-4452-880d-e2ee35c12b15"
+
+[vars]
+# TODO: Em produção, configure JWT_SECRET como Secret no painel da Cloudflare:
+#   npx wrangler pages secret put JWT_SECRET
+# O valor abaixo é APENAS para preview/desenvolvimento
+JWT_SECRET = "scae_jwt_secret_change_in_production_2026"

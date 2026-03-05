@@ -76,12 +76,20 @@ export const servicoSincronizacao = {
                 } catch (erroItem: any) {
                     // SE for 404 (Not Found), significa que o recurso já não existe no servidor
                     // Podemos remover a pendência da fila local com segurança.
+                    const mensagemErro = erroItem?.message || '';
                     const eh404 = erroItem?.status === 404 ||
-                        (erroItem?.message && erroItem.message.includes('404')) ||
+                        mensagemErro.includes('404') ||
                         (erroItem?.causaOriginal?.status === 404);
 
-                    if (eh404) {
-                        log.warn(`Recurso ${p.dado_id} não encontrado no servidor (404). Removendo pendência ${p.id}.`);
+                    // SE for FOREIGN KEY constraint ou erro 500 persistente,
+                    // o recurso está em estado inconsistente — descartar para não travar o loop
+                    const ehFKouErro500 = mensagemErro.includes('FOREIGN KEY') ||
+                        mensagemErro.includes('SQLITE_CONSTRAINT') ||
+                        mensagemErro.includes('INTERNAL_500');
+
+                    if (eh404 || ehFKouErro500) {
+                        const motivo = eh404 ? '404 Not Found' : 'FK/500 irrecuperável';
+                        log.warn(`Pendência ${p.id} descartada (${motivo}). Recurso: ${p.dado_id}`);
                         await bancoLocal.removerPendencia(p.id);
                         processados++;
                     } else {

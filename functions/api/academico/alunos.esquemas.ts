@@ -8,10 +8,10 @@ export const esquemaAluno = z.object({
         .min(1, 'A matrícula é obrigatória')
         .max(20, 'A matrícula deve ter no máximo 20 caracteres'),
     nome_completo: z.string()
-        .min(3, 'O nome deve ter no máximo 3 caracteres')
+        .min(3, 'O nome deve ter no mínimo 3 caracteres')
         .max(100, 'O nome deve ter no máximo 100 caracteres'),
     turma_id: z.string().nullable().optional(),
-    ativo: z.boolean().default(true),
+    ativo: z.union([z.boolean(), z.number()]).transform(v => Boolean(v)).default(true),
     email_responsavel: z.string().email('E-mail do responsável inválido').nullable().optional().or(z.literal(''))
 });
 

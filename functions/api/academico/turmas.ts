@@ -57,6 +57,11 @@ async function processarRemocaoTurma(contexto: ContextoSCAE): Promise<Response> 
         throw new ErroValidacao('ID da turma obrigatório para remoção', 'TURMA_ID_AUSENTE');
     }
 
+    // Remover vínculo dos alunos antes de excluir (Evita FOREIGN KEY constraint SQLITE_CONSTRAINT)
+    await contexto.env.DB_SCAE.prepare(
+        "UPDATE alunos SET turma_id = NULL WHERE turma_id = ? AND escola_id = ?"
+    ).bind(id, idEscola).run();
+
     const resultado = await contexto.env.DB_SCAE.prepare(
         "DELETE FROM turmas WHERE id = ? AND escola_id = ?"
     ).bind(id, idEscola).run();

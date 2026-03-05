@@ -5,7 +5,7 @@ export const esquemaTurma = z.object({
     serie: z.string().nullable().optional(),
     letra: z.string().nullable().optional(),
     turno: z.string().nullable().optional(),
-    ano_letivo: z.number().int().optional(),
+    ano_letivo: z.coerce.number().int().optional(),
     criado_em: z.string().optional()
 });
 
