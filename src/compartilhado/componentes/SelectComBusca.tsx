@@ -131,7 +131,7 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
             <button
                 type="button"
                 onClick={() => definirAberto(!aberto)}
-                className={className || `w-full px-4 h-12 bg-white border-2 border-slate-300 rounded-xl text-sm font-bold flex items-center justify-between transition-colors shadow-sm focus:outline-none focus:border-indigo-600 hover:border-slate-400
+                className={className || `w-full px-4 h-12 bg-white border-2 border-slate-300 rounded-xl text-sm font-bold flex items-center justify-between transition-colors shadow-suave focus:outline-none focus:border-indigo-600 hover:border-slate-400
                     ${aberto ? 'border-indigo-600 ring-2 ring-indigo-50' : ''}
                 `}
             >
@@ -145,4 +145,5 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
         </div>
     );
 }
+
 

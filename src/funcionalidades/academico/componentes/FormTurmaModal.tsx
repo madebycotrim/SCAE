@@ -84,7 +84,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                             disabled={!!turma}
                                             onClick={() => definirSerieTurma(s)}
                                             className={`h-11 rounded-lg text-xs font-black transition-all border ${serieTurma === s
-                                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                                                ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
                                                 : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:bg-slate-50'
                                                 }`}
                                         >
@@ -107,7 +107,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                             disabled={!!turma}
                                             onClick={() => definirLetraTurma(l)}
                                             className={`w-10 h-10 rounded-lg text-base font-black transition-all border ${letraTurma === l
-                                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                                                ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
                                                 : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 hover:text-slate-800 disabled:opacity-50'
                                                 }`}
                                         >
@@ -129,7 +129,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                             type="button"
                                             onClick={() => definirTurno(t)}
                                             className={`h-9 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${turno === t
-                                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
+                                                ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
                                                 : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 hover:bg-slate-50'
                                                 }`}
                                         >
@@ -255,3 +255,4 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
         </ModalUniversal>
     );
 }
+

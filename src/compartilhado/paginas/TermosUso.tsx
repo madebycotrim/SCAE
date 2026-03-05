@@ -20,10 +20,10 @@ export default function TermosUso() {
     return (
         <div className="min-h-screen bg-slate-100 font-[Arial,Helvetica,sans-serif] selection:bg-indigo-100 pb-12">
             {/* Header Funcional - Alinhado a h-18 (72px) */}
-            <header className="h-[72px] bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm print:hidden">
+            <header className="h-[72px] bg-white border-b border-slate-200 sticky top-0 z-50 shadow-suave print:hidden">
                 <div className="max-w-5xl h-full mx-auto px-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center border border-indigo-100 shadow-sm">
+                        <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center border border-indigo-100 shadow-suave">
                             <Scale className="text-indigo-600 w-6 h-6" />
                         </div>
                         <div>

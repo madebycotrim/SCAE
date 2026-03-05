@@ -119,7 +119,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                             type="button"
                                             onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: true })}
                                             className={`flex-1 h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${dadosFormulario.ativo
-                                                ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                                ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                                 : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
                                                 }`}
                                         >
@@ -129,7 +129,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                             type="button"
                                             onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: false })}
                                             className={`flex-1 h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${!dadosFormulario.ativo
-                                                ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                                                ? 'bg-rose-600 text-white border-rose-600 shadow-suave'
                                                 : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
                                                 }`}
                                         >
@@ -239,3 +239,4 @@ const Edit2 = (props: any) => (
         <path d="m15 5 4 4" />
     </svg>
 );
+

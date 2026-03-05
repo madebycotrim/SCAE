@@ -35,7 +35,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
             definirCarregando(true);
             try {
                 const apiUrl = import.meta.env.VITE_API_URL || '/api';
-                const resposta = await fetch(`${apiUrl}/escola/buscar?q=${encodeURIComponent(termoBusca)}`);
+                const resposta = await fetch(`${apiUrl}/publico/escolas?q=${encodeURIComponent(termoBusca)}`);
                 if (resposta.ok) {
                     const dados = await resposta.json();
                     // Mapear resposta da API para o formato esperado pelo componente
@@ -91,8 +91,8 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
             ref={dropdownRef}
         >
             <div className={`relative flex items-center rounded-2xl border-[1.5px] transition-all duration-300 group overflow-hidden ${estaFocado
-                ? 'border-slate-400 shadow-sm'
-                : temaEscuro ? 'border-slate-700/60 bg-[#0B0F19]/60 shadow-lg hover:border-slate-500/50' : 'border-slate-200 bg-white shadow-sm hover:border-slate-300'
+                ? 'border-slate-400 shadow-suave'
+                : temaEscuro ? 'border-slate-700/60 bg-[#0B0F19]/60 shadow-media hover:border-slate-500/50' : 'border-slate-200 bg-white shadow-suave hover:border-slate-300'
                 } ${estaFocado && temaEscuro ? 'bg-[#111827]' : estaFocado ? 'bg-white' : 'backdrop-blur-xl'}`}
             >
                 {/* Background animado no hover/foco */}
@@ -124,7 +124,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                         </button>
                     )}
                     <button
-                        className="bg-[#0d1f3c] hover:bg-[#0a1628] text-white px-6 py-3 rounded-xl font-semibold shadow-sm transition-all hover:-translate-y-0.5 active:scale-95 active:translate-y-0 overflow-hidden relative group/btn"
+                        className="bg-[#0d1f3c] hover:bg-[#0a1628] text-white px-6 py-3 rounded-xl font-semibold shadow-suave transition-all hover:-translate-y-0.5 active:scale-95 active:translate-y-0 overflow-hidden relative group/btn"
                         onClick={() => {
                             const slug = termoBusca.trim().toLowerCase().replace(/\s+/g, '-');
                             if (slug) aoSelecionarEscola(slug);
@@ -144,7 +144,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.98 }}
                         transition={{ duration: 0.2 }}
-                        className={`absolute top-[calc(100%+12px)] left-0 w-full rounded-2xl border shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] overflow-hidden ${temaEscuro ? 'bg-[#111827] border-slate-700/80 shadow-sky-500/5' : 'bg-white border-slate-100'}`}
+                        className={`absolute top-[calc(100%+12px)] left-0 w-full rounded-2xl border shadow-premium overflow-hidden ${temaEscuro ? 'bg-[#111827] border-slate-700/80 shadow-sky-500/5' : 'bg-white border-slate-100'}`}
                     >
                         <div className="max-h-[350px] overflow-y-auto overscroll-contain pb-2">
                             {resultados.length > 0 ? (
@@ -162,7 +162,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                                                             : (temaEscuro ? 'hover:bg-slate-800/80' : 'hover:bg-slate-50 hover:border-slate-100')}`}
                                                 >
                                                     <div className="flex items-center gap-4">
-                                                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 shadow-sm
+                                                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 shadow-suave
                                                                 ${estaSelecionado
                                                                 ? (temaEscuro ? 'bg-sky-500/20 border border-sky-500/40 text-sky-400 scale-110 shadow-sky-500/20' : 'bg-sky-100 border border-sky-200 text-sky-700 scale-110 shadow-sky-200/50')
                                                                 : (temaEscuro ? 'bg-slate-800/80 border border-slate-700 text-slate-400 group-hover:text-sky-400 group-hover:bg-sky-500/10 group-hover:border-sky-500/30' : 'bg-slate-50 border border-slate-100 text-slate-500 group-hover:bg-sky-50 group-hover:border-sky-100 group-hover:text-sky-600')}`}
@@ -208,7 +208,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                                     </p>
                                     <button
                                         onClick={() => { definirEstaFocado(false); aoAbrirModalContato(); }}
-                                        className={`mt-5 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm
+                                        className={`mt-5 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-suave
                                             ${temaEscuro
                                                 ? 'bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/30 hover:border-sky-500/50'
                                                 : 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-100 hover:border-sky-200'}`}
@@ -228,10 +228,10 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                                 </span>
                                 <div className={`flex items-center gap-1.5 text-xs font-medium ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>
                                     <span>Navegar</span>
-                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↓</kbd>
-                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↑</kbd>
+                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-suave ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↓</kbd>
+                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-suave ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↑</kbd>
                                     <span className="ml-1">Selecionar</span>
-                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-sm ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↵</kbd>
+                                    <kbd className={`px-1.5 py-0.5 border rounded font-sans shadow-suave ${temaEscuro ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}>↵</kbd>
                                 </div>
                             </div>
                         )}

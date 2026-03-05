@@ -96,7 +96,7 @@ export default function RegistroAuditoria() {
         if (act.includes('LOGOUT')) colorClasses = 'bg-slate-50 text-slate-500 border-slate-200/60';
 
         return (
-            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all hover:shadow-sm ${colorClasses}`}>
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all hover:shadow-suave ${colorClasses}`}>
                 {action}
             </span>
         );
@@ -119,7 +119,7 @@ export default function RegistroAuditoria() {
             subtitulo="Veja tudo o que foi feito no sistema para garantir a segurança dos dados"
             acoes={<Botao variante="secundario" tamanho="md" icone={RefreshCw} loading={carregando} onClick={carregarLogs}>Sincronizar</Botao>}
         >
-            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm">
+            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave">
                 <InputBusca
                     icone={Search}
                     placeholder="Buscar por ação ou funcionário..."
@@ -174,7 +174,7 @@ export default function RegistroAuditoria() {
                                     </td>
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-sm">
+                                            <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-suave">
                                                 <User size={14} />
                                             </div>
                                             <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 transition-colors tracking-tight uppercase">{log.usuario_email.split('@')[0]}</span>
@@ -223,7 +223,7 @@ export default function RegistroAuditoria() {
                 {/* Footer Pagination Premium */}
                 <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-sm">
+                        <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-suave">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
                             <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{pagina} de {totalPaginas}</span>
                         </div>
@@ -235,7 +235,7 @@ export default function RegistroAuditoria() {
                             variante="secundario"
                             disabled={pagina === 1}
                             onClick={() => definirPagina(p => p - 1)}
-                            className="bg-white hover:shadow-md transition-shadow"
+                            className="bg-white hover:shadow-media transition-shadow"
                             tamanho="sm"
                         >
                             <ChevronLeft size={16} />
@@ -244,7 +244,7 @@ export default function RegistroAuditoria() {
                             variante="secundario"
                             disabled={pagina === totalPaginas}
                             onClick={() => definirPagina(p => p + 1)}
-                            className="bg-white hover:shadow-md transition-shadow"
+                            className="bg-white hover:shadow-media transition-shadow"
                             tamanho="sm"
                         >
                             <ChevronRight size={16} />
@@ -314,3 +314,4 @@ export default function RegistroAuditoria() {
         </LayoutAdministrativo>
     );
 }
+

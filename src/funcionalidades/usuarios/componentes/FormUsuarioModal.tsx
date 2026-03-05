@@ -85,11 +85,11 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
                                 type="button"
                                 onClick={() => definirPapel(p.id)}
                                 className={`flex items-start gap-4 p-4 rounded-2xl border text-left transition-all active:scale-[0.98] ${papel === p.id
-                                    ? 'bg-indigo-50 border-indigo-200 shadow-sm'
+                                    ? 'bg-indigo-50 border-indigo-200 shadow-suave'
                                     : 'bg-white border-slate-200/60 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                                     }`}
                             >
-                                <div className={`p-2.5 rounded-xl shrink-0 border transition-colors ${papel === p.id ? 'bg-white border-indigo-100 text-indigo-600 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                <div className={`p-2.5 rounded-xl shrink-0 border transition-colors ${papel === p.id ? 'bg-white border-indigo-100 text-indigo-600 shadow-suave' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
                                     <p.icone size={18} />
                                 </div>
                                 <div className="min-w-0 pr-2">
@@ -125,3 +125,4 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
         </ModalUniversal>
     );
 }
+

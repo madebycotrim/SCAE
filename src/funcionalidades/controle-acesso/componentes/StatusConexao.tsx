@@ -33,7 +33,7 @@ export function StatusConexao() {
     return (
         <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
             <div className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg border bg-white shadow-sm
+                flex items-center gap-2 px-4 py-2 rounded-lg border bg-white shadow-suave
                 text-xs font-semibold transition-colors duration-300
                 ${online ? 'border-emerald-200 text-emerald-700' : 'border-rose-200 text-rose-700'}
             `}>
@@ -48,7 +48,7 @@ export function StatusConexao() {
             </div>
 
             {relogioQuebrado && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-rose-200 text-rose-700 text-xs font-semibold shadow-sm animate-pulse">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-rose-200 text-rose-700 text-xs font-semibold shadow-suave animate-pulse">
                     <AlertTriangle size={14} className="text-rose-600" />
                     Relógio Desincronizado
                 </div>
@@ -56,4 +56,5 @@ export function StatusConexao() {
         </div>
     );
 }
+
 

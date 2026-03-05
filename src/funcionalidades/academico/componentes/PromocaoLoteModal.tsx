@@ -37,7 +37,7 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
                 {/* Banner de Resumo Sóbrio V2 */}
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 relative overflow-hidden">
                     <div className="flex items-center gap-5 relative z-10">
-                        <div className="w-12 h-12 bg-slate-800 text-slate-400 border border-slate-700 rounded-lg flex items-center justify-center shadow-sm">
+                        <div className="w-12 h-12 bg-slate-800 text-slate-400 border border-slate-700 rounded-lg flex items-center justify-center shadow-suave">
                             <Users size={24} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -64,7 +64,7 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
                         value={novaTurma}
                         onChange={(valor) => definirNovaTurma(valor as string)}
                         placeholder="Selecione a turma..."
-                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all shadow-sm"
+                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all shadow-suave"
                     />
 
                     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
@@ -102,3 +102,4 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
         </ModalUniversal>
     );
 }
+

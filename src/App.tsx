@@ -97,7 +97,7 @@ function InicializadorSync() {
 }
 
 /**
- * Shell da escola â€” carrega perfil da escola e provê contextos.
+ * Shell da escola — carrega perfil da escola e provê contextos.
  * Renderiza <Outlet /> para as rotas filhas.
  */
 function EscolaShell() {

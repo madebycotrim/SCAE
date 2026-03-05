@@ -137,7 +137,7 @@ export default function Usuarios() {
             subtitulo="Gerencie quem pode acessar e operar o sistema na unidade"
             acoes={AcoesHeader}
         >
-            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-sm p-4 rounded-2xl">
+            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
                 <div className="flex flex-col gap-2.5 flex-1">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Buscar Funcionário</label>
                     <InputBusca
@@ -149,7 +149,7 @@ export default function Usuarios() {
                     />
                 </div>
                 <div className="flex items-center gap-4 ml-6 self-end pb-1">
-                    <div className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-sm">
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-suave">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Cadastrado</span>
                         <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Pessoas</span>
                     </div>
@@ -193,7 +193,7 @@ export default function Usuarios() {
                                         <tr key={u.email} className={`hover:bg-slate-50 transition-all group ${!u.ativo ? 'opacity-70 grayscale' : ''}`}>
                                             <td className="py-5 px-8">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border-indigo-100 shadow-indigo-100/50' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-suave transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border-indigo-100 shadow-indigo-100/50' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
                                                         {u.papel === 'ADMIN' ? <ShieldCheck size={20} strokeWidth={2.5} /> : <UserCircle2 size={20} />}
                                                     </div>
                                                     <div>
@@ -208,7 +208,7 @@ export default function Usuarios() {
                                                 </div>
                                             </td>
                                             <td className="py-5 px-8 text-center">
-                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave transition-all hover:shadow-media hover:-translate-y-0.5 ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
                                                     papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                                         papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                                             papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
@@ -267,21 +267,22 @@ export default function Usuarios() {
 function BadgeStatus({ ativo, pendente }: { ativo: boolean, pendente?: boolean }) {
     if (pendente) {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 shadow-sm transition-all hover:scale-110">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 shadow-suave transition-all hover:scale-110">
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> Aguardando
             </span>
         );
     }
     if (ativo) {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-sm transition-all hover:scale-110">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-suave transition-all hover:scale-110">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Ativo
             </span>
         );
     }
     return (
-        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 shadow-sm transition-all hover:scale-110">
+        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 shadow-suave transition-all hover:scale-110">
             <div className="w-1.5 h-1.5 rounded-full bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Bloqueado
         </span>
     );
 }
+

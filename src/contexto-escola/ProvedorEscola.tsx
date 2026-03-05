@@ -39,7 +39,8 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
             try {
                 const resposta = await fetch(`${apiUrl}/publico/detalhes?slug=${slug}`);
                 if (!resposta.ok) throw new Error('Escola não encontrada');
-                const data: PerfilEscola = await resposta.json();
+                const { dados } = await resposta.json();
+                const data: PerfilEscola = dados;
 
                 // Aplica identidade visual da escola via CSS variables
                 document.documentElement.style.setProperty('--cor-primaria', data.corPrimaria);

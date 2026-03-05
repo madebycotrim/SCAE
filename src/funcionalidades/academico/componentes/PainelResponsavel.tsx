@@ -84,7 +84,7 @@ export default function PainelResponsavel() {
     return (
         <div className="min-h-screen bg-slate-100/50 pb-20">
             {/* Nav Mobile-first */}
-            <header className="bg-indigo-600 px-6 h-16 shadow-md sticky top-0 z-50 flex items-center justify-between">
+            <header className="bg-indigo-600 px-6 h-16 shadow-media sticky top-0 z-50 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Fingerprint className="text-indigo-200" size={24} />
                     <h1 className="text-white font-bold tracking-tight">Portal do Responsável</h1>
@@ -119,7 +119,7 @@ export default function PainelResponsavel() {
                     {podeInstalar && (
                         <button
                             onClick={instalarApp}
-                            className="flex flex-col items-center justify-center gap-2 p-4 bg-indigo-600 border border-indigo-500 rounded-2xl shadow-sm text-white hover:bg-indigo-700 transition active:scale-95"
+                            className="flex flex-col items-center justify-center gap-2 p-4 bg-indigo-600 border border-indigo-500 rounded-2xl shadow-suave text-white hover:bg-indigo-700 transition active:scale-95"
                         >
                             <Smartphone size={22} />
                             <span className="text-[10px] font-bold uppercase tracking-wider">Baixar Aplicativo</span>
@@ -130,7 +130,7 @@ export default function PainelResponsavel() {
                         <button
                             onClick={solicitarPermissao}
                             disabled={ativando}
-                            className={`flex flex-col items-center justify-center gap-2 p-4 bg-emerald-600 border border-emerald-500 rounded-2xl shadow-sm text-white hover:bg-emerald-700 transition active:scale-95 ${ativando ? 'opacity-50' : ''}`}
+                            className={`flex flex-col items-center justify-center gap-2 p-4 bg-emerald-600 border border-emerald-500 rounded-2xl shadow-suave text-white hover:bg-emerald-700 transition active:scale-95 ${ativando ? 'opacity-50' : ''}`}
                         >
                             <Bell size={22} className={ativando ? 'animate-bounce' : ''} />
                             <span className="text-[10px] font-bold uppercase tracking-wider">{ativando ? 'Ativando...' : 'Ativar Alertas Push'}</span>
@@ -138,7 +138,7 @@ export default function PainelResponsavel() {
                     )}
 
                     {jaAtivado && (
-                        <div className="flex flex-col items-center justify-center gap-2 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl shadow-sm text-emerald-700">
+                        <div className="flex flex-col items-center justify-center gap-2 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl shadow-suave text-emerald-700">
                             <Bell size={22} />
                             <span className="text-[10px] font-bold uppercase tracking-wider">Alertas Ativos</span>
                         </div>
@@ -146,7 +146,7 @@ export default function PainelResponsavel() {
 
                     <button
                         onClick={exportarDados}
-                        className={`flex flex-col items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-2xl shadow-sm text-indigo-600 hover:bg-slate-50 transition active:scale-95 ${(podeInstalar && jaAtivado) || (!podeInstalar && !jaAtivado) ? '' : 'sm:col-span-2'}`}
+                        className={`flex flex-col items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-2xl shadow-suave text-indigo-600 hover:bg-slate-50 transition active:scale-95 ${(podeInstalar && jaAtivado) || (!podeInstalar && !jaAtivado) ? '' : 'sm:col-span-2'}`}
                     >
                         <Download size={22} />
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Exportar (JSON)</span>
@@ -154,7 +154,7 @@ export default function PainelResponsavel() {
                 </div>
 
                 {/* Feed (Timeline de Acessos) */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 mt-6 relative">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-suave overflow-hidden p-6 mt-6 relative">
                     <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
                         <Clock size={16} className="text-indigo-500" />
                         Histórico Recente de Catraca
@@ -171,14 +171,14 @@ export default function PainelResponsavel() {
 
                                 return (
                                     <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-full border-4 border-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm bg-slate-100 z-10">
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full border-4 border-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-suave bg-slate-100 z-10">
                                             {ehEntrada ?
                                                 <ArrowLeft size={12} className="text-emerald-500 -rotate-45" /> :
                                                 <ArrowLeft size={12} className="text-rose-500 rotate-[135deg]" />
                                             }
                                         </div>
 
-                                        <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col">
+                                        <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-suave flex flex-col">
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className={`text-[10px] font-bold uppercase tracking-wider ${ehEntrada ? 'text-emerald-600' : 'text-rose-500'}`}>
                                                     {acesso.tipo_movimentacao}
@@ -202,4 +202,5 @@ export default function PainelResponsavel() {
         </div>
     )
 }
+
 

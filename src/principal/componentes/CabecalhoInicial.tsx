@@ -9,7 +9,7 @@ interface CabecalhoInicialProps {
 
 export function CabecalhoInicial({ temaEscuro, aoAlternarTema, aoAbrirModalSobre, aoAbrirModalContato }: CabecalhoInicialProps) {
     return (
-        <header className={`sticky top-0 z-[100] w-full border-b backdrop-blur-xl transition-all duration-300 ${temaEscuro ? 'bg-[#0B0F19]/80 border-slate-800/60' : 'bg-white border-slate-100 shadow-sm'}`}>
+        <header className={`sticky top-0 z-[100] w-full border-b backdrop-blur-xl transition-all duration-300 ${temaEscuro ? 'bg-[#0B0F19]/80 border-slate-800/60' : 'bg-white border-slate-100 shadow-suave'}`}>
             <div className="h-16 px-6 md:px-8 flex items-center justify-between max-w-7xl mx-auto w-full">
                 <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${temaEscuro ? 'bg-slate-800 border bg-slate-700/60' : 'bg-[#0d1f3c]'}`}>
@@ -43,3 +43,4 @@ export function CabecalhoInicial({ temaEscuro, aoAlternarTema, aoAbrirModalSobre
         </header>
     );
 }
+

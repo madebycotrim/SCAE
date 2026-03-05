@@ -139,7 +139,7 @@ export default function Relatorios() {
         >
             <div className="flex flex-1 gap-6 min-h-0 overflow-hidden pb-4">
                 {/* Master: Lista de Relatórios */}
-                <div className="w-80 flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <div className="w-80 flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-suave">
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 pt-4">
                         {CARDS_RELATORIO.map((item, idx) => {
                             const Icone = item.icone;
@@ -155,7 +155,7 @@ export default function Relatorios() {
                                 >
                                     <div className={`p-2 rounded-xl border shrink-0 transition-colors ${estaSelecionado
                                         ? 'bg-slate-800 border-slate-700 text-sky-400'
-                                        : 'bg-white border-slate-100 text-slate-400 group-hover:text-slate-600 shadow-sm'
+                                        : 'bg-white border-slate-100 text-slate-400 group-hover:text-slate-600 shadow-suave'
                                         }`}>
                                         <Icone size={16} strokeWidth={2.5} />
                                     </div>
@@ -190,21 +190,21 @@ export default function Relatorios() {
                 </div>
 
                 {/* Detail: Painel de Configuração */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col relative">
+                <div className="flex-1 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-suave flex flex-col relative">
                     {relatorioSelecionado ? (
                         <>
                             {/* Header do Detalhe */}
                             <div className="p-8 border-b border-slate-100 bg-slate-50/20">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className={`p-4 rounded-2xl border border-slate-100 shadow-sm ${relatorioSelecionado.iconeCor}`}>
+                                        <div className={`p-4 rounded-2xl border border-slate-100 shadow-suave ${relatorioSelecionado.iconeCor}`}>
                                             <relatorioSelecionado.icone size={32} strokeWidth={1.5} />
                                         </div>
                                         <div>
                                             <h2 className="text-xl font-black text-slate-900 tracking-tight">
                                                 {relatorioSelecionado.titulo}
                                             </h2>
-                                            <span className={`inline-block mt-1 text-[9px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border shadow-sm ${relatorioSelecionado.badgeCor}`}>
+                                            <span className={`inline-block mt-1 text-[9px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border shadow-suave ${relatorioSelecionado.badgeCor}`}>
                                                 {relatorioSelecionado.badgeTxt}
                                             </span>
                                         </div>
@@ -241,7 +241,7 @@ export default function Relatorios() {
                                                             definirFiltros({ ...filtros, anoLetivo: ano, ...periodo });
                                                         }}
                                                         className={`flex-1 h-full rounded-xl text-[11px] font-bold transition-all ${filtros.anoLetivo === ano
-                                                            ? 'bg-white text-slate-900 shadow-md border border-slate-100'
+                                                            ? 'bg-white text-slate-900 shadow-media border border-slate-100'
                                                             : 'text-slate-400 hover:text-slate-600'}`}
                                                     >
                                                         {ano}
@@ -265,7 +265,7 @@ export default function Relatorios() {
                                                             definirFiltros({ ...filtros, semestre: sem, ...periodo });
                                                         }}
                                                         className={`flex-1 h-full rounded-xl text-[11px] font-bold transition-all ${filtros.semestre === sem
-                                                            ? 'bg-white text-slate-900 shadow-md border border-slate-100'
+                                                            ? 'bg-white text-slate-900 shadow-media border border-slate-100'
                                                             : 'text-slate-400 hover:text-slate-600'}`}
                                                     >
                                                         {sem}º semestre
@@ -331,7 +331,7 @@ export default function Relatorios() {
 
                                     {/* Mini-Resumo Dinâmico (Preenchimento de Espaço) */}
                                     <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex items-start gap-4 mt-6">
-                                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 shrink-0">
+                                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-suave border border-slate-100 shrink-0">
                                             <Info size={18} />
                                         </div>
                                         <div className="flex-1 mt-0.5">
@@ -352,7 +352,7 @@ export default function Relatorios() {
                             {/* Footer do Painel - Ação Principal */}
                             <div className="p-8 border-t border-slate-100 bg-slate-50/10 flex items-center justify-between">
                                 <div className="flex items-center gap-4 text-slate-400">
-                                    <div className="p-2 bg-white border border-slate-200 rounded-lg shadow-sm">
+                                    <div className="p-2 bg-white border border-slate-200 rounded-lg shadow-suave">
                                         <Download size={14} />
                                     </div>
                                     <div className="text-[10px] font-semibold leading-tight text-slate-500">
@@ -387,3 +387,4 @@ export default function Relatorios() {
         </LayoutAdministrativo>
     );
 }
+

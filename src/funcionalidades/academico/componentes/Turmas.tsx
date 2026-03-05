@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
@@ -84,7 +84,7 @@ export default function Turmas() {
         }
     }, [searchParams]);
 
-    // Mapeamento de Cores e Ícones por Turno
+    // Mapeamento de Cores e Ãcones por Turno
     const CONFIG_TURNO = {
         'Matutino': {
             bg: 'bg-slate-50',
@@ -215,7 +215,7 @@ export default function Turmas() {
             subtitulo="Gerencie as turmas, professores e a ocupação das salas"
             acoes={AcoesHeader}
         >
-            <BarraFiltro className="bg-white border-slate-200 shadow-sm p-3 rounded-xl">
+            <BarraFiltro className="p-3">
                 <div className="flex flex-col gap-1.5 flex-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Turma</label>
                     <InputBusca
@@ -237,7 +237,7 @@ export default function Turmas() {
                                     key={ano}
                                     onClick={() => definirFiltroAnoLetivo(ano)}
                                     className={`px-4 h-full rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
-                                        ? 'bg-white text-slate-900 border-slate-200 shadow-sm'
+                                        ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
                                         : 'text-slate-400 border-transparent hover:text-slate-600'
                                         }`}
                                 >
@@ -258,7 +258,7 @@ export default function Turmas() {
                                         key={filtro}
                                         onClick={() => definirFiltroTurno(filtro)}
                                         className={`px-3 h-full rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
-                                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                            ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                             : 'text-slate-400 border-transparent hover:text-slate-600'
                                             }`}
                                     >
@@ -273,7 +273,7 @@ export default function Turmas() {
             </BarraFiltro>
 
             {/* Listagem em Tabela SaaS */}
-            <CartaoConteudo className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden mt-8">
+            <CartaoConteudo className="mt-8">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
@@ -390,3 +390,4 @@ export default function Turmas() {
         </LayoutAdministrativo>
     );
 }
+

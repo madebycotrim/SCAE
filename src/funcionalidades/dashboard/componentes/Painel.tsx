@@ -1,4 +1,4 @@
-import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
+﻿import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
@@ -80,9 +80,9 @@ const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendenci
     };
 
     return (
-        <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border border-slate-200 border-l-4 ${corAcento[cor]} rounded-xl shadow-sm`}>
+        <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border border-slate-200 border-l-4 ${corAcento[cor]} rounded-xl shadow-suave`}>
             <div className="flex justify-between items-start mb-3 z-10 relative">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border border-slate-200/50 shadow-sm transition-transform ${corIcone[cor]}`}>
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border border-slate-200/50 shadow-suave transition-transform ${corIcone[cor]}`}>
                     <Icone size={18} strokeWidth={2} />
                 </div>
                 {tendencia !== undefined && (
@@ -111,7 +111,7 @@ const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendenci
 const SecaoHeader = ({ titulo, subtitulo, icone: Icone }: { titulo: string; subtitulo: string; icone: any }) => (
     <div className="flex items-center justify-between mb-6 group">
         <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 shadow-sm transition-all">
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 shadow-suave transition-all">
                 <Icone size={20} strokeWidth={2.5} />
             </div>
             <div>
@@ -125,13 +125,13 @@ const SecaoHeader = ({ titulo, subtitulo, icone: Icone }: { titulo: string; subt
 
 const LiveAccessFeed = ({ registros, alunos }) => {
     return (
-        <CartaoConteudo className="h-full flex flex-col bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden group">
+        <CartaoConteudo className="h-full flex flex-col bg-white border-slate-200 shadow-suave rounded-xl overflow-hidden group">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-[0.2em] flex items-center gap-2">
                     <Radar size={14} className="text-slate-600 animate-pulse" />
                     Atividade em Tempo Real
                 </h3>
-                <div className="flex items-center gap-2 px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-sm">
+                <div className="flex items-center gap-2 px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-suave">
                     <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
@@ -152,7 +152,7 @@ const LiveAccessFeed = ({ registros, alunos }) => {
                         const isEntrada = reg.tipo_movimentacao === 'ENTRADA';
                         return (
                             <div key={reg.id} className="p-3 rounded-lg hover:bg-slate-50 transition-all flex items-center gap-4 group/item">
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shadow-sm transition-transform ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shadow-suave transition-transform ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                                     {isEntrada ? <LogIn size={16} /> : <LogOut size={16} />}
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -160,7 +160,7 @@ const LiveAccessFeed = ({ registros, alunos }) => {
                                         {aluno?.nome_completo || 'Identificando...'}
                                     </p>
                                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                                        {reg.aluno_matricula} • {aluno?.turma_id || 'Avulso'}
+                                        {reg.aluno_matricula} â€¢ {aluno?.turma_id || 'Avulso'}
                                     </p>
                                 </div>
                                 <div className="text-right whitespace-nowrap">
@@ -273,7 +273,7 @@ export default function Painel() {
     return (
         <LayoutAdministrativo
             titulo="Dashboard Central"
-            subtitulo="Gestão, Pedagogia e Controle em Tempo Real"
+            subtitulo="GestÃ£o, Pedagogia e Controle em Tempo Real"
             acoes={null}
         >
             <div className="space-y-12 pb-16">
@@ -281,24 +281,24 @@ export default function Painel() {
                 {/* --- PILAR 1: VISÃO GERAL --- */}
                 <section>
                     <SecaoHeader
-                        titulo="Visão Estratégica"
-                        subtitulo="Indicadores de performance e evolução escolar"
+                        titulo="VisÃ£o EstratÃ©gica"
+                        subtitulo="Indicadores de performance e evoluÃ§Ã£o escolar"
                         icone={TrendingUp}
                     />
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
                         <div className="lg:col-span-2">
-                            <CartaoConteudo className="p-8 flex flex-col h-full bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden group">
+                            <CartaoConteudo className="p-8 flex flex-col h-full bg-white border-slate-200 shadow-suave rounded-xl overflow-hidden group">
                                 <div className="flex justify-between items-center mb-8">
                                     <div className="flex items-center gap-4 border-l-2 border-slate-900 pl-4">
                                         <div>
-                                            <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 leading-none">Evolução Diária</h3>
+                                            <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 leading-none">EvoluÃ§Ã£o DiÃ¡ria</h3>
                                             <h4 className="text-base font-black text-slate-800 uppercase tracking-tight">Frequência da Semana</h4>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
                                         <Activity size={12} className="text-slate-500" />
-                                        <span className="text-[9px] font-black text-slate-500 uppercase">Média: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)}</span>
+                                        <span className="text-[9px] font-black text-slate-500 uppercase">MÃ©dia: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)}</span>
                                     </div>
                                 </div>
                                 <div className="flex-1 w-full min-h-[300px] relative">
@@ -371,17 +371,17 @@ export default function Painel() {
                     </div>
                 </section>
 
-                {/* --- PILAR 2: PEDAGÓGICO --- */}
+                {/* --- PILAR 2: PEDAGÃ“GICO --- */}
                 <section>
                     <SecaoHeader
-                        titulo="Módulo Pedagógico"
-                        subtitulo="Acompanhamento preventivo e evasão"
+                        titulo="MÃ³dulo PedagÃ³gico"
+                        subtitulo="Acompanhamento preventivo e evasÃ£o"
                         icone={ShieldCheck}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <CardEstatistica
                             titulo="Risco de Abandono"
-                            valor={estatisticas.atrasosHoje} // Usando dado disponível como proxy
+                            valor={estatisticas.atrasosHoje} // Usando dado disponÃ­vel como proxy
                             subtitulo="Pendentes Urgentes"
                             icone={AlertTriangle}
                             cor="rose"
@@ -391,7 +391,7 @@ export default function Painel() {
                         <CardEstatistica
                             titulo="Faltas Consecutivas"
                             valor={8}
-                            subtitulo="Turmas Críticas"
+                            subtitulo="Turmas CrÃ­ticas"
                             icone={Activity}
                             cor="rose"
                         />
@@ -423,16 +423,16 @@ export default function Painel() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-1 flex flex-col gap-6">
                             <CardEstatistica
-                                titulo="Saídas Registradas"
+                                titulo="SaÃ­das Registradas"
                                 valor={estatisticas.saidasHoje}
-                                subtitulo="Fluxo de saída"
+                                subtitulo="Fluxo de saÃ­da"
                                 icone={LogOut}
                                 cor="amber"
                             />
                             <CardEstatistica
                                 titulo="Atrasos Detectados"
                                 valor={estatisticas.atrasosHoje}
-                                subtitulo="Pós-tolerância"
+                                subtitulo="PÃ³s-tolerÃ¢ncia"
                                 icone={Clock}
                                 cor="amber"
                                 tendencia={8}
@@ -449,24 +449,24 @@ export default function Painel() {
                 <section>
                     <SecaoHeader
                         titulo="Administração"
-                        subtitulo="Status do sistema e atalhos rápidos"
+                        subtitulo="Status do sistema e atalhos rÃ¡pidos"
                         icone={Shield}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex items-center justify-between group hover:border-slate-400 transition-all">
+                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-suave flex items-center justify-between group hover:border-slate-400 transition-all">
                             <div className="flex items-center gap-4">
                                 <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors border border-slate-100">
                                     <Users size={16} />
                                 </div>
                                 <div>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Usuários</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">UsuÃ¡rios</p>
                                     <p className="text-xs font-black text-slate-700 uppercase tracking-tight">Time</p>
                                 </div>
                             </div>
                             <ArrowRight size={12} className="text-slate-300 group-hover:translate-x-1 group-hover:text-slate-900 transition-all" />
                         </div>
 
-                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm flex items-center justify-between group hover:border-slate-400 transition-all">
+                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-suave flex items-center justify-between group hover:border-slate-400 transition-all">
                             <div className="flex items-center gap-4">
                                 <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors border border-slate-100">
                                     <FileText size={16} />
@@ -487,7 +487,7 @@ export default function Painel() {
                                 </div>
                             </div>
                             <Botao variante="ghost" tamanho="sm" className="text-slate-400 hover:bg-white/5 border border-white/10 relative z-10 h-8">
-                                Forçar Sinc
+                                ForÃ§ar Sinc
                             </Botao>
                         </div>
                     </div>
@@ -496,3 +496,4 @@ export default function Painel() {
         </LayoutAdministrativo>
     );
 }
+

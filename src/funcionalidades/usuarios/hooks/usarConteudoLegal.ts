@@ -31,11 +31,11 @@ export function usarConteudoLegal(): ConteudoLegal {
 
     const basesLegais: BaseLegal[] = [
         {
-            titulo: 'Execução de Políticas Públicas (Art. 7Âº, III)',
+            titulo: 'Execução de Políticas Públicas (Art. 7º, III)',
             descricao: 'Tratamento de dados estritamente necessário para garantir a prestação do serviço público de educação e a segurança no ambiente escolar.'
         },
         {
-            titulo: 'Obrigação Legal ou Regulatória (Art. 7Âº, II)',
+            titulo: 'Obrigação Legal ou Regulatória (Art. 7º, II)',
             descricao: 'Para manutenção de diários de classe, controle de evasão escolar e reporte de frequência Ã s secretarias competentes do Governo.'
         },
         {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { usarRegrasHorarios } from '@funcionalidades/configuracao-horarios';
 import type { JanelaHorarioAcesso } from '@funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
 import { usarEscola } from '@escola/ProvedorEscola';
@@ -42,7 +42,7 @@ export default function FormHorariosAcesso() {
             },
         ]);
 
-        // Timeout pequeno apenas para rolar a tela até o novo elemento caso a lista esteja grande
+        // Timeout pequeno apenas para rolar a tela atÃ© o novo elemento caso a lista esteja grande
         setTimeout(() => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }, 100);
@@ -59,22 +59,22 @@ export default function FormHorariosAcesso() {
     };
 
     const aoSalvar = async () => {
-        // Validações
+        // ValidaÃ§Ãµes
         for (let i = 0; i < janelas.length; i++) {
             const j = janelas[i];
             if (j.horaInicio >= j.horaFim) {
-                toast.error(`A Janela ${i + 1} precisa terminar depois da hora de início.`);
+                toast.error(`A Janela ${i + 1} precisa terminar depois da hora de inÃ­cio.`);
                 return;
             }
         }
 
-        // Validação de sobreposição
+        // ValidaÃ§Ã£o de sobreposiÃ§Ã£o
         for (let i = 0; i < janelas.length; i++) {
             for (let k = i + 1; k < janelas.length; k++) {
                 const j1 = janelas[i];
                 const j2 = janelas[k];
                 if ((j1.horaInicio < j2.horaFim) && (j1.horaFim > j2.horaInicio)) {
-                    toast.error(`Sobreposição detectada entre os horários ${i + 1} e ${k + 1}. Ajuste-os para evitar conflitos na portaria.`);
+                    toast.error(`SobreposiÃ§Ã£o detectada entre os horÃ¡rios ${i + 1} e ${k + 1}. Ajuste-os para evitar conflitos na portaria.`);
                     return;
                 }
             }
@@ -83,9 +83,9 @@ export default function FormHorariosAcesso() {
         definirSalvando(true);
         try {
             await salvar(janelas);
-            toast.success('Horários salvos com sucesso!');
+            toast.success('HorÃ¡rios salvos com sucesso!');
         } catch (e) {
-            toast.error('Erro ao salvar horários: ' + (e instanceof Error ? e.message : 'Tente novamente'));
+            toast.error('Erro ao salvar horÃ¡rios: ' + (e instanceof Error ? e.message : 'Tente novamente'));
         } finally {
             definirSalvando(false);
         }
@@ -98,35 +98,35 @@ export default function FormHorariosAcesso() {
             icone={Save}
             loading={salvando}
             onClick={aoSalvar}
-            className="shadow-sm"
+            className="shadow-suave"
         >
-            Salvar Horários
+            Salvar HorÃ¡rios
         </Botao>
     );
 
     return (
         <LayoutAdministrativo
             titulo="Controle de Portaria"
-            subtitulo="Configure as janelas automáticas de entrada e saída. Movimentos registrados nestes intervalos são classificados pelo sistema."
+            subtitulo="Configure as janelas automÃ¡ticas de entrada e saÃ­da. Movimentos registrados nestes intervalos sÃ£o classificados pelo sistema."
             acoes={AcoesHeader}
         >
             <div className="space-y-6 pb-16">
 
                 {erro && !usandoCache && (
-                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-4 text-rose-800 shadow-sm">
+                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-4 text-rose-800 shadow-suave">
                         <AlertCircle size={20} className="shrink-0 text-rose-600 mt-1" />
                         <div>
-                            <p className="font-bold text-sm uppercase tracking-tight">Problema de comunicação</p>
-                            <p className="text-sm opacity-80 mt-1">Houve um erro indesejado ao carregar as configurações. Tente atualizar a página.</p>
+                            <p className="font-bold text-sm uppercase tracking-tight">Problema de comunicaÃ§Ã£o</p>
+                            <p className="text-sm opacity-80 mt-1">Houve um erro indesejado ao carregar as configuraÃ§Ãµes. Tente atualizar a pÃ¡gina.</p>
                         </div>
                     </div>
                 )}
 
                 {usandoCache && (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-4 text-amber-800 shadow-sm">
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-4 text-amber-800 shadow-suave">
                         <AlertCircle size={20} className="shrink-0 text-amber-600 mt-1" />
                         <div>
-                            <p className="font-bold text-sm uppercase tracking-tight">Modo Offline / Sem Conexão</p>
+                            <p className="font-bold text-sm uppercase tracking-tight">Modo Offline / Sem ConexÃ£o</p>
                             <p className="text-sm opacity-80 mt-1">O servidor pode estar indisponível. Os horários mostrados vêm do cache local e sincronizarão assim que a rede restabelecer.</p>
                         </div>
                     </div>
@@ -135,28 +135,28 @@ export default function FormHorariosAcesso() {
                 {carregando ? (
                     <div className="flex flex-col items-center justify-center py-32 text-slate-400 gap-4">
                         <Loader2 size={32} className="animate-spin text-indigo-500" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Sincronizando Horários</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Sincronizando HorÃ¡rios</span>
                     </div>
                 ) : (
                     <div className="animate-fade-in space-y-4 max-w-5xl mx-auto">
 
                         {janelas.length === 0 && (
                             <CartaoConteudo className="text-center py-20 bg-white border-2 border-dashed border-slate-200/60 rounded-3xl group transition-all hover:bg-slate-50/50">
-                                <div className="w-20 h-20 bg-indigo-50/80 rounded-full flex items-center justify-center mx-auto mb-6 border-8 border-white shadow-sm text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-100 transition-all duration-300">
+                                <div className="w-20 h-20 bg-indigo-50/80 rounded-full flex items-center justify-center mx-auto mb-6 border-8 border-white shadow-suave text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-100 transition-all duration-300">
                                     <Clock size={32} />
                                 </div>
                                 <h4 className="text-lg font-black text-slate-800 mb-2 tracking-tight">Nenhuma Janela de Acesso Exclusiva</h4>
                                 <p className="text-sm text-slate-500 mb-8 max-w-sm mx-auto font-medium">
-                                    Defina os intervalos exatos em que a portaria registrará formalmente a Entrada ou a Saída dos alunos.
+                                    Defina os intervalos exatos em que a portaria registrarÃ¡ formalmente a Entrada ou a SaÃ­da dos alunos.
                                 </p>
                                 <Botao
                                     variante="primario"
                                     tamanho="lg"
                                     icone={Plus}
                                     onClick={adicionarJanela}
-                                    className="shadow-sm shadow-indigo-500/20"
+                                    className="shadow-suave shadow-indigo-500/20"
                                 >
-                                    Adicionar Primeiro Horário
+                                    Adicionar Primeiro HorÃ¡rio
                                 </Botao>
                             </CartaoConteudo>
                         )}
@@ -170,7 +170,7 @@ export default function FormHorariosAcesso() {
                                 return (
                                     <div
                                         key={indice}
-                                        className="relative bg-white rounded-[24px] border border-slate-200/60 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] hover:shadow-md transition-all duration-300 flex flex-col md:flex-row overflow-hidden"
+                                        className="relative bg-white rounded-[24px] border border-slate-200/60 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] hover:shadow-media transition-all duration-300 flex flex-col md:flex-row overflow-hidden"
                                     >
                                         {/* LADO ESQUERDO (Status visual) */}
                                         <div className={`w-full md:w-[280px] shrink-0 flex flex-col justify-center items-center py-8 relative overflow-hidden transition-colors ${corBgCard} ${corTextoCard}`}>
@@ -182,7 +182,7 @@ export default function FormHorariosAcesso() {
                                             </div>
 
                                             <div className="relative z-10 flex flex-col items-center">
-                                                {/* Ícone no top */}
+                                                {/* Ãcone no top */}
                                                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-sm ${isEntrada
                                                     ? 'bg-[#FFC933] text-amber-950 shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] border border-amber-300/40'
                                                     : 'bg-white/20 text-white shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)] border border-white/20'
@@ -191,7 +191,7 @@ export default function FormHorariosAcesso() {
                                                 </div>
 
                                                 <span className="text-[11px] font-[900] tracking-[0.25em] uppercase opacity-90 mb-2">
-                                                    {isEntrada ? 'ENTRADA' : 'SAÍDA'}
+                                                    {isEntrada ? 'ENTRADA' : 'SAÃDA'}
                                                 </span>
 
                                                 <div className="flex items-center gap-2.5 font-[900] text-[22px] tracking-tight">
@@ -202,37 +202,37 @@ export default function FormHorariosAcesso() {
                                             </div>
                                         </div>
 
-                                        {/* LADO DIREITO (Configurações) */}
+                                        {/* LADO DIREITO (ConfiguraÃ§Ãµes) */}
                                         <div className="flex-1 p-6 md:px-8 md:py-7 flex flex-col justify-center bg-white relative">
 
                                             {/* Header Interno do Lado Direito */}
                                             <div className="flex justify-between items-center mb-6">
                                                 <h5 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                                                    CONFIGURAÇÕES DA JANELA
+                                                    CONFIGURAÃ‡Ã•ES DA JANELA
                                                 </h5>
                                                 <button
                                                     onClick={() => removerJanela(indice)}
                                                     className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors absolute top-6 right-6 md:static"
-                                                    title="Remover horário"
+                                                    title="Remover horÃ¡rio"
                                                 >
                                                     <Trash2 size={18} strokeWidth={2} />
                                                 </button>
                                             </div>
 
-                                            {/* Inputs do Formulário */}
+                                            {/* Inputs do FormulÃ¡rio */}
                                             <div className="flex flex-col lg:flex-row gap-5 items-end">
 
-                                                {/* Identificação */}
+                                                {/* IdentificaÃ§Ã£o */}
                                                 <div className="flex-1 min-w-[200px] w-full">
                                                     <label className="block text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-2.5 ml-1">
-                                                        TÍTULO DO HORÁRIO
+                                                        TÃTULO DO HORÃRIO
                                                     </label>
                                                     <input
                                                         type="text"
                                                         value={janela.descricao || ''}
                                                         onChange={(e) => atualizarJanela(indice, 'descricao', e.target.value)}
                                                         placeholder="Ex: Turno Matutino"
-                                                        className="w-full px-5 py-3.5 bg-white border border-slate-200/80 rounded-[14px] text-[13px] font-bold text-slate-700 focus:ring-4 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all placeholder:text-slate-300/80 placeholder:font-semibold shadow-sm hover:border-slate-300"
+                                                        className="w-full px-5 py-3.5 bg-white border border-slate-200/80 rounded-[14px] text-[13px] font-bold text-slate-700 focus:ring-4 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all placeholder:text-slate-300/80 placeholder:font-semibold shadow-suave hover:border-slate-300"
                                                     />
                                                 </div>
 
@@ -246,7 +246,7 @@ export default function FormHorariosAcesso() {
                                                             type="button"
                                                             onClick={() => atualizarJanela(indice, 'tipoAcesso', 'ENTRADA')}
                                                             className={`flex-1 flex justify-center items-center h-full text-[11px] font-[900] rounded-[10px] transition-all ${janela.tipoAcesso === 'ENTRADA'
-                                                                ? 'bg-white text-slate-800 shadow-sm border border-slate-200/50'
+                                                                ? 'bg-white text-slate-800 shadow-suave border border-slate-200/50'
                                                                 : 'text-slate-400 hover:text-slate-600'
                                                                 }`}
                                                         >
@@ -256,28 +256,28 @@ export default function FormHorariosAcesso() {
                                                             type="button"
                                                             onClick={() => atualizarJanela(indice, 'tipoAcesso', 'SAIDA')}
                                                             className={`flex-1 flex justify-center items-center h-full text-[11px] font-[900] rounded-[10px] transition-all ${janela.tipoAcesso === 'SAIDA'
-                                                                ? 'bg-white text-slate-800 shadow-sm border border-slate-200/50'
+                                                                ? 'bg-white text-slate-800 shadow-suave border border-slate-200/50'
                                                                 : 'text-slate-400 hover:text-slate-600'
                                                                 }`}
                                                         >
-                                                            SAÍDA
+                                                            SAÃDA
                                                         </button>
                                                     </div>
                                                 </div>
 
-                                                {/* Abre às e Fecha às */}
+                                                {/* Abre Ã s e Fecha Ã s */}
                                                 <div className="w-full lg:w-auto shrink-0 flex items-center justify-between gap-3">
                                                     <div className="w-[100px]">
                                                         <label className="block text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-2.5 ml-1">
-                                                            ABRE ÀS
+                                                            ABRE Ã€S
                                                         </label>
                                                         <input
                                                             type="time"
                                                             value={janela.horaInicio}
                                                             onChange={(e) => atualizarJanela(indice, 'horaInicio', e.target.value)}
-                                                            className={`w-full px-3 py-3.5 bg-white border rounded-[14px] text-[15px] font-mono font-[900] outline-none transition-all text-center shadow-sm ${janela.horaInicio >= janela.horaFim
-                                                                    ? 'border-rose-400 text-rose-600 focus:ring-4 focus:ring-rose-100 ring-1 ring-rose-400'
-                                                                    : 'border-slate-200/80 text-slate-800 focus:ring-4 focus:ring-slate-100 focus:border-slate-300 hover:border-slate-300'
+                                                            className={`w-full px-3 py-3.5 bg-white border rounded-[14px] text-[15px] font-mono font-[900] outline-none transition-all text-center shadow-suave ${janela.horaInicio >= janela.horaFim
+                                                                ? 'border-rose-400 text-rose-600 focus:ring-4 focus:ring-rose-100 ring-1 ring-rose-400'
+                                                                : 'border-slate-200/80 text-slate-800 focus:ring-4 focus:ring-slate-100 focus:border-slate-300 hover:border-slate-300'
                                                                 }`}
                                                         />
                                                     </div>
@@ -286,15 +286,15 @@ export default function FormHorariosAcesso() {
 
                                                     <div className="w-[100px]">
                                                         <label className="block text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-2.5 ml-1">
-                                                            FECHA ÀS
+                                                            FECHA Ã€S
                                                         </label>
                                                         <input
                                                             type="time"
                                                             value={janela.horaFim}
                                                             onChange={(e) => atualizarJanela(indice, 'horaFim', e.target.value)}
-                                                            className={`w-full px-3 py-3.5 bg-white border rounded-[14px] text-[15px] font-mono font-[900] outline-none transition-all text-center shadow-sm ${janela.horaInicio >= janela.horaFim
-                                                                    ? 'border-rose-400 text-rose-600 focus:ring-4 focus:ring-rose-100 ring-1 ring-rose-400'
-                                                                    : 'border-slate-200/80 text-slate-800 focus:ring-4 focus:ring-slate-100 focus:border-slate-300 hover:border-slate-300'
+                                                            className={`w-full px-3 py-3.5 bg-white border rounded-[14px] text-[15px] font-mono font-[900] outline-none transition-all text-center shadow-suave ${janela.horaInicio >= janela.horaFim
+                                                                ? 'border-rose-400 text-rose-600 focus:ring-4 focus:ring-rose-100 ring-1 ring-rose-400'
+                                                                : 'border-slate-200/80 text-slate-800 focus:ring-4 focus:ring-slate-100 focus:border-slate-300 hover:border-slate-300'
                                                                 }`}
                                                         />
                                                     </div>
@@ -310,12 +310,12 @@ export default function FormHorariosAcesso() {
                         {janelas.length > 0 && (
                             <button
                                 onClick={adicionarJanela}
-                                className="w-full mt-8 py-5 border-[2px] border-dashed border-slate-200/80 rounded-[20px] text-slate-400/80 text-[11px] font-[900] uppercase tracking-[0.15em] hover:bg-slate-50 hover:text-slate-500 hover:border-slate-300 transition-all flex items-center justify-center gap-3 bg-white shadow-sm"
+                                className="w-full mt-8 py-5 border-[2px] border-dashed border-slate-200/80 rounded-[20px] text-slate-400/80 text-[11px] font-[900] uppercase tracking-[0.15em] hover:bg-slate-50 hover:text-slate-500 hover:border-slate-300 transition-all flex items-center justify-center gap-3 bg-white shadow-suave"
                             >
                                 <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                                     <Plus size={14} strokeWidth={3} />
                                 </div>
-                                ADICIONAR NOVO BLOCO DE HORÁRIO
+                                ADICIONAR NOVO BLOCO DE HORÃRIO
                             </button>
                         )}
 
@@ -325,3 +325,4 @@ export default function FormHorariosAcesso() {
         </LayoutAdministrativo>
     );
 }
+

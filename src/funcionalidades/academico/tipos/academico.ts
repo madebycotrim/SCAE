@@ -1,6 +1,6 @@
 ﻿/**
  * Interface representativa de um Aluno no sistema SCAE.
- * @lgpd Base legal: Execução de contrato (Art. 7Âº, V)
+ * @lgpd Base legal: Execução de contrato (Art. 7º, V)
  * @lgpd Finalidade: Identificação e enturmação do aluno
  * @lgpd Retenção: Enquanto durar o vínculo escolar + 5 anos (obrigação fiscal)
  */

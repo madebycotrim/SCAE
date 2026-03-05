@@ -65,13 +65,13 @@ export const Botao: React.FC<BotaoProps> = ({
 // --- CARDS E CONTAINERS ---
 
 export const CartaoConteudo: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-xl border border-slate-200 shadow-media overflow-hidden ${className}`}>
         {children}
     </div>
 );
 
 export const BarraFiltro: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20 ${className}`}>
+    <div className={`bg-white p-3 rounded-xl border border-slate-200 shadow-media mb-6 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20 ${className}`}>
         {children}
     </div>
 );

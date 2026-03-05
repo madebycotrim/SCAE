@@ -71,7 +71,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                 </div>
                                 <button
                                     onClick={aoFechar}
-                                    className={`p-2.5 rounded-xl transition-colors shadow-sm
+                                    className={`p-2.5 rounded-xl transition-colors shadow-suave
                                     ${temaEscuro ? 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-200'}`}
                                     aria-label="Fechar Modal"
                                 >
@@ -84,7 +84,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                 <div className="space-y-12">
                                     {/* 1 — Controle de Acesso */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-sky-900/30 border-sky-800/50 text-sky-400' : 'bg-sky-50 border-sky-100 text-sky-600'}`}>
                                             <Zap className="w-8 h-8" />
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-sky-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">1</div>
@@ -100,7 +100,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
 
                                     {/* 2 — Portal do Responsável */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-emerald-900/30 border-emerald-800/50 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
                                             <Smartphone className="w-8 h-8" />
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">2</div>
@@ -116,7 +116,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
 
                                     {/* 3 — Alertas de Risco de Evasão */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-rose-900/30 border-rose-800/50 text-rose-400' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
                                             <AlertTriangle className="w-8 h-8" />
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">3</div>
@@ -132,7 +132,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
 
                                     {/* 4 — Gestão de Turmas e Horários */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-amber-900/30 border-amber-800/50 text-amber-400' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="16" x="4" y="4" rx="2" /><rect width="6" height="6" x="9" y="9" rx="1" /><path d="M15 2v2" /><path d="M15 20v2" /><path d="M2 15h2" /><path d="M2 9h2" /><path d="M20 15h2" /><path d="M20 9h2" /><path d="M9 2v2" /><path d="M9 20v2" /></svg>
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">4</div>
@@ -148,7 +148,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
 
                                     {/* 5 — Painel Administrativo */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-fuchsia-900/30 border-fuchsia-800/50 text-fuchsia-400' : 'bg-fuchsia-50 border-fuchsia-100 text-fuchsia-600'}`}>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-fuchsia-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">5</div>
@@ -164,7 +164,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
 
                                     {/* 6 — Modo Offline */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-orange-900/30 border-orange-800/50 text-orange-400' : 'bg-orange-50 border-orange-100 text-orange-600'}`}>
                                             <WifiOff className="w-8 h-8" />
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">6</div>
@@ -180,7 +180,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
 
                                     {/* 7 — Identidade Visual (White Label) */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-cyan-900/30 border-cyan-800/50 text-cyan-400' : 'bg-cyan-50 border-cyan-100 text-cyan-600'}`}>
                                             <Palette className="w-8 h-8" />
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-cyan-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">7</div>
@@ -196,7 +196,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
 
                                     {/* 8 — LGPD */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm relative
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-blue-900/30 border-blue-800/50 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
                                             <ShieldCheck className="w-8 h-8" />
                                             <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">8</div>
@@ -237,4 +237,5 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
         </AnimatePresence>
     );
 }
+
 

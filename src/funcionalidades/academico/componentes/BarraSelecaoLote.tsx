@@ -11,7 +11,7 @@ export default function BarraSelecaoLote({ quantidade, aoPromover, aoCancelar }:
 
     return (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
-            <div className="bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-5 border border-slate-800 backdrop-blur-md bg-opacity-98">
+            <div className="bg-slate-900 text-white px-5 py-3 rounded-xl shadow-premium flex items-center gap-5 border border-slate-800 backdrop-blur-md bg-opacity-98">
                 <div className="flex flex-col">
                     <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Selecionados</span>
                     <span className="text-sm font-black leading-none">{quantidade} Alunos</span>

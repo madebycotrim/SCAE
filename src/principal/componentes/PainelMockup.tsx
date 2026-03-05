@@ -55,7 +55,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                             <div className="flex-1 flex flex-col gap-6">
                                 {/* Top Stats */}
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div className={`h-28 rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden group transition-all duration-500 ${temaEscuro ? 'bg-slate-800/80 border-slate-700 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white border-slate-100 shadow-sm hover:border-emerald-200 hover:shadow-[0_0_20px_rgba(16,185,129,0.05)]'}`}>
+                                    <div className={`h-28 rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden group transition-all duration-500 ${temaEscuro ? 'bg-slate-800/80 border-slate-700 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white border-slate-100 shadow-suave hover:border-emerald-200 hover:shadow-[0_0_20px_rgba(16,185,129,0.05)]'}`}>
                                         <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl transition-all duration-700 group-hover:scale-150 ${temaEscuro ? 'bg-emerald-500/10' : 'bg-emerald-500/5'}`}></div>
                                         <div className={`text-[10px] font-bold uppercase tracking-wider relative z-10 ${temaEscuro ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-500'}`}>Entradas Hoje</div>
                                         <div className="flex items-end gap-3 relative z-10">
@@ -79,7 +79,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                                             <span>+12% no horário marcado</span>
                                         </div>
                                     </div>
-                                    <div className={`h-28 rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden group transition-all duration-500 ${temaEscuro ? 'bg-slate-800/80 border-slate-700 hover:border-slate-500/30 hover:shadow-[0_0_20px_rgba(100,116,139,0.1)]' : 'bg-white border-slate-100 shadow-sm hover:border-slate-300 hover:shadow-[0_0_20px_rgba(100,116,139,0.05)]'}`}>
+                                    <div className={`h-28 rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden group transition-all duration-500 ${temaEscuro ? 'bg-slate-800/80 border-slate-700 hover:border-slate-500/30 hover:shadow-[0_0_20px_rgba(100,116,139,0.1)]' : 'bg-white border-slate-100 shadow-suave hover:border-slate-300 hover:shadow-[0_0_20px_rgba(100,116,139,0.05)]'}`}>
                                         <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl transition-all duration-700 group-hover:scale-150 ${temaEscuro ? 'bg-slate-500/10' : 'bg-slate-300/10'}`}></div>
                                         <div className={`text-[10px] font-bold uppercase tracking-wider relative z-10 ${temaEscuro ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-500'}`}>Atrasos Registrados</div>
                                         <div className={`text-4xl font-black tracking-tighter relative z-10 ${temaEscuro ? 'text-slate-300' : 'text-slate-700'}`}>12</div>
@@ -90,7 +90,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                                             Pais notificados agora
                                         </div>
                                     </div>
-                                    <div className={`h-28 rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden group transition-all duration-500 ${temaEscuro ? 'bg-slate-800/80 border-slate-700 hover:border-[#0d1f3c]/50 hover:shadow-[0_0_20px_rgba(13,31,60,0.3)]' : 'bg-white border-slate-100 shadow-sm hover:border-sky-200 hover:shadow-[0_0_20px_rgba(56,189,248,0.1)]'}`}>
+                                    <div className={`h-28 rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden group transition-all duration-500 ${temaEscuro ? 'bg-slate-800/80 border-slate-700 hover:border-[#0d1f3c]/50 hover:shadow-[0_0_20px_rgba(13,31,60,0.3)]' : 'bg-white border-slate-100 shadow-suave hover:border-sky-200 hover:shadow-[0_0_20px_rgba(56,189,248,0.1)]'}`}>
                                         <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl transition-all duration-700 group-hover:scale-150 ${temaEscuro ? 'bg-sky-500/10' : 'bg-[#0d1f3c]/5'}`}></div>
                                         <div className={`text-[10px] font-bold uppercase tracking-wider relative z-10 ${temaEscuro ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-500'}`}>Capacidade Ocupada</div>
                                         <div className={`text-4xl font-black tracking-tighter relative z-10 ${temaEscuro ? 'text-sky-400' : 'text-[#0d1f3c]'}`}>98%</div>
@@ -104,7 +104,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                                     </div>
                                 </div>
                                 {/* Chart Area */}
-                                <div className={`flex-1 rounded-2xl border p-5 flex flex-col gap-4 relative overflow-hidden group transition-all duration-500 ${temaEscuro ? 'bg-slate-800/50 border-slate-700 hover:border-slate-600 hover:shadow-[0_0_30px_rgba(0,0,0,0.3)]' : 'bg-white border-slate-100 shadow-sm hover:border-sky-100 hover:shadow-[0_0_30px_rgba(99,102,241,0.05)]'}`}>
+                                <div className={`flex-1 rounded-2xl border p-5 flex flex-col gap-4 relative overflow-hidden group transition-all duration-500 ${temaEscuro ? 'bg-slate-800/50 border-slate-700 hover:border-slate-600 hover:shadow-[0_0_30px_rgba(0,0,0,0.3)]' : 'bg-white border-slate-100 shadow-suave hover:border-sky-100 hover:shadow-[0_0_30px_rgba(99,102,241,0.05)]'}`}>
                                     <div className={`absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 w-[150%] h-[150%] rounded-full blur-[100px] transition-opacity duration-1000 opacity-0 group-hover:opacity-100 pointer-events-none ${temaEscuro ? 'bg-sky-500/5' : 'bg-sky-500/5'}`}></div>
                                     <div className="flex items-center justify-between relative z-10">
                                         <div className={`text-[13px] font-extrabold tracking-wide uppercase ${temaEscuro ? 'text-slate-300' : 'text-slate-700'}`}>Fluxo de Acesso: Últimos 7 Dias</div>
@@ -163,7 +163,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                             <div className={`text-xs font-bold ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Visão Geral</div>
                             <div className={`text-xl font-black ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>Hoje</div>
                         </div>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${temaEscuro ? 'bg-slate-800 text-sky-400' : 'bg-white shadow-sm text-sky-600'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${temaEscuro ? 'bg-slate-800 text-sky-400' : 'bg-white shadow-suave text-sky-600'}`}>
                             <div className="w-1.5 h-1.5 rounded-full bg-current"></div>
                         </div>
                     </div>
@@ -171,7 +171,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                     {/* Mobile Stats Stack */}
                     <div className="flex flex-col gap-3">
                         {/* Entradas Card */}
-                        <div className={`rounded-2xl p-4 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-sm'}`}>
+                        <div className={`rounded-2xl p-4 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-suave'}`}>
                             <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full blur-2xl ${temaEscuro ? 'bg-emerald-500/10' : 'bg-emerald-500/5'}`}></div>
                             <div className={`text-[10px] font-bold uppercase tracking-wider ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>Entradas Registradas</div>
                             <div className="flex items-end justify-between mt-2">
@@ -184,13 +184,13 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
 
                         {/* Atrasos e Ocupação Row */}
                         <div className="grid grid-cols-2 gap-3">
-                            <div className={`rounded-xl p-3 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-sm'}`}>
+                            <div className={`rounded-xl p-3 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-suave'}`}>
                                 <div className={`absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-xl ${temaEscuro ? 'bg-slate-500/5' : 'bg-slate-200/50'}`}></div>
                                 <div className={`text-[9px] font-bold uppercase tracking-wider ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>Atrasos</div>
                                 <div className={`text-2xl font-black tracking-tighter mt-1 ${temaEscuro ? 'text-slate-300' : 'text-slate-700'}`}>12</div>
                             </div>
 
-                            <div className={`rounded-xl p-3 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-sm'}`}>
+                            <div className={`rounded-xl p-3 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-suave'}`}>
                                 <div className={`absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-xl ${temaEscuro ? 'bg-sky-500/10' : 'bg-[#0d1f3c]/5'}`}></div>
                                 <div className={`text-[9px] font-bold uppercase tracking-wider ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>Ocupação</div>
                                 <div className={`text-2xl font-black tracking-tighter mt-1 ${temaEscuro ? 'text-sky-400' : 'text-[#0d1f3c]'}`}>98%</div>
@@ -201,7 +201,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                         </div>
 
                         {/* Tiny Chart */}
-                        <div className={`rounded-2xl border p-4 flex flex-col gap-3 relative overflow-hidden h-32 ${temaEscuro ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-100 shadow-sm'}`}>
+                        <div className={`rounded-2xl border p-4 flex flex-col gap-3 relative overflow-hidden h-32 ${temaEscuro ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-100 shadow-suave'}`}>
                             <div className={`text-[10px] font-bold uppercase tracking-wider ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Fluxo Semanal</div>
                             <div className="flex-1 flex items-end justify-between gap-1 pt-1">
                                 {[40, 70, 45, 95, 65, 30, 80].map((h, i) => (
@@ -229,4 +229,5 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
         </>
     );
 }
+
 

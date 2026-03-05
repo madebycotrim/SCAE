@@ -170,7 +170,7 @@ export default function TelaAcesso() {
                             <button
                                 onClick={() => handleGoogleLogin('user')}
                                 disabled={carregando}
-                                className="w-full flex items-center justify-center gap-3 py-3 px-5 bg-white border-[1.5px] border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition-all duration-150 group shadow-sm hover:shadow-md active:scale-[0.98]"
+                                className="w-full flex items-center justify-center gap-3 py-3 px-5 bg-white border-[1.5px] border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition-all duration-150 group shadow-suave hover:shadow-media active:scale-[0.98]"
                             >
                                 <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="group-hover:scale-105 transition-transform duration-150 flex-shrink-0">
                                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -224,3 +224,4 @@ export default function TelaAcesso() {
         </div>
     );
 }
+

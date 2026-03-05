@@ -35,7 +35,7 @@ export const alunoServico = {
 
     /**
      * Salva ou atualiza um aluno.
-     * @lgpd Base legal: Execução de contrato (Art. 7Âº, V)
+     * @lgpd Base legal: Execução de contrato (Art. 7º, V)
      */
     async salvarAluno(aluno: Aluno, ehEdicao: boolean): Promise<void> {
         const alunoFinal: Aluno = {
@@ -47,7 +47,7 @@ export const alunoServico = {
         try {
             // 1. Tentar salvar no servidor primeiro (Online-First)
             if (navigator.onLine) {
-                await api.enviar(`/academico/alunos/${aluno.matricula}`, alunoFinal);
+                await api.enviar('/academico/alunos', alunoFinal);
                 log.info('Aluno salvo online com sucesso');
             } else {
                 throw new Error('Offline: Salvando localmente');
@@ -88,7 +88,7 @@ export const alunoServico = {
 
     /**
      * Remove um aluno do sistema.
-     * @lgpd Base legal: Obrigação legal (Art. 7Âº, II) - Retenção de 5 anos para fins fiscais/acadêmicos.
+     * @lgpd Base legal: Obrigação legal (Art. 7º, II) - Retenção de 5 anos para fins fiscais/acadêmicos.
      */
     async excluirAluno(matricula: string): Promise<void> {
         let removidoOnline = false;

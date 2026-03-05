@@ -46,7 +46,7 @@ export default function TelaLoginResponsavel() {
 
             {/* Header / Brand */}
             <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mx-auto mb-4 relative">
+                <div className="w-16 h-16 bg-white rounded-2xl shadow-suave border border-slate-200 flex items-center justify-center mx-auto mb-4 relative">
                     <Shield className="text-indigo-600 w-8 h-8" />
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center border-2 border-slate-50">
                         <Fingerprint className="text-emerald-600 w-3 h-3" />
@@ -133,4 +133,5 @@ export default function TelaLoginResponsavel() {
         </div>
     );
 }
+
 

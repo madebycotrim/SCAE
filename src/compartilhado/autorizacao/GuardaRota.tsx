@@ -45,7 +45,7 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
                     </div>
                     <h2 className="text-xl font-bold text-white mb-2">Acesso Classificado Root</h2>
                     <p className="text-slate-400 mb-6">Apenas a conta madebycotrim@gmail.com possui permissão para enxergar o Módulo Central.</p>
-                    <a href="/" className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-xl font-bold hover:bg-[#0a1628] transition-colors border border-transparent shadow-sm">
+                    <a href="/" className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-xl font-bold hover:bg-[#0a1628] transition-colors border border-transparent shadow-suave">
                         Sair desta área
                     </a>
                 </div>
@@ -73,7 +73,7 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">Acesso Restrito</h2>
                         <p className="text-slate-500 mb-6">Você não tem permissão para acessar esta página.</p>
-                        <a href={desabilitarEscolaCheck ? '/central/login' : `/${slugEscola}/admin/painel`} className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-xl font-bold hover:bg-[#0a1628] transition-colors shadow-sm">
+                        <a href={desabilitarEscolaCheck ? '/central/login' : `/${slugEscola}/admin/painel`} className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-xl font-bold hover:bg-[#0a1628] transition-colors shadow-suave">
                             {desabilitarEscolaCheck ? 'Voltar para Login Central' : 'Voltar ao Painel'}
                         </a>
                     </div>
@@ -84,4 +84,5 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
 
     return children;
 }
+
 

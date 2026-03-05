@@ -1,6 +1,7 @@
 ﻿import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Aluno } from '../tipos/academico';
 import { mascararDadoPessoal } from '@compartilhado/utils/registrarLocal';
+import { CartaoConteudo } from '@compartilhado/componentes/UI';
 
 interface ListaAlunosProps {
     alunos: Aluno[];
@@ -29,7 +30,7 @@ export default function ListaAlunos({
 }: ListaAlunosProps) {
     if (alunos.length === 0) {
         return (
-            <div className="bg-white rounded-xl border border-slate-200 p-20 text-center animate-fade-in shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-200 p-20 text-center animate-fade-in shadow-suave">
                 <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mb-5 mx-auto border border-slate-100">
                     <Users size={32} className="text-slate-300" />
                 </div>
@@ -41,7 +42,7 @@ export default function ListaAlunos({
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl overflow-hidden mt-8">
+            <CartaoConteudo className="mt-8">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
@@ -138,57 +139,60 @@ export default function ListaAlunos({
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </CartaoConteudo>
 
-            {totalPaginas > 1 && (
-                <div className="bg-white rounded-xl border border-slate-200 p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm mt-8">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
-                            <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
+            {
+                totalPaginas > 1 && (
+                    <div className="bg-white rounded-xl border border-slate-200 p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-suave mt-8">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
+                                <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
+                            </div>
+                        </div>
+                        <div className="flex gap-1.5">
+                            <button
+                                onClick={() => aoMudarPagina(paginaAtual - 1)}
+                                disabled={paginaAtual === 1}
+                                className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
+                            >
+                                <ChevronLeft size={16} />
+                            </button>
+
+                            <div className="flex gap-1 items-center">
+                                {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                                    let pageNum = i + 1;
+                                    if (totalPaginas > 5 && paginaAtual > 3) {
+                                        pageNum = Math.min(paginaAtual - 2 + i, totalPaginas - 4 + i);
+                                    }
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => aoMudarPagina(pageNum)}
+                                            className={`w-9 h-9 rounded-lg text-[9px] font-black tracking-widest transition-all border ${paginaAtual === pageNum
+                                                ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
+                                                : 'text-slate-400 border-transparent hover:text-slate-900 hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <button
+                                onClick={() => aoMudarPagina(paginaAtual + 1)}
+                                disabled={paginaAtual === totalPaginas}
+                                className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
+                            >
+                                <ChevronRight size={16} />
+                            </button>
                         </div>
                     </div>
-                    <div className="flex gap-1.5">
-                        <button
-                            onClick={() => aoMudarPagina(paginaAtual - 1)}
-                            disabled={paginaAtual === 1}
-                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
-                        >
-                            <ChevronLeft size={16} />
-                        </button>
-
-                        <div className="flex gap-1 items-center">
-                            {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                                let pageNum = i + 1;
-                                if (totalPaginas > 5 && paginaAtual > 3) {
-                                    pageNum = Math.min(paginaAtual - 2 + i, totalPaginas - 4 + i);
-                                }
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        onClick={() => aoMudarPagina(pageNum)}
-                                        className={`w-9 h-9 rounded-lg text-[9px] font-black tracking-widest transition-all border ${paginaAtual === pageNum
-                                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                                            : 'text-slate-400 border-transparent hover:text-slate-900 hover:bg-slate-50'
-                                            }`}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        <button
-                            onClick={() => aoMudarPagina(paginaAtual + 1)}
-                            disabled={paginaAtual === totalPaginas}
-                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
-                        >
-                            <ChevronRight size={16} />
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
+
 

@@ -83,7 +83,7 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                 </div>
                                 <button
                                     onClick={aoFechar}
-                                    className={`p-2 rounded-xl transition-colors shadow-sm
+                                    className={`p-2 rounded-xl transition-colors shadow-suave
                                     ${temaEscuro ? 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-200'}`}
                                     aria-label="Fechar"
                                 >
@@ -185,4 +185,5 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
         </AnimatePresence>
     );
 }
+
 
