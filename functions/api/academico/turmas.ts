@@ -8,7 +8,7 @@ async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {
     verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO']);
 
     const { results } = await contexto.env.DB_SCAE.prepare(
-        "SELECT id, escola_id, serie, letra, turno, ano_letivo, data_criacao as criado_em FROM turmas WHERE escola_id = ? ORDER BY id"
+        "SELECT id, escola_id, serie, letra, turno, ano_letivo, criado_em FROM turmas WHERE escola_id = ? ORDER BY id"
     ).bind(idEscola).all();
 
     return Response.json({
@@ -32,7 +32,7 @@ async function processarCriacaoTurma(contexto: ContextoSCAE): Promise<Response> 
 
     // UPSERT
     await contexto.env.DB_SCAE.prepare(
-        `INSERT INTO turmas (id, escola_id, serie, letra, turno, ano_letivo, data_criacao) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO turmas (id, escola_id, serie, letra, turno, ano_letivo, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id, escola_id) DO UPDATE SET
             serie = excluded.serie,
             letra = excluded.letra,

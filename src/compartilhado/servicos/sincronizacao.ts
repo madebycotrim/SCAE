@@ -34,9 +34,20 @@ export const servicoSincronizacao = {
                         processados++;
                     }
                     // Outras ações (UPDATE, CREATE) podem ser adicionadas aqui
-                } catch (erroItem) {
-                    log.error(`Falha ao processar pendência ${p.id}`, erroItem);
-                    // Não remove da fila para tentar novamente depois
+                } catch (erroItem: any) {
+                    // SE for 404 (Not Found), significa que o recurso já não existe no servidor
+                    // Podemos remover a pendência da fila local com segurança.
+                    const eh404 = erroItem?.status === 404 ||
+                        (erroItem?.message && erroItem.message.includes('404')) ||
+                        (erroItem?.causaOriginal?.status === 404);
+
+                    if (eh404) {
+                        log.warn(`Recurso ${p.dado_id} não encontrado no servidor (404). Removendo pendência ${p.id}.`);
+                        await bancoLocal.removerPendencia(p.id);
+                        processados++;
+                    } else {
+                        log.error(`Falha ao processar pendência ${p.id}`, erroItem);
+                    }
                 }
             }
             return { sucesso: true, processados };
@@ -77,11 +88,15 @@ export const servicoSincronizacao = {
             // Baixar versão oficial do servidor
             const alunosServidor = await api.obter<AlunoLocal[]>('/academico/alunos');
 
-            // 4. Merge Inteligente (bancoLocal.salvarAlunos já preserva locais não-sincronizados)
-            await bancoLocal.salvarAlunos(alunosServidor, 1);
-
-            log.info('Alunos sincronizados (Smart Sync):', { quantidade: alunosServidor.length });
-            return { sucesso: true, quantidade: alunosServidor.length };
+            // 4. Merge Inteligente
+            if (Array.isArray(alunosServidor)) {
+                await bancoLocal.salvarAlunos(alunosServidor, 1);
+                log.info('Alunos sincronizados (Smart Sync):', { quantidade: alunosServidor.length });
+                return { sucesso: true, quantidade: alunosServidor.length };
+            } else {
+                log.warn('Resposta de alunos do servidor inválida (não é array)');
+                return { sucesso: false, status: 'erro_formato' };
+            }
         } catch (erro) {
             log.error('Erro na sincronização de alunos', erro);
             return { sucesso: false, erro: erro.message };
@@ -119,18 +134,22 @@ export const servicoSincronizacao = {
                 const hoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
                 const registrosServidor = await api.obter<RegistroAcessoLocal[]>(`/acesso/registros?data=${hoje}&limite=5000`);
 
-                const banco = await bancoLocal.iniciarBanco();
-                const tx = banco.transaction('registros_acesso', 'readwrite');
+                if (Array.isArray(registrosServidor)) {
+                    const banco = await bancoLocal.iniciarBanco();
+                    const tx = banco.transaction('registros_acesso', 'readwrite');
 
-                for (const r of registrosServidor) {
-                    // Só salva se não existir
-                    const existente = await tx.store.get(r.id);
-                    if (!existente) {
-                        await tx.store.put({ ...r, sincronizado: 1 });
+                    for (const r of registrosServidor) {
+                        // Só salva se não existir
+                        const existente = await tx.store.get(r.id);
+                        if (!existente) {
+                            await tx.store.put({ ...r, sincronizado: 1 });
+                        }
                     }
+                    await tx.done;
+                    log.info('Registros baixados do servidor (Hoje)', { quantidade: registrosServidor.length });
+                } else {
+                    log.warn('Resposta de registros do servidor inválida (não é array)');
                 }
-                await tx.done;
-                log.info('Registros baixados do servidor (Hoje)', { quantidade: registrosServidor.length });
             } catch (erroPull) {
                 log.warn('Erro ao baixar registros (Pull)', erroPull);
                 // Não falha o sync inteiro se o pull falhar, pois o push pode ter funcionado
