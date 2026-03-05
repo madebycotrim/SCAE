@@ -9,7 +9,7 @@ import { api } from '@compartilhado/servicos/api';
  * Registra um acesso (entrada/saída) no backend.
  */
 export async function registrarAcesso(registro: import('@compartilhado/types/bancoLocal.tipos').RegistroAcessoLocal): Promise<{ id: string; status: string }> {
-    return api.enviar('/registros-acesso', registro);
+    return api.enviar('/acesso/registros', registro);
 }
 
 /**

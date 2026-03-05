@@ -133,7 +133,7 @@ export async function registrarAuditoria({
 
         // Tentar enviar para servidor se online (Fire & Forget)
         if (navigator.onLine) {
-            api.enviar('/auditoria', [log])
+            api.enviar('/seguranca/auditoria', [log])
                 .then(async () => {
                     const tx = banco.transaction('logs_auditoria', 'readwrite');
                     const logSalvo = await tx.store.get(log.id);

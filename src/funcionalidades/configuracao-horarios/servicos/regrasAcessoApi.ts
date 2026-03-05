@@ -11,15 +11,15 @@ import { api } from '@compartilhado/servicos/api';
  * @param {string} idEscola
  * @returns {Promise<import('../types/RegrasHorariosTipos').ConfiguracaoHorarios>}
  */
-export async function buscarHorarios(idEscola) {
-    return api.obter(`/configuracao/${idEscola}/horarios`);
-}
+export const buscarHorariosEscola = async (_idEscola: string) => {
+    return api.obter('/admin/horarios');
+};
 
-export async function salvarHorarios(idEscola, janelas) {
-    return api.atualizar(`/configuracao/${idEscola}/horarios`, { janelas });
-}
+export const salvarHorariosEscola = async (_idEscola: string, janelas: any[]) => {
+    return api.atualizar('/admin/horarios', { janelas });
+};
 
 export const RegrasHorariosApi = {
-    buscarHorarios,
-    salvarHorarios,
+    buscarHorarios: buscarHorariosEscola,
+    salvarHorarios: salvarHorariosEscola,
 };

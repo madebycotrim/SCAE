@@ -19,17 +19,17 @@ export const servicoSincronizacao = {
             for (const p of pendencias) {
                 try {
                     if (p.acao === 'DELETE' && p.colecao === 'alunos') {
-                        await api.remover(`/alunos?matricula=${p.dado_id}`);
+                        await api.remover(`/academico/alunos?matricula=${p.dado_id}`);
                         await bancoLocal.removerPendencia(p.id);
                         processados++;
                     }
                     else if (p.acao === 'DELETE' && p.colecao === 'turmas') {
-                        await api.remover(`/turmas?id=${p.dado_id}`);
+                        await api.remover(`/academico/turmas?id=${p.dado_id}`);
                         await bancoLocal.removerPendencia(p.id);
                         processados++;
                     }
                     else if (p.acao === 'UPDATE' && p.colecao === 'configuracao_horarios') {
-                        await api.atualizar(`/configuracao/${p.dado_id}/horarios`, { janelas: p.dados_extras?.janelas });
+                        await api.atualizar('/admin/horarios', { janelas: p.dados_extras?.janelas });
                         await bancoLocal.removerPendencia(p.id);
                         processados++;
                     }
@@ -60,7 +60,7 @@ export const servicoSincronizacao = {
                 try {
                     // Remover campo local antes de enviar
                     const { sincronizado, ...dadosEnvio } = novo;
-                    await api.enviar('/alunos', dadosEnvio);
+                    await api.enviar('/academico/alunos', dadosEnvio);
                     // Atualizar localmente para sincronizado=1
                     await banco.put('alunos', { ...novo, sincronizado: 1 });
                 } catch (e) {
@@ -75,7 +75,7 @@ export const servicoSincronizacao = {
             }
 
             // Baixar versão oficial do servidor
-            const alunosServidor = await api.obter<AlunoLocal[]>('/alunos');
+            const alunosServidor = await api.obter<AlunoLocal[]>('/academico/alunos');
 
             // 4. Merge Inteligente (bancoLocal.salvarAlunos já preserva locais não-sincronizados)
             await bancoLocal.salvarAlunos(alunosServidor, 1);
@@ -103,7 +103,7 @@ export const servicoSincronizacao = {
                     metodo_leitura: (r as any).metodo_validacao || 'manual'
                 }));
 
-                const resposta = await api.enviar<Array<{ id: string; status: string }>>('/registros-acesso', payloadFinal);
+                const resposta = await api.enviar<Array<{ id: string; status: string }>>('/acesso/registros', payloadFinal);
                 const idsSincronizados = resposta
                     .filter(r => r.status === 'sincronizado')
                     .map(r => r.id);
@@ -117,7 +117,7 @@ export const servicoSincronizacao = {
             // O histórico completo só é baixado na primeira instalação ou demanda específica
             try {
                 const hoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                const registrosServidor = await api.obter<RegistroAcessoLocal[]>(`/registros-acesso?data=${hoje}&limite=5000`);
+                const registrosServidor = await api.obter<RegistroAcessoLocal[]>(`/acesso/registros?data=${hoje}&limite=5000`);
 
                 const banco = await bancoLocal.iniciarBanco();
                 const tx = banco.transaction('registros_acesso', 'readwrite');
@@ -156,7 +156,7 @@ export const servicoSincronizacao = {
                 for (const nova of novas) {
                     try {
                         const { sincronizado, ...dadosEnvio } = nova;
-                        await api.enviar('/turmas', dadosEnvio);
+                        await api.enviar('/academico/turmas', dadosEnvio);
                         await banco.put('turmas', { ...nova, sincronizado: 1 });
                     } catch (e) {
                         log.error('Erro ao enviar turma offline', e);
@@ -170,7 +170,7 @@ export const servicoSincronizacao = {
                 return { sucesso: true, status: 'sem_alteracoes' };
             }
 
-            const turmas = await api.obter('/turmas');
+            const turmas = await api.obter('/academico/turmas');
             if (Array.isArray(turmas)) {
                 await bancoLocal.salvarTurmas(turmas, 1);
                 log.info('Turmas sincronizadas', { quantidade: turmas.length });
@@ -188,7 +188,7 @@ export const servicoSincronizacao = {
             // O sync local apenas baixa a lista atualizada (pull-only).
             const banco = await bancoLocal.iniciarBanco();
 
-            const usuariosServidor = await api.obter('/usuarios');
+            const usuariosServidor = await api.obter('/seguranca/usuarios');
 
             if (Array.isArray(usuariosServidor)) {
                 const tx = banco.transaction('usuarios', 'readwrite');
@@ -218,7 +218,7 @@ export const servicoSincronizacao = {
 
                 // Envia em batch
                 try {
-                    await api.enviar('/auditoria', logs);
+                    await api.enviar('/seguranca/auditoria', logs);
                     // Limpar logs locais após envio com sucesso para economizar espaço?
                     // Ou marcar como enviados.
                     // Por simplicidade, vamos limpar os que foram enviados (dado que auditoria é histórico)
@@ -252,7 +252,7 @@ export const servicoSincronizacao = {
             // Tenta obter logs de auditoria do servidor desde a última sync
             // Endpoint suposto: /auditoria?desde=ISOSTRING
             // Se o backend não suportar filtro, retornará array vazio ou erro, tratamos no catch
-            const logs = await api.obter(`/auditoria?desde=${ultimaSync}`);
+            const logs = await api.obter(`/seguranca/auditoria?desde=${ultimaSync}`);
 
             if (!Array.isArray(logs)) {
                 // Se não retornou array, assume que não dá pra saber, então força sync

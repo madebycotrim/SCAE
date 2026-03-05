@@ -20,7 +20,7 @@ export const usuarioServico = {
         try {
             // 1. Tentar salvar no servidor primeiro
             if (navigator.onLine) {
-                await api.enviar(`/usuarios/${usuarioNovo.email}`, usuarioNovo);
+                await api.enviar(`/seguranca/usuarios/${usuarioNovo.email}`, usuarioNovo);
                 log.info('Usuário salvo online com sucesso');
             } else {
                 throw new Error('Offline');
@@ -57,7 +57,7 @@ export const usuarioServico = {
         try {
             // 1. Tentar atualizar no servidor primeiro
             if (navigator.onLine) {
-                await api.atualizar(`/usuarios/${user.email}`, { ativo: novoStatus });
+                await api.atualizar(`/seguranca/usuarios/${user.email}`, { ativo: novoStatus });
                 log.info('Status do usuário atualizado online');
             } else {
                 throw new Error('Offline');
@@ -89,7 +89,7 @@ export const usuarioServico = {
         try {
             // 1. Tentar remover do servidor primeiro
             if (navigator.onLine) {
-                await api.remover(`/usuarios/${email}`);
+                await api.remover(`/seguranca/usuarios/${email}`);
                 removidoOnline = true;
             }
         } catch (erro) {

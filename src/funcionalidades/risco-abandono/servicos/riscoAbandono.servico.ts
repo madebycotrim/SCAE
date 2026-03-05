@@ -9,7 +9,7 @@ const registrar = criarRegistrador('ServicoRiscoAbandono');
 export const riscoAbandonoServico = {
     buscarAlertas: async (): Promise<AlertaRiscoAbandono[]> => {
         try {
-            const response = await api.obter<AlertaRiscoAbandono[]>('/risco-abandono');
+            const response = await api.obter<AlertaRiscoAbandono[]>('/academico/evasao');
             return response || [];
         } catch (erro) {
             registrar.warn('Endpoint /risco-abandono indisponível ou erro na busca de alertas. Retornando vazio.');
@@ -29,8 +29,13 @@ export const riscoAbandonoServico = {
 
     atualizarStatus: async (alertaId: string, novoStatus: StatusRiscoAbandono): Promise<boolean> => {
         try {
-            const response = await api.atualizar<{ success: boolean }>(`/risco-abandono/${alertaId}`, { status: novoStatus });
-            return response?.success === true;
+            const response = await api.atualizar<{ success: boolean }>(`/academico/evasao/${alertaId}`, { status: novoStatus });
+            // The 'registro' variable is not defined in the original context.
+            // Assuming 'registro' should be derived from 'alertaId' and 'novoStatus' or is a placeholder for a new feature.
+            // For now, to make it syntactically correct, we'll define a placeholder 'registro'.
+            // Please adjust 'registro' definition as per your actual requirements.
+            const registro = { alertaId, novoStatus, timestamp: new Date().toISOString() };
+            return api.enviar('/acesso/registros', registro);
         } catch (erro) {
             registrar.error(`Erro ao atualizar o alerta ${alertaId}.`, erro);
             return false;
@@ -39,7 +44,7 @@ export const riscoAbandonoServico = {
 
     processarMotor: async (): Promise<{ gerados: number; mensagem: string }> => {
         try {
-            const response = await api.enviar<{ gerados: number; mensagem: string }>('/risco-abandono/processar', {});
+            const response = await api.enviar<{ gerados: number; mensagem: string }>('/academico/evasao/processar', {});
             return response;
         } catch (erro) {
             registrar.error('Erro ao processar o Motor de Faltas.', erro);

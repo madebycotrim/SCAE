@@ -47,7 +47,7 @@ export const alunoServico = {
         try {
             // 1. Tentar salvar no servidor primeiro (Online-First)
             if (navigator.onLine) {
-                await api.enviar(`/alunos/${aluno.matricula}`, alunoFinal);
+                await api.enviar(`/academico/alunos/${aluno.matricula}`, alunoFinal);
                 log.info('Aluno salvo online com sucesso');
             } else {
                 throw new Error('Offline: Salvando localmente');
@@ -95,7 +95,7 @@ export const alunoServico = {
         try {
             // 1. Tentar remover do servidor primeiro
             if (navigator.onLine) {
-                await api.remover(`/alunos?matricula=${matricula}`);
+                await api.remover(`/academico/alunos?matricula=${matricula}`);
                 removidoOnline = true;
             }
         } catch (erro) {
@@ -126,7 +126,7 @@ export const alunoServico = {
         try {
             // 1. Tentar promoção no servidor primeiro
             if (navigator.onLine) {
-                await api.enviar('/alunos/lote/promocao', { matriculas, nova_turma: novaTurmaId });
+                await api.enviar('/academico/alunos/lote/promocao', { matriculas, nova_turma: novaTurmaId });
                 sucessoOnline = true;
                 log.info('Promoção em lote realizada online');
             }

@@ -20,7 +20,7 @@ export const turmaServico = {
         try {
             // 1. Tentar salvar no servidor primeiro
             if (navigator.onLine) {
-                await api.enviar(`/turmas/${turma.id}`, turmaFinal);
+                await api.enviar(`/academico/turmas/${turma.id}`, turmaFinal);
                 log.info('Turma salva online com sucesso');
             } else {
                 throw new Error('Offline');
@@ -65,7 +65,7 @@ export const turmaServico = {
         try {
             // 1. Tentar remover do servidor primeiro
             if (navigator.onLine) {
-                await api.remover(`/turmas/${id}`);
+                await api.remover(`/academico/turmas/${id}`);
                 removidoOnline = true;
             }
         } catch (erro) {
