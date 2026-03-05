@@ -2,6 +2,7 @@ import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
 import { api } from '@compartilhado/servicos/api';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
 
 const log = criarRegistrador('TurmaServico');
@@ -48,8 +49,14 @@ export const turmaServico = {
                 via: turmaFinal.sincronizado ? 'online' : 'local'
             });
 
-            if (turmaFinal.sincronizado === 0 && navigator.onLine) {
-                toast.success('Salvo localmente (Sincronização pendente)');
+            if (turmaFinal.sincronizado === 0) {
+                if (navigator.onLine) {
+                    toast.success('Salvo localmente (Sincronização pendente)');
+                    // Tenta sincronizar imediatamente caso tenha sido erro transiente ou recuperação rápida
+                    servicoSincronizacao.sincronizarTudo();
+                } else {
+                    toast.success('Salvo localmente (Modo Offline)');
+                }
             }
         } catch (erroLocal) {
             log.error('Erro ao salvar turma localmente', erroLocal);
@@ -65,8 +72,11 @@ export const turmaServico = {
         try {
             // 1. Tentar remover do servidor primeiro
             if (navigator.onLine) {
-                await api.remover(`/academico/turmas/${id}`);
+                // Rota corrigida para query parameter id
+                await api.remover(`/academico/turmas?id=${id}`);
                 removidoOnline = true;
+            } else {
+                throw new Error('Offline (DELETE)');
             }
         } catch (erro) {
             log.warn('Falha ao remover turma online, agendando para depois', erro);

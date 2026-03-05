@@ -2,6 +2,7 @@
 import { api } from '@compartilhado/servicos/api';
 import { Registrador } from '@compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
 import { Aluno, ResultadoImportacao, FiltrosAluno } from '../tipos/academico';
 import toast from 'react-hot-toast';
 
@@ -77,8 +78,14 @@ export const alunoServico = {
                 via: alunoFinal.sincronizado ? 'online' : 'local'
             });
 
-            if (alunoFinal.sincronizado === 0 && navigator.onLine) {
-                toast.success('Salvo localmente (Sincronização pendente)');
+            if (alunoFinal.sincronizado === 0) {
+                if (navigator.onLine) {
+                    toast.success('Salvo localmente (Sincronização pendente)');
+                    // Tenta sincronizar imediatamente caso tenha sido erro transiente
+                    servicoSincronizacao.sincronizarTudo();
+                } else {
+                    toast.success('Salvo localmente (Modo Offline)');
+                }
             }
         } catch (erroLocal) {
             log.error('Erro crítico ao persistir aluno', erroLocal);
@@ -158,8 +165,13 @@ export const alunoServico = {
                 via: sucessoOnline ? 'online' : 'local'
             });
 
-            if (!sucessoOnline && navigator.onLine) {
-                toast.success('Promovido localmente (Sincronização pendente)');
+            if (!sucessoOnline) {
+                if (navigator.onLine) {
+                    toast.success('Promovido localmente (Sincronização pendente)');
+                    servicoSincronizacao.sincronizarTudo();
+                } else {
+                    toast.success('Promovido localmente (Modo Offline)');
+                }
             }
         } catch (erroLocal) {
             log.error('Erro na promoção em lote local', erroLocal);

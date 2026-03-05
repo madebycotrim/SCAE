@@ -346,18 +346,32 @@ export const servicoSincronizacao = {
                 servicoSincronizacao.sincronizarLogsAuditoria()
             ]);
 
+            // Baixar dados acadêmicos do Hub (opcional, já garantido pelos pulls acima)
+
             // Atualiza timestamp da última sincronização com sucesso
             localStorage.setItem('ultima_sincronizacao', new Date().toISOString());
 
-            // Logar resultados
+            // Logar resultados e reportar sucessos parciais
+            let temFalha = false;
             resultados.forEach((res, index) => {
                 const labels = ['Alunos', 'Turmas', 'Registros', 'Usuários', 'Auditoria'];
                 if (res.status === 'rejected') {
                     log.error(`Falha em ${labels[index]}`, res.reason);
+                    temFalha = true;
+                } else if (res.value && !res.value.sucesso) {
+                    log.warn(`Aviso em ${labels[index]}: ${res.value.erro}`);
+                    temFalha = true;
                 }
             });
 
+            if (!temFalha) {
+                log.info('Smart Sync concluído com sucesso total.');
+            } else {
+                log.warn('Smart Sync concluído com algumas falhas parciais.');
+            }
+
             return {
+                sucesso: !temFalha,
                 alunos: resultados[0].status === 'fulfilled' ? resultados[0].value : { sucesso: false },
                 turmas: resultados[1].status === 'fulfilled' ? resultados[1].value : { sucesso: false },
                 registros: resultados[2].status === 'fulfilled' ? resultados[2].value : { sucesso: false },
