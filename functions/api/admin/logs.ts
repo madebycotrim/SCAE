@@ -9,9 +9,14 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     const logs = await env.DB_SCAE.prepare(
         `SELECT
             a.*,
-            t.nome_escola
+            t.nome_escola,
+            u.nome_completo as usuario_nome
             FROM logs_auditoria a
             LEFT JOIN escolas t ON a.escola_id = t.id
+            LEFT JOIN (
+                SELECT email, nome_completo, ROW_NUMBER() OVER(PARTITION BY email ORDER BY atualizado_em DESC) as rn
+                FROM usuarios
+            ) u ON a.usuario_email = u.email AND u.rn = 1
             ORDER BY a.timestamp DESC
             LIMIT 100`
     ).all();

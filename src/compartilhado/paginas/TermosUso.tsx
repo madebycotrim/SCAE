@@ -151,8 +151,8 @@ export default function TermosUso() {
                     {/* ─── SEÇÃO 6 ─── */}
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">6. LIMITAÇÃO DE RESPONSABILIDADE</h2>
                     <p className="indent-[1.25cm]">
-                        Os dados são armazenados em nuvem (Cloudflare e Google Firebase). Não há hardware
-                        local da escola envolvido no armazenamento.
+                        Os dados são armazenados em nuvem (Cloudflare e Google Firebase). Não há servidores
+                        locais instalados na escola para o armazenamento definitivo dos dados.
                     </p>
                     <p className="indent-[1.25cm]">
                         Por ser um projeto independente desenvolvido por pessoa física sem fins lucrativos,

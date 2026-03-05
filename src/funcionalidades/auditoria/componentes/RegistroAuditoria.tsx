@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import { mascararEmail } from '@compartilhado/utils/formatar';
 
 import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
 
@@ -31,13 +32,28 @@ export default function RegistroAuditoria() {
     const [pagina, definirPagina] = useState(1);
     const [logSelecionado, definirLogSelecionado] = useState(null);
     const [carregando, definirCarregando] = useState(false);
+    const [mapaUsuarios, definirMapaUsuarios] = useState<Record<string, string>>({});
 
     const LOGS_PER_PAGE = 15;
     const EH_ADMIN_SUPREMO = ehAdmin;
 
     useEffect(() => {
         carregarLogs();
+        carregarUsuarios();
     }, []);
+
+    const carregarUsuarios = async () => {
+        try {
+            const usuarios = await bancoLocal.listarUsuarios();
+            const mapa: Record<string, string> = {};
+            usuarios.forEach(u => {
+                if (u.nome_completo) mapa[u.email] = u.nome_completo;
+            });
+            definirMapaUsuarios(mapa);
+        } catch (e) {
+            console.error('Erro ao carregar usuários para mapeamento:', e);
+        }
+    };
 
     const carregarLogs = async () => {
         try {
@@ -177,7 +193,14 @@ export default function RegistroAuditoria() {
                                             <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-suave">
                                                 <User size={14} />
                                             </div>
-                                            <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 transition-colors tracking-tight uppercase">{log.usuario_email.split('@')[0]}</span>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 transition-colors tracking-tight uppercase">
+                                                    {mapaUsuarios[log.usuario_email] || log.usuario_email.split('@')[0]}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-slate-400 tracking-wider">
+                                                    {mascararEmail(log.usuario_email)}
+                                                </span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-4 text-center">

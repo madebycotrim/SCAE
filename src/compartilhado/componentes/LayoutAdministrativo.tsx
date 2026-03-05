@@ -7,6 +7,7 @@ import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes'
 import { usarBuscaGlobal } from '@compartilhado/hooks/usarBuscaGlobal';
 import { usarEscola } from '@escola/ProvedorEscola';
 import { usarInstalacaoPWA } from '@compartilhado/hooks/usarInstalacaoPWA';
+import { mascararEmail } from '@compartilhado/utils/formatar';
 import {
     LayoutDashboard,
     Users,
@@ -411,10 +412,10 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             {!sidebarMinimizado && (
                                 <div className="flex-1 min-w-0 pr-2">
                                     <p className="text-[12px] font-black text-white truncate uppercase tracking-tight">
-                                        {usuarioAtual?.email?.split('@')[0] || 'Usuário'}
+                                        {usuario?.nome_completo || usuarioAtual?.displayName || 'Usuário'}
                                     </p>
                                     <p className="text-[10.5px] text-slate-500 truncate font-bold tracking-tighter" title={usuarioAtual?.email}>
-                                        {usuarioAtual?.email}
+                                        {mascararEmail(usuarioAtual?.email)}
                                     </p>
                                 </div>
                             )}

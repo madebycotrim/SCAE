@@ -3,14 +3,18 @@ import { FileText, Search, Filter, Loader2, AlertTriangle, Clock, ShieldAlert, I
 import { api } from '@compartilhado/servicos/api';
 import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
 
+import { mascararEmail } from '@compartilhado/utils/formatar';
+
 interface LogGlobal {
     id: string;
     timestamp: string;
-    quem: string;
+    usuario_email: string;
+    usuario_nome?: string;
     escolaslug: string;
     acaoDescricao: string;
     gravidade: 'INFO' | 'WARN' | 'CRITICAL';
 }
+
 
 export function PaginaAuditoriaCentral() {
     const [busca, definirBusca] = useState('');
@@ -36,7 +40,8 @@ export function PaginaAuditoriaCentral() {
     }, []);
 
     const filtrados = logs.filter(l =>
-        l.quem.toLowerCase().includes(busca.toLowerCase()) ||
+        l.usuario_email.toLowerCase().includes(busca.toLowerCase()) ||
+        (l.usuario_nome && l.usuario_nome.toLowerCase().includes(busca.toLowerCase())) ||
         l.acaoDescricao.toLowerCase().includes(busca.toLowerCase()) ||
         l.escolaslug?.toLowerCase().includes(busca.toLowerCase())
     );
@@ -140,9 +145,14 @@ export function PaginaAuditoriaCentral() {
                                             )}
                                         </td>
                                         <td className="py-5 px-8">
-                                            <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">
-                                                {log.quem}
-                                            </span>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors uppercase">
+                                                    {log.usuario_nome || log.usuario_email.split('@')[0]}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-slate-500 tracking-wider">
+                                                    {mascararEmail(log.usuario_email)}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="py-5 px-8">
                                             <div className="max-w-md truncate">

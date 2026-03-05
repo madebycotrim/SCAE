@@ -160,23 +160,22 @@ export default function PoliticaPrivacidade() {
                     </p>
 
                     {/* ─── SEÇÃO 4 ─── */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. INFRAESTRUTURA E TRANSFERÊNCIA INTERNACIONAL</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. INFRAESTRUTURA E TRATAMENTO DE DADOS</h2>
                     <p className="indent-[1.25cm]">
-                        Os dados são processados em infraestrutura de nuvem internacional — Cloudflare e Google
-                        Firebase —, com servidores localizados fora do Brasil. Por tratar-se de sistema desenvolvido
-                        por pessoa física independente, o <strong>{nomeFornecedor}</strong> não possui infraestrutura
-                        própria de servidores; todo o processamento ocorre nos serviços citados, cujas políticas de
+                        Os dados são processados em infraestrutura de nuvem segura — Cloudflare e Google
+                        Firebase —, com configurações de residência de dados priorizando servidores localizados
+                        no Brasil, em conformidade com as exigências de soberania de dados para órgãos públicos.
+                        Por tratar-se de sistema desenvolvido por pessoa física independente, o <strong>{nomeFornecedor}</strong> não possui infraestrutura
+                        física própria; todo o processamento ocorre nos serviços citados, cujas políticas de
                         privacidade e segurança são de responsabilidade dos respectivos provedores.
                     </p>
                     <p className="indent-[1.25cm]">
                         Todas as informações são protegidas por criptografia AES-256 em repouso e TLS 1.2+ em trânsito.
                     </p>
                     <p className="indent-[1.25cm]">
-                        A transferência internacional ocorre com base no Art. 33 da LGPD, especificamente com
-                        fundamento no inciso II (países ou organismos que proporcionem grau de proteção de dados
-                        adequado ao previsto na LGPD) e no inciso VII (cláusulas contratuais específicas — Data
-                        Processing Agreements — mantidas pelos próprios provedores de infraestrutura). Os dados
-                        não são comercializados com terceiros.
+                        O sistema é projetado para minimizar o tráfego internacional de dados, utilizando as
+                        regiões de disponibilidade mais próximas à jurisdição brasileira. Os dados pessoais
+                        de alunos e responsáveis não são comercializados com terceiros em nenhuma hipótese.
                     </p>
                     <p className="indent-[1.25cm]">
                         O sistema pode registrar dados técnicos de sessão, como identificador de dispositivo e

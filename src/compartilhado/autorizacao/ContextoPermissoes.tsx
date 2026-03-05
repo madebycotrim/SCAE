@@ -135,7 +135,7 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
                         log.info(`Admin principal (CENTRAL) detectado: ${log.mascarar(usuarioAtual.email, 'email')}`);
                         const adminUser = {
                             email: usuarioAtual.email,
-                            nome_completo: 'Administrador Principal',
+                            nome_completo: usuarioAtual.displayName || 'Administrador Principal',
                             papel: 'CENTRAL',
                             ativo: true
                         };

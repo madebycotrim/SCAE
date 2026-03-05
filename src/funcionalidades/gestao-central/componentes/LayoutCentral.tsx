@@ -2,9 +2,13 @@
 import { ShieldAlert, Building2, Users, FileText, LogOut } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
+import { mascararEmail } from '@compartilhado/utils/formatar';
+import { User as UserIcon } from 'lucide-react';
 
 export function LayoutCentral({ children }: { children: ReactNode }) {
     const { usuarioAtual, sair } = usarAutenticacao();
+    const { usuario } = usarPermissoes();
     const navigate = useNavigate();
 
     const logout = async () => {
@@ -38,7 +42,19 @@ export function LayoutCentral({ children }: { children: ReactNode }) {
                 <div className="p-5 border-t border-slate-800/50 bg-slate-900/80 backdrop-blur-sm sticky bottom-0">
                     <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-800/50 mb-4 shadow-inner">
                         <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 text-center">Operador de Infraestrutura</p>
-                        <p className="text-xs font-bold text-indigo-300 truncate text-center">{usuarioAtual?.email || 'root@scae.core'}</p>
+                        <div className="flex items-center gap-3 bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/30">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shrink-0">
+                                <UserIcon size={14} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">
+                                    {usuario?.nome_completo || usuarioAtual?.displayName || 'USUÁRIO'}
+                                </p>
+                                <p className="text-[9px] font-bold text-slate-500 truncate tracking-wider">
+                                    {mascararEmail(usuarioAtual?.email)}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                     <button
                         onClick={logout}

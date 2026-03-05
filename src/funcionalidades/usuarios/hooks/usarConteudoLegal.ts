@@ -36,11 +36,11 @@ export function usarConteudoLegal(): ConteudoLegal {
         },
         {
             titulo: 'Obrigação Legal ou Regulatória (Art. 7º, II)',
-            descricao: 'Para manutenção de diários de classe, controle de evasão escolar e reporte de frequência Ã s secretarias competentes do Governo.'
+            descricao: 'Para manutenção de diários de classe, controle de evasão escolar e reporte de frequência às secretarias competentes do Governo.'
         },
         {
             titulo: 'Proteção de Crianças e Adolescentes (Art. 14)',
-            descricao: 'O tratamento de dados pessoais de crianças e adolescentes será realizado em seu melhor interesse e com a finalidade de proteção Ã  sua integridade no ambiente escolar.'
+            descricao: 'O tratamento de dados pessoais de crianças e adolescentes será realizado em seu melhor interesse e com a finalidade de proteção à sua integridade no ambiente escolar.'
         }
     ];
 
@@ -54,7 +54,7 @@ export function usarConteudoLegal(): ConteudoLegal {
         nomeEncarregadoDPO: nomeDPO || import.meta.env.VITE_DPO_NOME || 'Encarregado de Dados (DPO)',
         emailEncarregadoDPO: emailDPO || import.meta.env.VITE_DPO_EMAIL || '',
         foro: foro || 'Brasília/DF',
-        dataUltimaRevisao: '28 de Fevereiro de 2026'
+        dataUltimaRevisao: '05 de Março de 2026'
     };
 }
 
