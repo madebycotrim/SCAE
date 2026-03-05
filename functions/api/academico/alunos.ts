@@ -8,7 +8,7 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
     verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
 
     const { results } = await contexto.env.DB_SCAE.prepare(
-        "SELECT matricula, escola_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses, data_anonimizacao, anonimizado, criado_em, atualizado_em, data_exclusao FROM alunos WHERE escola_id = ?"
+        "SELECT matricula, escola_id, nome_completo, turma_id, ativo, criado_em, atualizado_em FROM alunos WHERE escola_id = ?"
     ).bind(idEscola).all();
 
     return Response.json({
@@ -32,7 +32,7 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
 
     // UPSERT: Inserir ou Atualizar Aluno
     await contexto.env.DB_SCAE.prepare(
-        `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, ativo, base_legal, finalidade_coleta, prazo_retencao_meses) VALUES (?, ?, ?, ?, ?, 'obrigacao_legal', 'registro_acesso', 24)
+        `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, ativo) VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(matricula, escola_id) DO UPDATE SET
             nome_completo = excluded.nome_completo,
             turma_id = excluded.turma_id,
@@ -52,8 +52,8 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
         if (!responsavelId) {
             responsavelId = crypto.randomUUID();
             await contexto.env.DB_SCAE.prepare(
-                `INSERT INTO responsaveis (id, escola_id, email, nome_completo, base_legal, finalidade_coleta, prazo_retencao_meses) 
-                    VALUES (?, ?, ?, ?, 'consentimento', 'portal_familia', 24)`
+                `INSERT INTO responsaveis (id, escola_id, email, nome_completo) 
+                    VALUES (?, ?, ?, ?)`
             ).bind(responsavelId, idEscola, emailLimpo, 'Responsável de ' + nome_completo).run();
         }
 

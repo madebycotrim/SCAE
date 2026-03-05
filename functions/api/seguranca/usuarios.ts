@@ -8,7 +8,7 @@ async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response>
     verificarPermissao(contexto, ['ADMIN']);
 
     const { results } = await contexto.env.DB_SCAE.prepare(
-        "SELECT email, escola_id, nome_completo, papel, ativo, criado_por, pendente, criado_em, atualizado_em, data_exclusao FROM usuarios WHERE escola_id = ?"
+        "SELECT email, escola_id, nome_completo, papel, ativo, criado_por, pendente, criado_em, atualizado_em FROM usuarios WHERE escola_id = ?"
     ).bind(idEscola).all();
 
     return Response.json({

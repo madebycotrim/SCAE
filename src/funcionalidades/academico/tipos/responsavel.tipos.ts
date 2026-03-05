@@ -3,11 +3,8 @@
     escola_id: string;
     nome_completo: string;
     email: string;
-    base_legal: string;
-    finalidade_coleta: string;
     criado_em?: string;
     atualizado_em?: string;
-    data_exclusao?: string;
 }
 
 export interface DadosResponsavel extends ResponsavelLocal {

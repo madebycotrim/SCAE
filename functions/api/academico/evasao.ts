@@ -143,7 +143,7 @@ async function processarMotorEvasao(db: D1Database, idEscola: string): Promise<R
         const alunosResp = await db.prepare(`
             SELECT matricula, nome_completo
             FROM alunos
-            WHERE escola_id = ? AND ativo = 1 AND anonimizado = 0
+            WHERE escola_id = ? AND ativo = 1
         `).bind(idEscola).all();
 
         const alunosAtivos = alunosResp.results || [];

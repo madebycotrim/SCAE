@@ -50,7 +50,6 @@ export interface UsuarioLocal {
     atualizado_em?: string;
     criado_por?: string;         // email de quem criou (nullable)
     pendente?: boolean;          // aguardando aprovação
-    data_exclusao?: string;
     // Alias legado
     role?: PapelUsuario;
 }
@@ -60,11 +59,8 @@ export interface ResponsavelLocal {
     escola_id: string;
     nome_completo: string;
     email: string;
-    base_legal: string;
-    finalidade_coleta: string;
     criado_em?: string;
     atualizado_em?: string;
-    data_exclusao?: string;
 }
 
 export interface VinculoResponsavelAluno {

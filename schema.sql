@@ -36,7 +36,6 @@ CREATE TABLE usuarios (
     -- LGPD / Tracking
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     atualizado_em DATETIME,
-    data_exclusao DATETIME,
 
     PRIMARY KEY (email, escola_id),
     FOREIGN KEY (escola_id) REFERENCES escolas(id)

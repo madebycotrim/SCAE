@@ -58,13 +58,8 @@ export interface AlunoDB {
     turma_id?: string;
     ativo: number;
     sincronizado?: number;
-    anonimizado?: number;
-    base_legal?: string;
-    finalidade_coleta?: string;
-    prazo_retencao_meses?: number;
     criado_em?: string;
     atualizado_em?: string;
-    data_exclusao?: string;
 }
 
 export interface TurmaDB {
@@ -88,7 +83,6 @@ export interface RegistroAcessoDB {
     metodo_leitura?: string;
     timestamp_acesso: string;
     sincronizado: number;
-    prazo_retencao_meses?: number;
 }
 
 export interface UsuarioDB {
@@ -101,7 +95,6 @@ export interface UsuarioDB {
     pendente?: number;
     criado_em?: string;
     atualizado_em?: string;
-    data_exclusao?: string;
 }
 
 export interface LogAuditoriaDB {
@@ -136,16 +129,8 @@ export interface ResponsavelDB {
     escola_id: string;
     nome_completo: string;
     email?: string;
-    // LGPD
-    id_consentimento?: string;
-    base_legal?: string;
-    finalidade_coleta?: string;
-    prazo_retencao_meses?: number;
-    anonimizado?: number;
-    data_anonimizacao?: string;
     criado_em?: string;
     atualizado_em?: string;
-    data_exclusao?: string;
 }
 
 // ============================================================
