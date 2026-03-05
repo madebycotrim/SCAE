@@ -71,7 +71,7 @@ export default function LoginCentral() {
                                     value={senha}
                                     onChange={(e) => definirSenha(e.target.value)}
                                     className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-4 pr-10 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
-                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                                    placeholder="••••••••"
                                     required
                                 />
                                 <KeyRound className="absolute right-3 top-3.5 text-slate-500" size={16} />

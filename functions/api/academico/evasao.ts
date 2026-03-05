@@ -165,7 +165,7 @@ async function processarMotorEvasao(db: D1Database, idEscola: string): Promise<R
             if (!acessoRecente) {
                 // Aluno não registrou acesso nos últimos 3 dias!
 
-                // Verificar se JÃ EXISTE um alerta PENDENTE ou EM ANÃLISE aberto
+                // Verificar se JÁ EXISTE um alerta PENDENTE ou EM ANÁLISE aberto
                 const alertaAtivo = await db.prepare(`
                     SELECT id FROM alertas_evasao 
                     WHERE aluno_matricula = ? AND escola_id = ? AND status IN ('PENDENTE', 'EM_ANALISE')

@@ -160,7 +160,7 @@ const LiveAccessFeed = ({ registros, alunos }) => {
                                         {aluno?.nome_completo || 'Identificando...'}
                                     </p>
                                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                                        {reg.aluno_matricula} â€¢ {aluno?.turma_id || 'Avulso'}
+                                        {reg.aluno_matricula} • {aluno?.turma_id || 'Avulso'}
                                     </p>
                                 </div>
                                 <div className="text-right whitespace-nowrap">
@@ -273,7 +273,7 @@ export default function Painel() {
     return (
         <LayoutAdministrativo
             titulo="Dashboard Central"
-            subtitulo="GestÃ£o, Pedagogia e Controle em Tempo Real"
+            subtitulo="Gestão, Pedagogia e Controle em Tempo Real"
             acoes={null}
         >
             <div className="space-y-12 pb-16">
@@ -281,8 +281,8 @@ export default function Painel() {
                 {/* --- PILAR 1: VISÃO GERAL --- */}
                 <section>
                     <SecaoHeader
-                        titulo="VisÃ£o EstratÃ©gica"
-                        subtitulo="Indicadores de performance e evoluÃ§Ã£o escolar"
+                        titulo="Visão Estratégica"
+                        subtitulo="Indicadores de performance e evolução escolar"
                         icone={TrendingUp}
                     />
 
@@ -292,13 +292,13 @@ export default function Painel() {
                                 <div className="flex justify-between items-center mb-8">
                                     <div className="flex items-center gap-4 border-l-2 border-slate-900 pl-4">
                                         <div>
-                                            <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 leading-none">EvoluÃ§Ã£o DiÃ¡ria</h3>
+                                            <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 leading-none">Evolução Diária</h3>
                                             <h4 className="text-base font-black text-slate-800 uppercase tracking-tight">Frequência da Semana</h4>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
                                         <Activity size={12} className="text-slate-500" />
-                                        <span className="text-[9px] font-black text-slate-500 uppercase">MÃ©dia: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)}</span>
+                                        <span className="text-[9px] font-black text-slate-500 uppercase">Média: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)}</span>
                                     </div>
                                 </div>
                                 <div className="flex-1 w-full min-h-[300px] relative">
@@ -371,17 +371,17 @@ export default function Painel() {
                     </div>
                 </section>
 
-                {/* --- PILAR 2: PEDAGÃ“GICO --- */}
+                {/* --- PILAR 2: PEDAGÓGICO --- */}
                 <section>
                     <SecaoHeader
-                        titulo="MÃ³dulo PedagÃ³gico"
-                        subtitulo="Acompanhamento preventivo e evasÃ£o"
+                        titulo="Módulo Pedagógico"
+                        subtitulo="Acompanhamento preventivo e evasão"
                         icone={ShieldCheck}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <CardEstatistica
                             titulo="Risco de Abandono"
-                            valor={estatisticas.atrasosHoje} // Usando dado disponÃ­vel como proxy
+                            valor={estatisticas.atrasosHoje} // Usando dado disponível como proxy
                             subtitulo="Pendentes Urgentes"
                             icone={AlertTriangle}
                             cor="rose"
@@ -391,7 +391,7 @@ export default function Painel() {
                         <CardEstatistica
                             titulo="Faltas Consecutivas"
                             valor={8}
-                            subtitulo="Turmas CrÃ­ticas"
+                            subtitulo="Turmas Críticas"
                             icone={Activity}
                             cor="rose"
                         />
@@ -423,16 +423,16 @@ export default function Painel() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-1 flex flex-col gap-6">
                             <CardEstatistica
-                                titulo="SaÃ­das Registradas"
+                                titulo="Saídas Registradas"
                                 valor={estatisticas.saidasHoje}
-                                subtitulo="Fluxo de saÃ­da"
+                                subtitulo="Fluxo de saída"
                                 icone={LogOut}
                                 cor="amber"
                             />
                             <CardEstatistica
                                 titulo="Atrasos Detectados"
                                 valor={estatisticas.atrasosHoje}
-                                subtitulo="PÃ³s-tolerÃ¢ncia"
+                                subtitulo="Pós-tolerância"
                                 icone={Clock}
                                 cor="amber"
                                 tendencia={8}
@@ -449,7 +449,7 @@ export default function Painel() {
                 <section>
                     <SecaoHeader
                         titulo="Administração"
-                        subtitulo="Status do sistema e atalhos rÃ¡pidos"
+                        subtitulo="Status do sistema e atalhos rápidos"
                         icone={Shield}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -459,7 +459,7 @@ export default function Painel() {
                                     <Users size={16} />
                                 </div>
                                 <div>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">UsuÃ¡rios</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Usuários</p>
                                     <p className="text-xs font-black text-slate-700 uppercase tracking-tight">Time</p>
                                 </div>
                             </div>
@@ -487,7 +487,7 @@ export default function Painel() {
                                 </div>
                             </div>
                             <Botao variante="ghost" tamanho="sm" className="text-slate-400 hover:bg-white/5 border border-white/10 relative z-10 h-8">
-                                ForÃ§ar Sinc
+                                Forçar Sinc
                             </Botao>
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 ﻿/**
- * GuardaQuiosque â€” protege a rota do tablet (sessão permanente).
+ * GuardaQuiosque — protege a rota do tablet (sessão permanente).
  * Verifica se há um usuário autenticado com sessão persistente.
  * Redireciona para login da escola com slug.
  */

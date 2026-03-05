@@ -111,7 +111,7 @@ export interface EsquemaSCAE {
             id: string;
             escola_id?: string;          // nullable: logs offline podem não ter escola
             timestamp: string;            // campo local
-            created_at: string;           // alias â€” preenchido junto com timestamp
+            created_at: string;           // alias — preenchido junto com timestamp
             data_criacao?: string;        // campo canônico do servidor
             usuario_email: string;
             acao: string;

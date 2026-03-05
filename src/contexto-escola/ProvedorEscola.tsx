@@ -1,6 +1,6 @@
 ﻿/**
- * ProvedorEscola â€” Carrega e injeta perfil da escola antes de renderizar a app.
- * Identificação da escola: slug na URL â€” seuapp.com/:slugEscola
+ * ProvedorEscola — Carrega e injeta perfil da escola antes de renderizar a app.
+ * Identificação da escola: slug na URL — seuapp.com/:slugEscola
  */
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { resolverSlugDaUrl } from './resolverSlug';

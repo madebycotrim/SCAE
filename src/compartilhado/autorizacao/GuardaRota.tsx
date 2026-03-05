@@ -1,5 +1,5 @@
 ﻿/**
- * GuardaRota â€” Componente que protege rotas verificando autenticação + papel + escola.
+ * GuardaRota — Componente que protege rotas verificando autenticação + papel + escola.
  * Redireciona para login relativo ao slug da escola.
  */
 import { ReactNode } from 'react';

@@ -24,7 +24,7 @@ export const PAPEIS_LABELS = {
 };
 
 /**
- * Hierarquia de papéis â€” maior número = mais permissões.
+ * Hierarquia de papéis — maior número = mais permissões.
  */
 export const HIERARQUIA_PAPEIS = {
     [PAPEIS.VISUALIZACAO]: 1,

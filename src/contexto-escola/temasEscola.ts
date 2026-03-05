@@ -1,5 +1,5 @@
 ﻿/**
- * Temas por escola â€” configuração visual por escola.
+ * Temas por escola — configuração visual por escola.
  * Cada escola pode sobrescrever cores, fontes e logo.
  *
  * Em produção, estes dados viriam da API.

@@ -1,5 +1,5 @@
 ﻿/**
- * Tokens de design base â€” podem ser sobrescritos pelo escola.
+ * Tokens de design base — podem ser sobrescritos pelo escola.
  * Valores padrão usados quando o escola não define tema.
  */
 export interface DefTemaBase {
