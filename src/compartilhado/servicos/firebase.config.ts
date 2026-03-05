@@ -1,9 +1,10 @@
 ﻿import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getMessaging } from 'firebase/messaging';
 
 /**
  * Configuração central do Firebase.
- * Este é o ÃšNICO arquivo que deve chamar initializeApp().
+ * Este é o ÚNICO arquivo que deve chamar initializeApp().
  */
 const configuracaoFirebase = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,6 +17,4 @@ const configuracaoFirebase = {
 
 const aplicacao = initializeApp(configuracaoFirebase);
 export const autenticacao = getAuth(aplicacao);
-
-// Exportar outros serviços conforme necessário (ex: getFirestore, getMessaging)
-
+export const messaging = getMessaging(aplicacao);

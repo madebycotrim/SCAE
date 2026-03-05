@@ -6,6 +6,7 @@ import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
 import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
 import { usarBuscaGlobal } from '@compartilhado/hooks/usarBuscaGlobal';
 import { usarEscola } from '@escola/ProvedorEscola';
+import { usarInstalacaoPWA } from '@compartilhado/hooks/usarInstalacaoPWA';
 import {
     LayoutDashboard,
     Users,
@@ -28,7 +29,9 @@ import {
     AlertTriangle,
     Info,
     CheckCircle,
-    XCircle
+    XCircle,
+    Smartphone,
+    Download
 } from 'lucide-react';
 import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
@@ -53,6 +56,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     const navegar = useNavigate();
     const localizacao = useLocation();
     const { id: slugEscola, nomeEscola } = usarEscola();
+    const { podeInstalar, instalarApp } = usarInstalacaoPWA();
 
     /** Prefixo base para todas as rotas admin desta escola */
     const prefixoAdmin = `/${slugEscola}/admin`;
@@ -371,6 +375,25 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         </div>
                     )}
                 </nav>
+
+                {/* Seção de Instalação PWA (Discreta) */}
+                {podeInstalar && (
+                    <div className={`px-4 py-3 bg-sky-500/5 mx-2 mb-2 rounded-xl border border-sky-400/10 transition-all ${sidebarMinimizado ? 'justify-center flex' : ''}`}>
+                        <button
+                            onClick={instalarApp}
+                            className={`
+                                flex items-center gap-3 w-full text-sky-400 hover:text-sky-300 transition-colors
+                                ${sidebarMinimizado ? 'justify-center p-1' : 'px-2 py-1'}
+                            `}
+                            title={sidebarMinimizado ? "Baixar Aplicativo" : ""}
+                        >
+                            <Smartphone size={18} className="shrink-0" />
+                            {!sidebarMinimizado && (
+                                <span className="text-[10px] font-black uppercase tracking-widest truncate">Baixar Aplicativo</span>
+                            )}
+                        </button>
+                    </div>
+                )}
 
                 {/* Rodapé - Perfil do Usuário */}
                 <div className="p-4 border-t border-[rgba(255,255,255,0.06)] z-10">

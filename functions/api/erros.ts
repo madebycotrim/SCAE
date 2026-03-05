@@ -19,7 +19,7 @@ export class ErroBase extends Error {
             erro: {
                 codigo: this.codigo,
                 mensagem: this.mensagem,
-                ...(process.env.NODE_ENV === 'development' && { contexto: this.contexto, causa: this.causaOriginal })
+                ...(((globalThis as any).process?.env?.NODE_ENV === 'development') && { contexto: this.contexto, causa: this.causaOriginal })
             }
         };
     }

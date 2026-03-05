@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { responsavelServico } from '../servicos/responsavelServico';
 import { usarEscola } from '@escola/ProvedorEscola';
+import { usarInstalacaoPWA } from '@compartilhado/hooks/usarInstalacaoPWA';
+import { usarNotificacoesFCM } from '@compartilhado/hooks/usarNotificacoesFCM';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -13,13 +15,18 @@ import {
     ArrowLeft,
     Download,
     Clock,
-    LogOut
+    LogOut,
+    Smartphone,
+    Bell,
+    BellOff
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function PainelResponsavel() {
     const { id: slugEscola } = usarEscola();
     const navegar = useNavigate();
+    const { podeInstalar, instalarApp } = usarInstalacaoPWA();
+    const { permitido: jaAtivado, solicitarPermissao, carregando: ativando } = usarNotificacoesFCM();
 
     interface AcessoTimeline {
         tipo_movimentacao: string;
@@ -107,11 +114,39 @@ export default function PainelResponsavel() {
 
             <div className="max-w-xl mx-auto mt-6 px-4 space-y-6">
 
-                {/* Ações LGPD */}
-                <div className="grid grid-cols-1 gap-3">
+                {/* Ações LGPD e PWA */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {podeInstalar && (
+                        <button
+                            onClick={instalarApp}
+                            className="flex flex-col items-center justify-center gap-2 p-4 bg-indigo-600 border border-indigo-500 rounded-2xl shadow-sm text-white hover:bg-indigo-700 transition active:scale-95"
+                        >
+                            <Smartphone size={22} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Baixar Aplicativo</span>
+                        </button>
+                    )}
+
+                    {!jaAtivado && (
+                        <button
+                            onClick={solicitarPermissao}
+                            disabled={ativando}
+                            className={`flex flex-col items-center justify-center gap-2 p-4 bg-emerald-600 border border-emerald-500 rounded-2xl shadow-sm text-white hover:bg-emerald-700 transition active:scale-95 ${ativando ? 'opacity-50' : ''}`}
+                        >
+                            <Bell size={22} className={ativando ? 'animate-bounce' : ''} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">{ativando ? 'Ativando...' : 'Ativar Alertas Push'}</span>
+                        </button>
+                    )}
+
+                    {jaAtivado && (
+                        <div className="flex flex-col items-center justify-center gap-2 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl shadow-sm text-emerald-700">
+                            <Bell size={22} />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Alertas Ativos</span>
+                        </div>
+                    )}
+
                     <button
                         onClick={exportarDados}
-                        className="flex flex-col items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-2xl shadow-sm text-indigo-600 hover:bg-slate-50 transition active:scale-95"
+                        className={`flex flex-col items-center justify-center gap-2 p-4 bg-white border border-slate-200 rounded-2xl shadow-sm text-indigo-600 hover:bg-slate-50 transition active:scale-95 ${(podeInstalar && jaAtivado) || (!podeInstalar && !jaAtivado) ? '' : 'sm:col-span-2'}`}
                     >
                         <Download size={22} />
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Exportar (JSON)</span>

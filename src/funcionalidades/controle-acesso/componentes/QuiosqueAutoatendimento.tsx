@@ -7,13 +7,14 @@ interface FeedbackAcesso {
     hora: string;
 }
 import { usarEscola } from '@escola/ProvedorEscola';
+import { usarInstalacaoPWA } from '@compartilhado/hooks/usarInstalacaoPWA';
 import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
 import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
 import { usarTipoAcesso } from '../hooks/usarTipoAcesso';
 import { usarModoFila } from '../hooks/usarModoFila';
 import { usarLeitorQR } from '../hooks/usarLeitorQR';
 import { usarControleAcessoWorker } from '../hooks/usarControleAcessoWorker';
-import { filaOffline, RegistroOffline } from '../servicos/filaOffline.service';
+import { hubSincronizacao } from '@compartilhado/servicos/hubSincronizacao';
 import { ajustarTimestampLocal } from '../servicos/clockDrift.service';
 import { obterChavePublica, verificarAssinaturaECDSA } from '../utils/validarQR';
 import { anunciarNome } from '../utils/anunciarNome';
@@ -22,7 +23,7 @@ import { Registrador, ACOES_AUDITORIA } from '@compartilhado/servicos/auditoria'
 import { TIPO_ACESSO, TipoAcesso } from '../types/controleAcesso.tipos';
 import { StatusConexao } from './StatusConexao';
 import { format } from 'date-fns';
-import { ShieldCheck, UserX, ScanLine, Zap, Clock, Radar, Fingerprint } from 'lucide-react';
+import { ShieldCheck, UserX, ScanLine, Zap, Clock, Radar, Fingerprint, Download, Smartphone } from 'lucide-react';
 import { CartaoConteudo } from '@compartilhado/componentes/UI';
 
 const log = criarRegistrador('ControleAcesso:Quiosque');
@@ -33,6 +34,7 @@ export default function QuiosqueAutoatendimento() {
     const tipoAcessoAtual = usarTipoAcesso();
     const confFila = usarModoFila();
     const { acionarWorker, statusWorker } = usarControleAcessoWorker();
+    const { podeInstalar, instalarApp } = usarInstalacaoPWA();
 
     const [ultimoAcesso, definirUltimoAcesso] = useState<FeedbackAcesso | null>(null);
     const [statusLeitura, definirStatusLeitura] = useState<'AGUARDANDO' | 'SUCESSO' | 'ERRO'>('AGUARDANDO');
@@ -77,34 +79,38 @@ export default function QuiosqueAutoatendimento() {
                 return;
             }
 
-            const tipoMovimentacao: TipoAcesso = (tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO) ? 'ENTRADA' : tipoAcessoAtual as TipoAcesso;
+            const tipoMovimentacao: 'ENTRADA' | 'SAIDA' = (tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO) ? 'ENTRADA' : tipoAcessoAtual as 'ENTRADA' | 'SAIDA';
             const momentoLeituraLocal = Date.now();
+            const timestampAjustado = ajustarTimestampLocal(momentoLeituraLocal);
 
-            const eventoId = crypto.randomUUID();
-            const logIdempotente: RegistroOffline = {
-                id: eventoId,
-                idEscola: escola.id,
-                alunoMatricula: matricula,
-                tipoMovimentacao: tipoMovimentacao as 'ENTRADA' | 'SAIDA',
-                metodoLeitura: 'qr_carteirinha',
-                timestampLocal: momentoLeituraLocal,
-                timestampAjustado: ajustarTimestampLocal(momentoLeituraLocal),
-                sincronizado: false,
-            };
+            // 5. Registrar no HUB Sincronização (Inteligente: Tenta Online -> Fallback Local)
+            const resposta = await hubSincronizacao.registrarAcesso({
+                id: crypto.randomUUID(),
+                escola_id: escola.id || '',
+                aluno_matricula: matricula,
+                tipo_movimentacao: tipoMovimentacao,
+                metodo_leitura: 'qr_carteirinha',
+                timestamp_acesso: new Date(timestampAjustado).toISOString()
+            });
 
-            await filaOffline.enfileirarRegistro(logIdempotente);
-            acionarWorker();
+            // 6. Feedback Visual e Sonoro
+            definirStatusLeitura(resposta.sucesso ? 'SUCESSO' : 'ERRO');
+            definirUltimoAcesso({
+                aluno: infoAluno,
+                mensagem: resposta.sucesso
+                    ? (resposta.modo === 'ONLINE' ? 'Acesso Confirmado Cloud' : 'Acesso Agendado (Offline)')
+                    : 'Erro ao Registrar Acesso',
+                hora: format(momentoLeituraLocal, 'HH:mm:ss')
+            });
 
-            if (confFila.ttsAtivado) {
+            if (resposta.sucesso && confFila.ttsAtivado) {
                 anunciarNome(infoAluno.nome_completo);
             }
 
-            definirStatusLeitura('SUCESSO');
-            definirUltimoAcesso({
-                aluno: infoAluno,
-                mensagem: (tipoMovimentacao === 'ENTRADA') ? 'Acesso Liberado (Entrada)' : 'Acesso Liberado (Saída)',
-                hora: format(momentoLeituraLocal, 'HH:mm:ss')
-            });
+            // Cutuca o worker se foi offline
+            if (resposta.modo === 'OFFLINE') {
+                acionarWorker();
+            }
 
             retomarCamera();
 
@@ -166,6 +172,16 @@ export default function QuiosqueAutoatendimento() {
                 </div>
 
                 <div className="flex items-center gap-6">
+                    {podeInstalar && (
+                        <button
+                            onClick={instalarApp}
+                            className="group/install flex items-center gap-3 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl border border-indigo-400 shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all active:scale-95 z-30"
+                        >
+                            <Download size={18} className="group-hover/install:animate-bounce" />
+                            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Instalar App</span>
+                        </button>
+                    )}
+
                     <div className={`flex items-center gap-3 px-5 py-2.5 rounded-2xl border-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-2xl ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
                         ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                         : tipoAcessoAtual === TIPO_ACESSO.SAIDA

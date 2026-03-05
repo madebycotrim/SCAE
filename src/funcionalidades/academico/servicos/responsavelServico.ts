@@ -37,6 +37,24 @@ export const responsavelServico = {
 
     sair: () => {
         localStorage.removeItem('responsavel_lgpd_token');
+    },
+
+    salvarTokenFCM: async (tokenFCM: string): Promise<void> => {
+        const token = localStorage.getItem('responsavel_lgpd_token');
+        if (!token) throw new Error('Não Autenticado');
+
+        const baseUrl = import.meta.env.VITE_API_URL || '/api';
+        const raw = await fetch(`${baseUrl}${RESPONSAVEL_API_URL}/notificacoes/token`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'X-Escola-ID': sessionStorage.getItem('escola_id') || '',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token: tokenFCM })
+        });
+
+        if (!raw.ok) throw new Error("Falha ao salvar token de notificação");
     }
 }
 
