@@ -14,7 +14,7 @@ import { usarTipoAcesso } from '../hooks/usarTipoAcesso';
 import { usarModoFila } from '../hooks/usarModoFila';
 import { usarLeitorQR } from '../hooks/usarLeitorQR';
 import { usarControleAcessoWorker } from '../hooks/usarControleAcessoWorker';
-import { hubSincronizacao } from '@compartilhado/servicos/hubSincronizacao';
+import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
 import { ajustarTimestampLocal } from '../servicos/clockDrift.service';
 import { obterChavePublica, verificarAssinaturaECDSA } from '../utils/validarQR';
 import { anunciarNome } from '../utils/anunciarNome';
@@ -84,7 +84,7 @@ export default function QuiosqueAutoatendimento() {
             const timestampAjustado = ajustarTimestampLocal(momentoLeituraLocal);
 
             // 5. Registrar no HUB Sincronização (Inteligente: Tenta Online -> Fallback Local)
-            const resposta = await hubSincronizacao.registrarAcesso({
+            const resposta = await servicoSincronizacao.registrarAcesso({
                 id: crypto.randomUUID(),
                 escola_id: escola.id || '',
                 aluno_matricula: matricula,

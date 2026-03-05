@@ -47,7 +47,9 @@ export const api = {
 
         const contentType = resposta.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
-            return resposta.json();
+            const json = await resposta.json();
+            // Descompactar automaticamente se seguir o padrão { dados: ... }
+            return (json && typeof json === 'object' && 'dados' in json) ? json.dados : json;
         } else {
             const texto = await resposta.text();
             if (texto.trim().startsWith('<')) {
@@ -70,7 +72,8 @@ export const api = {
         }
         const texto = await resposta.text();
         try {
-            return JSON.parse(texto);
+            const json = JSON.parse(texto);
+            return (json && typeof json === 'object' && 'dados' in json) ? json.dados : json;
         } catch {
             return texto as unknown as T;
         }
@@ -89,7 +92,8 @@ export const api = {
         }
         const texto = await resposta.text();
         try {
-            return JSON.parse(texto);
+            const json = JSON.parse(texto);
+            return (json && typeof json === 'object' && 'dados' in json) ? json.dados : json;
         } catch {
             return texto as unknown as T;
         }

@@ -6,7 +6,46 @@ import type { AlunoLocal, RegistroAcessoLocal } from '@compartilhado/types/banco
 
 const log = criarRegistrador('Sync');
 
+export interface RespostaSincronizacao {
+    sucesso: boolean;
+    modo: 'ONLINE' | 'OFFLINE';
+    id: string;
+}
+
 export const servicoSincronizacao = {
+    /**
+     * Registra um acesso de aluno (Network-First).
+     * Tenta salvar no servidor e cai para o banco local se offline.
+     */
+    registrarAcesso: async (registro: Omit<RegistroAcessoLocal, 'sincronizado'>): Promise<RespostaSincronizacao> => {
+        try {
+            log.info(`Tentativa de registro online para aluno: ${registro.aluno_matricula}`);
+
+            // 1. Tentar salvar Online primeiro
+            await api.enviar('/acesso/registros', [{
+                ...registro,
+                timestamp_acesso: (registro as any).timestamp_acesso || (registro as any).timestamp
+            }]);
+
+            // Se salvou no servidor, espelhar localmente como sincronizado
+            const banco = await bancoLocal.iniciarBanco();
+            await banco.put('registros_acesso', { ...registro, sincronizado: 1 });
+
+            return { sucesso: true, modo: 'ONLINE', id: (registro as any).id };
+        } catch (erro) {
+            log.warn('Falha na tentativa ONLINE. Migrando para modo resiliente (OFFLINE).', erro);
+
+            // 2. Fallback: Salvar Localmente como não-sincronizado
+            try {
+                await bancoLocal.salvarRegistro(registro);
+                return { sucesso: true, modo: 'OFFLINE', id: (registro as any).id };
+            } catch (erroLocal) {
+                log.error('Erro crítico: Falha ao salvar até no banco local.', erroLocal);
+                return { sucesso: false, modo: 'OFFLINE', id: (registro as any).id };
+            }
+        }
+    },
+
     // 1. Processar Fila de Pendências (DELETE/UPDATE Offline)
     processarPendencias: async () => {
         try {
@@ -132,7 +171,7 @@ export const servicoSincronizacao = {
             // O histórico completo só é baixado na primeira instalação ou demanda específica
             try {
                 const hoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                const registrosServidor = await api.obter<RegistroAcessoLocal[]>(`/acesso/registros?data=${hoje}&limite=5000`);
+                const registrosServidor = await api.obter<any>(`/acesso/registros?data=${hoje}&limite=5000`);
 
                 if (Array.isArray(registrosServidor)) {
                     const banco = await bancoLocal.iniciarBanco();
@@ -189,7 +228,7 @@ export const servicoSincronizacao = {
                 return { sucesso: true, status: 'sem_alteracoes' };
             }
 
-            const turmas = await api.obter('/academico/turmas');
+            const turmas = await api.obter<any>('/academico/turmas');
             if (Array.isArray(turmas)) {
                 await bancoLocal.salvarTurmas(turmas, 1);
                 log.info('Turmas sincronizadas', { quantidade: turmas.length });
@@ -207,7 +246,7 @@ export const servicoSincronizacao = {
             // O sync local apenas baixa a lista atualizada (pull-only).
             const banco = await bancoLocal.iniciarBanco();
 
-            const usuariosServidor = await api.obter('/seguranca/usuarios');
+            const usuariosServidor = await api.obter<any>('/seguranca/usuarios');
 
             if (Array.isArray(usuariosServidor)) {
                 const tx = banco.transaction('usuarios', 'readwrite');
@@ -271,7 +310,7 @@ export const servicoSincronizacao = {
             // Tenta obter logs de auditoria do servidor desde a última sync
             // Endpoint suposto: /auditoria?desde=ISOSTRING
             // Se o backend não suportar filtro, retornará array vazio ou erro, tratamos no catch
-            const logs = await api.obter(`/seguranca/auditoria?desde=${ultimaSync}`);
+            const logs = await api.obter<any>(`/seguranca/auditoria?desde=${ultimaSync}`);
 
             if (!Array.isArray(logs)) {
                 // Se não retornou array, assume que não dá pra saber, então força sync

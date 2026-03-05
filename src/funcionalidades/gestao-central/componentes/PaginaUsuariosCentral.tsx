@@ -23,8 +23,8 @@ export function PaginaUsuariosCentral() {
         const buscarUsuarios = async () => {
             try {
                 definirCarregando(true);
-                const resposta = await api.obter<{ dados: UsuarioCentral[] }>('/central/usuarios');
-                definirUsuarios(resposta.dados);
+                const resposta = await api.obter<UsuarioCentral[]>('/central/usuarios');
+                definirUsuarios(resposta);
             } catch (err: any) {
                 console.error('Erro ao buscar usuários:', err);
                 definirErro(err.message || 'Falha ao carregar contas de usuários.');

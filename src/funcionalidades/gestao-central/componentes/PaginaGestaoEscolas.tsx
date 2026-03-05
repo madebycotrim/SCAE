@@ -23,8 +23,8 @@ export function PaginaGestaoEscolas() {
         const buscarEscolas = async () => {
             try {
                 definirCarregando(true);
-                const resposta = await api.obter<{ dados: EscolaSistema[] }>('/central/escolas');
-                definirEscolas(resposta.dados);
+                const resposta = await api.obter<EscolaSistema[]>('/central/escolas');
+                definirEscolas(resposta);
             } catch (err: any) {
                 console.error('Erro ao buscar escolas:', err);
                 definirErro(err.response?.data?.erro || 'Falha ao carregar unidades de ensino.');
