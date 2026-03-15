@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
@@ -18,6 +18,7 @@ import ListaAlunos from './ListaAlunos';
 import FormAlunoModal from './FormAlunoModal';
 import ImportacaoAlunosModal from './ImportacaoAlunosModal';
 import PromocaoLoteModal from './PromocaoLoteModal';
+import ImpressaoCredenciaisLote from './ImpressaoCredenciaisLote';
 
 export default function Alunos() {
     const { adicionarNotificacao } = usarNotificacoes();
@@ -59,7 +60,7 @@ export default function Alunos() {
     const [modalPromocao, definirModalPromocao] = useState(false);
     const [modalQRCode, definirModalQRCode] = useState(false);
     const [alunoEmEdicao, definirAlunoEmEdicao] = useState<Aluno | null>(null);
-    const [qrcodeAtual, definirQrcodeAtual] = useState('');
+    const [alunoParaQRCode, definirAlunoParaQRCode] = useState<Aluno | null>(null);
     const [alunosSelecionados, definirAlunosSelecionados] = useState<string[]>([]);
 
     const alunosFiltrados = useMemo(() => {
@@ -223,7 +224,13 @@ export default function Alunos() {
                 paginaAtual={paginaAtual}
                 totalPaginas={totalPaginas}
                 aoSelecionar={(m) => definirAlunosSelecionados(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])}
-                aoVerQRCode={(m) => { definirQrcodeAtual(m); definirModalQRCode(true); }}
+                aoVerQRCode={(m) => { 
+                    const aluno = alunos.find(a => a.matricula === m);
+                    if (aluno) {
+                        definirAlunoParaQRCode(aluno); 
+                        definirModalQRCode(true); 
+                    }
+                }}
                 aoEditar={(a) => { definirAlunoEmEdicao(a); definirModalForm(true); }}
                 aoExcluir={excluirAluno}
                 aoMudarPagina={definirPaginaAtual}
@@ -233,13 +240,18 @@ export default function Alunos() {
             <BarraSelecaoLote
                 quantidade={alunosSelecionados.length}
                 aoPromover={() => definirModalPromocao(true)}
+                aoImprimir={() => window.print()}
                 aoCancelar={() => definirAlunosSelecionados([])}
+            />
+
+            <ImpressaoCredenciaisLote 
+                alunos={alunos.filter(a => alunosSelecionados.includes(a.matricula))} 
             />
 
             {modalForm && <FormAlunoModal aluno={alunoEmEdicao} turmas={turmas} aoFechar={() => definirModalForm(false)} aoSalvar={salvarAluno} />}
             {modalImport && <ImportacaoAlunosModal aoFechar={() => definirModalImport(false)} onImport={importarAlunos} />}
             {modalPromocao && <PromocaoLoteModal quantidade={alunosSelecionados.length} turmas={turmas} aoFechar={() => definirModalPromocao(false)} aoPromover={promoverLote} />}
-            {modalQRCode && <CredencialModal matricula={qrcodeAtual} aoFechar={() => definirModalQRCode(false)} />}
+            {modalQRCode && alunoParaQRCode && <CredencialModal aluno={alunoParaQRCode} aoFechar={() => definirModalQRCode(false)} />}
         </LayoutAdministrativo>
     );
 }

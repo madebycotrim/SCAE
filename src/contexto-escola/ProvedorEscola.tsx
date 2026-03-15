@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ProvedorEscola — Carrega e injeta perfil da escola antes de renderizar a app.
  * Identificação da escola: slug na URL — seuapp.com/:slugEscola
  */
@@ -17,6 +17,7 @@ export interface PerfilEscola {
     foro?: string;
     nomeDPO?: string;
     emailDPO?: string;
+    qrDinamico: boolean;
 }
 
 const EscolaContext = createContext<PerfilEscola | null>(null);

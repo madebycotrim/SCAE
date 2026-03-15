@@ -1,6 +1,7 @@
 /**
  * Utilitário de Cache (Cloudflare KV) para o SCAE.
  * Centraliza as operações de leitura e escrita no KV_SCAE.
+ * Alinhado com os Pillar names (PT-BR) e expectativas do Frontend.
  */
 
 import type { AmbienteSCAE } from '../../tipos/ambiente';
@@ -15,6 +16,7 @@ export class ServicoCache {
 
     /**
      * 1. Roteamento de Escolas (Slug -> ID)
+     * Resolução ultra-rápida de qual escola está sendo acessada.
      */
     static async buscarIdPorSlug(slug: string, env: AmbienteSCAE): Promise<string | null> {
         const chave = `${this.PREFIXO_SLUG}${slug}`;
@@ -23,7 +25,7 @@ export class ServicoCache {
         if (idEscola) return idEscola;
 
         const escola = await env.DB_SCAE.prepare(
-            "SELECT id FROM escolas WHERE slug = ?"
+            "SELECT id FROM escolas WHERE id = ?" // No SCAE, o ID é o próprio slug
         ).bind(slug).first<{ id: string }>();
 
         if (escola) {
@@ -36,6 +38,7 @@ export class ServicoCache {
 
     /**
      * 2. Branding e Identidade Visual (UI Instantânea)
+     * Cores, logos e nomes para o frontend não "piscar" com cores erradas.
      */
     static async buscarConfiguracoes(escolaId: string, env: AmbienteSCAE): Promise<any | null> {
         const chave = `${this.PREFIXO_CONFIG}${escolaId}`;
@@ -44,15 +47,27 @@ export class ServicoCache {
         if (configs) return configs;
 
         const escola = await env.DB_SCAE.prepare(
-            "SELECT nome_escola, cor_primaria, logo_url, tts_ativado FROM escolas WHERE id = ?"
-        ).bind(escolaId).first<{ nome_escola: string, cor_primaria: string, logo_url: string, tts_ativado: number }>();
+            "SELECT nome_escola, cor_primaria, cor_secundaria, logo_url, tts_ativado, dominio_email, config_qr_dinamico FROM escolas WHERE id = ?"
+        ).bind(escolaId).first<{ 
+            nome_escola: string, 
+            cor_primaria: string, 
+            cor_secundaria: string, 
+            logo_url: string, 
+            tts_ativado: number,
+            dominio_email: string,
+            config_qr_dinamico: number
+        }>();
 
         if (escola) {
             const dadosCache = {
-                cor_primaria: escola.cor_primaria,
-                logo_url: escola.logo_url,
-                nome_fantasia: escola.nome_escola,
-                tts_ativado: escola.tts_ativado
+                id: escolaId,
+                nomeEscola: escola.nome_escola,
+                corPrimaria: escola.cor_primaria,
+                corSecundaria: escola.cor_secundaria,
+                logoUrl: escola.logo_url,
+                ttsAtivado: Boolean(escola.tts_ativado),
+                dominioEmail: escola.dominio_email,
+                qrDinamico: Boolean(escola.config_qr_dinamico)
             };
             await env.KV_SCAE.put(chave, JSON.stringify(dadosCache), { expirationTtl: 86400 });
             return dadosCache;
@@ -63,6 +78,7 @@ export class ServicoCache {
 
     /**
      * 3. Validação de QR Codes (Chave Pública)
+     * Necessário para o tablet validar assinaturas offline.
      */
     static async buscarPubKey(escolaId: string, env: AmbienteSCAE): Promise<string | null> {
         const chave = `${this.PREFIXO_PUBKEY}${escolaId}`;
@@ -75,7 +91,7 @@ export class ServicoCache {
         ).bind(escolaId).first<{ chave_publica_ecdsa: string }>();
 
         if (escola?.chave_publica_ecdsa) {
-            await env.KV_SCAE.put(chave, escola.chave_publica_ecdsa); // Sem expiração (muda raramente)
+            await env.KV_SCAE.put(chave, escola.chave_publica_ecdsa);
             return escola.chave_publica_ecdsa;
         }
 
@@ -84,6 +100,7 @@ export class ServicoCache {
 
     /**
      * 4. Sincronização da "Cor do Dia"
+     * Garante que todos os tablets mostrem a mesma cor de segurança.
      */
     static async obterCorSincronizada(escolaId: string, env: AmbienteSCAE): Promise<string> {
         const hoje = new Date().toISOString().split('T')[0];
@@ -92,6 +109,7 @@ export class ServicoCache {
         const corCache = await env.KV_SCAE.get(chave);
         if (corCache) return corCache;
 
+        // Gerar deterministicamente baseada na escola e data
         const seed = `${escolaId}-${hoje}`;
         let hash = 0;
         for (let i = 0; i < seed.length; i++) {
@@ -107,6 +125,7 @@ export class ServicoCache {
 
     /**
      * 5. Controle de Funcionalidades (Feature Flags)
+     * Ativa/Desativa módulos (ex: Evasão) instantaneamente.
      */
     static async buscarFeatureFlags(escolaId: string, env: AmbienteSCAE): Promise<any> {
         const chave = `${this.PREFIXO_FEATURES}${escolaId}`;
@@ -114,7 +133,6 @@ export class ServicoCache {
         const flags = await env.KV_SCAE.get(chave, 'json');
         if (flags) return flags;
 
-        // Fallback: Default flags se não estiver no KV
         const defaultFlags = { evasao_ativa: true, manutencao_portaria: false };
         await env.KV_SCAE.put(chave, JSON.stringify(defaultFlags), { expirationTtl: 3600 });
         return defaultFlags;
@@ -122,6 +140,7 @@ export class ServicoCache {
 
     /**
      * 6. Whitelist de Domínios de Email
+     * Segurança no login institucional.
      */
     static async buscarDominios(escolaId: string, env: AmbienteSCAE): Promise<string[]> {
         const chave = `${this.PREFIXO_DOMINIOS}${escolaId}`;
@@ -140,5 +159,15 @@ export class ServicoCache {
 
         await env.KV_SCAE.put(chave, JSON.stringify(lista), { expirationTtl: 86400 });
         return lista;
+    }
+
+    /**
+     * Remove o cache da escola (usar após updates)
+     */
+    static async limparCacheEscola(escolaId: string, env: AmbienteSCAE): Promise<void> {
+        const chaveConfig = `${this.PREFIXO_CONFIG}${escolaId}`;
+        const chaveSlug = `${this.PREFIXO_SLUG}${escolaId}`;
+        await env.KV_SCAE.delete(chaveConfig);
+        await env.KV_SCAE.delete(chaveSlug);
     }
 }

@@ -35,12 +35,10 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
 
     return Response.json({
         dados: {
-            id: idEscola,
             ...configs,
             corDoDia,
             features,
-            pubKey,
-            ttsAtivado: Boolean(configs.tts_ativado)
+            pubKey
         },
         mensagem: 'Perfil da escola carregado'
     }, {

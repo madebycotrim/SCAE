@@ -1,7 +1,8 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { usarRegrasHorarios } from '@funcionalidades/configuracao-horarios';
 import type { JanelaHorarioAcesso } from '@funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
 import { usarEscola } from '@escola/ProvedorEscola';
+import { usarConfiguracoesEscola } from '@compartilhado/hooks/usarConfiguracoesEscola';
 import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
 import { Botao, CartaoConteudo } from '@compartilhado/componentes/UI';
 import toast from 'react-hot-toast';
@@ -16,13 +17,22 @@ import {
     LogOut,
     ArrowRight,
     ArrowLeft,
+    ShieldAlert,
+    Wifi,
+    WifiOff,
+    Check
 } from 'lucide-react';
 
 export default function FormHorariosAcesso() {
     const { id: idEscola } = usarEscola();
-    const { regras, carregando, erro, salvar, usandoCache } = usarRegrasHorarios(idEscola);
+    const { regras, carregando: carregandoHorarios, erro: erroHorarios, salvar: salvarHorarios, usandoCache } = usarRegrasHorarios(idEscola);
+    const { configs, salvar: salvarConfigs, isLoading: carregandoConfigs } = usarConfiguracoesEscola();
     const [janelas, definirJanelas] = useState<JanelaHorarioAcesso[]>([]);
     const [salvando, definirSalvando] = useState(false);
+
+    const carregando = carregandoHorarios || carregandoConfigs;
+
+    // ... (resto do código igual até o return)
 
     // Carregar janelas do hook ao montar
     useEffect(() => {
@@ -82,7 +92,7 @@ export default function FormHorariosAcesso() {
 
         definirSalvando(true);
         try {
-            await salvar(janelas);
+            await salvarHorarios(janelas);
             toast.success('Horários salvos com sucesso!');
         } catch (e) {
             toast.error('Erro ao salvar horários: ' + (e instanceof Error ? e.message : 'Tente novamente'));
@@ -112,7 +122,7 @@ export default function FormHorariosAcesso() {
         >
             <div className="space-y-6 pb-16">
 
-                {erro && !usandoCache && (
+                {erroHorarios && !usandoCache && (
                     <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-4 text-rose-800 shadow-suave">
                         <AlertCircle size={20} className="shrink-0 text-rose-600 mt-1" />
                         <div>
@@ -131,6 +141,69 @@ export default function FormHorariosAcesso() {
                         </div>
                     </div>
                 )}
+
+                {/* --- SEÇÃO DE SEGURANÇA DO QR CODE --- */}
+                <CartaoConteudo className="bg-slate-900 border-slate-800 overflow-hidden relative shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full"></div>
+                    
+                    <div className="flex flex-col md:flex-row gap-8 items-center p-2">
+                        <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-500/20 rounded-lg">
+                                    <ShieldAlert className="w-5 h-5 text-indigo-400" />
+                                </div>
+                                <h3 className="text-lg font-black text-white uppercase tracking-tight">Segurança do Cartão Digital</h3>
+                            </div>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Escolha como os alunos devem autenticar no portão. O modo **Offline** permite que o aluno use um print da galeria se não tiver internet.
+                            </p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                            {/* Opção Fixo (Offline) */}
+                            <button
+                                onClick={() => salvarConfigs({ qrDinamico: false })}
+                                disabled={carregandoConfigs}
+                                className={`flex-1 min-w-[180px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-3 group ${
+                                    configs?.qrDinamico === false 
+                                    ? 'bg-indigo-600 border-indigo-400 shadow-lg shadow-indigo-600/20' 
+                                    : 'bg-slate-950 border-slate-800 hover:border-slate-600'
+                                }`}
+                            >
+                                <div className={`p-3 rounded-xl ${configs?.qrDinamico === false ? 'bg-white/20' : 'bg-slate-900 group-hover:bg-slate-800'}`}>
+                                    <WifiOff className={`w-6 h-6 ${configs?.qrDinamico === false ? 'text-white' : 'text-slate-500'}`} />
+                                </div>
+                                <div className="text-center">
+                                    <span className={`block text-xs font-black uppercase tracking-widest ${configs?.qrDinamico === false ? 'text-white' : 'text-slate-400'}`}>Padrão Fixo</span>
+                                    <span className={`text-[10px] font-bold ${configs?.qrDinamico === false ? 'text-indigo-200' : 'text-slate-600'}`}>Melhor p/ Offline</span>
+                                </div>
+                                {configs?.qrDinamico === false && <Check className="w-4 h-4 text-white absolute top-4 right-4" />}
+                            </button>
+
+                            {/* Opção Dinâmico (Online) */}
+                            <button
+                                onClick={() => salvarConfigs({ qrDinamico: true })}
+                                disabled={carregandoConfigs}
+                                className={`flex-1 min-w-[180px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-3 group ${
+                                    configs?.qrDinamico === true 
+                                    ? 'bg-amber-600 border-amber-400 shadow-lg shadow-amber-600/20' 
+                                    : 'bg-slate-950 border-slate-800 hover:border-slate-600'
+                                }`}
+                            >
+                                <div className={`p-3 rounded-xl ${configs?.qrDinamico === true ? 'bg-white/20' : 'bg-slate-900 group-hover:bg-slate-800'}`}>
+                                    <Wifi className={`w-6 h-6 ${configs?.qrDinamico === true ? 'text-white' : 'text-slate-500'}`} />
+                                </div>
+                                <div className="text-center">
+                                    <span className={`block text-xs font-black uppercase tracking-widest ${configs?.qrDinamico === true ? 'text-white' : 'text-slate-400'}`}>Dinâmico</span>
+                                    <span className={`text-[10px] font-bold ${configs?.qrDinamico === true ? 'text-amber-200' : 'text-slate-600'}`}>Exige 4G/Sinal</span>
+                                </div>
+                                {configs?.qrDinamico === true && <Check className="w-4 h-4 text-white absolute top-4 right-4" />}
+                            </button>
+                        </div>
+                    </div>
+                </CartaoConteudo>
+                
+                <div className="h-4"></div>
 
                 {carregando ? (
                     <div className="flex flex-col items-center justify-center py-32 text-slate-400 gap-4">

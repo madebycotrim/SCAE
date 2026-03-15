@@ -21,6 +21,7 @@ export const PaginaAuditoria = lazy(() => import('@funcionalidades/auditoria/com
 export const PaginaUsuarios = lazy(() => import('@funcionalidades/usuarios/componentes/Usuarios'));
 export const PaginaConfiguracaoHorarios = lazy(() => import('@funcionalidades/configuracao-horarios/componentes/FormHorariosAcesso'));
 export const PaginaRiscoAbandono = lazy(() => import('@funcionalidades/risco-abandono/componentes/PainelRiscoAbandono'));
+export const PaginaCartaoDigital = lazy(() => import('@funcionalidades/academico/componentes/CartaoDigital'));
 import PaginaLoginResponsavelComp from '@funcionalidades/academico/componentes/TelaLoginResponsavel';
 import PaginaPainelResponsavelComp from '@funcionalidades/academico/componentes/PainelResponsavel';
 

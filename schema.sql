@@ -14,6 +14,8 @@ CREATE TABLE escolas (
     cor_secundaria TEXT DEFAULT '#ffffff',
     logo_url TEXT,                     -- URL do logo da escola
     chave_publica_ecdsa TEXT,          -- Chave pública para validar QR Codes
+    chave_privada_ecdsa TEXT,          -- Chave privada para assinar QR Codes
+    config_qr_dinamico BOOLEAN DEFAULT 0, -- 0 = Fixo (1 ano), 1 = Dinâmico (24h)
     tts_ativado BOOLEAN DEFAULT 1,
     janelas TEXT DEFAULT '[]',         -- Configuração de horários JSON
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -72,6 +74,7 @@ CREATE TABLE alunos (
     matricula TEXT NOT NULL,           -- Código SIGE
     escola_id TEXT NOT NULL,
     nome_completo TEXT,                -- NULL se anonimizado
+    data_nascimento DATE,              -- Para validação no portal do aluno
     turma_id TEXT,
     ativo BOOLEAN DEFAULT 1,           -- true=ativo, false=inativo
     sincronizado INTEGER DEFAULT 1,

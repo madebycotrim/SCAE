@@ -41,6 +41,7 @@ import {
     PaginaUsuarios,
     PaginaConfiguracaoHorarios,
     PaginaRiscoAbandono,
+    PaginaCartaoDigital,
     PaginaLoginResponsavel,
     PaginaPainelResponsavel,
     PaginaTermosUso,
@@ -163,6 +164,7 @@ function App() {
                         {/* ═══ SUPERFÍCIE PÚBLICA: Páginas Auxiliares ═══ */}
                         <Route path="termos-de-uso" element={<PaginaTermosUso />} />
                         <Route path="politica-de-privacidade" element={<PaginaPoliticaPrivacidade />} />
+                        <Route path="cartao" element={<PaginaCartaoDigital />} />
 
                         {/* ═══ MÓDULO DO RESPONSÁVEL (Portal e Cadastro) ═══ */}
                         <Route path="responsavel">
