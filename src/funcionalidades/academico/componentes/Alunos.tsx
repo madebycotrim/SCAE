@@ -1,16 +1,16 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
-import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import { Botao, BarraFiltro, InputBusca } from '@compartilhado/componentes/UI';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
+import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import { Botao, BarraFiltro, InputBusca } from '@/compartilhado/componentes/UI';
 import { Plus, Search, Upload, Calendar, Layers, CheckCircle2, XCircle, Grid } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { alunoServico } from '../servicos/aluno.servico';
 import { Aluno } from '../tipos/academico';
 
-import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { usarNotificacoes } from '@/compartilhado/contextos/ContextoNotificacoes';
+import { usarEscola } from '@/escola/ProvedorEscola';
 
 import CredencialModal from './CredencialModal';
 import BarraSelecaoLote from './BarraSelecaoLote';
@@ -255,4 +255,6 @@ export default function Alunos() {
         </LayoutAdministrativo>
     );
 }
+
+
 

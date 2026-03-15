@@ -19,40 +19,45 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['sons/*.mp3'],
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-able-icon.png', 'sons/*.mp3'],
         workbox: {
-          // Cache tudo para funcionar offline no tablet
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,mp3}'],
+          // Garante que o app funcione mesmo se o servidor cair
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
           runtimeCaching: [
             {
-              // Cache de API com strategy Network First
-              urlPattern: /^https?:\/\/.*\/api\/.*/i,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'scae-api-cache',
-                expiration: {
-                  maxEntries: 200,
-                  maxAgeSeconds: 60 * 60 * 24, // 24 horas
-                },
-                networkTimeoutSeconds: 5,
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-            {
-              // Cache de fontes do Google
-              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              // Fontes e Assets Estáticos (Cache First)
+              urlPattern: ({ request }) => request.destination === 'font' || request.destination === 'image',
               handler: 'CacheFirst',
               options: {
-                cacheName: 'google-fonts-cache',
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 ano
-                },
-              },
+                cacheName: 'scae-static-assets',
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 } // 30 dias
+              }
             },
-          ],
+            {
+              // API de Perfil da Escola (Stale While Revalidate)
+              // Carrega rápido do cache, mas atualiza por baixo dos panos
+              urlPattern: /\/api\/publico\/detalhes/i,
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'scae-school-profile',
+                expiration: { maxEntries: 1, maxAgeSeconds: 60 * 60 * 24 } // 24h
+              }
+            },
+            {
+              // API de Horários e Configurações (Network First)
+              // Tenta rede (para novos horários), mas se falhar usa o cache
+              urlPattern: /\/api\/admin\/(horarios|configuracoes)/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'scae-admin-configs',
+                networkTimeoutSeconds: 3,
+                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 12 } // 12h
+              }
+            }
+          ]
         },
         manifest: {
           name: 'SCAE — Sistema de Controle de Acesso Escolar',
@@ -88,28 +93,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@escola': path.resolve(__dirname, './src/contexto-escola'),
-        '@funcionalidades': path.resolve(__dirname, './src/funcionalidades'),
-        '@compartilhado': path.resolve(__dirname, './src/compartilhado'),
-        '@configuracoes': path.resolve(__dirname, './src/configuracoes'),
-        '@principal': path.resolve(__dirname, './src/principal'),
-      }
-    },
-    build: {
-      outDir: 'dist',
-      minify: 'esbuild',
-      sourcemap: false,
-      chunkSizeWarningLimit: 1000,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-            'vendor-firebase': ['firebase/app', 'firebase/auth'],
-            'vendor-charts': ['chart.js', 'react-chartjs-2'],
-            'vendor-utils': ['date-fns', 'lucide-react', 'framer-motion'],
-            'vendor-docs': ['jspdf', 'jspdf-autotable', 'xlsx'],
-          }
-        }
+        '@': path.resolve(__dirname, './src'),
       }
     },
     server: {

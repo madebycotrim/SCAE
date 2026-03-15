@@ -13,19 +13,19 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import { Suspense, useEffect, ReactNode } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { clienteConsulta } from '@compartilhado/servicos/clienteConsulta';
+import { clienteConsulta } from '@/compartilhado/servicos/clienteConsulta';
 
 // Escola (contexto multi-escola)
-import { ProvedorEscola } from '@escola/ProvedorEscola';
+import { ProvedorEscola } from '@/escola/ProvedorEscola';
 
 // Auth e Permissões
-import { ProvedorAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { ProvedorPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
-import { ProvedorNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
+import { ProvedorAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { ProvedorPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { ProvedorNotificacoes } from '@/compartilhado/contextos/ContextoNotificacoes';
 
 // Guardas de rota
-import GuardaRota from '@compartilhado/autorizacao/GuardaRota';
-import GuardaQuiosque from '@compartilhado/autorizacao/GuardaQuiosque';
+import GuardaRota from '@/compartilhado/autorizacao/GuardaRota';
+import GuardaQuiosque from '@/compartilhado/autorizacao/GuardaQuiosque';
 
 // Configuração de rotas com lazy loading
 import {
@@ -56,7 +56,7 @@ import {
 } from '@configuracoes/rotas';
 
 // Serviço de sincronização
-import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
+import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 
 /**
  * Componente de loading exibido enquanto chunks lazy são carregados.

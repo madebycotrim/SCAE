@@ -1,8 +1,8 @@
-﻿import { StrictMode } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 // O interceptador global DEVE ser o primeiro a carregar
-import '@compartilhado/utils/registrarLocal';
+import '@/compartilhado/utils/registrarLocal';
 import { registerSW } from 'virtual:pwa-register';
 
 // Registra o Service Worker do PWA

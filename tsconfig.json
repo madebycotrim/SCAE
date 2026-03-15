@@ -26,21 +26,7 @@
         /* Path aliases (espelho do vite.config.js) */
         "baseUrl": ".",
         "paths": {
-            "@escola/*": [
-                "src/contexto-escola/*"
-            ],
-            "@funcionalidades/*": [
-                "src/funcionalidades/*"
-            ],
-            "@compartilhado/*": [
-                "src/compartilhado/*"
-            ],
-            "@configuracoes/*": [
-                "src/configuracoes/*"
-            ],
-            "@principal/*": [
-                "src/principal/*"
-            ]
+            "@/*": ["src/*"]
         }
     },
     "include": [
