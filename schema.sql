@@ -1,4 +1,4 @@
-﻿-- schema.sql
+-- schema.sql
 -- SCAE: Multi-Tenant + LGPD compliance
 -- Alinhado com bancoLocal.tipos.ts e sincronizacao.ts (v2026-03)
 
@@ -12,12 +12,12 @@ CREATE TABLE escolas (
     dominio_email TEXT,                -- Para validação de login admin (ex: @edu.se.df.gov.br)
     cor_primaria TEXT DEFAULT '#000000',
     cor_secundaria TEXT DEFAULT '#ffffff',
+    logo_url TEXT,                     -- URL do logo da escola
+    chave_publica_ecdsa TEXT,          -- Chave pública para validar QR Codes
     tts_ativado BOOLEAN DEFAULT 1,
     janelas TEXT DEFAULT '[]',         -- Configuração de horários JSON
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-
-
 
 -- ====================================
 -- USUÁRIOS (Admin/Controle de Acesso/Coordenação)
@@ -95,6 +95,7 @@ CREATE TABLE responsaveis (
     escola_id TEXT NOT NULL,
     nome_completo TEXT,                -- NULL se anonimizado
     email TEXT,                        -- NULL se anonimizado
+    fcm_token TEXT,                    -- Suporte para notificações push
 
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     atualizado_em DATETIME,
@@ -177,12 +178,10 @@ CREATE TABLE logs_auditoria (
     dados_novos TEXT,                  -- JSON
     ip_address TEXT,
     user_agent TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,   
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  
-    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     sincronizado INTEGER DEFAULT 0
 );
-CREATE INDEX idx_logs_timestamp ON logs_auditoria(timestamp DESC);
+CREATE INDEX idx_logs_timestamp ON logs_auditoria(criado_em DESC);
 CREATE INDEX idx_logs_usuario ON logs_auditoria(usuario_email);
 CREATE INDEX idx_logs_acao ON logs_auditoria(acao);
 CREATE INDEX idx_logs_sync ON logs_auditoria(sincronizado);

@@ -1,9 +1,9 @@
-﻿/**
+/**
  * Definição centralizada de rotas com lazy loading.
  * Duas árvores de rotas completamente separadas:
- *   /:slugEscola/quiosque  â†’ Quiosque de Autoatendimento (GuardaQuiosque)
- *   /:slugEscola/admin/*   â†’ painel administrativo (GuardaRota)
- *   /:slugEscola/responsavel/cadastro â†’ público (sem login)
+ *   /:slugEscola/quiosque  → Quiosque de Autoatendimento (GuardaQuiosque)
+ *   /:slugEscola/admin/*   → painel administrativo (GuardaRota)
+ *   /:slugEscola/responsavel/cadastro → público (sem login)
  *
  * Rotas legadas (sem slug) são mantidas para compatibilidade.
  */
@@ -85,7 +85,7 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
         caminho: '/logs',
         componente: PaginaAuditoria,
         protegida: true,
-        papeis: ['ADMIN', 'COORDENACAO'], // COORDENACAO pode visualizar (não exportar)
+        papeis: ['ADMIN', 'COORDENACAO'],
     },
     {
         caminho: '/usuarios',
@@ -107,33 +107,4 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
     }
 ];
 
-/**
- * Mantém compatibilidade com App.jsx que consome ROTAS como array flat.
- * Inclui todas as rotas admin + login + quiosque + autocadastro.
- */
-export const ROTAS: RotaAplicacao[] = [
-    {
-        caminho: '/login',
-        componente: PaginaLogin,
-        protegida: false,
-    },
-    ...ROTAS_ADMIN,
-    {
-        caminho: '/quiosque',
-        componente: PaginaQuiosqueAutoatendimento,
-        protegida: true,
-        papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO'],
-        quiosque: true, // Flag para App.jsx saber que é rota de quiosque
-    },
-    {
-        caminho: '/responsavel',
-        componente: PaginaLoginResponsavel,
-        protegida: false, // Proteção é via JWT do LGPD local
-    },
-    {
-        caminho: '/responsavel/painel',
-        componente: PaginaPainelResponsavel,
-        protegida: false, // Proteção feita pelo Fetch e render loading no PWA
-    }
-];
-
+// ROTAS flat removidas para usar roteamento baseado em estrutura /:slugEscola/admin/* no App.tsx

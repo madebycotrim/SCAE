@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tipos compartilhados para o backend Cloudflare Pages Functions.
  * Define bindings D1, variáveis de ambiente e contexto tipado.
  */
@@ -10,6 +10,8 @@
 export interface AmbienteSCAE {
     /** Banco D1 principal do sistema */
     DB_SCAE: D1Database;
+    /** Cache de alto desempenho KV */
+    KV_SCAE: KVNamespace;
     /** Segredo para assinar JWTs do portal do titular (LGPD) */
     JWT_SECRET: string;
     /** Bypass de autenticação para desenvolvimento local (valor: '1') */
@@ -100,9 +102,7 @@ export interface UsuarioDB {
 export interface LogAuditoriaDB {
     id: string;
     escola_id?: string;           // nullable: logs offline sem tenant
-    timestamp?: string;           // campo local do app
-    created_at?: string;          // alias
-    data_criacao?: string;        // campo canônico
+    criado_em?: string;           // campo canônico
     usuario_email?: string;
     acao?: string;
     entidade_tipo?: string;
@@ -165,8 +165,7 @@ export interface PayloadCriacaoTurma {
 
 export interface PayloadCriacaoUsuario {
     email: string;
-    papel?: string;
-    role?: string;               // alias legado
+    papel: string;               // Usar apenas papel (PT-BR)
     ativo?: boolean;
     nome_completo?: string;
     criado_por?: string;
@@ -189,4 +188,3 @@ export interface ResultadoSincronizacao {
     status: 'sincronizado' | 'erro';
     erro?: string;
 }
-

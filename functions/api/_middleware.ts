@@ -1,6 +1,7 @@
-﻿import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import type { ContextoSCAE, DadosTokenFirebase } from '../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroNaoAutenticado, ErroPermissao } from './erros';
+import { ServicoCache } from './utilitarios/cache';
 
 const ID_PROJETO_FIREBASE = 'scae-b7f8c';
 
@@ -56,21 +57,32 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
             throw new ErroBase('ID da Escola (X-Escola-ID) obrigatório.', 'AUTH_ID_AUSENTE', 400);
         }
 
-        const escola = await contexto.env.DB_SCAE.prepare(
-            "SELECT dominio_email FROM escolas WHERE id = ?"
-        ).bind(idEscola).first<{ dominio_email: string | null }>();
+        // 6. Whitelist de Domínios de Email (Via KV)
+        const dominiosPermitidos = await ServicoCache.buscarDominios(idEscola, contexto.env);
 
-        if (!escola) {
-            throw new ErroBase('Escola não cadastrada ou inválida.', 'AUTH_ESCOLA_INVALIDA', 404);
+        if (dominiosPermitidos.length > 0 && !eAdminGlobal) {
+            const emailValido = dominiosPermitidos.some(d => email.endsWith(`@${d}`));
+            if (!emailValido) {
+                // Fornecer feedback sobre o domínio esperado se houver apenas um
+                const msg = dominiosPermitidos.length === 1 
+                    ? `Use sua conta institucional @${dominiosPermitidos[0]}.`
+                    : `Use sua conta institucional permitida pela escola.`;
+                throw new ErroPermissao(msg);
+            }
         }
 
-        if (!eAdminGlobal && escola.dominio_email && !email.endsWith(`@${escola.dominio_email}`)) {
-            throw new ErroPermissao(`Use sua conta institucional @${escola.dominio_email}.`);
-        }
+        // Tentar buscar usuário no Cache (KV) para evitar 2ª query por request
+        let usuarioScae = await contexto.env.KV_SCAE.get(`user:${idEscola}:${email}`, 'json');
 
-        const usuarioScae = await contexto.env.DB_SCAE.prepare(
-            "SELECT * FROM usuarios WHERE email = ? AND escola_id = ? AND ativo = 1"
-        ).bind(email, idEscola).first();
+        if (!usuarioScae) {
+            usuarioScae = await contexto.env.DB_SCAE.prepare(
+                "SELECT * FROM usuarios WHERE email = ? AND escola_id = ? AND ativo = 1"
+            ).bind(email, idEscola).first();
+
+            if (usuarioScae) {
+                await contexto.env.KV_SCAE.put(`user:${idEscola}:${email}`, JSON.stringify(usuarioScae), { expirationTtl: 600 }); // Cache curto de 10 min
+            }
+        }
 
         if (!usuarioScae && !eAdminGlobal) {
             throw new ErroPermissao('Usuário não vinculado ou inativo.', 'AUTH_USER_RESTRICTED');
@@ -79,8 +91,7 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         contexto.data.user = dadosToken as DadosTokenFirebase;
         contexto.data.usuarioScae = usuarioScae as any;
 
-        const response = await proximo();
-        return response;
+        return await proximo();
 
     } catch (erro) {
         if (erro instanceof ErroBase) {
@@ -100,4 +111,3 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
 }
 
 export { processarRequisicao as onRequest };
-

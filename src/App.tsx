@@ -1,4 +1,4 @@
-﻿/**
+/**
  * App.jsx — Raiz da aplicação com rotas multi-escola via slug na URL.
  *
  * Estrutura de rotas:
@@ -30,7 +30,6 @@ import GuardaQuiosque from '@compartilhado/autorizacao/GuardaQuiosque';
 // Configuração de rotas com lazy loading
 import {
     ROTAS_ADMIN,
-    ROTAS,
     PaginaLogin,
     PaginaPainel,
     PaginaAlunos,
@@ -213,4 +212,3 @@ function App() {
 }
 
 export default App;
-

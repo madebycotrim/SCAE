@@ -120,6 +120,7 @@ dist
 .pnp.*
 
 # Vite
+dist
 dist-ssr
 *.local
 
@@ -142,3 +143,4 @@ firebase-debug.log
 
 # Cloudflare Wrangler
 .wrangler/
+.dev.vars

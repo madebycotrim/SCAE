@@ -1,5 +1,6 @@
 import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroValidacao, ErroNaoEncontrado } from '../erros';
+import { ServicoCache } from '../utilitarios/cache';
 
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     const url = new URL(contexto.request.url);
@@ -9,21 +10,43 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         throw new ErroValidacao('Slug da escola ausente');
     }
 
-    const escola = await contexto.env.DB_SCAE.prepare(
-        "SELECT id, nome_escola as nomeEscola, dominio_email as dominioEmail, cor_primaria as corPrimaria, cor_secundaria as corSecundaria, tts_ativado as ttsAtivado FROM escolas WHERE id = ?"
-    ).bind(slug).first<{ ttsAtivado: number }>();
+    // 1. Resolver ID pelo Slug usando Cache (KV)
+    const idEscola = await ServicoCache.buscarIdPorSlug(slug, contexto.env);
 
-    if (!escola) {
-        throw new ErroNaoEncontrado('Escola não encontrada');
+    if (!idEscola) {
+        throw new ErroNaoEncontrado('Escola não encontrada para este slug');
     }
+
+    // 2. Buscar Branding/Configurações no KV
+    const configs = await ServicoCache.buscarConfiguracoes(idEscola, contexto.env);
+
+    if (!configs) {
+        throw new ErroNaoEncontrado('Configurações da escola não encontradas');
+    }
+
+    // 3. Obter Cor do Dia sincronizada via KV
+    const corDoDia = await ServicoCache.obterCorSincronizada(idEscola, contexto.env);
+
+    // 4. Buscar Feature Flags
+    const features = await ServicoCache.buscarFeatureFlags(idEscola, contexto.env);
+
+    // 5. Buscar Chave Pública para o Tablet
+    const pubKey = await ServicoCache.buscarPubKey(idEscola, contexto.env);
 
     return Response.json({
         dados: {
-            ...escola,
-            ttsAtivado: Boolean(escola.ttsAtivado)
+            id: idEscola,
+            ...configs,
+            corDoDia,
+            features,
+            pubKey,
+            ttsAtivado: Boolean(configs.tts_ativado)
         },
         mensagem: 'Perfil da escola carregado'
     }, {
-        headers: { 'Cache-Control': 'public, max-age=3600' }
+        headers: { 
+            'Cache-Control': 'public, max-age=3600',
+            'X-SCAE-Cache': 'HIT'
+        }
     });
 }
