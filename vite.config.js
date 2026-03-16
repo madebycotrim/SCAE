@@ -99,7 +99,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target:'https://scae.pages.dev',
+          target: env.VITE_PROXY_TARGET || 'http://localhost:8788',
           changeOrigin: true,
           secure: false,
         },

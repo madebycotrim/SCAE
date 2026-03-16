@@ -48,10 +48,7 @@ import {
     PaginaPoliticaPrivacidade,
     PaginaInicial,
     PaginaLoginCentral,
-    PaginaPainelCentral,
     PaginaGestaoEscolas,
-    PaginaUsuariosCentral,
-    PaginaAuditoriaCentral,
     LayoutCentral
 } from '@/configuracoes/rotas';
 
@@ -125,31 +122,11 @@ function App() {
                     {/* ═══ MÓDULO ROOT - GESTÃO CENTRAL ═══ */}
                     <Route path="/central" element={<ProvedorAutenticacao><ProvedorPermissoes><Suspense fallback={<CarregandoPagina />}><Outlet /></Suspense></ProvedorPermissoes></ProvedorAutenticacao>}>
                         <Route path="login" element={<PaginaLoginCentral />} />
-                        <Route index element={
-                            <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
-                                <LayoutCentral>
-                                    <PaginaPainelCentral />
-                                </LayoutCentral>
-                            </GuardaRota>
-                        } />
+                        <Route index element={<Navigate to="/central/escolas" replace />} />
                         <Route path="escolas" element={
                             <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
                                 <LayoutCentral>
                                     <PaginaGestaoEscolas />
-                                </LayoutCentral>
-                            </GuardaRota>
-                        } />
-                        <Route path="usuarios" element={
-                            <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
-                                <LayoutCentral>
-                                    <PaginaUsuariosCentral />
-                                </LayoutCentral>
-                            </GuardaRota>
-                        } />
-                        <Route path="auditoria" element={
-                            <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
-                                <LayoutCentral>
-                                    <PaginaAuditoriaCentral />
                                 </LayoutCentral>
                             </GuardaRota>
                         } />

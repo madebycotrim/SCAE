@@ -33,10 +33,7 @@ export const PaginaInicial = lazy(() => import('@/principal/PaginaInicial'));
 
 // --- Gestão Central ---
 export const PaginaLoginCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/LoginCentral'));
-export const PaginaPainelCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/PainelCentral'));
 export const PaginaGestaoEscolas = lazy(() => import('@/funcionalidades/gestao-central/componentes/PaginaGestaoEscolas').then(m => ({ default: m.PaginaGestaoEscolas })));
-export const PaginaUsuariosCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/PaginaUsuariosCentral').then(m => ({ default: m.PaginaUsuariosCentral })));
-export const PaginaAuditoriaCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/PaginaAuditoriaCentral').then(m => ({ default: m.PaginaAuditoriaCentral })));
 export const LayoutCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/LayoutCentral'));
 
 /**
