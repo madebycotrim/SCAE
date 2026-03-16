@@ -1,6 +1,7 @@
 import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroInterno } from '../erros';
 import { verificarPermissao } from '../seguranca';
+import { ServicoCache } from '../utilitarios/cache';
 
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -101,6 +102,16 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
             dados.tts_ativado ? 1 : 0,
             '[]'
         ).run();
+
+        // 3. Warm-up do Cache KV (Tudo que era para estar no KV já nasce lá)
+        try {
+            // Isso popula o mapeamento Slug -> ID e as Configurações Básicas
+            await ServicoCache.buscarIdPorSlug(id, contexto.env);
+            await ServicoCache.buscarConfiguracoes(id, contexto.env);
+            await ServicoCache.buscarPubKey(id, contexto.env);
+        } catch (cacheWarmupError) {
+            console.warn('Escola criada, mas falha ao pré-popular cache KV:', cacheWarmupError);
+        }
 
         console.log('Unidade escolar inserida com sucesso:', id);
 

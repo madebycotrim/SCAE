@@ -13,6 +13,7 @@ export class ServicoCache {
     private static PREFIXO_COR_DIA = 'cor_dia:';
     private static PREFIXO_FEATURES = 'features:';
     private static PREFIXO_DOMINIOS = 'dominios:';
+    private static PREFIXO_REVOGA = 'revogacoes:';
 
     /**
      * 1. Roteamento de Escolas (Slug -> ID)
@@ -162,12 +163,44 @@ export class ServicoCache {
     }
 
     /**
+     * 7. Lista de Revogação de QR Codes
+     * Lista de matrículas cujos cartões foram invalidados (ex: extravio)
+     */
+    static async buscarRevogacoes(escolaId: string, env: AmbienteSCAE): Promise<string[]> {
+        const chave = `${this.PREFIXO_REVOGA}${escolaId}`;
+        const lista = await env.KV_SCAE.get(chave, 'json') as string[];
+        return lista || [];
+    }
+
+    static async adicionarRevogacao(escolaId: string, matricula: string, env: AmbienteSCAE): Promise<void> {
+        const chave = `${this.PREFIXO_REVOGA}${escolaId}`;
+        const lista = await this.buscarRevogacoes(escolaId, env);
+        if (!lista.includes(matricula)) {
+            lista.push(matricula);
+            await env.KV_SCAE.put(chave, JSON.stringify(lista));
+        }
+    }
+
+    /**
      * Remove o cache da escola (usar após updates)
      */
     static async limparCacheEscola(escolaId: string, env: AmbienteSCAE): Promise<void> {
-        const chaveConfig = `${this.PREFIXO_CONFIG}${escolaId}`;
-        const chaveSlug = `${this.PREFIXO_SLUG}${escolaId}`;
-        await env.KV_SCAE.delete(chaveConfig);
-        await env.KV_SCAE.delete(chaveSlug);
+        const chaves = [
+            `${this.PREFIXO_CONFIG}${escolaId}`,
+            `${this.PREFIXO_SLUG}${escolaId}`,
+            `${this.PREFIXO_PUBKEY}${escolaId}`,
+            `${this.PREFIXO_FEATURES}${escolaId}`,
+            `${this.PREFIXO_DOMINIOS}${escolaId}`
+        ];
+        
+        const promises = chaves.map(c => env.KV_SCAE.delete(c));
+        await Promise.allSettled(promises);
+    }
+
+    /**
+     * Limpa cache de um usuário específico
+     */
+    static async limparCacheUsuario(escolaId: string, email: string, env: AmbienteSCAE): Promise<void> {
+        await env.KV_SCAE.delete(`user:${escolaId}:${email}`);
     }
 }

@@ -32,7 +32,8 @@ import {
     CheckCircle,
     XCircle,
     Smartphone,
-    Download
+    Download,
+    Calendar
 } from 'lucide-react';
 import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
@@ -116,6 +117,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 { icone: Users, texto: 'Alunos', rota: '/alunos' },
                 { icone: Layers, texto: 'Turmas', rota: '/turmas' },
+                { icone: Calendar, texto: 'Calendário Letivo', rota: '/calendario' },
             ]
         },
         {

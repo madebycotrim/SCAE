@@ -1,7 +1,8 @@
-﻿import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroPermissao, ErroInterno } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../seguranca';
 import { esquemaUsuario } from './usuarios.esquemas';
+import { ServicoCache } from '../utilitarios/cache';
 
 async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -74,6 +75,9 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
             throw new ErroInterno(`Falha ao inserir usuário: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
         }
 
+        // Invalida cache KV para refletir mudança imediata (ex: desativação ou troca de papel)
+        await ServicoCache.limparCacheUsuario(idEscola, email, contexto.env);
+
         return Response.json({
             dados: { email },
             mensagem: 'Usuário processado com sucesso'
@@ -115,6 +119,9 @@ async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response
             if (dbError instanceof ErroBase) throw dbError;
             throw new ErroInterno(`Falha ao remover usuário: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
         }
+
+        // Invalida cache KV
+        await ServicoCache.limparCacheUsuario(idEscola, email, contexto.env);
 
         return Response.json({
             mensagem: 'Usuário removido com sucesso'

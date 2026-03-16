@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Worker de Logs de Auditoria.
  * POST: Receber batch de logs do frontend
  * GET: Buscar logs (Smart Sync â€” desde timestamp)
@@ -23,12 +23,12 @@ async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Respons
                 // IDEMPOTÊNCIA: Inserir ou ignorar se já existe
                 await contexto.env.DB_SCAE.prepare(
                     `INSERT OR IGNORE INTO logs_auditoria 
-                    (id, escola_id, data_criacao, usuario_email, acao, entidade_tipo, entidade_id, dados_anteriores, dados_novos, ip_address, user_agent) 
+                    (id, escola_id, criado_em, usuario_email, acao, entidade_tipo, entidade_id, dados_anteriores, dados_novos, ip_address, user_agent) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
                 ).bind(
                     log.id,
                     idEscola,
-                    log.data_criacao || new Date().toISOString(),
+                    log.criado_em || new Date().toISOString(),
                     log.usuario_email ?? null,
                     log.acao ?? null,
                     log.entidade_tipo ?? null,
@@ -67,11 +67,11 @@ async function processarVerificacaoLogs(contexto: ContextoSCAE): Promise<Respons
         const params: string[] = [idEscola];
 
         if (desde) {
-            query += ` AND data_criacao > ?`;
+            query += ` AND criado_em > ?`;
             params.push(desde);
         }
 
-        query += ` ORDER BY data_criacao DESC LIMIT 500`;
+        query += ` ORDER BY criado_em DESC LIMIT 500`;
 
         const { results } = await env.DB_SCAE.prepare(query).bind(...params).all();
         return Response.json(results);

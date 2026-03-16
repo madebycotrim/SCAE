@@ -25,6 +25,7 @@ import { TIPO_ACESSO } from '../types/controleAcesso.tipos';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { FeedbackLeitura, RegistroLeitura } from './FeedbackLeitura';
 import { obterChavePublica, verificarAssinaturaECDSA } from '../utils/validarQR';
+import { obterCorDoDia } from '../utils/corDoDia';
 
 const log = criarRegistrador('ControleAcesso');
 
@@ -40,6 +41,12 @@ export default function TerminalAcesso() {
     const [ultimoAcesso, definirUltimoAcesso] = useState<RegistroLeitura | null>(null);
     const [online, definirOnline] = useState(navigator.onLine);
     const [pausado, definirPausado] = useState(false);
+    const [corDoDia, definirCorDoDia] = useState('#6366f1'); // Default indigo
+
+    // Atualizar Cor do Dia
+    useEffect(() => {
+        definirCorDoDia(obterCorDoDia(escola.id));
+    }, [escola.id]);
 
     // Audio Refs
     const audioSucesso = useRef(new Audio('/sons/sucesso.mp3'));
@@ -223,7 +230,8 @@ export default function TerminalAcesso() {
                             <h1 className="text-lg font-black text-white uppercase tracking-tighter">
                                 Leitor de QR Code
                             </h1>
-                            <span className="px-2 py-0.5 bg-indigo-600 text-white text-[8px] font-black rounded uppercase tracking-widest shadow-lg shadow-indigo-900/20">SISTEMA</span>
+                            <span className="px-2 py-0.5 text-white text-[8px] font-black rounded uppercase tracking-widest shadow-lg" 
+                                  style={{ backgroundColor: 'var(--cor-primaria, #6366f1)' }}>SISTEMA</span>
                         </div>
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-0.5">Controle de Entrada e Saída</p>
                     </div>
@@ -266,7 +274,8 @@ export default function TerminalAcesso() {
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
 
                     <div className="text-center space-y-2 mb-12">
-                        <h2 className="text-xs font-black text-indigo-400 uppercase tracking-[0.4em] flex items-center justify-center gap-3">
+                        <h2 className="text-xs font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3"
+                            style={{ color: corDoDia }}>
                             <Radar size={16} className="animate-spin-slow" /> Pronto para ler
                         </h2>
                         <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Câmera de Acesso</h3>
@@ -280,18 +289,23 @@ export default function TerminalAcesso() {
                         {/* Scanner HUD Elements */}
                         <div className="absolute inset-8 border border-white/10 rounded-2xl pointer-events-none z-10 flex flex-col justify-between p-4">
                             <div className="flex justify-between items-start">
-                                <div className="w-6 h-6 border-t-2 border-l-2 border-indigo-500/50 rounded-tl-lg"></div>
-                                <div className="w-6 h-6 border-t-2 border-r-2 border-indigo-500/50 rounded-tr-lg"></div>
+                                <div className="w-6 h-6 border-t-2 border-l-2 rounded-tl-lg" style={{ borderColor: corDoDia }}></div>
+                                <div className="w-6 h-6 border-t-2 border-r-2 rounded-tr-lg" style={{ borderColor: corDoDia }}></div>
                             </div>
                             <div className="flex justify-between items-end">
-                                <div className="w-6 h-6 border-b-2 border-l-2 border-indigo-500/50 rounded-bl-lg"></div>
-                                <div className="w-6 h-6 border-b-2 border-r-2 border-indigo-500/50 rounded-br-lg"></div>
+                                <div className="w-6 h-6 border-b-2 border-l-2 rounded-bl-lg" style={{ borderColor: corDoDia }}></div>
+                                <div className="w-6 h-6 border-b-2 border-r-2 rounded-br-lg" style={{ borderColor: corDoDia }}></div>
                             </div>
                         </div>
 
+                        {/* Moldura de Segurança (Cor do Dia) - Glow Externo */}
+                        <div className="absolute inset-2 border-[6px] rounded-[2.5rem] pointer-events-none z-0 opacity-40 animate-pulse" 
+                             style={{ borderColor: corDoDia, boxShadow: `0 0 40px ${corDoDia}30` }}></div>
+
                         {/* Scanning Laser Animation */}
                         {!pausado && (
-                            <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_20px_#6366f1] animate-[scan_3s_infinite] z-10"></div>
+                            <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_20px_white] animate-[scan_3s_infinite] z-10"
+                                 style={{ backgroundColor: corDoDia, boxShadow: `0 0 20px ${corDoDia}` }}></div>
                         )}
                     </div>
 

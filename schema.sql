@@ -204,3 +204,17 @@ CREATE TABLE fila_pendencias (
 );
 CREATE INDEX idx_fila_colecao ON fila_pendencias(colecao);
 CREATE INDEX idx_fila_timestamp ON fila_pendencias(timestamp);
+
+-- ====================================
+-- CALENDÁRIO LETIVO (Dias Não Letivos)
+-- ====================================
+DROP TABLE IF EXISTS calendario_letivo;
+CREATE TABLE calendario_letivo (
+    data DATE NOT NULL,
+    escola_id TEXT NOT NULL,
+    descricao TEXT,
+    tipo TEXT DEFAULT 'FERIADO', -- FERIADO, RECESSO, CONSELHO, OUTROS
+    
+    PRIMARY KEY (data, escola_id),
+    FOREIGN KEY (escola_id) REFERENCES escolas(id)
+);

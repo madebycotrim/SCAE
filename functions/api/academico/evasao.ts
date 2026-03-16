@@ -1,4 +1,4 @@
-﻿/**
+/**
  * API Central para o Motor de Evasão Escolar.
  * Implementa a detecção de alunos ausentes consecutivamente (Art 70 ECA).
  *
@@ -151,19 +151,45 @@ async function processarMotorEvasao(db: D1Database, idEscola: string): Promise<R
             return new Response(JSON.stringify({ success: true, gerados: 0, mensagem: 'Nenhum aluno ativo' }));
         }
 
+        // 2. Definir o período de 3 dias LETIVOS
+        // Buscamos os últimos dias úteis no banco que NÃO estão no calendário_letivo como feriado
+        const diasLetivosResp = await db.prepare(`
+            WITH RECURSIVE dias(d) AS (
+                SELECT date('now')
+                UNION ALL
+                SELECT date(d, '-1 day') FROM dias WHERE d > date('now', '-10 days')
+            )
+            SELECT d FROM dias
+            WHERE strftime('%w', d) NOT IN ('0', '6') -- Ignora Domingo(0) e Sábado(6)
+            AND d NOT IN (SELECT data FROM calendario_letivo WHERE escola_id = ?)
+            AND d <= date('now')
+            ORDER BY d DESC
+            LIMIT 3
+        `).bind(idEscola).all<{ d: string }>();
+
+        const diasParaChecar = diasLetivosResp.results || [];
+        if (diasParaChecar.length < 3) {
+            return new Response(JSON.stringify({ 
+                success: true, 
+                gerados: 0, 
+                mensagem: 'Período letivo insuficiente para análise (mínimo 3 dias)' 
+            }));
+        }
+
+        const dataMaisAntiga = diasParaChecar[diasParaChecar.length - 1].d;
         let alertasGerados = 0;
 
         for (const aluno of alunosAtivos) {
-            // Verificar a existencia de UM único pulso de log nos últimos 3 dias
+            // Verificar registro desde a data mais antiga do período letivo de 3 dias
             const acessoRecente = await db.prepare(`
                 SELECT id FROM registros_acesso 
                 WHERE aluno_matricula = ? AND escola_id = ? 
-                AND timestamp_acesso >= datetime('now', '-3 days')
+                AND timestamp_acesso >= ?
                 LIMIT 1
-            `).bind(aluno.matricula, idEscola).first();
+            `).bind(aluno.matricula, idEscola, `${dataMaisAntiga} 00:00:00`).first();
 
             if (!acessoRecente) {
-                // Aluno não registrou acesso nos últimos 3 dias!
+                // Aluno não registrou acesso nos últimos 3 dias LETIVOS!
 
                 // Verificar se JÁ EXISTE um alerta PENDENTE ou EM ANÁLISE aberto
                 const alertaAtivo = await db.prepare(`
