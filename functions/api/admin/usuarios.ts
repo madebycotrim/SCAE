@@ -1,19 +1,14 @@
-﻿import { ContextoSCAE } from '../../tipos/ambiente';
+﻿import { ErroBase, ErroInterno } from '../erros';
+import { ContextoSCAE } from '../../tipos/ambiente';
 
-/**
- * Lista todos os usuários cadastrados globalmente.
- * Restrito a administradores globais (CENTRAL).
- */
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
-    const { env } = contexto;
-
     try {
-        const usuarios = await env.DB_SCAE.prepare(
-            `SELECT 
-                u.id, 
-                u.email, 
-                u.nome, 
-                u.papel, 
+        const usuarios = await contexto.env.DB_SCAE.prepare(
+            `SELECT
+                u.id,
+                u.email,
+                u.nome,
+                u.papel,
                 t.nome_escola,
                 u.criado_em as ultimoAcesso -- Placeholder para último acesso real
              FROM usuarios u
@@ -21,16 +16,17 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
              ORDER BY u.criado_em DESC`
         ).all();
 
-        return new Response(JSON.stringify({ dados: usuarios.results }), {
+        return Response.json({ dados: usuarios.results }, {
             headers: { 'Content-Type': 'application/json' }
         });
 
     } catch (erro) {
         console.error('Erro ao listar usuários globalmente:', erro);
-        return new Response(JSON.stringify({ erro: 'Falha ao buscar contas de usuários.' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Falha ao buscar contas de usuários');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
 
