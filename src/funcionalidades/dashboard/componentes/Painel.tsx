@@ -1,8 +1,9 @@
-﻿import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
-import { Botao, CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { dashboardServico } from '../servicos/dashboard.servico';
+import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
+import { Botao, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 import { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 import {
     TrendingUp,
@@ -185,61 +186,89 @@ const LiveAccessFeed = ({ registros, alunos }) => {
 
 export default function Painel() {
     const { dados: estatisticasRaw, carregando } = usarConsulta(
-        ['estatisticas-dashboard'],
-        async () => {
-            const dados = await bancoLocal.obterDadosDashboard();
-            const banco = await bancoLocal.iniciarBanco();
-            const pendentes = await banco.countFromIndex('registros_acesso', 'sincronizado', 0);
-            return { ...dados, pendencias: pendentes };
-        },
-        { refetchInterval: 15000, staleTime: 14000 }
+        ['estatisticas-dashboard-online'],
+        () => dashboardServico.obterEstatisticas(),
+        { refetchInterval: 30000, staleTime: 25000 }
     );
 
     const estatisticas = useMemo(() => {
         if (!estatisticasRaw) return {
             totalAlunos: 0,
+            totalTurmas: 0,
             presentesHoje: 0,
             atrasosHoje: 0,
             saidasHoje: 0,
+            alunosEmRisco: 0,
+            permanenciaMedia: '---',
+            tendenciaFrequencia: 0,
             historicoPresenca: [],
             registrosRecentes: [],
             alunos: []
         };
 
-        const { alunos, registros } = estatisticasRaw;
+        const { alunos, registros, turmas, alertas } = estatisticasRaw;
         const hojeStr = format(new Date(), 'yyyy-MM-dd');
 
-        const registrosHoje = registros.filter(r => r.timestamp.startsWith(hojeStr));
-        const entradasHoje = new Set(
+        const registrosHoje = registros.filter(r => r.timestamp && r.timestamp.startsWith(hojeStr));
+        const entradasHojeSet = new Set(
             registrosHoje.filter(r => r.tipo_movimentacao === 'ENTRADA').map(r => r.aluno_matricula)
-        ).size;
+        );
+        const entradasHoje = entradasHojeSet.size;
         const saidasHojeCount = registrosHoje.filter(r => r.tipo_movimentacao === 'SAIDA').length;
 
+        // Cálculo de Atrasos (Proxy básico baseado no horário)
         let atrasos = 0;
         registrosHoje.forEach(r => {
-            if (r.tipo_movimentacao === 'ENTRADA') {
+            if (r.tipo_movimentacao === 'ENTRADA' && r.timestamp) {
                 const hora = parseInt(r.timestamp.substring(11, 13));
                 const min = parseInt(r.timestamp.substring(14, 16));
                 const minutosDia = hora * 60 + min;
+                // Atraso se entrar após 07:15 ou após 13:15
                 if ((minutosDia > 435 && minutosDia < 720) || (minutosDia > 795 && minutosDia < 1080)) {
                     atrasos++;
                 }
             }
         });
 
+        // Cálculo de Permanência Média Real
+        const registrosPorAluno: Record<string, { ENTRADA?: number, SAIDA?: number }> = {};
+        registrosHoje.forEach(r => {
+            if (!registrosPorAluno[r.aluno_matricula]) registrosPorAluno[r.aluno_matricula] = {};
+            const ts = new Date(r.timestamp).getTime();
+            if (r.tipo_movimentacao === 'ENTRADA') registrosPorAluno[r.aluno_matricula].ENTRADA = ts;
+            if (r.tipo_movimentacao === 'SAIDA') registrosPorAluno[r.aluno_matricula].SAIDA = ts;
+        });
+
+        let totalMinutos = 0;
+        let contagemPares = 0;
+        Object.values(registrosPorAluno).forEach(p => {
+            if (p.ENTRADA && p.SAIDA && p.SAIDA > p.ENTRADA) {
+                totalMinutos += (p.SAIDA - p.ENTRADA) / (1000 * 60);
+                contagemPares++;
+            }
+        });
+
+        // Histórico de 7 dias
         const historico = Array.from({ length: 7 }).map((_, i) => {
             const d = subDays(new Date(), 6 - i);
             const dStr = format(d, 'yyyy-MM-dd');
-            const regsDia = registros.filter(r => r.timestamp.startsWith(dStr) && r.tipo_movimentacao === 'ENTRADA');
+            const regsDia = registros.filter(r => r.timestamp && r.timestamp.startsWith(dStr) && r.tipo_movimentacao === 'ENTRADA');
             const total = new Set(regsDia.map(r => r.aluno_matricula)).size;
             return { data: format(d, 'dd/MM'), total };
         });
 
+        const mediaSemana = historico.slice(0, 6).reduce((a, b) => a + b.total, 0) / 6;
+        const tendencia = mediaSemana > 0 ? Math.round(((entradasHoje - mediaSemana) / mediaSemana) * 100) : 0;
+
         return {
             totalAlunos: alunos.length,
+            totalTurmas: turmas.length,
             presentesHoje: entradasHoje,
             atrasosHoje: atrasos,
             saidasHoje: saidasHojeCount,
+            alunosEmRisco: alertas?.length || 0,
+            permanenciaMedia: contagemPares > 0 ? `${(totalMinutos / contagemPares / 60).toFixed(1)}h` : '---',
+            tendenciaFrequencia: tendencia,
             historicoPresenca: historico,
             registrosRecentes: registros.slice().sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 50),
             alunos: alunos
@@ -351,7 +380,7 @@ export default function Painel() {
                                 subtitulo="Meta: 95%"
                                 icone={Activity}
                                 cor="indigo"
-                                tendencia={2.4}
+                                tendencia={estatisticas.tendenciaFrequencia}
                             />
                             <CardEstatistica
                                 titulo="Total de Estudantes"
@@ -362,7 +391,7 @@ export default function Painel() {
                             />
                             <CardEstatistica
                                 titulo="Permanência Média"
-                                valor="4.2h"
+                                valor={estatisticas.permanenciaMedia}
                                 subtitulo="Tempo em aula"
                                 icone={Clock}
                                 cor="indigo"
@@ -381,16 +410,16 @@ export default function Painel() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <CardEstatistica
                             titulo="Risco de Abandono"
-                            valor={estatisticas.atrasosHoje} // Usando dado disponível como proxy
+                            valor={estatisticas.alunosEmRisco}
                             subtitulo="Pendentes Urgentes"
                             icone={AlertTriangle}
                             cor="rose"
-                            tendencia={-12}
+                            tendencia={estatisticas.alunosEmRisco > 0 ? 10 : 0}
                             inverterTendencia
                         />
                         <CardEstatistica
                             titulo="Faltas Consecutivas"
-                            valor={8}
+                            valor={estatisticas.alunosEmRisco}
                             subtitulo="Turmas Críticas"
                             icone={Activity}
                             cor="rose"
@@ -401,12 +430,12 @@ export default function Painel() {
                             subtitulo="Check-in realizado"
                             icone={CheckCircle}
                             cor="emerald"
-                            tendencia={5}
+                            tendencia={estatisticas.tendenciaFrequencia}
                         />
                         <CardEstatistica
                             titulo="Turmas Ativas"
-                            valor={12}
-                            subtitulo="Em aula agora"
+                            valor={estatisticas.totalTurmas}
+                            subtitulo="Cadastradas"
                             icone={Layers}
                             cor="emerald"
                         />
@@ -480,15 +509,28 @@ export default function Painel() {
                         </div>
 
                         <div className="sm:col-span-2 bg-slate-950 rounded-xl p-5 border border-slate-800 relative overflow-hidden flex items-center justify-between group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[50px] rounded-full -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700"></div>
                             <div className="relative z-10 border-l-2 border-emerald-500 pl-4">
-                                <h4 className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] mb-1">Sync Service</h4>
+                                <h4 className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] mb-1">Status do Sistema</h4>
                                 <div className="flex items-center gap-3">
-                                    <p className="text-white text-[11px] font-black uppercase tracking-widest">Database Ativa</p>
+                                    <div className="relative">
+                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping absolute"></div>
+                                        <div className="w-2 h-2 bg-emerald-500 rounded-full relative"></div>
+                                    </div>
+                                    <p className="text-white text-[11px] font-black uppercase tracking-widest">Nuvem D1: Conectada</p>
                                 </div>
+                                <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tight">Sincronização em tempo real ativa</p>
                             </div>
-                            <Botao variante="ghost" tamanho="sm" className="text-slate-400 hover:bg-white/5 border border-white/10 relative z-10 h-8">
-                                Forçar Sinc
-                            </Botao>
+                            <div className="flex gap-2 relative z-10">
+                                <Botao 
+                                    variante="ghost" 
+                                    tamanho="sm" 
+                                    className="text-slate-400 hover:bg-white/5 border border-white/10 h-8"
+                                    onClick={() => servicoSincronizacao.sincronizarTudo()}
+                                >
+                                    Atualizar Cache Local
+                                </Botao>
+                            </div>
                         </div>
                     </div>
                 </section>

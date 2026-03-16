@@ -1,5 +1,5 @@
-import React from 'react';
 import { LucideIcon, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 /**
  * Primitivos de UI Padronizados para o SCAE
@@ -42,8 +42,8 @@ export const Botao: React.FC<BotaoProps> = ({
 
     const tamanhos = {
         sm: "h-8 px-3 text-[10px] tracking-widest rounded-lg",
-        md: "h-9 px-4 text-[11px] rounded-lg",
-        lg: "h-11 px-6 text-sm rounded-xl"
+        md: "h-11 px-4 text-[11px] rounded-lg", // Aumentado de h-9 para h-11 para alinhar com input
+        lg: "h-12 px-6 text-sm rounded-xl"
     };
 
     const widthStyle = fullWidth ? "w-full" : "";
@@ -76,6 +76,39 @@ export const BarraFiltro: React.FC<{ children: React.ReactNode; className?: stri
     </div>
 );
 
+// --- CARREGAMENTO INTELIGENTE (SKELETONS) ---
+
+export const Esqueleto: React.FC<{ className?: string }> = ({ className = '' }) => (
+    <div className={`animate-pulse bg-slate-100 rounded-md ${className} relative overflow-hidden after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent`}></div>
+);
+
+export const BarraProgressoGlobal: React.FC<{ ativa: boolean }> = ({ ativa }) => {
+    const [progresso, definirProgresso] = useState(0);
+
+    useEffect(() => {
+        let interval: any;
+        if (ativa) {
+            definirProgresso(10);
+            interval = setInterval(() => {
+                definirProgresso(prev => (prev >= 90 ? 90 : prev + Math.random() * 5));
+            }, 400);
+        } else {
+            definirProgresso(100);
+            setTimeout(() => definirProgresso(0), 500);
+        }
+        return () => clearInterval(interval);
+    }, [ativa]);
+
+    if (progresso === 0) return null;
+
+    return (
+        <div 
+            className="fixed top-0 left-0 h-0.5 bg-indigo-600 z-[9999] transition-all duration-300 ease-out" 
+            style={{ width: `${progresso}%`, boxShadow: '0 0 10px rgba(79, 70, 229, 0.5)' }}
+        />
+    );
+};
+
 // --- INPUTS PADRONIZADOS ---
 
 interface InputBuscaProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -84,9 +117,9 @@ interface InputBuscaProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const InputBusca: React.FC<InputBuscaProps> = ({ icone: Icone, className = '', ...props }) => (
     <div className="relative flex-1 group">
-        {Icone && <Icone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={18} />}
+        {Icone && <Icone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={16} />}
         <input
-            className={`w-full ${Icone ? 'pl-12' : 'pl-5'} pr-5 h-14 bg-slate-50 border border-slate-100 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 rounded-xl text-sm font-bold outline-none transition-all placeholder:text-slate-300 text-slate-900 ${className}`}
+            className={`w-full ${Icone ? 'pl-11' : 'pl-5'} pr-5 h-11 bg-slate-50 border border-slate-100 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 rounded-xl text-xs font-bold outline-none transition-all placeholder:text-slate-400 text-slate-900 ${className}`}
             {...props}
         />
     </div>

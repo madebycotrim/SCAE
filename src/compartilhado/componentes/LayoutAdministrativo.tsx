@@ -38,6 +38,7 @@ import {
 import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import { BarraProgressoGlobal } from '@/compartilhado/componentes/UI';
 
 const log = criarRegistrador('Layout');
 
@@ -50,9 +51,10 @@ interface LayoutAdministrativoProps {
     titulo: string;
     subtitulo?: string;
     acoes?: ReactNode | null;
+    carregando?: boolean;
 }
 
-export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }: LayoutAdministrativoProps) {
+export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes, carregando }: LayoutAdministrativoProps) {
     const { usuarioAtual, sair } = usarAutenticacao();
     const { ehAdmin, podeVerLogs, usuario, pode, ehCentral } = usarPermissoes();
     const navegar = useNavigate();
@@ -117,7 +119,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 { icone: Users, texto: 'Alunos', rota: '/alunos' },
                 { icone: Layers, texto: 'Turmas', rota: '/turmas' },
-                { icone: Calendar, texto: 'Calendário Letivo', rota: '/calendario' },
             ]
         },
         {
@@ -224,6 +225,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
     return (
         <div className="flex h-screen bg-gray-50 font-sans overflow-hidden selection:bg-blue-100 selection:text-blue-900">
+            <BarraProgressoGlobal ativa={!!carregando} />
             {/* Sobreposição Mobile */}
             {sidebarAberto && (
                 <div
@@ -646,7 +648,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                         {/* Contêiner de Ações */}
                         {acoes && (
-                            <div className="flex items-center gap-5 h-9">
+                            <div className="flex items-center gap-5 h-8">
                                 <div className="h-6 w-px bg-slate-200"></div>
                                 <div className="flex items-center gap-3 h-full">{acoes}</div>
                             </div>

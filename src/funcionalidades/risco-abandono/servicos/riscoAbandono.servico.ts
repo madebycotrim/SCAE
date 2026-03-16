@@ -1,4 +1,4 @@
-﻿import { api } from '@/compartilhado/servicos/api';
+import { api } from '@/compartilhado/servicos/api';
 import { AlertaRiscoAbandono, StatusRiscoAbandono } from '../types/riscoAbandono.tipos';
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import type { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
@@ -19,10 +19,10 @@ export const riscoAbandonoServico = {
 
     buscarHistoricoFaltas: async (matricula: string): Promise<RegistroAcessoLocal[]> => {
         try {
-            const historico = await bancoLocal.obterHistoricoAcessoAluno(matricula);
-            return historico;
+            const response = await api.obter<RegistroAcessoLocal[]>(`/acesso/registros?matricula=${matricula}`);
+            return response || [];
         } catch (erro) {
-            registrar.error(`Erro ao buscar histórico de faltas do aluno ${matricula}`, erro);
+            registrar.error(`Erro ao buscar histórico de faltas online do aluno ${matricula}`, erro);
             return [];
         }
     },

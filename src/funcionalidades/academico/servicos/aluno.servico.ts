@@ -1,4 +1,4 @@
-﻿import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { api } from '@/compartilhado/servicos/api';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
@@ -35,10 +35,28 @@ export const alunoServico = {
     },
 
     /**
+     * Busca dados diretamente da API (D1) para o Painel Administrativo.
+     * Ignora o banco local para garantir consistência real-time.
+     */
+    async carregarOnline() {
+        try {
+            const [alunos, turmas] = await Promise.all([
+                api.obter<Aluno[]>('/academico/alunos'),
+                api.obter<any[]>('/academico/turmas')
+            ]);
+            
+            return { alunos, turmas };
+        } catch (erro) {
+            log.error('Erro ao buscar dados online', erro);
+            return this.carregarDadosIniciais();
+        }
+    },
+
+    /**
      * Salva ou atualiza um aluno.
      * @lgpd Base legal: Execução de contrato (Art. 7º, V)
      */
-    async salvarAluno(aluno: Aluno, ehEdicao: boolean): Promise<void> {
+    async salvarAluno(aluno: Aluno, ehEdicao: boolean, admin = true): Promise<void> {
         const alunoFinal: Aluno = {
             ...aluno,
             atualizado_em: new Date().toISOString(),
@@ -54,12 +72,22 @@ export const alunoServico = {
                 throw new Error('Offline: Salvando localmente');
             }
         } catch (erro) {
-            log.warn('Falha ao salvar online, recorrendo ao banco local', erro);
-            alunoFinal.sincronizado = 0; // Marcar para sincronização posterior
+            log.warn('Falha ao salvar online', erro);
+            if (admin) throw erro; 
+            alunoFinal.sincronizado = 0; 
+        }
+
+        // No Admin, não persistimos localmente para evitar lixo no cache/divergência
+        if (admin) {
+            await Registrador.registrar(ehEdicao ? 'EDITAR_ALUNO' : 'CRIAR_ALUNO', 'aluno', aluno.matricula, {
+                nome: aluno.nome_completo,
+                via: 'online_admin'
+            });
+            return;
         }
 
         try {
-            // 2. Persistir localmente como garantia (ou como única via se offline)
+            // 2. Persistir localmente apenas se não for admin (Portaria)
             const banco = await bancoLocal.iniciarBanco();
 
             if (!ehEdicao && alunoFinal.sincronizado === 0) {
@@ -97,22 +125,30 @@ export const alunoServico = {
      * Remove um aluno do sistema.
      * @lgpd Base legal: Obrigação legal (Art. 7º, II) - Retenção de 5 anos para fins fiscais/acadêmicos.
      */
-    async excluirAluno(matricula: string): Promise<void> {
+    async excluirAluno(matricula: string, admin = true): Promise<void> {
         let removidoOnline = false;
         try {
             // 1. Tentar remover do servidor primeiro
             if (navigator.onLine) {
                 await api.remover(`/academico/alunos?matricula=${matricula}`);
                 removidoOnline = true;
+            } else if (admin) {
+                throw new Error('Você está offline. A exclusão administrativa requer conexão.');
             }
         } catch (erro) {
-            log.warn('Falha ao remover online, agendando para depois', erro);
-            // Registrar pendência no banco local para o Sync processar depois
+            log.warn('Falha ao remover online', erro);
+            if (admin) throw erro;
+            // Registrar pendência no banco local apenas se não for admin
             await bancoLocal.adicionarPendencia('DELETE', 'alunos', matricula);
         }
 
+        if (admin) {
+            await Registrador.registrar('DELETAR_ALUNO', 'aluno', matricula, { status: 'online_admin' });
+            return;
+        }
+
         try {
-            // 2. Remover localmente
+            // 2. Remover localmente apenas se não for admin
             const banco = await bancoLocal.iniciarBanco();
             await banco.delete('alunos', matricula);
 
@@ -126,7 +162,7 @@ export const alunoServico = {
     /**
      * Promove um lote de alunos para uma nova turma.
      */
-    async promoverEmLote(matriculas: string[], novaTurmaId: string): Promise<void> {
+    async promoverEmLote(matriculas: string[], novaTurmaId: string, admin = true): Promise<void> {
         let sucessoOnline = false;
         const dataAtual = new Date().toISOString();
 
@@ -136,13 +172,25 @@ export const alunoServico = {
                 await api.enviar('/academico/alunos/lote/promocao', { matriculas, nova_turma: novaTurmaId });
                 sucessoOnline = true;
                 log.info('Promoção em lote realizada online');
+            } else if (admin) {
+                throw new Error('A promoção de alunos requer conexão com o servidor.');
             }
         } catch (erro) {
-            log.warn('Falha na promoção online, aplicando localmente para sync posterior', erro);
+            log.warn('Falha na promoção online', erro);
+            if (admin) throw erro;
+        }
+
+        if (admin) {
+            await Registrador.registrar('ALUNOS_PROMOCAO_LOTE', 'aluno', 'LOTE', {
+                quantidade: matriculas.length,
+                nova_turma: novaTurmaId,
+                via: 'online_admin'
+            });
+            return;
         }
 
         try {
-            // 2. Aplicar localmente
+            // 2. Aplicar localmente apenas se não for admin
             const banco = await bancoLocal.iniciarBanco();
             const tx = banco.transaction('alunos', 'readwrite');
 
@@ -229,10 +277,16 @@ export const alunoServico = {
         }
 
         if (novosAlunos.length > 0) {
-            const banco = await bancoLocal.iniciarBanco();
-            const tx = banco.transaction('alunos', 'readwrite');
-            await Promise.all(novosAlunos.map(a => tx.store.put(a)));
-            await tx.done;
+            try {
+                // Enviar lote para o servidor
+                // O backend deve suportar receber um array ou processamos um a um
+                // Para manter a simplicidade e resiliência no modo Admin, vamos enviar o lote
+                await api.enviar('/academico/alunos', novosAlunos);
+                log.info(`Lote de ${novosAlunos.length} alunos importado com sucesso no servidor.`);
+            } catch (erro) {
+                log.error('Falha ao importar lote no servidor', erro);
+                throw new Error('Falha ao salvar dados no servidor. Verifique sua conexão.');
+            }
         }
 
         return {

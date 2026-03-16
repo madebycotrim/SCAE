@@ -1,15 +1,18 @@
-﻿import jsPDF from 'jspdf';
+import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, parseISO, subDays } from 'date-fns';
-import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { api } from '@/compartilhado/servicos/api';
 
 export const relatorioServico = {
     obterDadosFiltrados: async (filtros: any) => {
-        const banco = await bancoLocal.iniciarBanco();
-        const [registros, alunos] = await Promise.all([
-            banco.getAll('registros_acesso'),
-            banco.getAll('alunos')
+        // No Admin Online, buscamos diretamente da API
+        const [registrosResponse, alunosResponse] = await Promise.all([
+            api.obter<any[]>(`/acesso/registros?desde=${filtros.dataInicio}&limite=5000`),
+            api.obter<any[]>('/academico/alunos')
         ]);
+
+        const registros = registrosResponse || [];
+        const alunos = alunosResponse || [];
 
         return registros.filter((r: any) => {
             const dataRegistro = r.timestamp.split('T')[0];
@@ -27,8 +30,8 @@ export const relatorioServico = {
                 nome: aluno ? aluno.nome_completo : 'Aluno Removido/Desconhecido',
                 matricula: r.aluno_matricula,
                 turma: aluno ? aluno.turma_id : '-',
-                tipo: r.tipo_movimentacao === 'ENTRADA' ? 'ENTRADA' : 'SAÃDA',
-                sincronizado: r.sincronizado ? 'Sim' : 'Não'
+                tipo: r.tipo_movimentacao === 'ENTRADA' ? 'ENTRADA' : 'SAÍDA',
+                sincronizado: 'Online' // No admin online, tudo é online
             };
         });
     },
@@ -45,7 +48,7 @@ export const relatorioServico = {
         doc.text(`Turma: ${filtros.turma}`, 14, 50);
         autoTable(doc, {
             startY: 56,
-            head: [['Data/Hora', 'Nome do Aluno', 'Matrícula', 'Turma', 'Tipo', 'Sync']],
+            head: [['Data/Hora', 'Nome do Aluno', 'Matrícula', 'Turma', 'Tipo', 'Fonte']],
             body: dados.map(d => [d.data, d.nome, d.matricula, d.turma, d.tipo, d.sincronizado]),
             theme: 'striped',
             headStyles: { fillColor: [79, 70, 229] }
@@ -54,11 +57,13 @@ export const relatorioServico = {
     },
 
     gerarRelatorioEspecial: async (tipo: string, filtros: any) => {
-        const banco = await bancoLocal.iniciarBanco();
-        const [registros, alunos] = await Promise.all([
-            banco.getAll('registros_acesso'),
-            banco.getAll('alunos')
+        const [registrosResponse, alunosResponse] = await Promise.all([
+            api.obter<any[]>(`/acesso/registros?desde=${subDays(new Date(), 45).toISOString()}&limite=10000`),
+            api.obter<any[]>('/academico/alunos')
         ]);
+
+        const registros = registrosResponse || [];
+        const alunos = alunosResponse || [];
 
         if (tipo === 'Risco de Evasão') {
             const trintaDiasAtras = subDays(new Date(), 30).toISOString();
@@ -70,14 +75,14 @@ export const relatorioServico = {
             });
             const dadosRelatorio = alunos.map((aluno: any) => {
                 const presencas = presencasPorAluno[aluno.matricula] || 0;
-                return { nome: aluno.nome_completo, matricula: aluno.matricula, turma: aluno.turma_id || '-', presencas_30d: presencas, status: presencas === 0 ? 'CRÃTICO (0)' : presencas < 10 ? 'ALERTA' : 'NORMAL' };
+                return { nome: aluno.nome_completo, matricula: aluno.matricula, turma: aluno.turma_id || '-', presencas_30d: presencas, status: presencas === 0 ? 'CRÍTICO (0)' : presencas < 10 ? 'ALERTA' : 'NORMAL' };
             }).filter((d: any) => d.status !== 'NORMAL' && (filtros.turma === 'Todas' || d.turma === filtros.turma));
             dadosRelatorio.sort((a: any, b: any) => a.presencas_30d - b.presencas_30d);
             const doc = new jsPDF();
             doc.setFontSize(16);
             doc.text('Relatório de Risco de Evasão', 14, 20);
             doc.setFontSize(10);
-            doc.text('Alunos com baixa frequência nos últimos 30 dias.', 14, 28);
+            doc.text('Alunos com baixa frequência nos últimos 30 dias (Dados Online).', 14, 28);
             autoTable(doc, { startY: 35, head: [['Nome do Aluno', 'Matrícula', 'Turma', 'Presenças (30d)', 'Status']], body: dadosRelatorio.map((d: any) => [d.nome, d.matricula, d.turma, d.presencas_30d, d.status]), theme: 'striped', headStyles: { fillColor: [220, 38, 38] } });
             doc.save(`Risco_Abandono_${Date.now()}.pdf`);
         } else if (tipo === 'Fechamento Mensal') {
@@ -89,7 +94,7 @@ export const relatorioServico = {
             doc.setFontSize(16);
             doc.text('Fechamento Mensal de Frequência', 14, 20);
             doc.setFontSize(10);
-            doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 28);
+            doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')} (Dados Online)`, 14, 28);
             autoTable(doc, { startY: 35, head: [['Nome do Aluno', 'Matrícula', 'Turma', 'Total Presenças (Período)']], body: dadosRelatorio.map((d: any) => [d.nome, d.matricula, d.turma, d.total_presencas]), theme: 'grid', headStyles: { fillColor: [59, 130, 246] } });
             doc.save(`Fechamento_Mensal_${Date.now()}.pdf`);
         }

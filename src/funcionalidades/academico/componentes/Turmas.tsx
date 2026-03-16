@@ -1,8 +1,8 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { api } from '@/compartilhado/servicos/api';
 import {
@@ -39,24 +39,8 @@ export default function Turmas() {
     const { podeAcessar } = usarPermissoes();
     const escola = usarEscola();
     const { dados, carregando, recarregar: carregarTurmas } = usarConsulta(
-        ['turmas-com-contagem'],
-        async () => {
-            const banco = await bancoLocal.iniciarBanco();
-            const todasTurmas = await banco.getAll('turmas');
-
-            const turmasComContagem = await Promise.all(todasTurmas.map(async (t) => {
-                const count = await bancoLocal.contarAlunosPorTurma(t.id);
-                return { ...t, totalAlunos: count };
-            }));
-
-            turmasComContagem.sort((a, b) => {
-                if (a.id < b.id) return -1;
-                if (a.id > b.id) return 1;
-                return 0;
-            });
-
-            return turmasComContagem;
-        }
+        ['turmas-online'],
+        () => turmaServico.carregarOnline()
     );
 
     const turmas = dados || [];
@@ -201,7 +185,7 @@ export default function Turmas() {
     const AcoesHeader = (
         <Botao
             variante="primario"
-            tamanho="lg"
+            tamanho="sm"
             icone={Plus}
             onClick={abrirNovo}
         >
@@ -214,6 +198,7 @@ export default function Turmas() {
             titulo="Lista de Turmas"
             subtitulo="Gerencie as turmas, professores e a ocupação das salas"
             acoes={AcoesHeader}
+            carregando={carregando}
         >
             <BarraFiltro className="p-3">
                 <div className="flex flex-col gap-1.5 flex-1">
@@ -223,7 +208,7 @@ export default function Turmas() {
                         placeholder="Nome, professor ou turno..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-9 rounded-lg"
+                        className="w-full h-8 rounded-lg"
                     />
                 </div>
 
@@ -231,7 +216,7 @@ export default function Turmas() {
                     {/* Filtro de Ano */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-9">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-8">
                             {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                                 <button
                                     key={ano}
@@ -250,7 +235,7 @@ export default function Turmas() {
                     {/* Filtro de Turno */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Turno</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-9">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-8">
                             {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
                                 const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIG_TURNO[filtro as keyof typeof CONFIG_TURNO]?.icone || Clock);
                                 return (
@@ -288,9 +273,14 @@ export default function Turmas() {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {carregando ? (
-                                [...Array(6)].map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td colSpan={6} className="py-6 px-8 h-16 bg-slate-50/50"></td>
+                                Array.from({ length: 6 }).map((_, i) => (
+                                    <tr key={i} className="animate-fade-in">
+                                        <td className="py-5 px-8"><Esqueleto className="w-24 h-4" /></td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-32 h-4" /></td>
+                                        <td className="py-5 px-8 text-center"><Esqueleto className="w-12 h-6 mx-auto" /></td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-20 h-6" /></td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-28 h-4 rounded-full" /></td>
+                                        <td className="py-5 px-8 text-right"><Esqueleto className="w-24 h-8 ml-auto" /></td>
                                     </tr>
                                 ))
                             ) : turmasFiltradas.length === 0 ? (

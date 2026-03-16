@@ -1,7 +1,7 @@
-﻿import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { api } from '@/compartilhado/servicos/api';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
@@ -41,24 +41,26 @@ export default function Relatorios() {
     const [mostrarDropdownTurma, definirMostrarDropdownTurma] = useState(false);
     const refDropdownTurma = useRef<HTMLDivElement>(null);
 
-    // Consulta de turmas e contagem de alunos para o resumo
+    // Consulta de turmas e contagem de alunos para o resumo online
     const { dados: infoBase = { turmas: [], totalAlunos: 0, alunos: [] }, carregando: carregandoBase } = usarConsulta(
-        ['info-base-relatorios'],
+        ['info-base-relatorios-online'],
         async () => {
-            const banco = await bancoLocal.iniciarBanco();
             const [alunos, turmas] = await Promise.all([
-                banco.getAll('alunos'),
-                banco.getAll('turmas')
+                api.obter<any[]>('/academico/alunos'),
+                api.obter<any[]>('/academico/turmas')
             ]);
 
-            const turmasIds = turmas.length > 0
-                ? turmas.map((t: any) => t.id).sort()
-                : [...new Set(alunos.map((a: any) => a.turma_id).filter((t: any) => t))].sort();
+            const listaAlunos = alunos || [];
+            const listaTurmas = turmas || [];
+
+            const turmasIds = listaTurmas.length > 0
+                ? listaTurmas.map((t: any) => t.id).sort()
+                : [...new Set(listaAlunos.map((a: any) => a.turma_id).filter((t: any) => t))].sort();
 
             return {
                 turmas: turmasIds,
-                totalAlunos: alunos.length,
-                alunos
+                totalAlunos: listaAlunos.length,
+                alunos: listaAlunos
             };
         },
         { staleTime: 5 * 60 * 1000 }

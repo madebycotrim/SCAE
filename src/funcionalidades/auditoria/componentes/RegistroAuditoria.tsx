@@ -1,8 +1,10 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { api } from '@/compartilhado/servicos/api';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 import {
     Activity,
     Search,
@@ -27,18 +29,24 @@ import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 
 export default function RegistroAuditoria() {
     const { podeVerLogs, ehAdmin } = usarPermissoes();
-    const [logs, definirLogs] = useState([]);
+    const { dados: logsBrutos, carregando, recarregar: carregarLogs } = usarConsulta(
+        ['logs-auditoria-online'],
+        async () => {
+            const logs = await api.obter<any[]>('/seguranca/auditoria');
+            return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        }
+    );
+
+    const logs = logsBrutos || [];
     const [busca, definirBusca] = useState('');
     const [pagina, definirPagina] = useState(1);
     const [logSelecionado, definirLogSelecionado] = useState(null);
-    const [carregando, definirCarregando] = useState(false);
     const [mapaUsuarios, definirMapaUsuarios] = useState<Record<string, string>>({});
 
     const LOGS_PER_PAGE = 15;
     const EH_ADMIN_SUPREMO = ehAdmin;
 
     useEffect(() => {
-        carregarLogs();
         carregarUsuarios();
     }, []);
 
@@ -55,23 +63,6 @@ export default function RegistroAuditoria() {
         }
     };
 
-    const carregarLogs = async () => {
-        try {
-            definirCarregando(true);
-            const todosLogs = await bancoLocal.listarLogs();
-
-            // Ordenar por data (mais recente primeiro)
-            todosLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-            definirLogs(todosLogs);
-        } catch (e) {
-            console.error(e);
-            toast.error("Falha ao sincronizar logs de auditoria.");
-        } finally {
-            definirCarregando(false);
-        }
-    };
-
     const excluirLog = async (id: string) => {
         if (!EH_ADMIN_SUPREMO) return;
 
@@ -82,8 +73,7 @@ export default function RegistroAuditoria() {
         try {
             const banco = await bancoLocal.iniciarBanco();
             await banco.delete('logs_auditoria', id);
-
-            definirLogs(current => current.filter(l => l.id !== id));
+            carregarLogs();
             toast.success("Registro de trilha removido");
 
             if (logSelecionado?.id === id) definirLogSelecionado(null);
@@ -133,7 +123,8 @@ export default function RegistroAuditoria() {
         <LayoutAdministrativo
             titulo="Histórico de Atividades"
             subtitulo="Veja tudo o que foi feito no sistema para garantir a segurança dos dados"
-            acoes={<Botao variante="secundario" tamanho="md" icone={RefreshCw} loading={carregando} onClick={carregarLogs}>Sincronizar</Botao>}
+            acoes={<Botao variante="secundario" tamanho="sm" icone={RefreshCw} loading={carregando} onClick={carregarLogs}>Sincronizar</Botao>}
+            carregando={carregando}
         >
             <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave">
                 <InputBusca
@@ -146,7 +137,7 @@ export default function RegistroAuditoria() {
 
                 <Botao
                     variante="ghost"
-                    tamanho="md"
+                    tamanho="sm"
                     icone={Download}
                     className="hidden md:flex ml-auto font-black text-[10px] tracking-widest text-slate-500"
                 >
@@ -169,9 +160,21 @@ export default function RegistroAuditoria() {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {carregando ? (
-                                [...Array(8)].map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td colSpan={5} className="py-6 px-8 h-12 bg-slate-50/30"></td>
+                                Array.from({ length: 8 }).map((_, i) => (
+                                    <tr key={i} className="animate-fade-in">
+                                        <td className="py-4 px-8"><Esqueleto className="w-24 h-5 rounded-lg" /></td>
+                                        <td className="py-4 px-8">
+                                            <div className="flex items-center gap-3">
+                                                <Esqueleto className="w-9 h-9 rounded-xl" />
+                                                <div className="space-y-2">
+                                                    <Esqueleto className="w-32 h-3" />
+                                                    <Esqueleto className="w-24 h-2 opacity-60" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-8 text-center"><Esqueleto className="w-16 h-5 mx-auto rounded-xl" /></td>
+                                        <td className="py-4 px-8"><Esqueleto className="w-32 h-4" /></td>
+                                        <td className="py-4 px-8 text-right"><Esqueleto className="w-24 h-8 ml-auto" /></td>
                                     </tr>
                                 ))
                             ) : logsPaginados.length === 0 ? (

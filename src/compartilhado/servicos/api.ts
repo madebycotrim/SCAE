@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Instância centralizada da API com injeção automática de escola_id e JWT.
  * Mantém compatibilidade com os métodos existentes: obter, enviar, remover.
  */
@@ -14,6 +14,22 @@ interface CabecalhosApi {
 }
 
 /**
+ * Aguarda o Firebase Auth estar pronto (útil no refresh da página).
+ */
+async function aguardarAuth(): Promise<void> {
+    if (autenticacao.currentUser) return;
+    
+    return new Promise((resolve) => {
+        const unsubscribe = autenticacao.onAuthStateChanged((user) => {
+            unsubscribe();
+            resolve();
+        });
+        // Timeout de segurança para não travar a UI caso o Firebase falhe
+        setTimeout(resolve, 2000);
+    });
+}
+
+/**
  * Monta os cabeçalhos com token JWT e escola_id.
  */
 async function obterCabecalhos(): Promise<CabecalhosApi> {
@@ -21,10 +37,19 @@ async function obterCabecalhos(): Promise<CabecalhosApi> {
         'Content-Type': 'application/json',
     };
 
+    // Tentar aguardar o estado de autenticação se estiver nulo (fase de boot)
+    if (!autenticacao.currentUser) {
+        await aguardarAuth();
+    }
+
     // Injetar token JWT
     if (autenticacao.currentUser) {
-        const token = await autenticacao.currentUser.getIdToken();
-        cabecalhos['Authorization'] = `Bearer ${token}`;
+        try {
+            const token = await autenticacao.currentUser.getIdToken();
+            cabecalhos['Authorization'] = `Bearer ${token}`;
+        } catch (e) {
+            console.warn('[API] Falha ao obter ID Token:', e);
+        }
     }
 
     // Injetar escola_id (salvo pelo ProvedorEscola na sessão)

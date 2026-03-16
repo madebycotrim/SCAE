@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Hook genérico para consulta de dados com suporte a recarregamento.
@@ -12,15 +12,21 @@ export function usarConsulta<T = any>(
     opcoes?: { staleTime?: number; refetchInterval?: number }
 ) {
     const [dados, definirDados] = useState<T | null>(null);
-    const [carregando, definirCarregando] = useState(true);
+    const [carregando, definirCarregando] = useState(false); // Começa false para respeitar o delay
     const [erro, definirErro] = useState<Error | null>(null);
-
-    // Usar uma ref para garantir que não busquemos dados obsoletos se o componente desmontar
     const montado = useRef(true);
 
-    const carregar = useCallback(async () => {
-        // Se já tivermos dados e houver staleTime, poderíamos pular, 
-        // mas aqui mantemos simples para compatibilidade.
+    const carregar = useCallback(async (exibirLoading = true) => {
+        let timerCarregando: any;
+
+        // Só ativa o estado 'carregando' se demorar mais que 180ms
+        // Isso evita o 'flicker' em consultas rápidas no IndexedDB
+        if (exibirLoading || !dados) {
+            timerCarregando = setTimeout(() => {
+                if (montado.current) definirCarregando(true);
+            }, 180);
+        }
+
         try {
             const resultado = await buscar();
             if (montado.current) {
@@ -32,19 +38,23 @@ export function usarConsulta<T = any>(
                 definirErro(e as Error);
             }
         } finally {
+            if (timerCarregando) clearTimeout(timerCarregando);
             if (montado.current) {
                 definirCarregando(false);
             }
         }
-    }, [buscar]);
+    }, [buscar, dados]);
 
     useEffect(() => {
         montado.current = true;
-        carregar();
+        
+        // Chamada inicial
+        carregar(true);
 
         let intervalo: ReturnType<typeof setInterval> | undefined;
         if (opcoes?.refetchInterval) {
-            intervalo = setInterval(carregar, opcoes.refetchInterval);
+            // Refetch em background para não atrapalhar o usuário
+            intervalo = setInterval(() => carregar(false), opcoes.refetchInterval);
         }
 
         return () => {
@@ -58,7 +68,8 @@ export function usarConsulta<T = any>(
         dados,
         carregando,
         erro,
-        recarregar: carregar
+        recarregar: () => carregar(true),
+        atualizarSutil: () => carregar(false)
     };
 }
 

@@ -1,6 +1,7 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import {
     Users,
@@ -34,29 +35,15 @@ import FormUsuarioModal from './FormUsuarioModal';
 export default function Usuarios() {
     const { usuarioAtual } = usarAutenticacao();
     const { ehCentral } = usarPermissoes();
-    const [usuarios, definirUsuarios] = useState<UsuarioLocal[]>([]);
-    const [carregando, definirCarregando] = useState(true);
+    const { dados: usuariosBrutos, carregando, recarregar: carregarUsuarios } = usarConsulta(
+        ['usuarios-online'],
+        () => usuarioServico.carregarOnline()
+    );
+
+    const usuarios = usuariosBrutos || [];
     const [busca, definirBusca] = useState('');
     const [modalAberto, definirModalAberto] = useState(false);
     const [usuarioEmEdicao, definirUsuarioEmEdicao] = useState<UsuarioLocal | null>(null);
-
-    useEffect(() => {
-        carregarUsuarios();
-    }, []);
-
-    const carregarUsuarios = async () => {
-        try {
-            definirCarregando(true);
-            const banco = await bancoLocal.iniciarBanco();
-            const todos = await banco.getAll('usuarios');
-            definirUsuarios(todos);
-        } catch (erro) {
-            log.error('Erro ao carregar usuários', erro);
-            toast.error('Erro ao carregar lista de usuários');
-        } finally {
-            definirCarregando(false);
-        }
-    };
 
     const salvarUsuario = async (dados: any) => {
         try {
@@ -88,7 +75,7 @@ export default function Usuarios() {
 
         try {
             await usuarioServico.excluirUsuario(user.email);
-            definirUsuarios(usuarios.filter(u => (u as any).email !== user.email));
+            carregarUsuarios();
             toast.success(`Usuário ${user.email} excluído com sucesso!`);
         } catch (erro) {
             log.error('Erro ao excluir usuário', erro);
@@ -123,7 +110,7 @@ export default function Usuarios() {
     const AcoesHeader = (
         <Botao
             variante="primario"
-            tamanho="lg"
+            tamanho="sm"
             icone={Plus}
             onClick={novoUsuario}
         >
@@ -136,6 +123,7 @@ export default function Usuarios() {
             titulo="Equipe da Escola"
             subtitulo="Gerencie quem pode acessar e operar o sistema na unidade"
             acoes={AcoesHeader}
+            carregando={carregando}
         >
             <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
                 <div className="flex flex-col gap-2.5 flex-1">
@@ -145,7 +133,7 @@ export default function Usuarios() {
                         placeholder="Nome, e-mail ou cargo..."
                         value={busca}
                         onChange={(e) => definirBusca(e.target.value)}
-                        className="w-full h-9 rounded-2xl"
+                        className="w-full h-8 rounded-2xl"
                     />
                 </div>
                 <div className="flex items-center gap-4 ml-6 self-end pb-1">
@@ -169,9 +157,20 @@ export default function Usuarios() {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {carregando ? (
-                                [...Array(5)].map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td colSpan={4} className="py-8 px-8 h-20 bg-slate-50/30"></td>
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <tr key={i} className="animate-fade-in">
+                                        <td className="py-5 px-8">
+                                            <div className="flex items-center gap-4">
+                                                <Esqueleto className="w-11 h-11 rounded-2xl" />
+                                                <div className="space-y-2">
+                                                    <Esqueleto className="w-40 h-3" />
+                                                    <Esqueleto className="w-32 h-2 opacity-60" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-5 px-8 text-center"><Esqueleto className="w-24 h-6 mx-auto rounded-xl" /></td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-20 h-5 rounded-lg" /></td>
+                                        <td className="py-5 px-8 text-right"><Esqueleto className="w-32 h-8 ml-auto" /></td>
                                     </tr>
                                 ))
                             ) : usuariosFiltrados.length === 0 ? (

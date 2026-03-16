@@ -133,6 +133,8 @@ async function atualizarStatusAlerta(contexto: ContextoSCAE, db: D1Database, idE
     }
 }
 
+import { obterDiasNaoLetivos } from './calendario.compartilhado';
+
 /**
  * Scaneia os alunos e verifica os registros para aplicar regras de evasão contínua.
  * Regra: Alunos ausentes por 3 dias letivos (aproximadamente simulado checando ausência de registro nas últimas 72h)
@@ -152,23 +154,26 @@ async function processarMotorEvasao(db: D1Database, idEscola: string): Promise<R
         }
 
         // 2. Definir o período de 3 dias LETIVOS
-        // Buscamos os últimos dias úteis no banco que NÃO estão no calendário_letivo como feriado
-        const diasLetivosResp = await db.prepare(`
+        // Buscamos os dias que não são fim de semana nem feriados (manuais ou inteligentes)
+        const diasNaoLetivos = await obterDiasNaoLetivos(db, idEscola);
+        
+        const { results: diasCanditados } = await db.prepare(`
             WITH RECURSIVE dias(d) AS (
                 SELECT date('now')
                 UNION ALL
-                SELECT date(d, '-1 day') FROM dias WHERE d > date('now', '-10 days')
+                SELECT date(d, '-1 day') FROM dias WHERE d > date('now', '-30 days') -- Janela maior para segurança
             )
             SELECT d FROM dias
             WHERE strftime('%w', d) NOT IN ('0', '6') -- Ignora Domingo(0) e Sábado(6)
-            AND d NOT IN (SELECT data FROM calendario_letivo WHERE escola_id = ?)
-            AND d <= date('now')
             ORDER BY d DESC
-            LIMIT 3
-        `).bind(idEscola).all<{ d: string }>();
+        `).all<{ d: string }>();
 
-        const diasParaChecar = diasLetivosResp.results || [];
-        if (diasParaChecar.length < 3) {
+        // Filtra os dias letivos reais (que não estão na lista de feriados/recessos)
+        const diasLetivos = (diasCanditados || [])
+            .filter(dia => !diasNaoLetivos.includes(dia.d))
+            .slice(0, 3);
+
+        if (diasLetivos.length < 3) {
             return new Response(JSON.stringify({ 
                 success: true, 
                 gerados: 0, 
@@ -176,7 +181,7 @@ async function processarMotorEvasao(db: D1Database, idEscola: string): Promise<R
             }));
         }
 
-        const dataMaisAntiga = diasParaChecar[diasParaChecar.length - 1].d;
+        const dataMaisAntiga = diasLetivos[diasLetivos.length - 1].d;
         let alertasGerados = 0;
 
         for (const aluno of alunosAtivos) {

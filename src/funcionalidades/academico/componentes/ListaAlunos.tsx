@@ -1,7 +1,7 @@
-﻿import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Aluno } from '../tipos/academico';
 import { mascararDadoPessoal } from '@/compartilhado/utils/registrarLocal';
-import { CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 
 interface ListaAlunosProps {
     alunos: Aluno[];
@@ -14,6 +14,7 @@ interface ListaAlunosProps {
     aoExcluir: (aluno: Aluno) => void;
     aoMudarPagina: (pagina: number) => void;
     obterCorAvatar: (id: string) => string;
+    carregando?: boolean;
 }
 
 export default function ListaAlunos({
@@ -26,7 +27,8 @@ export default function ListaAlunos({
     aoEditar,
     aoExcluir,
     aoMudarPagina,
-    obterCorAvatar
+    obterCorAvatar,
+    carregando
 }: ListaAlunosProps) {
     if (alunos.length === 0) {
         return (
@@ -69,7 +71,26 @@ export default function ListaAlunos({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {alunos.map((aluno) => (
+                            {carregando ? (
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <tr key={i} className="animate-fade-in">
+                                        <td className="py-5 px-8 text-center"><Esqueleto className="w-4 h-4 mx-auto" /></td>
+                                        <td className="py-5 px-8">
+                                            <div className="flex items-center gap-3">
+                                                <Esqueleto className="w-9 h-9 rounded-lg" />
+                                                <div className="space-y-2">
+                                                    <Esqueleto className="w-32 h-3" />
+                                                    <Esqueleto className="w-24 h-2 opacity-60" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-16 h-4" /></td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-20 h-4" /></td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-16 h-5 rounded-lg" /></td>
+                                        <td className="py-5 px-8 text-right"><Esqueleto className="w-24 h-8 ml-auto" /></td>
+                                    </tr>
+                                ))
+                            ) : alunos.map((aluno) => (
                                 <tr key={aluno.matricula} className={`hover:bg-indigo-50/20 transition-all group ${alunosSelecionados.includes(aluno.matricula) ? 'bg-indigo-50/40' : ''}`}>
                                     <td className="py-4 px-8 text-center">
                                         <input

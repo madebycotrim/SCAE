@@ -104,7 +104,7 @@ export default function FormHorariosAcesso() {
     const AcoesHeader = (
         <Botao
             variante="primario"
-            tamanho="lg"
+            tamanho="sm"
             icone={Save}
             loading={salvando}
             onClick={aoSalvar}

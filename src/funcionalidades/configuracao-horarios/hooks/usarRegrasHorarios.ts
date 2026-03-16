@@ -1,4 +1,4 @@
-﻿import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { RegrasHorariosApi } from '../servicos/regrasAcessoApi';
 import type { JanelaHorarioAcesso, ConfiguracaoHorarios } from '../types/regrasHorarios.tipos';
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
@@ -19,21 +19,25 @@ export function usarRegrasHorarios(idEscola: string) {
         ['configuracao-horarios', idEscola],
         async () => {
             try {
-                // Tenta buscar atualizado da API
-                const resposta = await RegrasHorariosApi.buscarHorarios(idEscola) as ConfiguracaoHorarios;
-                // Salva o cache
-                await bancoLocal.salvarConfiguracaoHorarios({ ...resposta, id: idEscola, escola_id: idEscola });
+                // No Admin, buscamos sempre o dado mais fresco
+                const resposta = await RegrasHorariosApi.buscarHorarios(idEscola) as any;
+                
+                // Atualizamos o cache local silenciosamente para que o Tablet (offline) se beneficie
+                if (resposta) {
+                    bancoLocal.salvarConfiguracaoHorarios({ ...resposta, id: idEscola, escola_id: idEscola });
+                }
+                
                 setUsandoCache(false);
-                return resposta;
+                return resposta as ConfiguracaoHorarios;
             } catch (e) {
-                // Se falhar (offline), busca cache no IndexedDB local
+                log.error('Erro ao buscar horários online', e);
+                // Fallback apenas se a API estiver realmente fora, mas avisamos o usuário
                 const local = await bancoLocal.buscarConfiguracaoHorarios(idEscola);
                 if (local) {
-                    log.info('Sem rede ou servidor off. Retornando configuração a partir do cache local.');
                     setUsandoCache(true);
                     return local;
                 }
-                throw e; // Lança erro se não tem nada no banco
+                throw e; 
             }
         }
     );
@@ -52,10 +56,9 @@ export function usarRegrasHorarios(idEscola: string) {
 
             if (navigator.onLine) {
                 await RegrasHorariosApi.salvarHorarios(idEscola, janelas);
+                toast.success('Horários salvos online');
             } else {
-                // Em modo offline, registramos na fila de pendências padrão do app
-                await bancoLocal.adicionarPendencia('UPDATE', 'configuracao_horarios', idEscola, { janelas });
-                toast.success('Edição salva na Fila Offline.', { icon: '📴' });
+                throw new Error('A alteração de horários administrativos requer conexão ativa.');
             }
 
             await recarregar();

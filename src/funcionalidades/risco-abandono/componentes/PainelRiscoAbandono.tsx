@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 import { usarRiscoAbandono } from '../hooks/usarRiscoAbandono';
 import { AlertaRiscoAbandono, StatusRiscoAbandono } from '../types/riscoAbandono.tipos';
@@ -84,7 +84,7 @@ export default function PainelRiscoAbandono() {
     const AcoesHeader = (
         <Botao
             variante="primario"
-            tamanho="lg"
+            tamanho="sm"
             icone={Zap}
             loading={processando || carregando}
             onClick={rodarMotorRiscoAbandono}
@@ -141,14 +141,14 @@ export default function PainelRiscoAbandono() {
                                 definirPesquisa(e.target.value);
                                 definirPaginaAtual(1);
                             }}
-                            className="w-full h-9 rounded-2xl"
+                            className="w-full h-8 rounded-2xl"
                         />
                     </div>
 
                     <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
                         <div className="flex flex-col gap-2.5">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Situação do Alerta</label>
-                            <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-9 shadow-suave">
+                            <div className="flex items-center bg-white p-1 rounded-2xl border border-slate-200 h-8 shadow-suave">
                                 {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
                                     <button
                                         key={status}

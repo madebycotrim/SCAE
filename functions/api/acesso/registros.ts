@@ -1,4 +1,4 @@
-﻿import type { ContextoSCAE, PayloadRegistroAcesso, ResultadoSincronizacao } from '../../tipos/ambiente';
+import type { ContextoSCAE, PayloadRegistroAcesso, ResultadoSincronizacao } from '../../tipos/ambiente';
 import { ErroValidacao, ErroInterno, ErroBase } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../seguranca';
 import { FabricaFCM } from '../utilitarios/fcm';
@@ -101,6 +101,7 @@ async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> 
         const limite = searchParams.get('limite') || '1000';
         const data = searchParams.get('data');
         const desde = searchParams.get('desde');
+        const matricula = searchParams.get('matricula');
 
         let query = "SELECT id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura as metodo_validacao, timestamp_acesso as timestamp, sincronizado FROM registros_acesso WHERE escola_id = ?";
         const params: (string | number)[] = [idEscola];
@@ -111,6 +112,11 @@ async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> 
         } else if (desde) {
             query += " AND timestamp_acesso > ?";
             params.push(desde);
+        }
+
+        if (matricula) {
+            query += " AND aluno_matricula = ?";
+            params.push(matricula);
         }
 
         query += " ORDER BY timestamp_acesso DESC LIMIT ?";

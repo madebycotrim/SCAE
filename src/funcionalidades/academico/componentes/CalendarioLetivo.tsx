@@ -2,7 +2,7 @@ import { useState } from 'react';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/compartilhado/servicos/api';
-import { Calendar as CalendarIcon, Plus, Trash2, ShieldAlert } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Trash2, ShieldAlert, RefreshCw } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
@@ -36,6 +36,15 @@ export default function CalendarioLetivo() {
         onError: () => toast.error('Falha ao adicionar dia')
     });
 
+    const mutationSincronizar = useMutation({
+        mutationFn: () => api.enviar('/academico/calendario?acao=sincronizar_seedf', {}),
+        onSuccess: (res: any) => {
+            queryClient.invalidateQueries({ queryKey: ['calendario'] });
+            toast.success(`${res.total} dias sincronizados com o calendário SEEDF`);
+        },
+        onError: () => toast.error('Falha ao sincronizar calendário')
+    });
+
     const mutationRemover = useMutation({
         mutationFn: (data: string) => api.remover(`/academico/calendario?data=${data}`),
         onSuccess: () => {
@@ -49,6 +58,12 @@ export default function CalendarioLetivo() {
         e.preventDefault();
         if (!novaData) return;
         mutationAdicionar.mutate({ data: novaData, descricao: novaDescricao, tipo: novoTipo });
+    };
+
+    const aoSincronizar = () => {
+        if (confirm('Deseja importar automaticamente todos os feriados e recessos oficiais da SEEDF para o ano de 2026? Isso não removerá seus registros manuais.')) {
+            mutationSincronizar.mutate();
+        }
     };
 
     return (
@@ -127,10 +142,24 @@ export default function CalendarioLetivo() {
                 <div className="lg:col-span-2">
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <h3 className="font-black text-slate-800 uppercase tracking-tight">Dias Não-Letivos Configurados</h3>
-                            <span className="bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                                {Array.isArray(dias) ? dias.length : 0} registros
-                            </span>
+                            <div>
+                                <h3 className="font-black text-slate-800 uppercase tracking-tight">Dias Não-Letivos Configurados</h3>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Ano Letivo 2026</p>
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={aoSincronizar}
+                                    disabled={mutationSincronizar.isPending}
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all outline-none active:scale-90 border border-indigo-100 shadow-sm"
+                                >
+                                    <RefreshCw size={12} className={mutationSincronizar.isPending ? 'animate-spin' : ''} />
+                                    {mutationSincronizar.isPending ? 'Sincronizando...' : 'Sincronizar SEEDF'}
+                                </button>
+                                <span className="bg-white text-slate-600 border border-slate-200 px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-sm">
+                                    {Array.isArray(dias) ? dias.length : 0} registros
+                                </span>
+                            </div>
                         </div>
 
                         {isLoading ? (

@@ -9,9 +9,28 @@ const log = criarRegistrador('TurmaServico');
 
 export const turmaServico = {
     /**
+     * Busca turmas diretamente da API para o Admin.
+     */
+    async carregarOnline() {
+        try {
+            const turmas = await api.obter<any[]>('/academico/turmas');
+            const turmasComContagem = await Promise.all(turmas.map(async (t) => {
+                // A API já deve retornar a contagem se possível, ou fazemos um ajuste aqui
+                return { ...t, totalAlunos: t.totalAlunos || 0 };
+            }));
+            return turmasComContagem;
+        } catch (erro) {
+            log.error('Erro ao buscar turmas online', erro);
+            // Fallback para local apenas em caso de desespero
+            const banco = await bancoLocal.iniciarBanco();
+            return await banco.getAll('turmas');
+        }
+    },
+
+    /**
      * Salva ou atualiza uma turma com estratégia Online-First.
      */
-    async salvarTurma(turma: any, ehEdicao: boolean): Promise<void> {
+    async salvarTurma(turma: any, ehEdicao: boolean, admin = true): Promise<void> {
         const turmaFinal = {
             ...turma,
             atualizado_em: new Date().toISOString(),
@@ -27,12 +46,21 @@ export const turmaServico = {
                 throw new Error('Offline');
             }
         } catch (erro) {
-            log.warn('Falha ao salvar turma online, recorrendo ao banco local', erro);
+            log.warn('Falha ao salvar turma online', erro);
+            if (admin) throw erro;
             turmaFinal.sincronizado = 0;
         }
 
+        if (admin) {
+            await Registrador.registrar(ehEdicao ? 'TURMA_EDITAR' : 'TURMA_CRIAR', 'turma', turma.id, {
+                ano_letivo: turma.ano_letivo,
+                via: 'online_admin'
+            });
+            return;
+        }
+
         try {
-            // 2. Persistir localmente
+            // 2. Persistir localmente apenas se não for admin
             const banco = await bancoLocal.iniciarBanco();
 
             // Lógica de renomeação de ID (se o ID mudou na edição)
@@ -67,24 +95,29 @@ export const turmaServico = {
     /**
      * Remove uma turma com estratégia Online-First.
      */
-    async excluirTurma(id: string): Promise<void> {
+    async excluirTurma(id: string, admin = true): Promise<void> {
         let removidoOnline = false;
         try {
             // 1. Tentar remover do servidor primeiro
             if (navigator.onLine) {
-                // Rota corrigida para query parameter id
                 await api.remover(`/academico/turmas?id=${id}`);
                 removidoOnline = true;
-            } else {
-                throw new Error('Offline (DELETE)');
+            } else if (admin) {
+                throw new Error('A exclusão de turma requer conexão com o servidor.');
             }
         } catch (erro) {
-            log.warn('Falha ao remover turma online, agendando para depois', erro);
+            log.warn('Falha ao remover turma online', erro);
+            if (admin) throw erro;
             await bancoLocal.adicionarPendencia('DELETE', 'turmas', id);
         }
 
+        if (admin) {
+            await Registrador.registrar('TURMA_EXCLUIR', 'turma', id, { status: 'online_admin' });
+            return;
+        }
+
         try {
-            // 2. Remover localmente
+            // 2. Remover localmente apenas se não for admin
             const banco = await bancoLocal.iniciarBanco();
             await banco.delete('turmas', id);
 

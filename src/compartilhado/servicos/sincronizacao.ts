@@ -1,4 +1,3 @@
-// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 import { api } from './api';
 import { bancoLocal } from './bancoLocal';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
@@ -12,444 +11,143 @@ export interface RespostaSincronizacao {
     id: string;
 }
 
+/**
+ * SERVIÇO DE SINCRONIZAÇÃO (Versão Simplificada)
+ * Focado na resiliência da Portaria (Quiosque).
+ * Admin utiliza API Online diretamente.
+ */
 export const servicoSincronizacao = {
+    _sincronizando: false,
+
     /**
-     * Registra um acesso de aluno (Network-First).
-     * Tenta salvar no servidor e cai para o banco local se offline.
+     * Inicia ouvintes de rede e o loop de sincronização.
+     */
+    iniciarSincronizacaoAutomatica: () => {
+        window.addEventListener('online', () => {
+            log.info('Conexão restaurada. Sincronizando pendências...');
+            servicoSincronizacao.sincronizarTudo();
+        });
+
+        // Sync Periódico (cada 15 minutos) para manter o Tablet atualizado
+        setInterval(() => {
+            if (navigator.onLine) servicoSincronizacao.sincronizarTudo();
+        }, 15 * 60 * 1000);
+
+        if (navigator.onLine) setTimeout(() => servicoSincronizacao.sincronizarTudo(), 3000);
+    },
+
+    /**
+     * Registra um acesso (Usado pelo TerminalAcesso).
+     * Estratégia: Network-First com Fallback Offline imediato.
      */
     registrarAcesso: async (registro: Omit<RegistroAcessoLocal, 'sincronizado'>): Promise<RespostaSincronizacao> => {
         try {
-            log.info(`Tentativa de registro online para aluno: ${registro.aluno_matricula}`);
-
             // 1. Tentar salvar Online primeiro
             await api.enviar('/acesso/registros', [{
                 ...registro,
                 timestamp_acesso: (registro as any).timestamp_acesso || (registro as any).timestamp
             }]);
 
-            // Se salvou no servidor, espelhar localmente como sincronizado
+            // Espelhar localmente como sincronizado
             const banco = await bancoLocal.iniciarBanco();
             await banco.put('registros_acesso', { ...registro, sincronizado: 1 });
 
             return { sucesso: true, modo: 'ONLINE', id: (registro as any).id };
         } catch (erro) {
-            log.warn('Falha na tentativa ONLINE. Migrando para modo resiliente (OFFLINE).', erro);
+            log.warn('Falha no registro online. Salvando localmente para posterior sincronização.', erro);
 
             // 2. Fallback: Salvar Localmente como não-sincronizado
             try {
                 await bancoLocal.salvarRegistro(registro);
                 return { sucesso: true, modo: 'OFFLINE', id: (registro as any).id };
             } catch (erroLocal) {
-                log.error('Erro crítico: Falha ao salvar até no banco local.', erroLocal);
+                log.error('Erro crítico: Falha ao salvar no banco local.', erroLocal);
                 return { sucesso: false, modo: 'OFFLINE', id: (registro as any).id };
             }
         }
     },
 
-    // 1. Processar Fila de Pendências (DELETE/UPDATE Offline)
-    processarPendencias: async () => {
-        try {
-            const pendencias = await bancoLocal.listarPendencias();
-            if (pendencias.length === 0) return { sucesso: true, processados: 0 };
-
-            log.info(`Processando ${pendencias.length} pendências...`);
-            let processados = 0;
-
-            for (const p of pendencias) {
-                try {
-                    if (p.acao === 'DELETE' && p.colecao === 'alunos') {
-                        await api.remover(`/academico/alunos?matricula=${p.dado_id}`);
-                        await bancoLocal.removerPendencia(p.id);
-                        processados++;
-                    }
-                    else if (p.acao === 'DELETE' && p.colecao === 'turmas') {
-                        await api.remover(`/academico/turmas?id=${p.dado_id}`);
-                        await bancoLocal.removerPendencia(p.id);
-                        processados++;
-                    }
-                    else if (p.acao === 'UPDATE' && p.colecao === 'configuracao_horarios') {
-                        await api.atualizar('/admin/horarios', { janelas: p.dados_extras?.janelas });
-                        await bancoLocal.removerPendencia(p.id);
-                        processados++;
-                    }
-                    // Outras ações (UPDATE, CREATE) podem ser adicionadas aqui
-                } catch (erroItem: any) {
-                    // SE for 404 (Not Found), significa que o recurso já não existe no servidor
-                    // Podemos remover a pendência da fila local com segurança.
-                    const mensagemErro = erroItem?.message || '';
-                    const eh404 = erroItem?.status === 404 ||
-                        mensagemErro.includes('404') ||
-                        (erroItem?.causaOriginal?.status === 404);
-
-                    // SE for FOREIGN KEY constraint ou erro 500 persistente,
-                    // o recurso está em estado inconsistente — descartar para não travar o loop
-                    const ehFKouErro500 = mensagemErro.includes('FOREIGN KEY') ||
-                        mensagemErro.includes('SQLITE_CONSTRAINT') ||
-                        mensagemErro.includes('INTERNAL_500');
-
-                    if (eh404 || ehFKouErro500) {
-                        const motivo = eh404 ? '404 Not Found' : 'FK/500 irrecuperável';
-                        log.warn(`Pendência ${p.id} descartada (${motivo}). Recurso: ${p.dado_id}`);
-                        await bancoLocal.removerPendencia(p.id);
-                        processados++;
-                    } else {
-                        log.error(`Falha ao processar pendência ${p.id}`, erroItem);
-                    }
-                }
-            }
-            return { sucesso: true, processados };
-        } catch (erro) {
-            log.error('Erro na fila de pendências', erro);
-            return { sucesso: false, erro: erro.message };
-        }
-    },
-
-    sincronizarAlunos: async (forcar: boolean = false, alteracoesDetectadas: boolean = true) => {
-        try {
-            // 1. Processar pendências antes de puxar
-            await servicoSincronizacao.processarPendencias();
-
-            // 2. Push: Enviar alunos criados offline (sincronizado=0)
-            const banco = await bancoLocal.iniciarBanco();
-            const alunosLocais = await banco.getAll('alunos');
-            const novos = alunosLocais.filter(a => a.sincronizado === 0);
-
-            for (const novo of novos) {
-                try {
-                    // Remover campo local antes de enviar
-                    const { sincronizado, ...dadosEnvio } = novo;
-                    await api.enviar('/academico/alunos', dadosEnvio);
-                    // Atualizar localmente para sincronizado=1
-                    await banco.put('alunos', { ...novo, sincronizado: 1 });
-                } catch (e) {
-                    log.error('Erro ao enviar aluno offline', e);
-                }
-            }
-
-            // 3. Pull: Smart Check
-            if (!forcar && !alteracoesDetectadas) {
-                log.info('[Smart Sync] Alunos: Nenhuma alteração remota. Pull ignorado.');
-                return { sucesso: true, status: 'sem_alteracoes' };
-            }
-
-            // Baixar versão oficial do servidor
-            const alunosServidor = await api.obter<AlunoLocal[]>('/academico/alunos');
-
-            // 4. Merge Inteligente
-            if (Array.isArray(alunosServidor)) {
-                await bancoLocal.salvarAlunos(alunosServidor, 1);
-                log.info('Alunos sincronizados (Smart Sync):', { quantidade: alunosServidor.length });
-                return { sucesso: true, quantidade: alunosServidor.length };
-            } else {
-                log.warn('Resposta de alunos do servidor inválida (não é array)');
-                return { sucesso: false, status: 'erro_formato' };
-            }
-        } catch (erro) {
-            log.error('Erro na sincronização de alunos', erro);
-            return { sucesso: false, erro: erro.message };
-        }
-    },
-
-    sincronizarRegistros: async () => {
-        try {
-            // 1. Push (Enviar Locais)
-            const pendentes = await bancoLocal.listarRegistrosPendentes();
-            const naoSincronizados = pendentes.filter(r => !r.sincronizado); // double check
-
-            let enviadosCount = 0;
-            if (naoSincronizados.length > 0) {
-                // Adaptar nomes das colunas da IndexedDB para o backend
-                const payloadFinal = naoSincronizados.map(r => ({
-                    ...r,
-                    timestamp_acesso: r.timestamp,
-                    metodo_leitura: (r as any).metodo_validacao || 'manual'
-                }));
-
-                const resposta = await api.enviar<Array<{ id: string; status: string }>>('/acesso/registros', payloadFinal);
-                const idsSincronizados = resposta
-                    .filter(r => r.status === 'sincronizado')
-                    .map(r => r.id);
-
-                await bancoLocal.marcarComoSincronizado(idsSincronizados);
-                enviadosCount = idsSincronizados.length;
-            }
-
-            // 2. Pull (Baixar do Servidor - OTIMIZADO)
-            // Baixa apenas registros de hoje para manter o banco local atualizado com eventos recentes
-            // O histórico completo só é baixado na primeira instalação ou demanda específica
-            try {
-                const hoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                const registrosServidor = await api.obter<any>(`/acesso/registros?data=${hoje}&limite=5000`);
-
-                if (Array.isArray(registrosServidor)) {
-                    const banco = await bancoLocal.iniciarBanco();
-                    const tx = banco.transaction('registros_acesso', 'readwrite');
-
-                    for (const r of registrosServidor) {
-                        // Só salva se não existir
-                        const existente = await tx.store.get(r.id);
-                        if (!existente) {
-                            await tx.store.put({ ...r, sincronizado: 1 });
-                        }
-                    }
-                    await tx.done;
-                    log.info('Registros baixados do servidor (Hoje)', { quantidade: registrosServidor.length });
-                } else {
-                    log.warn('Resposta de registros do servidor inválida (não é array)');
-                }
-            } catch (erroPull) {
-                log.warn('Erro ao baixar registros (Pull)', erroPull);
-                // Não falha o sync inteiro se o pull falhar, pois o push pode ter funcionado
-            }
-
-            return { sucesso: true, enviados: enviadosCount };
-        } catch (erro) {
-            log.error('Erro na sincronização de registros', erro);
-            return { sucesso: false, erro: erro.message };
-        }
-    },
-
-    sincronizarTurmas: async (forcar: boolean = false, alteracoesDetectadas: boolean = true) => {
-        try {
-            const banco = await bancoLocal.iniciarBanco();
-
-            // 1. Push: Enviar turmas criadas offline (sincronizado=0)
-            const turmasLocais = await banco.getAll('turmas');
-            const novas = turmasLocais.filter(t => t.sincronizado === 0);
-
-            if (navigator.onLine && novas.length > 0) {
-                log.info(`Enviando ${novas.length} turmas offline...`);
-                for (const nova of novas) {
-                    try {
-                        const { sincronizado, ...dadosEnvio } = nova;
-                        await api.enviar('/academico/turmas', dadosEnvio);
-                        await banco.put('turmas', { ...nova, sincronizado: 1 });
-                    } catch (e) {
-                        log.error('Erro ao enviar turma offline', e);
-                    }
-                }
-            }
-
-            // 2. Pull: Smart Check
-            if (!forcar && !alteracoesDetectadas) {
-                log.info('[Smart Sync] Turmas: Nenhuma alteração remota. Pull ignorado.');
-                return { sucesso: true, status: 'sem_alteracoes' };
-            }
-
-            const turmas = await api.obter<any>('/academico/turmas');
-            if (Array.isArray(turmas)) {
-                await bancoLocal.salvarTurmas(turmas, 1);
-                log.info('Turmas sincronizadas', { quantidade: turmas.length });
-                return { sucesso: true, quantidade: turmas.length };
-            }
-        } catch (erro) {
-            log.error('Erro na sincronização de turmas', erro);
-            return { sucesso: false, erro: erro.message };
-        }
-    },
-
-    sincronizarUsuarios: async () => {
-        try {
-            // Usuários são gerenciados exclusivamente no servidor pelo admin.
-            // O sync local apenas baixa a lista atualizada (pull-only).
-            const banco = await bancoLocal.iniciarBanco();
-
-            const usuariosServidor = await api.obter<any>('/seguranca/usuarios');
-
-            if (Array.isArray(usuariosServidor)) {
-                const tx = banco.transaction('usuarios', 'readwrite');
-                for (const u of usuariosServidor) {
-                    await tx.store.put(u);
-                }
-                await tx.done;
-                log.info('Usuários sincronizados (RBAC)', { quantidade: usuariosServidor.length });
-                return { sucesso: true, quantidade: usuariosServidor.length };
-            }
-            return { sucesso: true, quantidade: 0 };
-        } catch (erro) {
-            log.warn('Sync de usuários indisponível. Continuando com cache local.', { motivo: (erro as any)?.message });
-            return { sucesso: false, erro: (erro as any)?.message };
-        }
-    },
-
-    sincronizarLogsAuditoria: async () => {
-        try {
-            // 1. Push: Enviar logs locais
-            const banco = await bancoLocal.iniciarBanco();
-            const logs = await banco.getAll('logs_auditoria');
-
-            if (navigator.onLine && logs.length > 0) {
-                // Logs que ainda não foram enviados (se houver campo sincronizado/controle)
-                // Assumindo que logs locais são sempre "novos" até serem limpos
-
-                // Envia em batch
-                try {
-                    await api.enviar('/seguranca/auditoria', logs);
-                    // Limpar logs locais após envio com sucesso para economizar espaço?
-                    // Ou marcar como enviados.
-                    // Por simplicidade, vamos limpar os que foram enviados (dado que auditoria é histórico)
-                    // Mas cuidado para não perder dados se o server falhar parcialmente.
-
-                    // Estratégia segura: Manter últimos X dias ou limpar.
-                    // Aqui vamos apenas enviar.
-                } catch (e) {
-                    log.error('Erro ao enviar logs de auditoria', e);
-                }
-            }
-            return { sucesso: true, quantidade: logs.length };
-        } catch (erro) {
-            log.error('Erro sync auditoria', erro);
-            return { sucesso: false, erro: erro.message };
-        }
-    },
-
-    verificarAlteracoesServidor: async () => {
-        try {
-            const ultimaSync = localStorage.getItem('ultima_sincronizacao');
-            // Se nunca sincronizou, precisa de tudo
-            if (!ultimaSync) return { alunos: true, turmas: true };
-
-            // Otimização: Se faz muito pouco tempo (< 10s) desde o último sync, ignorar
-            const diff = new Date().getTime() - new Date(ultimaSync).getTime();
-            if (diff < 10000) return { alunos: false, turmas: false };
-
-            log.debug(`Verificando logs desde ${ultimaSync}`);
-
-            // Tenta obter logs de auditoria do servidor desde a última sync
-            // Endpoint suposto: /auditoria?desde=ISOSTRING
-            // Se o backend não suportar filtro, retornará array vazio ou erro, tratamos no catch
-            const logs = await api.obter<any>(`/seguranca/auditoria?desde=${ultimaSync}`);
-
-            if (!Array.isArray(logs)) {
-                // Se não retornou array, assume que não dá pra saber, então força sync
-                return { alunos: true, turmas: true };
-            }
-
-            if (logs.length === 0) {
-                return { alunos: false, turmas: false };
-            }
-
-            // Analisa logs para identificar entidades afetadas
-            const alterouAlunos = logs.some(l =>
-                l.entidade_tipo === 'aluno' ||
-                l.colecao === 'alunos' ||
-                (l.acao && l.acao.includes('ALUNO'))
-            );
-
-            const alterouTurmas = logs.some(l =>
-                l.entidade_tipo === 'turma' ||
-                l.colecao === 'turmas' ||
-                (l.acao && l.acao.includes('TURMA'))
-            );
-
-            return {
-                alunos: alterouAlunos,
-                turmas: alterouTurmas,
-                raw_logs: logs.length
-            };
-
-        } catch (erro) {
-            log.warn('Falha ao verificar alterações (fallback para sync total)', erro);
-            return { alunos: true, turmas: true };
-        }
-    },
-
-    // --- Controle de Estado Interno ---
-    _sincronizando: false,
-
-    iniciarSincronizacaoAutomatica: () => {
-        // 1. Ouvinte Online/Offline
-        window.addEventListener('online', () => {
-            log.info('Online detectado. Iniciando sincronização...');
-            servicoSincronizacao.sincronizarTudo();
-        });
-
-        // 2. Intervalo Periódico (cada 5 minutos)
-        // Mais frequente que isso pode sobrecarregar se houver muitos dados
-        setInterval(() => {
-            if (navigator.onLine) {
-                log.info('Sync periódico iniciado...');
-                servicoSincronizacao.sincronizarTudo();
-            }
-        }, 5 * 60 * 1000);
-
-        // 3. Sync Inicial (se já estiver online ao carregar)
-        if (navigator.onLine) {
-            setTimeout(() => servicoSincronizacao.sincronizarTudo(), 5000); // Delay pequeno para não travar boot
-        }
-    },
-
-    sincronizarTudo: async (forcar: boolean = false) => {
-        if (!navigator.onLine) return { sucesso: false, erro: 'Offline' };
-        if (servicoSincronizacao._sincronizando) {
-            log.info('Sync já em andamento. Ignorando solicitação.');
-            return { sucesso: false, status: 'em_andamento' };
-        }
+    /**
+     * Ciclo Geral de Sincronização.
+     */
+    sincronizarTudo: async () => {
+        if (!navigator.onLine || servicoSincronizacao._sincronizando) return;
 
         try {
             servicoSincronizacao._sincronizando = true;
-            log.info('Iniciando Smart Sync...');
+            log.info('Iniciando ciclo de sincronização...');
 
-            // 0. Verificar alterações no servidor (Smart Sync)
-            let alteracoes = { alunos: true, turmas: true };
-            if (!forcar) {
-                alteracoes = await servicoSincronizacao.verificarAlteracoesServidor();
-                log.debug('Diagnóstico Smart Sync', alteracoes);
-            } else {
-                log.info('Modo Forçado (Ignorando verificação inteligente)');
-            }
-
-            // 1. Processar Pendências Críticas (Deletes)
+            await servicoSincronizacao.sincronizarRegistrosPendentes();
             await servicoSincronizacao.processarPendencias();
 
-            // 2. Executar Syncs em Paralelo com Tolerância a Falhas
-            // Passamos as flags de alteração para cada serviço
-            const resultados = await Promise.allSettled([
-                servicoSincronizacao.sincronizarAlunos(forcar, alteracoes.alunos),
-                servicoSincronizacao.sincronizarTurmas(forcar, alteracoes.turmas),
-                servicoSincronizacao.sincronizarRegistros(), // Registros tem lógica própria de data
-                servicoSincronizacao.sincronizarUsuarios(),
-                servicoSincronizacao.sincronizarLogsAuditoria()
+            // Sincronizar dados mestres (Apenas se houver rede, para o Quiosque)
+            await Promise.allSettled([
+                servicoSincronizacao.baixarAlunos(),
+                servicoSincronizacao.baixarTurmas()
             ]);
 
-            // Baixar dados acadêmicos do Hub (opcional, já garantido pelos pulls acima)
-
-            // Atualiza timestamp da última sincronização com sucesso
             localStorage.setItem('ultima_sincronizacao', new Date().toISOString());
-
-            // Logar resultados e reportar sucessos parciais
-            let temFalha = false;
-            resultados.forEach((res, index) => {
-                const labels = ['Alunos', 'Turmas', 'Registros', 'Usuários', 'Auditoria'];
-                if (res.status === 'rejected') {
-                    log.error(`Falha em ${labels[index]}`, res.reason);
-                    temFalha = true;
-                } else if (res.value && !res.value.sucesso) {
-                    log.warn(`Aviso em ${labels[index]}: ${res.value.erro}`);
-                    temFalha = true;
-                }
-            });
-
-            if (!temFalha) {
-                log.info('Smart Sync concluído com sucesso total.');
-            } else {
-                log.warn('Smart Sync concluído com algumas falhas parciais.');
-            }
-
-            return {
-                sucesso: !temFalha,
-                alunos: resultados[0].status === 'fulfilled' ? resultados[0].value : { sucesso: false },
-                turmas: resultados[1].status === 'fulfilled' ? resultados[1].value : { sucesso: false },
-                registros: resultados[2].status === 'fulfilled' ? resultados[2].value : { sucesso: false },
-                usuarios: resultados[3].status === 'fulfilled' ? resultados[3].value : { sucesso: false },
-                auditoria: resultados[4].status === 'fulfilled' ? resultados[4].value : { sucesso: false }
-            };
-
-        } catch (erroGeral) {
-            log.error('Erro crítico no Sync', erroGeral);
-            return { sucesso: false, erro: erroGeral.message };
+        } catch (erro) {
+            log.error('Falha no ciclo de sincronização', erro);
         } finally {
             servicoSincronizacao._sincronizando = false;
+        }
+    },
+
+    async sincronizarRegistrosPendentes() {
+        try {
+            const banco = await bancoLocal.iniciarBanco();
+            const todos = await banco.getAll('registros_acesso');
+            const pendentes = todos.filter(r => r.sincronizado === 0);
+
+            if (pendentes.length === 0) return;
+
+            log.info(`Subindo ${pendentes.length} registros pendentes...`);
+            await api.enviar('/acesso/registros', pendentes);
+
+            const tx = banco.transaction('registros_acesso', 'readwrite');
+            for (const r of pendentes) {
+                await tx.store.put({ ...r, sincronizado: 1 });
+            }
+            await tx.done;
+        } catch (erro) {
+            log.warn('Erro ao subir registros', erro);
+        }
+    },
+
+    async processarPendencias() {
+        const pendencias = await bancoLocal.listarPendencias();
+        if (pendencias.length === 0) return;
+
+        for (const p of pendencias) {
+            try {
+                if (p.acao === 'DELETE' && p.colecao === 'alunos') {
+                    await api.remover(`/academico/alunos?matricula=${p.dado_id}`);
+                } else if (p.acao === 'DELETE' && p.colecao === 'turmas') {
+                    await api.remover(`/academico/turmas?id=${p.dado_id}`);
+                }
+                await bancoLocal.removerPendencia(p.id);
+            } catch (e) {
+                if (String(e).includes('404')) await bancoLocal.removerPendencia(p.id);
+            }
+        }
+    },
+
+    async baixarAlunos() {
+        try {
+            const alunos = await api.obter<AlunoLocal[]>('/academico/alunos');
+            if (Array.isArray(alunos)) await bancoLocal.salvarAlunos(alunos, 1);
+        } catch (e) {
+            log.warn('Falha ao baixar alunos', e);
+        }
+    },
+
+    async baixarTurmas() {
+        try {
+            const turmas = await api.obter<any[]>('/academico/turmas');
+            if (Array.isArray(turmas)) await bancoLocal.salvarTurmas(turmas, 1);
+        } catch (e) {
+            log.warn('Falha ao baixar turmas', e);
         }
     }
 };

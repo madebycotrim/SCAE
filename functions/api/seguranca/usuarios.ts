@@ -65,8 +65,8 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
                 idEscola,
                 papel || 'PORTEIRO',
                 ativo ? 1 : 0,
-                nome_completo,
-                criado_por ?? contexto.data.user?.email,
+                nome_completo ?? null,
+                criado_por ?? contexto.data.user?.email ?? null,
                 pendente ? 1 : 0,
                 criado_em || new Date().toISOString(),
                 new Date().toISOString()
@@ -88,6 +88,51 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
         }
         const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao criar usuário');
         return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+}
+
+async function processarAtualizacaoParcial(contexto: ContextoSCAE): Promise<Response> {
+    try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarPermissao(contexto, ['ADMIN']);
+
+        let corpo;
+        try {
+            corpo = await contexto.request.json();
+        } catch (parseError) {
+            throw new ErroValidacao('JSON inválido', 'JSON_PARSE_ERROR');
+        }
+
+        const { email, ...campos } = corpo;
+        if (!email) throw new ErroValidacao('E-mail é obrigatório para atualização', 'USER_ID_AUSENTE');
+
+        const chaves = Object.keys(campos).filter(k => ['papel', 'ativo', 'nome_completo', 'pendente'].includes(k));
+        if (chaves.length === 0) throw new ErroValidacao('Nenhum campo válido para atualização enviado', 'USER_ATU_VAZIA');
+
+        const sets = chaves.map(k => `${k} = ?`).join(', ');
+        const valores = chaves.map(k => k === 'ativo' || k === 'pendente' ? (campos[k] ? 1 : 0) : campos[k]);
+
+        try {
+            const resultado = await contexto.env.DB_SCAE.prepare(
+                `UPDATE usuarios SET ${sets}, atualizado_em = CURRENT_TIMESTAMP WHERE email = ? AND escola_id = ?`
+            ).bind(...valores, email, idEscola).run();
+
+            if (resultado.meta.changes === 0) {
+                throw new ErroNaoEncontrado('Usuário não localizado para atualização');
+            }
+        } catch (dbError) {
+            if (dbError instanceof ErroBase) throw dbError;
+            throw new ErroInterno(`Falha ao atualizar usuário: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
+        }
+
+        await ServicoCache.limparCacheUsuario(idEscola, email, contexto.env);
+
+        return Response.json({ mensagem: 'Usuário atualizado com sucesso' });
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        return Response.json({ mensagem: 'Erro interno ao atualizar usuário' }, { status: 500 });
     }
 }
 
@@ -138,5 +183,6 @@ async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response
 export {
     processarBuscaUsuarios as onRequestGet,
     processarCriacaoUsuario as onRequestPost,
+    processarAtualizacaoParcial as onRequestPatch,
     processarRemocaoUsuario as onRequestDelete
 };

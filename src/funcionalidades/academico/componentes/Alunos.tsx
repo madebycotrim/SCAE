@@ -25,8 +25,8 @@ export default function Alunos() {
     const escola = usarEscola();
 
     const { dados, carregando, recarregar } = usarConsulta(
-        ['alunos-e-turmas'],
-        () => alunoServico.carregarDadosIniciais()
+        ['alunos-e-turmas-online'],
+        () => alunoServico.carregarOnline()
     );
     const alunos = (dados?.alunos as Aluno[]) || [];
     const turmas = dados?.turmas || [];
@@ -136,7 +136,7 @@ export default function Alunos() {
         <div className="flex gap-3">
             <Botao
                 variante="secundario"
-                tamanho="lg"
+                tamanho="sm"
                 icone={Upload}
                 onClick={() => definirModalImport(true)}
                 className="hidden md:flex"
@@ -145,7 +145,7 @@ export default function Alunos() {
             </Botao>
             <Botao
                 variante="primario"
-                tamanho="lg"
+                tamanho="sm"
                 icone={Plus}
                 onClick={() => { definirAlunoEmEdicao(null); definirModalForm(true); }}
             >
@@ -156,9 +156,10 @@ export default function Alunos() {
 
     return (
         <LayoutAdministrativo
-            titulo="Lista de Alunos"
+            titulo="Gestão de Alunos"
             subtitulo="Gerencie as matrículas e as informações dos estudantes"
             acoes={AcoesHeader}
+            carregando={carregando}
         >
             <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-xl">
                 <div className="flex flex-col gap-1.5 flex-1">
@@ -168,7 +169,7 @@ export default function Alunos() {
                         placeholder="Nome, matrícula ou turma..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-9 rounded-lg"
+                        className="w-full h-8 rounded-lg"
                     />
                 </div>
 
@@ -176,7 +177,7 @@ export default function Alunos() {
                     {/* Filtro de Ano Letivo */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-9">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-8">
                             {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                                 <button
                                     key={ano}
@@ -197,7 +198,7 @@ export default function Alunos() {
                     {/* Filtro de Status */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-9">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-8">
                             {(['ativos', 'inativos', 'todos'] as const).map((status) => (
                                 <button
                                     key={status}
@@ -235,6 +236,7 @@ export default function Alunos() {
                 aoExcluir={excluirAluno}
                 aoMudarPagina={definirPaginaAtual}
                 obterCorAvatar={obterCorAvatar}
+                carregando={carregando}
             />
 
             <BarraSelecaoLote
