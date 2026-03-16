@@ -34,10 +34,10 @@ export const Botao: React.FC<BotaoProps> = ({
     const baseStyles = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-tight transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 outline-none focus:ring-2 focus:ring-offset-2";
 
     const variantes = {
-        primario: "bg-slate-900 text-white hover:bg-black border border-slate-900 focus:ring-slate-400",
-        secundario: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 focus:ring-slate-400",
+        primario: "bg-[#0F172A] text-white hover:bg-[#1E293B] border border-slate-800 shadow-[0_10px_20px_-5px_rgba(15,23,42,0.3)] shadow-indigo-500/5 focus:ring-slate-400",
+        secundario: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm focus:ring-slate-400",
         perigo: "bg-white text-rose-600 border border-rose-200 hover:bg-rose-50 hover:border-rose-300 focus:ring-rose-500",
-        ghost: "bg-transparent text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-none px-2 focus:ring-slate-400 shadow-none"
+        ghost: "bg-transparent text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 border-none px-2 focus:ring-slate-400 shadow-none font-black"
     };
 
     const tamanhos = {
@@ -65,7 +65,7 @@ export const Botao: React.FC<BotaoProps> = ({
 // --- CARDS E CONTAINERS ---
 
 export const CartaoConteudo: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-white rounded-[32px] border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-[40px] border border-slate-100 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] overflow-hidden ${className}`}>
         {children}
     </div>
 );

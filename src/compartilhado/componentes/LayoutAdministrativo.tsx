@@ -381,6 +381,120 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     )}
                 </nav>
 
+                {/* Seção de Notificações na Sidebar */}
+                <div className="px-4 mb-4">
+                    <button
+                        onClick={() => definirNotificacoesAberta(!notificacoesAberta)}
+                        className={`
+                            w-full flex items-center justify-between p-3 rounded-xl transition-all group relative
+                            ${notificacoesAberta ? 'bg-slate-900 border border-slate-800' : 'bg-transparent border border-transparent hover:bg-slate-900/50'}
+                        `}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <Bell 
+                                    size={18} 
+                                    className={`${naoLidas > 0 ? 'text-sky-400' : 'text-slate-400'} group-hover:text-slate-200 transition-colors`} 
+                                />
+                                {naoLidas > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-950 animate-pulse"></span>
+                                )}
+                            </div>
+                            {!sidebarMinimizado && (
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-slate-200 transition-colors">
+                                    Notificações
+                                </span>
+                            )}
+                        </div>
+                        {!sidebarMinimizado && (
+                            <div className="flex items-center gap-2">
+                                {naoLidas > 0 && (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-sky-500/10 text-sky-400 text-[9px] font-black">
+                                        {naoLidas}
+                                    </span>
+                                )}
+                                <ChevronRight 
+                                    size={12} 
+                                    className={`text-slate-600 transition-transform duration-300 ${notificacoesAberta ? 'rotate-90' : ''}`} 
+                                />
+                            </div>
+                        )}
+                    </button>
+
+                    {/* Lista de Notificações na Sidebar (Dropdown ou Expansível) */}
+                    {notificacoesAberta && (
+                        <div className={`
+                            mt-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200
+                            ${sidebarMinimizado ? 'fixed left-20 ml-2 w-80 shadow-2xl z-[60]' : 'w-full'}
+                        `}>
+                            <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Recentes</span>
+                                {naoLidas > 0 && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); marcarTodasComoLidas(); }}
+                                        className="text-[8px] font-black uppercase text-sky-400 hover:text-sky-300 transition-colors"
+                                    >
+                                        Limpar tudo
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+                                {notificacoes.length === 0 ? (
+                                    <div className="p-8 text-center">
+                                        <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight italic">Nenhum alerta novo</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col">
+                                        {notificacoes.map((notificacao) => (
+                                            <div
+                                                key={notificacao.id}
+                                                className={`
+                                                    p-3 border-b border-slate-800/50 last:border-0 hover:bg-slate-800/30 transition-colors group/item
+                                                    ${!notificacao.lida ? 'bg-sky-500/5' : ''}
+                                                `}
+                                                onClick={() => !notificacao.lida && marcarComoLida(notificacao.id)}
+                                            >
+                                                <div className="flex gap-3">
+                                                    <div className={`
+                                                        shrink-0 w-6 h-6 rounded-lg flex items-center justify-center
+                                                        ${notificacao.tipo === 'error' ? 'bg-rose-500/20 text-rose-400' :
+                                                          notificacao.tipo === 'success' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                          notificacao.tipo === 'warning' ? 'bg-amber-500/20 text-amber-400' :
+                                                          'bg-sky-500/20 text-sky-400'}
+                                                    `}>
+                                                        {notificacao.tipo === 'error' && <XCircle size={12} />}
+                                                        {notificacao.tipo === 'success' && <CheckCircle size={12} />}
+                                                        {notificacao.tipo === 'warning' && <AlertTriangle size={12} />}
+                                                        {(notificacao.tipo === 'info' || !notificacao.tipo) && <Info size={12} />}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className={`text-[11px] font-bold truncate ${!notificacao.lida ? 'text-slate-100' : 'text-slate-400'}`}>
+                                                            {notificacao.titulo}
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5 leading-tight">
+                                                            {notificacao.mensagem}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removerNotificacao(notificacao.id);
+                                                        }}
+                                                        className="opacity-0 group-hover/item:opacity-100 p-1 text-slate-600 hover:text-rose-400 transition-all"
+                                                    >
+                                                        <X size={12} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Seção de Instalação PWA (Discreta) */}
                 {podeInstalar && (
                     <div className={`px-4 py-3 bg-sky-500/5 mx-2 mb-2 rounded-xl border border-sky-400/10 transition-all ${sidebarMinimizado ? 'justify-center flex' : ''}`}>
@@ -539,112 +653,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         </div>
 
                         <div className="h-6 w-px bg-slate-200"></div>
-
-                        {/* Notificações */}
-                        <div className="relative flex items-center">
-                            <button
-                                onClick={() => definirNotificacoesAberta(!notificacoesAberta)}
-                                className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-400 hover:text-slate-900 hover:border-slate-300 hover:bg-white transition-all group"
-                            >
-                                <Bell size={16} className={naoLidas > 0 ? "text-slate-900" : ""} />
-                                {naoLidas > 0 && (
-                                    <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-rose-500 rounded-full border-2 border-white"></span>
-                                )}
-                            </button>
-
-                            {/* Menu Suspenso de Notificações */}
-                            {notificacoesAberta && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-[40]"
-                                        onClick={() => definirNotificacoesAberta(false)}
-                                    ></div>
-                                    <div className="absolute right-0 top-full mt-4 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 z-[50] overflow-hidden origin-top-right animate-in fade-in zoom-in-95 duration-200">
-                                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 backdrop-blur-sm">
-                                            <h3 className="font-bold text-slate-700">Notificações</h3>
-                                            {naoLidas > 0 && (
-                                                <button
-                                                    onClick={marcarTodasComoLidas}
-                                                    className="text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-800 hover:underline"
-                                                >
-                                                    Marcar todas como lidas
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                                            {notificacoes.length === 0 ? (
-                                                <div className="p-10 text-center text-slate-400 flex flex-col items-center">
-                                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                                                        <Bell size={20} className="opacity-20" />
-                                                    </div>
-                                                    <p className="text-sm font-medium">Você está em dia!</p>
-                                                    <p className="text-xs opacity-60">Nenhuma nova notificação.</p>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col">
-                                                    {notificacoes.map((notificacao) => (
-                                                        <div
-                                                            key={notificacao.id}
-                                                            className={`
-                                                                relative p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors group
-                                                                ${!notificacao.lida ? 'bg-indigo-50/30' : ''}
-                                                            `}
-                                                        >
-                                                            <div className="flex gap-3">
-                                                                <div className={`
-                                                                    shrink-0 w-8 h-8 rounded-full flex items-center justify-center
-                                                                    ${notificacao.tipo === 'error' ? 'bg-rose-100 text-rose-600' :
-                                                                        notificacao.tipo === 'success' ? 'bg-emerald-100 text-emerald-600' :
-                                                                            notificacao.tipo === 'warning' ? 'bg-amber-100 text-amber-600' :
-                                                                                'bg-indigo-100 text-indigo-600'}
-                                                                `}>
-                                                                    {notificacao.tipo === 'error' && <XCircle size={16} />}
-                                                                    {notificacao.tipo === 'success' && <CheckCircle size={16} />}
-                                                                    {notificacao.tipo === 'warning' && <AlertTriangle size={16} />}
-                                                                    {(notificacao.tipo === 'info' || !notificacao.tipo) && <Info size={16} />}
-                                                                </div>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="flex justify-between items-start">
-                                                                        <h4 className={`text-sm font-bold truncate ${!notificacao.lida ? 'text-slate-900' : 'text-slate-600'}`}>
-                                                                            {notificacao.titulo}
-                                                                        </h4>
-                                                                        <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">
-                                                                            {new Date(notificacao.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                                        </span>
-                                                                    </div>
-                                                                    <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                                                                        {notificacao.mensagem}
-                                                                    </p>
-                                                                </div>
-
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        removerNotificacao(notificacao.id);
-                                                                    }}
-                                                                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
-                                                                    title="Remover"
-                                                                >
-                                                                    <X size={14} />
-                                                                </button>
-                                                            </div>
-                                                            {!notificacao.lida && (
-                                                                <button
-                                                                    onClick={() => marcarComoLida(notificacao.id)}
-                                                                    className="absolute inset-0 w-full h-full cursor-pointer z-10"
-                                                                    title="Marcar como lida"
-                                                                ></button>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
 
                         {/* Contêiner de Ações */}
                         {acoes && (
