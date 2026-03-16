@@ -36,23 +36,23 @@ export default function LoginCentral() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden font-sans selection:bg-black selection:text-white">
-            {/* Minimalist Background Elements */}
+            {/* Elementos Minimalistas de Fundo */}
             <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-slate-200/40 blur-[150px] rounded-full group-hover:bg-slate-300 transition-colors duration-1000"></div>
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-white blur-[100px] rounded-full pointer-events-none"></div>
 
             <div className="max-w-xl w-full relative z-10 animate-fade-in">
-                {/* Header Section */}
+                {/* Seção de Cabeçalho */}
                 <div className="text-center mb-12">
                     <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-slate-900 shadow-2xl shadow-slate-300 mb-8 -rotate-6 hover:rotate-0 transition-transform duration-500 group">
                         <ShieldAlert className="text-white" size={40} strokeWidth={2.5} />
                     </div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase italic leading-tight">SCAE</h1>
-                    <p className="text-[10px] font-black text-slate-400 mt-3 uppercase tracking-[0.5em] italic">Central Intelligence Terminal</p>
+                    <p className="text-[10px] font-black text-slate-400 mt-3 uppercase tracking-[0.5em] italic">Terminal de Inteligência Central</p>
                 </div>
 
-                {/* Main Card */}
+                {/* Card Principal */}
                 <div className="bg-white border border-slate-200 rounded-[48px] p-12 md:p-16 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.08)] relative overflow-hidden">
-                    {/* Interior Decorative Element */}
+                    {/* Elemento Decorativo Interno */}
                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-slate-50 rounded-full blur-3xl opacity-50"></div>
 
                     <div className="relative z-10 flex flex-col items-center">
@@ -96,7 +96,7 @@ export default function LoginCentral() {
                     </div>
                 </div>
 
-                {/* Footer Credits */}
+                {/* Créditos de Rodapé */}
                 <div className="mt-12 text-center opacity-30 group hover:opacity-100 transition-opacity duration-1000">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">© 2026 COTRIM ENTERPRISE • PROTOCOLO ZERO</p>
                 </div>
@@ -104,4 +104,3 @@ export default function LoginCentral() {
         </div>
     );
 }
-

@@ -115,14 +115,14 @@ export function PaginaGestaoEscolas() {
                     />
                     <HealthMetric 
                         label="Status Infra" 
-                        valor={saude?.statusDB || 'STABLE'} 
-                        sub="D1 Connectivity" 
+                        valor={saude?.statusDB || 'ESTÁVEL'} 
+                        sub="Conectividade D1" 
                         icone={Server} 
                     />
                     <HealthMetric 
-                        label="Auth Specs" 
+                        label="Espectro Autenticacao" 
                         valor={saude?.corDoDia || '#000'} 
-                        sub="Color Spectrum" 
+                        sub="Código de Cor" 
                         icone={Zap} 
                         customColor={saude?.corDoDia}
                     />
@@ -137,8 +137,8 @@ export function PaginaGestaoEscolas() {
                             <Building2 size={36} strokeWidth={2} />
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] leading-none">Global Infrastructure</p>
-                            <h1 className="text-6xl font-[900] text-slate-950 uppercase tracking-tighter italic leading-none">Control <span className="text-slate-200 not-italic font-extralight tracking-tight">Center</span></h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] leading-none">Infraestrutura Global</p>
+                            <h1 className="text-6xl font-[900] text-slate-950 uppercase tracking-tighter italic leading-none">Central de <span className="text-slate-200 not-italic font-extralight tracking-tight">Comando</span></h1>
                         </div>
                     </div>
                 </div>
@@ -171,10 +171,10 @@ export function PaginaGestaoEscolas() {
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Asset Identity</th>
-                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-center">Operation Mode</th>
-                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Lifecycle Index</th>
-                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-right">Directives</th>
+                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Identidade do Ativo</th>
+                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-center">Modo de Operação</th>
+                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Índice de Ciclo de Vida</th>
+                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-right">Diretrizes</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -194,7 +194,7 @@ export function PaginaGestaoEscolas() {
                                         </td>
                                         <td className="py-12 px-12">
                                             <div className="inline-flex flex-col gap-1 bg-slate-50/50 px-4 py-2 rounded-xl border border-slate-100 group-hover:bg-white transition-colors">
-                                                <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] leading-none">Deployment</span>
+                                                <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] leading-none">Ativação</span>
                                                 <span className="text-[10px] font-mono font-black text-slate-900">
                                                     {new Date(escola.criadoEm).toLocaleDateString('pt-BR')}
                                                 </span>
@@ -206,7 +206,7 @@ export function PaginaGestaoEscolas() {
                                                     href={`/${escola.slug}/admin`} 
                                                     target="_blank" 
                                                     rel="noreferrer"
-                                                    title="Terminal Admin"
+                                                    title="Terminal Administrativo"
                                                     className="h-14 w-14 bg-white text-slate-950 rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-slate-100"
                                                 >
                                                     <ExternalLink size={20} strokeWidth={2.5} />
@@ -232,7 +232,7 @@ export function PaginaGestaoEscolas() {
                         <div className="p-10 border-b border-slate-50">
                             <div className="flex justify-between items-center mb-10">
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] leading-none">Onboarding Phase 0{fase}</p>
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] leading-none">Fase de Onboarding 0{fase}</p>
                                     <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic leading-none text-highlight">
                                         {fase === 1 ? 'Identidade Core' : fase === 2 ? 'Visual & Branding' : 'Configurações'}
                                     </h3>
@@ -436,7 +436,7 @@ function BadgeStatus({ status }: { status: 'ATIVA' | 'SUSPENSA' | 'PENDENTE' }) 
     if (status === 'ATIVA') {
         return (
             <span className="inline-flex items-center gap-3 px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 bg-white border border-slate-100 shadow-sm">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.7)] animate-pulse"></div> Operational
+                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.7)] animate-pulse"></div> Operacional
             </span>
         );
     }
@@ -467,10 +467,10 @@ function ErroCentral({ erro, onContexto }: any) {
                 <AlertTriangle size={44} strokeWidth={2} />
             </div>
             <div className="space-y-4">
-                <h3 className="text-3xl font-black text-slate-950 uppercase tracking-tighter italic">Signal Interruption</h3>
+                <h3 className="text-3xl font-black text-slate-950 uppercase tracking-tighter italic">Interrupção de Sinal</h3>
                 <p className="text-slate-400 text-base font-medium leading-relaxed max-w-md mx-auto">{erro}</p>
             </div>
-            <Botao variante="primario" className="px-16 py-6 bg-black text-white rounded-[28px] hover:bg-slate-800 transition-all font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl" onClick={onContexto}>Resume Protocol</Botao>
+            <Botao variante="primario" className="px-16 py-6 bg-black text-white rounded-[28px] hover:bg-slate-800 transition-all font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl" onClick={onContexto}>Retomar Protocolo</Botao>
         </div>
     );
 }
@@ -481,7 +481,7 @@ function VazioCentral() {
             <td colSpan={4} className="py-40 text-center">
                 <div className="flex flex-col items-center gap-8 grayscale opacity-10">
                     <Search size={80} strokeWidth={1} className="text-slate-900" />
-                    <p className="text-[12px] font-black text-slate-900 uppercase tracking-[0.6em]">Zero Operations Found</p>
+                    <p className="text-[12px] font-black text-slate-900 uppercase tracking-[0.6em]">Nenhuma Operação Encontrada</p>
                 </div>
             </td>
         </tr>

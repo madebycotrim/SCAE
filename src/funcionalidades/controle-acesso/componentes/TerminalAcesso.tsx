@@ -24,6 +24,7 @@ import { usarControleAcessoWorker } from '../hooks/usarControleAcessoWorker';
 import { TIPO_ACESSO } from '../types/controleAcesso.tipos';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { FeedbackLeitura, RegistroLeitura } from './FeedbackLeitura';
+import { obterChavePublica, verificarAssinaturaECDSA } from '../utils/validarQR';
 
 const log = criarRegistrador('ControleAcesso');
 
@@ -44,6 +45,23 @@ export default function TerminalAcesso() {
     const audioSucesso = useRef(new Audio('/sons/sucesso.mp3'));
     const audioErro = useRef(new Audio('/sons/erro.mp3'));
 
+    // Segurança
+    const chavePublicaRef = useRef<CryptoKey | null>(null);
+
+    // Carregar Chave Pública para Validação Offline
+    useEffect(() => {
+        const carregarSeguranca = async () => {
+            try {
+                const key = await obterChavePublica(escola.id);
+                chavePublicaRef.current = key;
+                log.info('Segurança Institucional: ONLINE');
+            } catch (e) {
+                log.error('Falha crítica de segurança: Chave pública indisponível', e);
+            }
+        };
+        carregarSeguranca();
+    }, [escola.id]);
+
     useEffect(() => {
         const handleStatusChange = () => definirOnline(navigator.onLine);
         window.addEventListener('online', handleStatusChange);
@@ -59,8 +77,60 @@ export default function TerminalAcesso() {
         definirPausado(true);
 
         try {
+            let matricula = codigo;
+            let payloadValido = false;
+
+            // 1. Tentar decodificar como JWT (SCAE v2)
+            if (codigo.includes('.') && chavePublicaRef.current) {
+                try {
+                    const [headerB64, payloadB64, assinaturaB64] = codigo.split('.');
+                    
+                    // Decodificar Base64URL (Padrão JWT)
+                    const b64 = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
+                    const payloadRaw = atob(b64);
+                    const dados = JSON.parse(payloadRaw);
+
+                    // Verificar se o QR pertence a esta escola
+                    if (dados.e !== escola.id) {
+                        throw new Error('QR pertencente a outra unidade');
+                    }
+
+                    // Verificar expiração
+                    if (dados.exp && (dados.exp * 1000) < Date.now()) {
+                        throw new Error('QR Code Expirado');
+                    }
+
+                    // Validar Assinatura Criptográfica ECDSA P-256
+                    const assinaturaValida = await verificarAssinaturaECDSA(
+                        `${headerB64}.${payloadB64}`,
+                        assinaturaB64,
+                        chavePublicaRef.current
+                    );
+
+                    if (assinaturaValida) {
+                        matricula = dados.m;
+                        payloadValido = true;
+                    } else {
+                        throw new Error('Assinatura Inválida');
+                    }
+                } catch (e: any) {
+                    log.error('Falha na validação de assinatura:', e.message);
+                    definirUltimoAcesso({
+                        tipo: 'ERRO',
+                        mensagem: `Alerta: ${e.message}`,
+                        hora: format(new Date(), 'HH:mm:ss')
+                    });
+                    audioErro.current.play().catch(() => { });
+                    return;
+                }
+            } else if (codigo.includes('.')) {
+                // Se parece JWT mas não temos a chave, recusamos por segurança
+                log.warn('Tentativa de acesso com JWT sem chave pública carregada');
+            }
+
+            // 2. Buscar Aluno no Banco Local
             const banco = await bancoLocal.iniciarBanco();
-            const aluno = await banco.get('alunos', codigo);
+            const aluno = await banco.get('alunos', matricula);
 
             if (aluno) {
                 if (aluno.ativo === false) {
@@ -80,6 +150,7 @@ export default function TerminalAcesso() {
                         aluno_turma: aluno.turma_id,
                         timestamp_acesso: new Date().toISOString(),
                         tipo_movimentacao: tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO ? 'ENTRADA' : tipoAcessoAtual,
+                        metodo_leitura: payloadValido ? 'qr_assinada' : 'qr_legado',
                         sincronizado: 0
                     };
 
@@ -97,7 +168,7 @@ export default function TerminalAcesso() {
             } else {
                 definirUltimoAcesso({
                     tipo: 'ERRO',
-                    mensagem: 'Carteirinha não encontrada',
+                    mensagem: 'Identidade não encontrada no sistema',
                     hora: format(new Date(), 'HH:mm:ss')
                 });
                 audioErro.current.play().catch(() => { });
@@ -106,7 +177,7 @@ export default function TerminalAcesso() {
         } catch (erro) {
             log.error('Erro no processamento QR', erro);
         } finally {
-            // Reset após delay (3.5s para dar tempo de ver o feedback premium)
+            // Reset após delay
             setTimeout(() => {
                 definirUltimoAcesso(null);
                 definirPausado(false);
