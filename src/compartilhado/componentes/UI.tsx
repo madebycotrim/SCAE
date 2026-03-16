@@ -65,13 +65,13 @@ export const Botao: React.FC<BotaoProps> = ({
 // --- CARDS E CONTAINERS ---
 
 export const CartaoConteudo: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-slate-900/70 rounded-xl border border-slate-700/80 shadow-media overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-[32px] border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden ${className}`}>
         {children}
     </div>
 );
 
 export const BarraFiltro: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-slate-900/70 p-3 rounded-xl border border-slate-700/80 shadow-media mb-6 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20 ${className}`}>
+    <div className={`bg-white/80 backdrop-blur-xl p-3 rounded-2xl border border-slate-200 shadow-sm mb-8 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20 ${className}`}>
         {children}
     </div>
 );
@@ -84,9 +84,9 @@ interface InputBuscaProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const InputBusca: React.FC<InputBuscaProps> = ({ icone: Icone, className = '', ...props }) => (
     <div className="relative flex-1 group">
-        {Icone && <Icone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-400 transition-colors" size={16} />}
+        {Icone && <Icone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={18} />}
         <input
-            className={`w-full ${Icone ? 'pl-10' : 'pl-4'} pr-4 h-9 bg-slate-900/50 border border-slate-700 focus:bg-slate-900 focus:border-slate-600 focus:ring-4 focus:ring-slate-400/30 rounded-lg text-sm outline-none transition-all placeholder:text-slate-400 text-slate-200 ${className}`}
+            className={`w-full ${Icone ? 'pl-12' : 'pl-5'} pr-5 h-14 bg-slate-50 border border-slate-100 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 rounded-xl text-sm font-bold outline-none transition-all placeholder:text-slate-300 text-slate-900 ${className}`}
             {...props}
         />
     </div>

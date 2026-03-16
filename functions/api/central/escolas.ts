@@ -46,15 +46,20 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
     try {
         verificarPermissao(contexto, ['CENTRAL']);
 
-        const dados = await contexto.request.json() as { 
-            nome_escola: string, 
-            id: string, 
-            email_admin: string, 
-            nome_admin: string 
-        };
+        let dados;
+        try {
+            dados = await contexto.request.json() as any;
+            console.log('Dados recebidos na criação de escola:', JSON.stringify(dados, null, 2));
+        } catch (e) {
+            console.error('Falha ao processar JSON da requisição:', e);
+            throw new ErroBase('Corpo da requisição inválido ou vazio.', 'JSON_INVALIDO', 400);
+        }
 
-        if (!dados.id || !dados.nome_escola || !dados.email_admin) {
-            throw new ErroBase('Dados incompletos para criação da unidade.', 'VALIDACAO_FALLA', 400);
+        const { nome_escola, id, dominio_email } = dados;
+
+        if (!id || !nome_escola || !dominio_email) {
+            console.warn('Campos obrigatórios ausentes:', { id, nome_escola, dominio_email });
+            throw new ErroBase(`Campos obrigatórios ausentes: ${[!id && 'ID', !nome_escola && 'Nome', !dominio_email && 'Domínio'].filter(Boolean).join(', ')}`, 'VALIDACAO_FALLA', 400);
         }
 
         // 1. Gerar Chaves ECDSA P-256 para a escola (Modo Offline-First)
@@ -67,40 +72,61 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
         const privadaPKCS8 = await crypto.subtle.exportKey("pkcs8", chaves.privateKey);
         const publicaSPKI = await crypto.subtle.exportKey("spki", chaves.publicKey);
 
-        // Converter para Base64 para armazenamento
-        const b64Privada = btoa(String.fromCharCode(...new Uint8Array(privadaPKCS8 as ArrayBuffer)));
-        const b64Publica = btoa(String.fromCharCode(...new Uint8Array(publicaSPKI as ArrayBuffer)));
+        // Função segura para Base64 em Workers
+        const arrayParaB64 = (array: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(array)));
+        
+        const b64Privada = arrayParaB64(privadaPKCS8 as ArrayBuffer);
+        const b64Publica = arrayParaB64(publicaSPKI as ArrayBuffer);
 
-        // 2. Transação no D1 (Escola + Usuário Inicial)
-        const queries = [
-            contexto.env.DB_SCAE.prepare(`
-                INSERT INTO escolas (id, nome_escola, chave_privada_ecdsa, chave_publica_ecdsa)
-                VALUES (?, ?, ?, ?)
-            `).bind(dados.id, dados.nome_escola, b64Privada, b64Publica),
+        // 2. Inserção no D1 seguindo o Schema Completo
+        console.log('Iniciando inserção no D1 para id:', id);
+        
+        await contexto.env.DB_SCAE.prepare(`
+            INSERT INTO escolas (
+                id, nome_escola, dominio_email, 
+                cor_primaria, cor_secundaria, logo_url, 
+                chave_privada_ecdsa, chave_publica_ecdsa,
+                config_qr_dinamico, tts_ativado, janelas
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+            id, 
+            nome_escola, 
+            dominio_email,
+            dados.cor_primaria || '#000000',
+            dados.cor_secundaria || '#ffffff',
+            dados.logo_url || null,
+            b64Privada,
+            b64Publica,
+            dados.config_qr_dinamico ? 1 : 0,
+            dados.tts_ativado ? 1 : 0,
+            '[]'
+        ).run();
 
-            contexto.env.DB_SCAE.prepare(`
-                INSERT INTO usuarios (email, escola_id, nome_completo, papel, ativo, pendente, criado_por)
-                VALUES (?, ?, ?, 'ADMIN', 1, 0, 'SISTEMA_CENTRAL')
-            `).bind(dados.email_admin, dados.id, dados.nome_admin || 'Administrador Inicial')
-        ];
-
-        await contexto.env.DB_SCAE.batch(queries);
+        console.log('Unidade escolar inserida com sucesso:', id);
 
         return new Response(JSON.stringify({ 
-            mensagem: 'Unidade escolar criada com sucesso!',
-            id: dados.id 
+            mensagem: 'Unidade operacional inicializada com sucesso!',
+            id: id 
         }), { status: 201, headers: { 'Content-Type': 'application/json' } });
 
     } catch (erro) {
-        console.error('Erro ao criar escola:', erro);
+        console.error('Erro detalhado ao criar escola:', erro);
         if (erro instanceof ErroBase) {
             return new Response(JSON.stringify(erro.toJSON()), { 
                 status: erro.status,
                 headers: { 'Content-Type': 'application/json' }
             });
         }
-        return new Response(JSON.stringify({ erro: 'Falha interna ao criar unidade.' }), { 
-            status: 500, 
+        
+        // Trata erros de banco de dados (duplicidade, etc)
+        const erroMsg = erro instanceof Error ? erro.message : 'Erro desconhecido';
+        const status = erroMsg.includes('UNIQUE constraint failed') ? 409 : 500;
+        
+        return new Response(JSON.stringify({ 
+            erro: erroMsg,
+            codigo: status === 409 ? 'CONFLITO_ID' : 'ERRO_INTERNO'
+        }), { 
+            status: status, 
             headers: { 'Content-Type': 'application/json' }
         });
     }
