@@ -1,5 +1,5 @@
 ﻿import type { ContextoSCAE } from '../../tipos/ambiente';
-import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroPermissao } from '../erros';
+import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroPermissao, ErroInterno } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../seguranca';
 import { esquemaUsuario } from './usuarios.esquemas';
 
