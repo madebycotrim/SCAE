@@ -1,13 +1,11 @@
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import { api } from '@/compartilhado/servicos/api';
 
 const log = criarRegistrador('ControleAcesso:Validador');
 
 /**
  * Utilitários para validação de QR Code usando ECDSA P-256.
  */
-
-// Placeholder para chave pública se a API falhar ou estiver offline sem cache
-const CP_FALLBACK = "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEP7...";
 
 /**
  * Converte b64 SPKI para CryptoKey ECDSA.
@@ -31,24 +29,27 @@ async function importarSPKI(b64: string): Promise<CryptoKey> {
 export async function obterChavePublica(escolaId: string): Promise<CryptoKey> {
     try {
         const cache = await caches.open('scae-seguranca-v1');
-        const url = `/api/seguranca/chave-publica?escola_id=${escolaId}`;
-        const respostaCache = await cache.match(url);
+        const rota = `/seguranca/chave-publica?escola_id=${escolaId}`;
+        const urlFull = `${import.meta.env.VITE_API_URL || '/api'}${rota}`;
+        const respostaCache = await cache.match(urlFull);
 
         if (respostaCache) {
-            const json = await respostaCache.json();
-            return await importarSPKI(json.dados.chave_publica);
+            const data = await respostaCache.json();
+            const b64 = (data && typeof data === 'object' && 'dados' in data) ? data.dados.chave_publica : data.chave_publica;
+            return await importarSPKI(b64);
         }
 
-        const resposta = await fetch(url);
-        if (!resposta.ok) throw new Error('Falha ao buscar chave na rede');
+        // api.obter já descompacta o campo 'dados' se existir no backbone
+        const data: any = await api.obter(rota);
+        const b64 = (data && typeof data === 'object' && 'chave_publica' in data) ? data.chave_publica : data;
         
-        const data = await resposta.json();
-        
-        // Salvar no cache para uso offline
-        const respostaClone = new Response(JSON.stringify(data));
-        await cache.put(url, respostaClone);
+        if (!b64) throw new Error('Chave pública não encontrada na resposta');
 
-        return await importarSPKI(data.dados.chave_publica);
+        // Salvar no cache para uso offline (precisa ser o objeto completo para o parser acima funcionar no cache.match)
+        const respostaClone = new Response(JSON.stringify({ dados: data }));
+        await cache.put(urlFull, respostaClone);
+
+        return await importarSPKI(b64);
     } catch (e) {
         log.error('Erro ao obter chave pública institucional', e);
         throw new Error('Segurança Institucional não disponível (Offline/Erro)');

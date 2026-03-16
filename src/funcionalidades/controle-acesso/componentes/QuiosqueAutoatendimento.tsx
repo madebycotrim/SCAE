@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { ptBR } from 'date-fns/locale';
 import type { DadosAluno } from '../servicos/cacheMemoria';
 
 interface FeedbackAcesso {
@@ -38,11 +39,39 @@ export default function QuiosqueAutoatendimento() {
 
     const [ultimoAcesso, definirUltimoAcesso] = useState<FeedbackAcesso | null>(null);
     const [statusLeitura, definirStatusLeitura] = useState<'AGUARDANDO' | 'SUCESSO' | 'ERRO'>('AGUARDANDO');
+    const [dataHora, definirDataHora] = useState(new Date());
+
+    // Relógio em tempo real - Atualização visual não deve quebrar o back-end
+    useEffect(() => {
+        const timer = setInterval(() => definirDataHora(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         if (!escola.id) return;
-        obterChavePublica(escola.id).catch(e => log.error('Falha ao obter chave pública', e));
+        obterChavePublica(escola.id).catch(e => log.error('Falha ao obter chave pública', (e as Error).message));
     }, [escola.id]);
+
+    const lancarErroValidacao = useCallback((mensagem: string, hookRestart: () => void) => {
+        definirStatusLeitura('ERRO');
+        definirUltimoAcesso({
+            mensagem,
+            hora: format(Date.now(), 'HH:mm')
+        });
+
+        Registrador.registrar(
+            mensagem.includes('ECDSA') ? ACOES_AUDITORIA.QR_CODE_INVALIDO : ACOES_AUDITORIA.TENTATIVA_ACESSO_NEGADO,
+            'controle-acesso',
+            'quiosque-autoatendimento',
+            { mensagem }
+        );
+
+        hookRestart();
+
+        setTimeout(() => {
+            definirStatusLeitura('AGUARDANDO');
+        }, confFila.duracaoFeedbackMs * 1.5);
+    }, [confFila.duracaoFeedbackMs]);
 
     const processarDecodificacao = useCallback(async (
         textoDecodificado: string,
@@ -84,7 +113,6 @@ export default function QuiosqueAutoatendimento() {
             const momentoLeituraLocal = Date.now();
             const timestampAjustado = ajustarTimestampLocal(momentoLeituraLocal);
 
-            // 5. Registrar no HUB Sincronização (Inteligente: Tenta Online -> Fallback Local)
             const resposta = await servicoSincronizacao.registrarAcesso({
                 id: crypto.randomUUID(),
                 escola_id: escola.id || '',
@@ -94,59 +122,31 @@ export default function QuiosqueAutoatendimento() {
                 timestamp_acesso: new Date(timestampAjustado).toISOString()
             });
 
-            // 6. Feedback Visual e Sonoro
             definirStatusLeitura(resposta.sucesso ? 'SUCESSO' : 'ERRO');
             definirUltimoAcesso({
                 aluno: infoAluno,
                 mensagem: resposta.sucesso
                     ? (resposta.modo === 'ONLINE' ? 'Acesso Confirmado Cloud' : 'Acesso Agendado (Offline)')
                     : 'Erro ao Registrar Acesso',
-                hora: format(momentoLeituraLocal, 'HH:mm:ss')
+                hora: format(momentoLeituraLocal, 'HH:mm')
             });
 
             if (resposta.sucesso && confFila.ttsAtivado) {
                 anunciarNome(infoAluno.nome_completo);
             }
 
-            // Cutuca o worker se foi offline
-            if (resposta.modo === 'OFFLINE') {
-                acionarWorker();
-            }
+            if (resposta.modo === 'OFFLINE') acionarWorker();
 
             retomarCamera();
-
-            setTimeout(() => {
-                definirStatusLeitura('AGUARDANDO');
-            }, confFila.duracaoFeedbackMs);
+            setTimeout(() => definirStatusLeitura('AGUARDANDO'), confFila.duracaoFeedbackMs);
 
         } catch (e) {
             log.error('Erro na leitura do QR offline', (e as Error).message);
             lancarErroValidacao("Falha técnica no núcleo.", retomarCamera);
         }
-    }, [tipoAcessoAtual, confFila, escola.id, acionarWorker]);
+    }, [tipoAcessoAtual, confFila, escola.id, acionarWorker, lancarErroValidacao]);
 
-    const lancarErroValidacao = (mensagem: string, hookRestart: () => void) => {
-        definirStatusLeitura('ERRO');
-        definirUltimoAcesso({
-            mensagem,
-            hora: format(Date.now(), 'HH:mm:ss')
-        });
-
-        Registrador.registrar(
-            mensagem.includes('ECDSA') ? ACOES_AUDITORIA.QR_CODE_INVALIDO : ACOES_AUDITORIA.TENTATIVA_ACESSO_NEGADO,
-            'controle-acesso',
-            'quiosque-autoatendimento',
-            { mensagem }
-        );
-
-        hookRestart();
-
-        setTimeout(() => {
-            definirStatusLeitura('AGUARDANDO');
-        }, confFila.duracaoFeedbackMs * 1.5);
-    }
-
-    usarLeitorQR('quiosque-camera', processarDecodificacao);
+    const { statusLeitor } = usarLeitorQR('quiosque-camera', processarDecodificacao);
 
     const corDoDia = '#3b82f6'; // Azul institucional discreto
 
@@ -154,64 +154,115 @@ export default function QuiosqueAutoatendimento() {
         <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col overflow-hidden text-slate-900 font-sans selection:bg-blue-100">
             <StatusConexao />
 
-            {/* Cabeçalho Institucional Premium */}
-            <header className="h-[90px] border-b border-slate-200 bg-white flex items-center justify-between px-8 md:px-12 z-20 shrink-0 shadow-sm relative">
-                <div className="flex items-center gap-6">
-                    {escola.logoUrl ? (
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center">
-                            <img src={escola.logoUrl} alt={escola.nomeEscola} className="w-full h-full object-contain" />
-                        </div>
-                    ) : (
-                        <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                            <ScanLine size={32} strokeWidth={2} />
+            {/* Cabeçalho Institucional de Alta Performance */}
+            <header className="h-[100px] border-b border-slate-200/60 bg-white/80 backdrop-blur-xl flex items-center justify-between px-10 md:px-16 z-20 shrink-0 relative overflow-hidden">
+                {/* Linha de Identidade Institucional Superior */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--cor-primaria)] to-transparent opacity-50"></div>
+                
+                <div className="flex items-center gap-8">
+                    {/* Logo Section com Glow Sutil */}
+                    {escola.logoUrl && (
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-[var(--cor-primaria)] blur-2xl opacity-5 group-hover:opacity-15 transition-opacity duration-1000"></div>
+                            <div className="relative flex items-center justify-center">
+                                <img 
+                                    src={escola.logoUrl} 
+                                    alt={escola.nomeEscola} 
+                                    className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.05)]" 
+                                />
+                            </div>
                         </div>
                     )}
-                    <div>
-                        <h1 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tighter leading-none">
-                            {escola?.nomeEscola || 'SCAE - Sistema de Acesso'}
+                    
+                    <div className="space-y-1.5">
+                        <h1 className="text-2xl md:text-3xl font-[1000] text-slate-900 uppercase tracking-[-0.04em] leading-none">
+                            {escola.nomeEscola}
                         </h1>
+                        <div className="flex items-center gap-3">
+                             <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest hidden sm:inline">SCAE OS Framework</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    {/* Status de Conexão Integrado */}
-                    <div className="hidden sm:block">
+                <div className="flex items-center gap-10 lg:gap-14">
+                     {/* Relógio Digital e Data Localizada */}
+                     <div className="text-right hidden md:flex flex-col items-end">
+                        <div className="text-3xl lg:text-4xl font-black text-slate-900 leading-none tracking-tighter tabular-nums">
+                            {format(dataHora, 'HH:mm:ss')}
+                        </div>
+                        <div className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 mt-2 flex items-center gap-2">
+                            <Clock size={12} strokeWidth={3} className="opacity-50" />
+                            {format(dataHora, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                        </div>
+                     </div>
+
+                     <div className="h-12 w-px bg-slate-200/80 hidden md:block"></div>
+
+                     {/* Status Integrado Minimalista */}
+                     <div className="flex items-center">
                         <StatusConexao />
-                    </div>
+                     </div>
                 </div>
             </header>
 
             {/* Layout Principal - Foco em Funcionalidade */}
             <main className="flex-1 flex flex-col lg:flex-row relative p-6 md:p-10 gap-8 lg:gap-12 max-w-[1600px] mx-auto w-full z-10">
                 
-                {/* Setor de Leitura Zen */}
+                {/* Setor de Leitura Padrão Quadrado */}
                 <div className="flex-[5] flex flex-col items-center justify-center relative">
-                    {/* Moldura de Câmera Essencial */}
-                    <div className="relative w-full max-w-2xl aspect-[16/10] z-10">
-                        {/* Sombra de Profundidade */}
-                        <div className="absolute inset-10 bg-blue-600/20 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                        
-                        <div className="relative h-full bg-white rounded-[48px] p-5 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden transform transition-all duration-700 hover:scale-[1.02] hover:shadow-[0_60px_130px_-20px_rgba(0,0,0,0.18)]">
-                            <div className="absolute inset-5 rounded-[32px] overflow-hidden bg-slate-50 shadow-inner border border-slate-100/50">
+                    {/* Moldura de Câmera Quadrada */}
+                    <div className="relative w-full max-w-md aspect-square z-10">
+                        <div className="relative h-full bg-white rounded-2xl p-4 shadow-xl border border-slate-200 overflow-hidden">
+                            <div className="absolute inset-4 rounded-xl overflow-hidden bg-slate-50 shadow-inner border border-slate-100 flex items-center justify-center">
                                 {/* Camera */}
-                                <div id="quiosque-camera" className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-1000"></div>
+                                <div id="quiosque-camera" className={`w-full h-full object-cover transition-all duration-1000 ${statusLeitor !== 'ATIVO' ? 'opacity-0' : 'opacity-100 grayscale-[20%] group-hover:grayscale-0'}`}></div>
                                 
-                                {/* HUD Minimalista de Cantos */}
-                                <div className="absolute inset-10 pointer-events-none z-10">
-                                    <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-white/40 rounded-tl-3xl"></div>
-                                    <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-white/40 rounded-tr-3xl"></div>
-                                    <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-white/40 rounded-bl-3xl"></div>
-                                    <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-white/40 rounded-br-3xl"></div>
-                                </div>
+                                {/* Feedbacks de Hardware/Permissão */}
+                                {statusLeitor === 'INICIALIZANDO' && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-20">
+                                        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Iniciando Câmera...</p>
+                                    </div>
+                                )}
+
+                                {statusLeitor === 'PERMISSAO_NEGADA' && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-20 p-8 text-center text-white">
+                                        <div className="w-20 h-20 rounded-full bg-rose-500/20 flex items-center justify-center mb-6 border border-rose-500/50">
+                                            <ShieldCheck size={32} className="text-rose-500" />
+                                        </div>
+                                        <h3 className="text-xl font-black uppercase tracking-tighter mb-2">Acesso Negado</h3>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">O sistema precisa de permissão de câmera para funcionar. Por favor, autorize nas configurações do seu navegador.</p>
+                                    </div>
+                                )}
+
+                                {statusLeitor === 'SEM_CAMERA' && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 z-20 p-8 text-center">
+                                        <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center mb-6">
+                                            <UserX size={32} className="text-slate-400" />
+                                        </div>
+                                        <h3 className="text-xl font-black uppercase tracking-tighter mb-2 text-slate-900">Hardware não encontrado</h3>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Nenhuma câmera foi detectada neste dispositivo. Verifique a conexão do hardware.</p>
+                                    </div>
+                                )}
+
+                                {/* HUD Minimalista Quadrado */}
+                                {statusLeitor === 'ATIVO' && (
+                                    <div className="absolute inset-8 pointer-events-none z-10 animate-in fade-in duration-1000">
+                                        <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-blue-500 rounded-tl-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+                                        <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-blue-500 rounded-tr-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+                                        <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-blue-500 rounded-bl-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+                                        <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-blue-500 rounded-br-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+                                    </div>
+                                )}
 
                                 {/* Linha de Scan Estilizada */}
-                                {statusLeitura === 'AGUARDANDO' && (
+                                {statusLeitura === 'AGUARDANDO' && statusLeitor === 'ATIVO' && (
                                     <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-[scan_3s_ease-in-out_infinite] z-20"></div>
                                 )}
                             </div>
 
-                            {/* Moldura Colorida Diária (Sutil) */}
-                            <div className="absolute inset-0 border-[16px] rounded-[48px] pointer-events-none z-0 opacity-5" 
+                            {/* Moldura Colorida Diária */}
+                            <div className="absolute inset-0 border-[10px] rounded-2xl pointer-events-none z-0 opacity-10" 
                                  style={{ borderColor: corDoDia }}></div>
 
                             {/* Feedback Fullscreen Refinado */}
@@ -220,10 +271,10 @@ export default function QuiosqueAutoatendimento() {
                                     ${confFila.animacoesAtivadas ? 'duration-500 animate-in fade-in zoom-in-105' : 'duration-0'} 
                                     ${statusLeitura === 'SUCESSO' ? 'bg-emerald-600/90' : 'bg-rose-600/90'}
                                     `}>
-                                    <div className="w-48 h-48 rounded-[40px] bg-white flex items-center justify-center mb-10 shadow-4xl animate-bounce">
+                                    <div className="w-40 h-40 rounded-2xl bg-white flex items-center justify-center mb-8 shadow-2xl">
                                         {statusLeitura === 'SUCESSO'
-                                            ? <ShieldCheck size={120} strokeWidth={2.5} className="text-emerald-600" />
-                                            : <UserX size={120} strokeWidth={2.5} className="text-rose-600" />
+                                            ? <ShieldCheck size={100} strokeWidth={2.5} className="text-emerald-600" />
+                                            : <UserX size={100} strokeWidth={2.5} className="text-rose-600" />
                                         }
                                     </div>
                                     <h2 className="text-7xl md:text-9xl font-black text-white uppercase tracking-tighter drop-shadow-2xl">
@@ -240,16 +291,16 @@ export default function QuiosqueAutoatendimento() {
 
 
                 {/* Painel de Informação Lateral */}
-                <aside className="w-full lg:w-[420px] shrink-0">
-                    <div className="h-full bg-white rounded-[40px] border border-slate-200 p-10 flex flex-col shadow-sm relative overflow-hidden">
+                <aside className="w-full lg:w-[400px] shrink-0">
+                    <div className="h-full bg-white rounded-2xl border border-slate-200 p-8 flex flex-col shadow-sm relative overflow-hidden">
                         
                         <div className="flex-1 flex flex-col justify-center py-6">
                             {ultimoAcesso?.aluno ? (
                                 <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-700">
                                     <div className="text-center relative">
-                                        <div className="w-32 h-32 rounded-[40px] bg-slate-100 border-4 border-white flex items-center justify-center mx-auto mb-8 shadow-2xl overflow-hidden group">
+                                        <div className="w-28 h-28 rounded-2xl bg-slate-100 border-2 border-white flex items-center justify-center mx-auto mb-8 shadow-lg overflow-hidden group">
                                             <div className="w-full h-full bg-gradient-to-tr from-slate-200 to-slate-100 flex items-center justify-center">
-                                                <User size={64} className="text-slate-300 group-hover:scale-110 transition-transform" />
+                                                <User size={56} className="text-slate-300 group-hover:scale-110 transition-transform" />
                                             </div>
                                         </div>
                                         <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tighter px-4 leading-[0.9]">
@@ -268,14 +319,14 @@ export default function QuiosqueAutoatendimento() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 pt-10 border-t border-slate-50">
-                                        <div className="p-6 bg-slate-50 border border-slate-100 rounded-[28px] text-center">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Horário</p>
-                                            <p className="text-base font-black text-slate-700">{ultimoAcesso.hora}</p>
+                                    <div className="grid grid-cols-2 gap-4 pt-8 border-t border-slate-50">
+                                        <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-center">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Horário</p>
+                                            <p className="text-sm font-black text-slate-700">{ultimoAcesso.hora}</p>
                                         </div>
-                                        <div className={`p-6 border rounded-[28px] text-center ${statusLeitura === 'SUCESSO' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'}`}>
-                                            <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-2">Verificação</p>
-                                            <p className="text-xs font-black uppercase tracking-tighter">{statusLeitura === 'SUCESSO' ? 'Aprovado' : 'Falhou'}</p>
+                                        <div className={`p-4 border rounded-xl text-center ${statusLeitura === 'SUCESSO' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'}`}>
+                                            <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-1">Status</p>
+                                            <p className="text-xs font-black uppercase tracking-tighter">{statusLeitura === 'SUCESSO' ? 'OK' : 'OPS'}</p>
                                         </div>
                                     </div>
                                 </div>
