@@ -1,9 +1,9 @@
 ﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
-import { autenticacao } from '@compartilhado/servicos/firebase.config';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { autenticacao } from '@/compartilhado/servicos/firebase.config';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
-import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
+import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 
 const log = criarRegistrador('Auth');
 
@@ -35,9 +35,18 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
                 const token = await usuario.getIdToken();
                 (usuario as unknown as Record<string, unknown>).token = token;
 
-                // ðŸ”„ Auto-Sync ao Login
-                log.info('Usuário autenticado. Iniciando sincronização automática...');
-                servicoSincronizacao.sincronizarTudo().catch(e => log.warn('Erro na auto-sync', e));
+                // 🔄 Auto-Sync ao Login - Aguarda escola estar pronta
+                const tentarSync = async () => {
+                    const idEscola = sessionStorage.getItem('escola_id');
+                    if (!idEscola) {
+                        // Escola ainda não carregou, tenta em 500ms
+                        setTimeout(tentarSync, 500);
+                        return;
+                    }
+                    log.info('Usuário autenticado. Iniciando sincronização automática...');
+                    servicoSincronizacao.sincronizarTudo().catch(e => log.warn('Erro na auto-sync', e));
+                };
+                tentarSync();
             }
             definirUsuarioAtual(usuario);
             definirCarregando(false);

@@ -1,78 +1,121 @@
 ﻿import type { ContextoSCAE } from '../../tipos/ambiente';
-import { ErroBase, ErroValidacao, ErroNaoEncontrado } from '../erros';
+import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../seguranca';
 import { esquemaTurma } from './turmas.esquemas';
 
 async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {
-    const idEscola = extrairEscolaId(contexto.request);
-    verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO']);
+    try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO']);
 
-    const { results } = await contexto.env.DB_SCAE.prepare(
-        "SELECT id, escola_id, serie, letra, turno, ano_letivo, criado_em FROM turmas WHERE escola_id = ? ORDER BY id"
-    ).bind(idEscola).all();
+        try {
+            const { results } = await contexto.env.DB_SCAE.prepare(
+                "SELECT id, escola_id, serie, letra, turno, ano_letivo, criado_em FROM turmas WHERE escola_id = ? ORDER BY id"
+            ).bind(idEscola).all();
 
-    return Response.json({
-        dados: results,
-        mensagem: 'Lista de turmas carregada com sucesso'
-    });
+            return Response.json({
+                dados: results,
+                mensagem: 'Lista de turmas carregada com sucesso'
+            });
+        } catch (dbError) {
+            throw new ErroInterno(`Falha ao buscar turmas: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
+        }
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao buscar turmas');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
 }
 
 async function processarCriacaoTurma(contexto: ContextoSCAE): Promise<Response> {
-    const idEscola = extrairEscolaId(contexto.request);
-    verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
+    try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
 
-    const corpo = await contexto.request.json();
-    const resultadoZod = esquemaTurma.safeParse(corpo);
+        let corpo;
+        try {
+            corpo = await contexto.request.json();
+        } catch (parseError) {
+            throw new ErroValidacao('JSON inválido no corpo da requisição', 'JSON_PARSE_ERROR');
+        }
 
-    if (!resultadoZod.success) {
-        throw new ErroValidacao('Dados da turma inválidos', 'TURMA_VALIDACAO_001', { detalhes: resultadoZod.error.format() });
+        const resultadoZod = esquemaTurma.safeParse(corpo);
+
+        if (!resultadoZod.success) {
+            throw new ErroValidacao('Dados da turma inválidos', 'TURMA_VALIDACAO_001', { detalhes: resultadoZod.error.format() });
+        }
+
+        const { id, serie, letra, turno, ano_letivo, criado_em } = resultadoZod.data;
+
+        try {
+            // UPSERT
+            await contexto.env.DB_SCAE.prepare(
+                `INSERT INTO turmas (id, escola_id, serie, letra, turno, ano_letivo, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id, escola_id) DO UPDATE SET
+                    serie = excluded.serie,
+                    letra = excluded.letra,
+                    turno = excluded.turno,
+                    ano_letivo = excluded.ano_letivo`
+            ).bind(id, idEscola, serie ?? null, letra ?? null, turno ?? null, ano_letivo ?? null, criado_em || new Date().toISOString()).run();
+        } catch (dbError) {
+            throw new ErroInterno(`Falha ao inserir turma: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
+        }
+
+        return Response.json({
+            dados: { id },
+            mensagem: 'Turma processada com sucesso'
+        }, { status: 201 });
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao criar turma');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
-
-    const { id, serie, letra, turno, ano_letivo, criado_em } = resultadoZod.data;
-
-    // UPSERT
-    await contexto.env.DB_SCAE.prepare(
-        `INSERT INTO turmas (id, escola_id, serie, letra, turno, ano_letivo, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(id, escola_id) DO UPDATE SET
-            serie = excluded.serie,
-            letra = excluded.letra,
-            turno = excluded.turno,
-            ano_letivo = excluded.ano_letivo`
-    ).bind(id, idEscola, serie ?? null, letra ?? null, turno ?? null, ano_letivo ?? null, criado_em || new Date().toISOString()).run();
-
-    return Response.json({
-        dados: { id },
-        mensagem: 'Turma processada com sucesso'
-    }, { status: 201 });
 }
 
 async function processarRemocaoTurma(contexto: ContextoSCAE): Promise<Response> {
-    const idEscola = extrairEscolaId(contexto.request);
-    verificarPermissao(contexto, ['ADMIN']);
+    try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarPermissao(contexto, ['ADMIN']);
 
-    const url = new URL(contexto.request.url);
-    const id = url.searchParams.get("id");
+        const url = new URL(contexto.request.url);
+        const id = url.searchParams.get("id");
 
-    if (!id) {
-        throw new ErroValidacao('ID da turma obrigatório para remoção', 'TURMA_ID_AUSENTE');
+        if (!id) {
+            throw new ErroValidacao('ID da turma obrigatório para remoção', 'TURMA_ID_AUSENTE');
+        }
+
+        try {
+            // Remover vínculo dos alunos antes de excluir (Evita FOREIGN KEY constraint SQLITE_CONSTRAINT)
+            await contexto.env.DB_SCAE.prepare(
+                "UPDATE alunos SET turma_id = NULL WHERE turma_id = ? AND escola_id = ?"
+            ).bind(id, idEscola).run();
+
+            const resultado = await contexto.env.DB_SCAE.prepare(
+                "DELETE FROM turmas WHERE id = ? AND escola_id = ?"
+            ).bind(id, idEscola).run();
+
+            if (resultado.meta.changes === 0) {
+                throw new ErroNaoEncontrado('Turma não encontrada para exclusão');
+            }
+        } catch (dbError) {
+            if (dbError instanceof ErroBase) throw dbError;
+            throw new ErroInterno(`Falha ao remover turma: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
+        }
+
+        return Response.json({
+            mensagem: 'Turma removida com sucesso'
+        });
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao remover turma');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
-
-    // Remover vínculo dos alunos antes de excluir (Evita FOREIGN KEY constraint SQLITE_CONSTRAINT)
-    await contexto.env.DB_SCAE.prepare(
-        "UPDATE alunos SET turma_id = NULL WHERE turma_id = ? AND escola_id = ?"
-    ).bind(id, idEscola).run();
-
-    const resultado = await contexto.env.DB_SCAE.prepare(
-        "DELETE FROM turmas WHERE id = ? AND escola_id = ?"
-    ).bind(id, idEscola).run();
-
-    if (resultado.meta.changes === 0) {
-        throw new ErroNaoEncontrado('Turma não encontrada para exclusão');
-    }
-
-    return Response.json({
-        mensagem: 'Turma removida com sucesso'
-    });
 }
 
 // Exportações com Alias para o Framework

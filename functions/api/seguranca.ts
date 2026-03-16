@@ -1,7 +1,7 @@
 /**
  * Centralização da lógica de Segurança e RBAC (Regra 6).
  */
-import { ErroPermissao } from './erros';
+import { ErroPermissao, ErroValidacao } from './erros';
 import type { ContextoSCAE } from '../tipos/ambiente';
 
 /**
@@ -31,7 +31,7 @@ export function verificarPermissao(contexto: ContextoSCAE, papeisPermitidos: str
 export function extrairEscolaId(request: Request): string {
     const escolaId = request.headers.get('X-Escola-ID');
     if (!escolaId) {
-        throw new Error('Tenant ID (X-Escola-ID) ausente nos cabeçalhos.');
+        throw new ErroValidacao('ID da Escola obrigatório', 'TENANT_ID_AUSENTE');
     }
     return escolaId;
 }
