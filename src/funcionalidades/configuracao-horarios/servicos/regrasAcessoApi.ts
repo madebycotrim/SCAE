@@ -1,56 +1,39 @@
-﻿/**
+/**
  * API de Regras de Acesso da escola — horários de acesso.
- *
- * @module RegrasHorarios/servicos/RegrasHorariosApi
  */
 import { api } from '@/compartilhado/servicos/api';
-import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('RegrasHorariosApi');
 
 /**
- * Busca as janelas de horário configuradas para a escola.
+ * Busca as janelas de horário configuradas para a escola (Online-only para Admin).
  */
 export const buscarHorariosEscola = async (idEscola: string) => {
     try {
-        if (navigator.onLine) {
-            const dados = await api.obter<any>('/admin/horarios');
-            // Cache local para uso offline posterior
-            if (dados && dados.janelas) {
-                await bancoLocal.salvarConfiguracaoHorarios({ id: idEscola, ...dados });
-            }
-            return dados;
-        }
+        const dados = await api.obter<any>('/admin/horarios');
+        return dados;
     } catch (e) {
-        log.warn('Falha ao buscar horários online, usando cache local');
+        log.error('Erro ao buscar horários online', e);
+        throw new Error('Não foi possível carregar as regras de horário do servidor.');
     }
-
-    // Fallback para banco local
-    return bancoLocal.buscarConfiguracaoHorarios(idEscola);
 };
 
+/**
+ * Salva as janelas de horário diretamente no servidor.
+ */
 export const salvarHorariosEscola = async (idEscola: string, janelas: any[]) => {
-    let sucessoOnline = false;
-    try {
-        if (navigator.onLine) {
-            await api.atualizar('/admin/horarios', { janelas });
-            sucessoOnline = true;
-        }
-    } catch (e) {
-        log.warn('Falha ao salvar horários online, agendando sincronização', e);
-        // Registra pendência para o Sync processar depois
-        await bancoLocal.adicionarPendencia('UPDATE', 'configuracao_horarios', idEscola, { janelas });
+    if (!navigator.onLine) {
+        throw new Error('A alteração de horários requer conexão ativa com o servidor.');
     }
 
-    // Sempre salva localmente para manter o estado imediato (Optimistic UI context)
-    await bancoLocal.salvarConfiguracaoHorarios({
-        id: idEscola,
-        janelas,
-        atualizado_em: new Date().toISOString()
-    } as any);
-
-    return { sucesso: sucessoOnline };
+    try {
+        await api.atualizar('/admin/horarios', { janelas });
+        return { sucesso: true };
+    } catch (e) {
+        log.error('Falha ao salvar horários online', e);
+        throw new Error('Erro ao salvar as regras de horário no servidor.');
+    }
 };
 
 export const RegrasHorariosApi = {

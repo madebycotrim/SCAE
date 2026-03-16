@@ -1,4 +1,4 @@
-﻿export type PapelUsuario = 'CENTRAL' | 'ADMIN' | 'COORDENACAO' | 'SECRETARIA' | 'PORTEIRO' | 'VISUALIZACAO';
+export type PapelUsuario = 'CENTRAL' | 'ADMIN' | 'COORDENACAO' | 'SECRETARIA' | 'PORTEIRO' | 'VISUALIZACAO';
 import type { ConfiguracaoHorarios } from '@/funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
 
 export interface AlunoLocal {
@@ -52,22 +52,6 @@ export interface UsuarioLocal {
     pendente?: boolean;          // aguardando aprovação
     // Alias legado
     role?: PapelUsuario;
-}
-
-export interface ResponsavelLocal {
-    id: string;
-    escola_id: string;
-    nome_completo: string;
-    email: string;
-    criado_em?: string;
-    atualizado_em?: string;
-}
-
-export interface VinculoResponsavelAluno {
-    responsavel_id: string;
-    aluno_matricula: string;
-    escola_id: string;
-    data_vinculo?: string;
 }
 
 export interface AlunoPresente extends RegistroAcessoLocal {
@@ -137,16 +121,6 @@ export interface EsquemaSCAE {
         key: string;
         value: UsuarioLocal;
         indexes: { escola_id: string; papel: string; ativo: boolean };
-    };
-    responsaveis: {
-        key: string;
-        value: ResponsavelLocal;
-        indexes: { escola_id: string };
-    };
-    vinculos_responsavel_aluno: {
-        key: string;
-        value: VinculoResponsavelAluno;
-        indexes: { responsavel_id: string; aluno_matricula: string; escola_id: string };
     };
     configuracao_horarios: {
         key: string;

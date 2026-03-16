@@ -1,4 +1,9 @@
-﻿export interface ResponsavelLocal {
+/**
+ * Tipos para o módulo de Responsáveis (LGPD).
+ * Centralizado no servidor (D1).
+ */
+
+export interface Responsavel {
     id: string;
     escola_id: string;
     nome_completo: string;
@@ -7,7 +12,7 @@
     atualizado_em?: string;
 }
 
-export interface DadosResponsavel extends ResponsavelLocal {
+export interface DadosResponsavel extends Responsavel {
     alunos?: string[]; // Lista de matrículas vinculadas
 }
 
@@ -22,4 +27,3 @@ export interface RespostaListaResponsaveis {
     pagina: number;
     porPagina: number;
 }
-

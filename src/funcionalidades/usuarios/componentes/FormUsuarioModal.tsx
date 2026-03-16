@@ -1,8 +1,9 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { Users, Shield, UserCheck, Plus, Lock, Mail, GraduationCap } from 'lucide-react';
 import { Botao } from '@/compartilhado/componentes/UI';
 import { mascararDadoPessoal } from '@/compartilhado/utils/registrarLocal';
+import { usarEscola } from '@/escola/ProvedorEscola';
 
 interface FormUsuarioModalProps {
     usuario?: any | null;
@@ -11,6 +12,7 @@ interface FormUsuarioModalProps {
 }
 
 export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUsuarioModalProps) {
+    const { dominioEmail } = usarEscola();
     const [email, definirEmail] = useState('');
     const [papel, definirPapel] = useState('VISUALIZACAO');
     const [carregando, definirCarregando] = useState(false);
@@ -25,19 +27,29 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
 
     useEffect(() => {
         if (usuario) {
-            definirEmail(usuario.email);
+            // Se for edição, removemos o domínio para exibir apenas o prefixo se combinar
+            const emailLimpo = (dominioEmail && usuario.email.endsWith(dominioEmail))
+                ? usuario.email.replace(dominioEmail, '')
+                : usuario.email;
+            definirEmail(emailLimpo);
             definirPapel(usuario.papel || usuario.role || 'VISUALIZACAO');
         } else {
             definirEmail('');
             definirPapel('VISUALIZACAO');
         }
-    }, [usuario]);
+    }, [usuario, dominioEmail]);
 
     const manipularSalvar = async () => {
         try {
             definirCarregando(true);
+            
+            // Reconstroi o e-mail com o domínio se for um novo convite
+            const emailFinal = (!usuario && dominioEmail && !email.includes('@')) 
+                ? `${email}${dominioEmail}` 
+                : email;
+
             await aoSalvar({
-                email,
+                email: emailFinal,
                 papel,
                 ativo: true
             });
@@ -60,15 +72,20 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
                     <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5 ml-1 transition-colors group-focus-within:text-indigo-600">
                         <Mail size={14} /> E-mail Institucional (Google)
                     </label>
-                    <div className="relative">
+                    <div className="relative flex items-center">
                         <input
-                            type="email"
+                            type="text"
                             value={email}
-                            onChange={(e) => definirEmail(e.target.value)}
+                            onChange={(e) => definirEmail(e.target.value.toLowerCase().trim())}
                             disabled={!!usuario}
-                            placeholder="exemplo@edu.se.df.gov.br"
-                            className="w-full px-5 h-12 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all placeholder:text-slate-400 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                            placeholder="usuario"
+                            className="flex-1 px-5 h-12 bg-slate-50 border border-slate-200 rounded-l-2xl text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all placeholder:text-slate-400 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                         />
+                        {dominioEmail && (
+                            <div className="h-12 px-4 flex items-center bg-slate-100 border border-l-0 border-slate-200 rounded-r-2xl text-xs font-black text-slate-400 uppercase tracking-tight">
+                                {dominioEmail}
+                            </div>
+                        )}
                     </div>
                     {usuario && <p className="mt-2 ml-1 text-[10px] font-bold text-slate-400 uppercase tracking-tight italic">O identificador de segurança não pode ser alterado.</p>}
                 </div>

@@ -1,60 +1,73 @@
-﻿/**
- * Serviço que encapsula a chamada desprotegida da Cloudflare API para o Login Temporário do Responsável
+/**
+ * Serviço que encapsula a comunicação com a API para o Portal do Responsável.
+ * 100% Online: Não utiliza banco local (IndexedDB).
  */
-import { api } from '@/compartilhado/servicos/api'; // reaproveitamos o proxy padrao
+import { api } from '@/compartilhado/servicos/api';
 
 const RESPONSAVEL_API_URL = '/responsavel';
 
-// Como o responsavel não usará o FirebaseAuth, injetamos manualmente os calls 
-// usando o token que virá do Cloudflare D1
 export const responsavelServico = {
+    /**
+     * Autentica o responsável cruzando e-mail e matrícula do aluno.
+     * Retorna o token JWT de acesso.
+     */
     autenticar: async (email: string, aluno_matricula: string): Promise<string> => {
-        const payload = await api.enviar<{ token: string }>(`${RESPONSAVEL_API_URL}/auth`, { email, aluno_matricula });
-        if (payload.token) {
-            // Guardando o JWT no PWA do dispositivo
-            localStorage.setItem('responsavel_lgpd_token', payload.token);
-            return payload.token;
+        try {
+            const payload = await api.enviar<{ token: string }>(`${RESPONSAVEL_API_URL}/auth`, { email, aluno_matricula });
+            if (payload.token) {
+                // Guardando o JWT no localStorage para persistência da sessão no PWA
+                localStorage.setItem('responsavel_lgpd_token', payload.token);
+                return payload.token;
+            }
+            throw new Error("Falha na autenticação: Token não retornado");
+        } catch (erro: any) {
+            throw new Error(erro.message || "Erro ao autenticar responsável.");
         }
-        throw new Error("Token não retornado");
     },
 
+    /**
+     * Busca a timeline de acessos e dados do aluno vinculado.
+     */
     buscarTimeline: async (): Promise<Record<string, unknown>> => {
         const token = localStorage.getItem('responsavel_lgpd_token');
-        if (!token) throw new Error('Não Autenticado');
+        if (!token) throw new Error('Sessão expirada. Autentique-se novamente.');
 
-        const baseUrl = import.meta.env.VITE_API_URL || '/api';
-        const raw = await fetch(`${baseUrl}${RESPONSAVEL_API_URL}/dados`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'X-Escola-ID': sessionStorage.getItem('escola_id') || ''
-            }
-        });
-
-        if (!raw.ok) throw new Error("Acesso Expirado");
-        return await raw.json();
+        try {
+            return await api.obter<Record<string, unknown>>(`${RESPONSAVEL_API_URL}/dados`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+        } catch (erro) {
+            throw new Error("Não foi possível carregar os dados. Verifique sua conexão.");
+        }
     },
 
-
+    /**
+     * Remove a sessão do responsável.
+     */
     sair: () => {
         localStorage.removeItem('responsavel_lgpd_token');
     },
 
+    /**
+     * Salva o Token FCM para notificações push.
+     */
     salvarTokenFCM: async (tokenFCM: string): Promise<void> => {
         const token = localStorage.getItem('responsavel_lgpd_token');
-        if (!token) throw new Error('Não Autenticado');
+        if (!token) return; // Silent fail se não autenticado
 
-        const baseUrl = import.meta.env.VITE_API_URL || '/api';
-        const raw = await fetch(`${baseUrl}${RESPONSAVEL_API_URL}/notificacoes/token`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'X-Escola-ID': sessionStorage.getItem('escola_id') || '',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ token: tokenFCM })
-        });
-
-        if (!raw.ok) throw new Error("Falha ao salvar token de notificação");
+        try {
+            await api.enviar(`${RESPONSAVEL_API_URL}/notificacoes/token`, 
+                { token: tokenFCM },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+        } catch (erro) {
+            console.warn('Falha ao registrar token de notificação no servidor', erro);
+        }
     }
-}
-
+};

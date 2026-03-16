@@ -62,8 +62,9 @@ async function obterCabecalhos(): Promise<CabecalhosApi> {
 }
 
 export const api = {
-    obter: async <T = unknown>(rota: string): Promise<T> => {
-        const cabecalhos = await obterCabecalhos();
+    obter: async <T = unknown>(rota: string, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
+        const cabecalhosPadrao = await obterCabecalhos();
+        const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
         const resposta = await fetch(`${URL_BASE}${rota}`, { headers: cabecalhos });
         if (!resposta.ok) {
             const textoErro = await resposta.text();
@@ -84,8 +85,9 @@ export const api = {
         }
     },
 
-    enviar: async <T = unknown>(rota: string, dados: unknown): Promise<T> => {
-        const cabecalhos = await obterCabecalhos();
+    enviar: async <T = unknown>(rota: string, dados: unknown, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
+        const cabecalhosPadrao = await obterCabecalhos();
+        const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
         const resposta = await fetch(`${URL_BASE}${rota}`, {
             method: 'POST',
             headers: cabecalhos,
@@ -104,8 +106,9 @@ export const api = {
         }
     },
 
-    atualizar: async <T = unknown>(rota: string, dados: unknown): Promise<T> => {
-        const cabecalhos = await obterCabecalhos();
+    atualizar: async <T = unknown>(rota: string, dados: unknown, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
+        const cabecalhosPadrao = await obterCabecalhos();
+        const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
         const resposta = await fetch(`${URL_BASE}${rota}`, {
             method: 'PATCH',
             headers: cabecalhos,

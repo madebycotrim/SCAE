@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { Botao, BarraFiltro, InputBusca, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
-import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { api } from '@/compartilhado/servicos/api';
 import {
     Users,
@@ -123,12 +122,8 @@ export default function Turmas() {
         };
 
         try {
-            // Lógica de renomeação de ID (se o ID mudou na edição)
-            if (turmaEmEdicao && (turmaEmEdicao as any).id !== idTurma) {
-                const banco = await bancoLocal.iniciarBanco();
-                await banco.delete('turmas', (turmaEmEdicao as any).id);
-            }
-
+            // Salva online - O backend cuida do ON CONFLICT se o ID for o mesmo
+            // Se o ID mudou (renomeação), o backend processa conforme a regra de negócio
             await turmaServico.salvarTurma(novaTurma, !!turmaEmEdicao);
 
             toast.success(turmaEmEdicao ? 'Configurações de turma atualizadas' : 'Turma criada com sucesso');

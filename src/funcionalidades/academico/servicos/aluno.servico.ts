@@ -1,42 +1,19 @@
-import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { api } from '@/compartilhado/servicos/api';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
-import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
-import { Aluno, ResultadoImportacao, FiltrosAluno } from '../tipos/academico';
-import toast from 'react-hot-toast';
+import { Aluno, ResultadoImportacao } from '../tipos/academico';
 
 const log = criarRegistrador('AlunoServico');
 
 /**
- * Serviço de gerenciamento de Alunos.
- * Centraliza persistência, sincronização e auditoria.
+ * SERVIÇO DE ALUNOS (Online-First)
+ * Módulo Administrativo: Operações 100% online.
+ * O banco local é mantido apenas como cache para o módulo de Portaria via sincronizacao.ts.
  */
 export const alunoServico = {
     /**
-     * Busca dados iniciais (alunos e turmas) do banco local.
-     */
-    async carregarDadosIniciais() {
-        try {
-            const banco = await bancoLocal.iniciarBanco();
-            const [listaAlunos, listaTurmas] = await Promise.all([
-                banco.getAll('alunos'),
-                banco.getAll('turmas')
-            ]);
-
-            listaAlunos.sort((a, b) => a.nome_completo.localeCompare(b.nome_completo));
-            listaTurmas.sort((a, b) => a.id.localeCompare(b.id));
-
-            return { alunos: listaAlunos as Aluno[], turmas: listaTurmas };
-        } catch (erro) {
-            log.error('Erro ao carregar dados iniciais', erro);
-            throw erro;
-        }
-    },
-
-    /**
      * Busca dados diretamente da API (D1) para o Painel Administrativo.
-     * Ignora o banco local para garantir consistência real-time.
+     * Não há fallback para banco local aqui para evitar dados obsoletos no Admin.
      */
     async carregarOnline() {
         try {
@@ -45,192 +22,95 @@ export const alunoServico = {
                 api.obter<any[]>('/academico/turmas')
             ]);
             
-            return { alunos, turmas };
+            return { 
+                alunos: alunos.sort((a, b) => a.nome_completo.localeCompare(b.nome_completo)), 
+                turmas: turmas.sort((a, b) => a.id.localeCompare(b.id))
+            };
         } catch (erro) {
             log.error('Erro ao buscar dados online', erro);
-            return this.carregarDadosIniciais();
+            throw new Error('Falha ao conectar com o servidor. Verifique sua rede.');
         }
     },
 
     /**
-     * Salva ou atualiza um aluno.
-     * @lgpd Base legal: Execução de contrato (Art. 7º, V)
+     * Salva ou atualiza um aluno diretamente no servidor.
      */
-    async salvarAluno(aluno: Aluno, ehEdicao: boolean, admin = true): Promise<void> {
+    async salvarAluno(aluno: Aluno, ehEdicao: boolean): Promise<void> {
+        if (!navigator.onLine) {
+            throw new Error('A gestão de alunos requer conexão ativa com o servidor.');
+        }
+
         const alunoFinal: Aluno = {
             ...aluno,
             atualizado_em: new Date().toISOString(),
-            sincronizado: 1 // Assume sucesso online inicialmente
+            sincronizado: 1
         };
 
         try {
-            // 1. Tentar salvar no servidor primeiro (Online-First)
-            if (navigator.onLine) {
-                await api.enviar('/academico/alunos', alunoFinal);
-                log.info('Aluno salvo online com sucesso');
-            } else {
-                throw new Error('Offline: Salvando localmente');
-            }
-        } catch (erro) {
-            log.warn('Falha ao salvar online', erro);
-            if (admin) throw erro; 
-            alunoFinal.sincronizado = 0; 
-        }
-
-        // No Admin, não persistimos localmente para evitar lixo no cache/divergência
-        if (admin) {
+            await api.enviar('/academico/alunos', alunoFinal);
+            
             await Registrador.registrar(ehEdicao ? 'EDITAR_ALUNO' : 'CRIAR_ALUNO', 'aluno', aluno.matricula, {
                 nome: aluno.nome_completo,
                 via: 'online_admin'
             });
-            return;
-        }
-
-        try {
-            // 2. Persistir localmente apenas se não for admin (Portaria)
-            const banco = await bancoLocal.iniciarBanco();
-
-            if (!ehEdicao && alunoFinal.sincronizado === 0) {
-                const existente = await banco.get('alunos', aluno.matricula);
-                if (existente) throw new Error('Matrícula já cadastrada localmente!');
-            }
-
-            await banco.put('alunos', alunoFinal);
-
-            // 3. Auditoria
-            const acao = ehEdicao ? 'EDITAR_ALUNO' : 'CRIAR_ALUNO';
-            await Registrador.registrar(acao, 'aluno', aluno.matricula, {
-                nome: aluno.nome_completo,
-                turma: aluno.turma_id,
-                ativo: aluno.ativo,
-                via: alunoFinal.sincronizado ? 'online' : 'local'
-            });
-
-            if (alunoFinal.sincronizado === 0) {
-                if (navigator.onLine) {
-                    toast.success('Salvo localmente (Sincronização pendente)');
-                    // Tenta sincronizar imediatamente caso tenha sido erro transiente
-                    servicoSincronizacao.sincronizarTudo();
-                } else {
-                    toast.success('Salvo localmente (Modo Offline)');
-                }
-            }
-        } catch (erroLocal) {
-            log.error('Erro crítico ao persistir aluno', erroLocal);
-            throw erroLocal;
+            
+            log.info('Aluno processado online com sucesso');
+        } catch (erro) {
+            log.error('Falha ao salvar aluno online', erro);
+            throw erro;
         }
     },
 
     /**
-     * Remove um aluno do sistema.
-     * @lgpd Base legal: Obrigação legal (Art. 7º, II) - Retenção de 5 anos para fins fiscais/acadêmicos.
+     * Remove um aluno diretamente no servidor.
      */
-    async excluirAluno(matricula: string, admin = true): Promise<void> {
-        let removidoOnline = false;
-        try {
-            // 1. Tentar remover do servidor primeiro
-            if (navigator.onLine) {
-                await api.remover(`/academico/alunos?matricula=${matricula}`);
-                removidoOnline = true;
-            } else if (admin) {
-                throw new Error('Você está offline. A exclusão administrativa requer conexão.');
-            }
-        } catch (erro) {
-            log.warn('Falha ao remover online', erro);
-            if (admin) throw erro;
-            // Registrar pendência no banco local apenas se não for admin
-            await bancoLocal.adicionarPendencia('DELETE', 'alunos', matricula);
+    async excluirAluno(matricula: string): Promise<void> {
+        if (!navigator.onLine) {
+            throw new Error('A exclusão de alunos requer conexão ativa com o servidor.');
         }
 
-        if (admin) {
+        try {
+            await api.remover(`/academico/alunos?matricula=${matricula}`);
             await Registrador.registrar('DELETAR_ALUNO', 'aluno', matricula, { status: 'online_admin' });
-            return;
-        }
-
-        try {
-            // 2. Remover localmente apenas se não for admin
-            const banco = await bancoLocal.iniciarBanco();
-            await banco.delete('alunos', matricula);
-
-            await Registrador.registrar('DELETAR_ALUNO', 'aluno', matricula, { status: removidoOnline ? 'online' : 'pendente' });
-        } catch (erroLocal) {
-            log.error('Erro ao excluir aluno localmente', erroLocal);
-            throw erroLocal;
+            log.info('Aluno removido do servidor com sucesso');
+        } catch (erro) {
+            log.error('Falha ao remover aluno online', erro);
+            throw erro;
         }
     },
 
     /**
-     * Promove um lote de alunos para uma nova turma.
+     * Promove um lote de alunos diretamente no servidor.
      */
-    async promoverEmLote(matriculas: string[], novaTurmaId: string, admin = true): Promise<void> {
-        let sucessoOnline = false;
-        const dataAtual = new Date().toISOString();
-
-        try {
-            // 1. Tentar promoção no servidor primeiro
-            if (navigator.onLine) {
-                await api.enviar('/academico/alunos/lote/promocao', { matriculas, nova_turma: novaTurmaId });
-                sucessoOnline = true;
-                log.info('Promoção em lote realizada online');
-            } else if (admin) {
-                throw new Error('A promoção de alunos requer conexão com o servidor.');
-            }
-        } catch (erro) {
-            log.warn('Falha na promoção online', erro);
-            if (admin) throw erro;
+    async promoverEmLote(matriculas: string[], novaTurmaId: string): Promise<void> {
+        if (!navigator.onLine) {
+            throw new Error('A promoção de alunos requer conexão ativa com o servidor.');
         }
 
-        if (admin) {
+        try {
+            await api.enviar('/academico/alunos/lote/promocao', { matriculas, nova_turma: novaTurmaId });
+            
             await Registrador.registrar('ALUNOS_PROMOCAO_LOTE', 'aluno', 'LOTE', {
                 quantidade: matriculas.length,
                 nova_turma: novaTurmaId,
                 via: 'online_admin'
             });
-            return;
-        }
-
-        try {
-            // 2. Aplicar localmente apenas se não for admin
-            const banco = await bancoLocal.iniciarBanco();
-            const tx = banco.transaction('alunos', 'readwrite');
-
-            for (const matricula of matriculas) {
-                const aluno = await tx.store.get(matricula);
-                if (aluno) {
-                    await tx.store.put({
-                        ...aluno,
-                        turma_id: novaTurmaId,
-                        atualizado_em: dataAtual,
-                        sincronizado: sucessoOnline ? 1 : 0
-                    });
-                }
-            }
-            await tx.done;
-
-            await Registrador.registrar('ALUNOS_PROMOCAO_LOTE', 'aluno', 'LOTE', {
-                quantidade: matriculas.length,
-                nova_turma: novaTurmaId,
-                via: sucessoOnline ? 'online' : 'local'
-            });
-
-            if (!sucessoOnline) {
-                if (navigator.onLine) {
-                    toast.success('Promovido localmente (Sincronização pendente)');
-                    servicoSincronizacao.sincronizarTudo();
-                } else {
-                    toast.success('Promovido localmente (Modo Offline)');
-                }
-            }
-        } catch (erroLocal) {
-            log.error('Erro na promoção em lote local', erroLocal);
-            throw erroLocal;
+            
+            log.info('Promoção em lote realizada com sucesso');
+        } catch (erro) {
+            log.error('Falha na promoção em lote online', erro);
+            throw erro;
         }
     },
 
     /**
-     * Importa alunos de uma lista de dados (JSON ou Array de Arrays).
+     * Importa alunos enviando lote diretamente para o servidor.
      */
     async importarAlunos(dados: any[], alunosExistentes: Aluno[]): Promise<ResultadoImportacao> {
+        if (!navigator.onLine) {
+            throw new Error('A importação de alunos requer conexão ativa com o servidor.');
+        }
+
         let sucessos = 0;
         let erros = 0;
         const errosDetalhes: string[] = [];
@@ -270,7 +150,7 @@ export const alunoServico = {
                 turma_id: turma || '',
                 ativo: true,
                 criado_em: dataCriacao,
-                sincronizado: 0
+                sincronizado: 1
             });
             matriculasExistentes.add(matriculaLimpa);
             sucessos++;
@@ -278,23 +158,14 @@ export const alunoServico = {
 
         if (novosAlunos.length > 0) {
             try {
-                // Enviar lote para o servidor
-                // O backend deve suportar receber um array ou processamos um a um
-                // Para manter a simplicidade e resiliência no modo Admin, vamos enviar o lote
                 await api.enviar('/academico/alunos', novosAlunos);
-                log.info(`Lote de ${novosAlunos.length} alunos importado com sucesso no servidor.`);
+                log.info(`Importação concluída: ${novosAlunos.length} alunos salvos no servidor.`);
             } catch (erro) {
                 log.error('Falha ao importar lote no servidor', erro);
-                throw new Error('Falha ao salvar dados no servidor. Verifique sua conexão.');
+                throw new Error('Falha ao salvar dados no servidor durante a importação.');
             }
         }
 
-        return {
-            total: dados.length,
-            sucessos,
-            erros,
-            detalhes: errosDetalhes
-        };
+        return { total: dados.length, sucessos, erros, detalhes: errosDetalhes };
     }
 };
-
