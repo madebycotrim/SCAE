@@ -1,4 +1,4 @@
-﻿/**
+/**
  * StatusConexao — indicador online/offline no canto superior do tablet.
  * Puxando a contagem de registros pendentes automaticamente do IndexedDB
  */
@@ -31,26 +31,28 @@ export function StatusConexao() {
     }, []);
 
     return (
-        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+        <div className="fixed top-6 right-8 z-50 flex flex-col items-end gap-2 pointer-events-none">
+            {/* Indicador de Conexão Minimalista */}
             <div className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg border bg-white shadow-suave
-                text-xs font-semibold transition-colors duration-300
-                ${online ? 'border-emerald-200 text-emerald-700' : 'border-rose-200 text-rose-700'}
+                flex items-center gap-3 px-4 py-2 rounded-xl border bg-white/80 backdrop-blur-md shadow-sm
+                text-[10px] font-bold uppercase tracking-wider transition-all duration-300
+                ${online 
+                    ? 'border-slate-200 text-slate-500' 
+                    : 'border-rose-200 bg-rose-50 text-rose-600 animate-pulse'}
             `}>
-                <div className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
-                {online ? <Wifi size={14} className="text-emerald-600" /> : <WifiOff size={14} className="text-rose-600" />}
-                <span>{online ? 'Online' : 'Offline'}</span>
+                <div className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                <span>{online ? 'Servidor Conectado' : 'Link Offline'}</span>
+                
                 {!online && pendentes > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 bg-rose-50 rounded text-[10px] text-rose-600 font-bold border border-rose-100">
-                        {pendentes} pendentes
-                    </span>
+                    <span className="ml-2 pl-2 border-l border-rose-200 font-mono text-[9px]">+{pendentes}</span>
                 )}
             </div>
 
+            {/* Alerta de Relógio de Forma Simples */}
             {relogioQuebrado && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-rose-200 text-rose-700 text-xs font-semibold shadow-suave animate-pulse">
-                    <AlertTriangle size={14} className="text-rose-600" />
-                    Relógio Desincronizado
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                    <AlertTriangle size={14} />
+                    <span>Ajustar Relógio</span>
                 </div>
             )}
         </div>

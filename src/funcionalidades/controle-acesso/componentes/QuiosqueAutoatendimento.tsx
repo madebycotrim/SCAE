@@ -23,7 +23,7 @@ import { Registrador, ACOES_AUDITORIA } from '@/compartilhado/servicos/auditoria
 import { TIPO_ACESSO, TipoAcesso } from '../types/controleAcesso.tipos';
 import { StatusConexao } from './StatusConexao';
 import { format } from 'date-fns';
-import { ShieldCheck, UserX, ScanLine, Zap, Clock, Radar, Fingerprint, Download, Smartphone } from 'lucide-react';
+import { ShieldCheck, UserX, ScanLine, Zap, Clock, Radar, Fingerprint, Download, Smartphone, User } from 'lucide-react';
 import { CartaoConteudo } from '@/compartilhado/componentes/UI';
 
 const log = criarRegistrador('ControleAcesso:Quiosque');
@@ -40,8 +40,9 @@ export default function QuiosqueAutoatendimento() {
     const [statusLeitura, definirStatusLeitura] = useState<'AGUARDANDO' | 'SUCESSO' | 'ERRO'>('AGUARDANDO');
 
     useEffect(() => {
-        obterChavePublica().catch(e => log.error('Falha ao obter chave pública', e));
-    }, []);
+        if (!escola.id) return;
+        obterChavePublica(escola.id).catch(e => log.error('Falha ao obter chave pública', e));
+    }, [escola.id]);
 
     const processarDecodificacao = useCallback(async (
         textoDecodificado: string,
@@ -60,7 +61,7 @@ export default function QuiosqueAutoatendimento() {
             const [matricula, timestampEmissao, assinatura] = partesQR;
             const payloadAssinado = `${matricula}|${timestampEmissao}`;
 
-            const pk = await obterChavePublica();
+            const pk = await obterChavePublica(escola.id);
             const chaveValida = await verificarAssinaturaECDSA(payloadAssinado, assinatura, pk);
 
             if (!chaveValida) {
@@ -147,211 +148,167 @@ export default function QuiosqueAutoatendimento() {
 
     usarLeitorQR('quiosque-camera', processarDecodificacao);
 
-    return (
-        <div className="fixed inset-0 bg-slate-900 z-50 flex flex-col overflow-hidden text-slate-100 font-sans selection:bg-indigo-500">
-            {/* HUD / Background effects matching TerminalAcesso */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 opacity-50"></div>
+    const corDoDia = '#3b82f6'; // Azul institucional discreto
 
+    return (
+        <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col overflow-hidden text-slate-900 font-sans selection:bg-blue-100">
             <StatusConexao />
 
-            {/* Header High-Tech */}
-            <header className="h-[80px] border-b border-white/5 bg-slate-900/50 backdrop-blur-xl flex items-center justify-between px-8 z-20 shadow-2xl shrink-0">
+            {/* Cabeçalho Institucional Premium */}
+            <header className="h-[90px] border-b border-slate-200 bg-white flex items-center justify-between px-8 md:px-12 z-20 shrink-0 shadow-sm relative">
                 <div className="flex items-center gap-6">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center border border-indigo-500 shadow-xl shadow-indigo-900/40">
-                        <ScanLine size={24} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-xl font-black text-white uppercase tracking-tighter leading-none">
-                                {escola?.nomeEscola || 'SCAE UNIT'}
-                            </h1>
-                            <span className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[8px] font-black rounded border border-white/5 uppercase tracking-widest">AUTOATENDIMENTO</span>
+                    {escola.logoUrl ? (
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center">
+                            <img src={escola.logoUrl} alt={escola.nomeEscola} className="w-full h-full object-contain" />
                         </div>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-1.5">Terminal de Acesso do Aluno</p>
+                    ) : (
+                        <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <ScanLine size={32} strokeWidth={2} />
+                        </div>
+                    )}
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tighter leading-none">
+                            {escola?.nomeEscola || 'SCAE - Sistema de Acesso'}
+                        </h1>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                    {podeInstalar && (
-                        <button
-                            onClick={instalarApp}
-                            className="group/install flex items-center gap-3 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl border border-indigo-400 shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all active:scale-95 z-30"
-                        >
-                            <Download size={18} className="group-hover/install:animate-bounce" />
-                            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Instalar App</span>
-                        </button>
-                    )}
-
-                    <div className={`flex items-center gap-3 px-5 py-2.5 rounded-2xl border-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-2xl ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                        : tipoAcessoAtual === TIPO_ACESSO.SAIDA
-                            ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                            : 'bg-slate-800 border-slate-700 text-slate-400'
-                        }`}>
-                        <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_12px_currentColor] ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
-                        {tipoAcessoAtual === TIPO_ACESSO.ENTRADA && 'MODO: ENTRADA'}
-                        {tipoAcessoAtual === TIPO_ACESSO.SAIDA && 'MODO: SAÍDA'}
-                        {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'MODO: LEITURA'}
-                    </div>
-
-                    <div className="text-right hidden sm:block border-l border-white/10 pl-6">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 italic">Logado como</p>
-                        <p className="text-xs font-black text-white leading-tight uppercase tracking-tight">{usuarioAtual?.email?.split('@')[0]}</p>
+                <div className="flex items-center gap-4">
+                    {/* Status de Conexão Integrado */}
+                    <div className="hidden sm:block">
+                        <StatusConexao />
                     </div>
                 </div>
             </header>
 
-            {/* Main Tablet Content Area - High Impact */}
-            <main className="flex-1 flex flex-col lg:flex-row relative p-8 gap-8 max-w-[1600px] mx-auto w-full overflow-hidden z-10">
-
-                {/* Industrial Imaging Sector */}
-                <CartaoConteudo className="flex-[5] flex flex-col items-center justify-center p-12 bg-slate-900/40 border-white/5 shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
-
-                    <div className="text-center space-y-3 mb-12">
-                        <h2 className="text-xs font-black text-indigo-400 uppercase tracking-[0.5em] flex items-center justify-center gap-3">
-                            <Radar size={18} className="animate-spin-slow" /> Pronto para ler
-                        </h2>
-                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter">Aproxime sua Carteirinha</h3>
-                    </div>
-
-                    {/* Heavy Duty Frame */}
-                    <div className="relative w-full max-w-2xl aspect-[16/10] bg-black rounded-2xl border border-white/10 overflow-hidden shadow-[0_0_150px_rgba(0,0,0,0.8)] flex items-center justify-center ring-1 ring-white/5 group-hover:ring-indigo-500/20 transition-all duration-700">
-
-                        {/* Camera Core */}
-                        <div id="quiosque-camera" className="w-full h-full object-cover scale-[1.05] grayscale opacity-70 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-1000"></div>
-
-                        {/* Scanner HUD Overlay */}
-                        <div className="absolute inset-10 border border-white/5 rounded-3xl pointer-events-none z-10 flex flex-col justify-between p-6 overflow-hidden">
-                            <div className="flex justify-between">
-                                <div className="w-10 h-10 border-t-4 border-l-4 border-white/20 rounded-tl-2xl"></div>
-                                <div className="w-10 h-10 border-t-4 border-r-4 border-white/20 rounded-tr-2xl"></div>
-                            </div>
-
-                            {/* Central Laser Line */}
-                            {confFila.animacoesAtivadas && statusLeitura === 'AGUARDANDO' && (
-                                <div className="w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_20px_#6366f1] animate-[varredura_2.5s_infinite]"></div>
-                            )}
-
-                            <div className="flex justify-between">
-                                <div className="w-10 h-10 border-b-4 border-l-4 border-white/20 rounded-bl-2xl"></div>
-                                <div className="w-10 h-10 border-b-4 border-r-4 border-white/20 rounded-br-2xl"></div>
-                            </div>
-                        </div>
-
-                        {/* Fullscreen Feedback Overlay with Backdrop Blur */}
-                        {statusLeitura !== 'AGUARDANDO' && (
-                            <div className={`absolute inset-0 flex flex-col items-center justify-center transition-all z-20 backdrop-blur-3xl 
-                                ${confFila.animacoesAtivadas ? 'duration-500 animate-in fade-in zoom-in-95' : 'duration-0'} 
-                                ${statusLeitura === 'SUCESSO' ? 'bg-emerald-600/90' : 'bg-rose-600/90'}
-                                `}>
-                                <div className="w-48 h-48 rounded-2xl bg-white flex items-center justify-center mb-10 shadow-2xl animate-bounce">
-                                    {statusLeitura === 'SUCESSO'
-                                        ? <ShieldCheck size={100} strokeWidth={2.5} className="text-emerald-600" />
-                                        : <UserX size={100} strokeWidth={2.5} className="text-rose-600" />
-                                    }
+            {/* Layout Principal - Foco em Funcionalidade */}
+            <main className="flex-1 flex flex-col lg:flex-row relative p-6 md:p-10 gap-8 lg:gap-12 max-w-[1600px] mx-auto w-full z-10">
+                
+                {/* Setor de Leitura Zen */}
+                <div className="flex-[5] flex flex-col items-center justify-center relative">
+                    {/* Moldura de Câmera Essencial */}
+                    <div className="relative w-full max-w-2xl aspect-[16/10] z-10">
+                        {/* Sombra de Profundidade */}
+                        <div className="absolute inset-10 bg-blue-600/20 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                        
+                        <div className="relative h-full bg-white rounded-[48px] p-5 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden transform transition-all duration-700 hover:scale-[1.02] hover:shadow-[0_60px_130px_-20px_rgba(0,0,0,0.18)]">
+                            <div className="absolute inset-5 rounded-[32px] overflow-hidden bg-slate-50 shadow-inner border border-slate-100/50">
+                                {/* Camera */}
+                                <div id="quiosque-camera" className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-1000"></div>
+                                
+                                {/* HUD Minimalista de Cantos */}
+                                <div className="absolute inset-10 pointer-events-none z-10">
+                                    <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-white/40 rounded-tl-3xl"></div>
+                                    <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-white/40 rounded-tr-3xl"></div>
+                                    <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-white/40 rounded-bl-3xl"></div>
+                                    <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-white/40 rounded-br-3xl"></div>
                                 </div>
-                                <h2 className="text-7xl font-black text-white uppercase tracking-tighter drop-shadow-2xl">
-                                    {statusLeitura === 'SUCESSO' ? 'Liberado' : 'Negado'}
-                                </h2>
-                                <p className="text-white font-black text-xl uppercase tracking-[0.3em] mt-6 bg-black/20 px-10 py-3 rounded-full border border-white/10">
-                                    {ultimoAcesso?.mensagem}
-                                </p>
+
+                                {/* Linha de Scan Estilizada */}
+                                {statusLeitura === 'AGUARDANDO' && (
+                                    <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-[scan_3s_ease-in-out_infinite] z-20"></div>
+                                )}
                             </div>
-                        )}
+
+                            {/* Moldura Colorida Diária (Sutil) */}
+                            <div className="absolute inset-0 border-[16px] rounded-[48px] pointer-events-none z-0 opacity-5" 
+                                 style={{ borderColor: corDoDia }}></div>
+
+                            {/* Feedback Fullscreen Refinado */}
+                            {statusLeitura !== 'AGUARDANDO' && (
+                                <div className={`absolute inset-0 flex flex-col items-center justify-center transition-all z-30 backdrop-blur-sm
+                                    ${confFila.animacoesAtivadas ? 'duration-500 animate-in fade-in zoom-in-105' : 'duration-0'} 
+                                    ${statusLeitura === 'SUCESSO' ? 'bg-emerald-600/90' : 'bg-rose-600/90'}
+                                    `}>
+                                    <div className="w-48 h-48 rounded-[40px] bg-white flex items-center justify-center mb-10 shadow-4xl animate-bounce">
+                                        {statusLeitura === 'SUCESSO'
+                                            ? <ShieldCheck size={120} strokeWidth={2.5} className="text-emerald-600" />
+                                            : <UserX size={120} strokeWidth={2.5} className="text-rose-600" />
+                                        }
+                                    </div>
+                                    <h2 className="text-7xl md:text-9xl font-black text-white uppercase tracking-tighter drop-shadow-2xl">
+                                        {statusLeitura === 'SUCESSO' ? 'OK' : 'OPS'}
+                                    </h2>
+                                    <p className="text-white font-black text-lg uppercase tracking-[0.5em] mt-10 bg-black/20 px-14 py-6 rounded-full border border-white/10 backdrop-blur-xl">
+                                        {ultimoAcesso?.mensagem}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
+                </div>
 
-                    <div className="mt-12 text-center opacity-40 uppercase tracking-[0.3em] font-black text-[10px] text-slate-500">
-                        O leitor está ativo. Aproxime seu QR Code para entrar ou sair.
-                    </div>
-                </CartaoConteudo>
 
-                {/* Real-time Event Sidebar */}
-                <CartaoConteudo className="w-full lg:w-[480px] p-10 flex flex-col bg-slate-900 border-white/10 shadow-2xl relative overflow-hidden group/side">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full"></div>
-
-                    <h3 className="text-xs font-black text-slate-400 flex items-center gap-3 pb-6 border-b border-white/5 mb-10 uppercase tracking-[0.2em] z-10 relative">
-                        <Zap size={20} className="text-amber-500 animate-pulse" />
-                        Último Acesso
-                    </h3>
-
-                    <div className="flex-1 overflow-y-auto custom-scrollbar z-10 relative">
-                        {ultimoAcesso ? (
-                            <div className="space-y-10 animate-in slide-in-from-right-10 duration-500">
-                                {ultimoAcesso.aluno && (
-                                    <div className="bg-white/5 rounded-2xl p-10 border border-white/10 text-center relative overflow-hidden backdrop-blur-3xl shadow-2xl group-hover/side:border-indigo-500/30 transition-all">
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
-                                        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6 text-white/30 border border-white/5">
-                                            <Fingerprint size={32} />
+                {/* Painel de Informação Lateral */}
+                <aside className="w-full lg:w-[420px] shrink-0">
+                    <div className="h-full bg-white rounded-[40px] border border-slate-200 p-10 flex flex-col shadow-sm relative overflow-hidden">
+                        
+                        <div className="flex-1 flex flex-col justify-center py-6">
+                            {ultimoAcesso?.aluno ? (
+                                <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-700">
+                                    <div className="text-center relative">
+                                        <div className="w-32 h-32 rounded-[40px] bg-slate-100 border-4 border-white flex items-center justify-center mx-auto mb-8 shadow-2xl overflow-hidden group">
+                                            <div className="w-full h-full bg-gradient-to-tr from-slate-200 to-slate-100 flex items-center justify-center">
+                                                <User size={64} className="text-slate-300 group-hover:scale-110 transition-transform" />
+                                            </div>
                                         </div>
-                                        <h2 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter leading-tight">
+                                        <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tighter px-4 leading-[0.9]">
                                             {ultimoAcesso.aluno.nome_completo}
                                         </h2>
-                                        <p className="text-[10px] font-mono font-black text-slate-500 mb-8 uppercase tracking-[0.3em] italic">
-                                            Matrícula: {ultimoAcesso.aluno.matricula}
+                                        <p className="text-[11px] font-black text-blue-500 uppercase tracking-[0.4em] mb-10">
+                                            Matrícula {ultimoAcesso.aluno.matricula}
                                         </p>
-
-                                        <div className="inline-flex items-center gap-3 bg-indigo-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black border border-indigo-400/50 shadow-xl shadow-indigo-900/40 uppercase tracking-widest leading-none">
-                                            <ShieldCheck size={18} strokeWidth={2.5} /> {ultimoAcesso.aluno.turma_id}
+                                        
+                                        <div className="bg-slate-900 text-white px-10 py-5 rounded-[24px] inline-flex items-center gap-4 shadow-3xl hover:translate-y-[-2px] transition-transform">
+                                            <ShieldCheck size={24} className="text-emerald-400" strokeWidth={3} />
+                                            <div className="text-left leading-none">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Turma Selecionada</p>
+                                                <p className="text-xl font-black uppercase tracking-tighter">{ultimoAcesso.aluno.turma_id}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
 
-                                <div className="space-y-4">
-                                    <div className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all shadow-xl ${statusLeitura === 'SUCESSO' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'}`}>
-                                        <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Resultado</span>
-                                        <div className="text-[10px] font-black flex items-center gap-3 uppercase tracking-widest whitespace-nowrap">
-                                            {statusLeitura === 'SUCESSO' ? <ShieldCheck size={20} strokeWidth={2.5} /> : <UserX size={20} strokeWidth={2.5} />}
-                                            {ultimoAcesso.mensagem}
+                                    <div className="grid grid-cols-2 gap-4 pt-10 border-t border-slate-50">
+                                        <div className="p-6 bg-slate-50 border border-slate-100 rounded-[28px] text-center">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Horário</p>
+                                            <p className="text-base font-black text-slate-700">{ultimoAcesso.hora}</p>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-md">
-                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Timestamp</span>
-                                        <div className="text-sm font-mono font-black text-slate-300 flex items-center gap-3">
-                                            <Clock size={18} className="text-slate-600" />
-                                            {ultimoAcesso.hora}
+                                        <div className={`p-6 border rounded-[28px] text-center ${statusLeitura === 'SUCESSO' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'}`}>
+                                            <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-2">Verificação</p>
+                                            <p className="text-xs font-black uppercase tracking-tighter">{statusLeitura === 'SUCESSO' ? 'Aprovado' : 'Falhou'}</p>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-8 opacity-20 group-hover/side:opacity-40 transition-opacity">
-                                <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-slate-700 flex items-center justify-center relative bg-slate-800/20">
-                                    <ScanLine size={48} className="animate-pulse" />
+                            ) : (
+                                <div className="text-center space-y-8 opacity-20">
+                                    <div className="w-40 h-40 border-4 border-dashed border-slate-200 rounded-[50px] mx-auto flex items-center justify-center">
+                                        <Fingerprint size={80} strokeWidth={1} className="text-slate-300" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black uppercase tracking-[0.6em] text-slate-500 mb-2 leading-none">Sincronizado</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase max-w-[200px] mx-auto">Aproxime o cartão para iniciar a identificação</p>
+                                    </div>
                                 </div>
-                                <p className="text-[10px] font-black text-center uppercase tracking-[0.5em] max-w-[200px] leading-loose">
-                                    AGUARDANDO LEITURA
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Operational Guardrails */}
-                    <div className="pt-8 border-t border-white/5 flex items-center justify-between z-10 relative">
-                        <div className="flex items-center gap-3">
-                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)] animate-pulse"></div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Sistema Online</span>
+                            )}
                         </div>
-                        <p className="text-[10px] font-mono font-black text-indigo-400/40 uppercase tracking-widest">
-                            {statusWorker.pendentes > 0 ? `SINCRONIZANDO: ${statusWorker.pendentes}` : 'SISTEMA OK'}
-                        </p>
-                    </div>
-                </CartaoConteudo>
-            </main>
 
+                    </div>
+                </aside>
+
+            </main>
+            {/* Estilos Globais HUD */}
             <style dangerouslySetInnerHTML={{
                 __html: `
-                @keyframes varredura {
-                    0% { top: 0% }
-                    50% { top: 100% }
-                    100% { top: 0% }
+                @keyframes scan {
+                    0% { top: 0%; opacity: 0; }
+                    50% { opacity: 1; }
+                    100% { top: 100%; opacity: 0; }
                 }
-                .animate-spin-slow {
-                    animation: spin 10s linear infinite;
+                .shadow-3xl {
+                    box-shadow: 0 40px 100px -20px rgba(0,0,0,0.15);
                 }
-                @keyframes spin {
-                    from { transform: rotate(0deg) }
-                    to { transform: rotate(360deg) }
+                .shadow-4xl {
+                    box-shadow: 0 60px 120px -20px rgba(0,0,0,0.25);
                 }
             ` }} />
         </div>
