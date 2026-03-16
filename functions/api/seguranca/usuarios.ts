@@ -2,6 +2,7 @@ import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroPermissao, ErroInterno } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../seguranca';
 import { esquemaUsuario } from './usuarios.esquemas';
+import { z } from 'zod';
 import { ServicoCache } from '../utilitarios/cache';
 
 async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response> {
@@ -45,7 +46,8 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
         const resultadoZod = esquemaUsuario.safeParse(corpo);
 
         if (!resultadoZod.success) {
-            throw new ErroValidacao('Dados do usuário inválidos', 'USER_VALIDACAO_001', { detalhes: resultadoZod.error.format() });
+            const erroMensagem = `Dados do usuário inválidos. Erros por campo: ${JSON.stringify(resultadoZod.error.flatten().fieldErrors)}`;
+            throw new ErroValidacao(erroMensagem, 'USER_VALIDACAO_001', { detalhes: resultadoZod.error.format() });
         }
 
         const { email, papel, ativo, nome_completo, criado_por, pendente, criado_em } = resultadoZod.data;
