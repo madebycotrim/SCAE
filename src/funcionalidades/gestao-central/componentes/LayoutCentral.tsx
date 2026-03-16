@@ -2,13 +2,9 @@ import { ReactNode } from 'react';
 import { ShieldAlert, Building2, LogOut } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
-import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
-import { mascararEmail } from '@/compartilhado/utils/formatar';
-import { User as UserIcon } from 'lucide-react';
 
 export function LayoutCentral({ children }: { children: ReactNode }) {
-    const { usuarioAtual, sair } = usarAutenticacao();
-    const { usuario } = usarPermissoes();
+    const { sair } = usarAutenticacao();
     const navigate = useNavigate();
 
     const logout = async () => {
@@ -37,22 +33,6 @@ export function LayoutCentral({ children }: { children: ReactNode }) {
                 </nav>
 
                 <div className="p-6 border-t border-slate-100 bg-slate-50/50 sticky bottom-0">
-                    <div className="bg-white rounded-2xl p-4 border border-slate-200/60 mb-5 shadow-sm">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 text-center">Operador Ativo</p>
-                        <div className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-slate-900 border border-slate-200 shadow-sm shrink-0">
-                                <UserIcon size={16} strokeWidth={2.5} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[11px] font-black text-slate-900 truncate uppercase tracking-tight">
-                                    {usuario?.nome_completo || usuarioAtual?.displayName || 'Operador'}
-                                </p>
-                                <p className="text-[9px] font-bold text-slate-400 truncate tracking-wider">
-                                    {mascararEmail(usuarioAtual?.email)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
                     <button
                         onClick={logout}
                         className="flex items-center justify-center gap-3 w-full py-3.5 text-slate-500 hover:bg-slate-900 hover:text-white rounded-xl transition-all duration-300 text-[11px] font-black uppercase tracking-[0.2em] border border-slate-200 hover:border-slate-900 active:scale-[0.97] outline-none group shadow-sm"
