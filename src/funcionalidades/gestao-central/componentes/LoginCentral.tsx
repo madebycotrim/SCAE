@@ -1,91 +1,98 @@
-﻿import { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, KeyRound, Loader2 } from 'lucide-react';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { ShieldAlert, Loader2, LogIn } from 'lucide-react';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 
 export default function LoginCentral() {
-    const [email, definirEmail] = useState('');
-    const [senha, definirSenha] = useState('');
     const [loading, definirLoading] = useState(false);
     const [erro, definirErro] = useState('');
 
     const navigate = useNavigate();
-    const { entrar } = usarAutenticacao();
+    const { entrar, usuarioAtual } = usarAutenticacao();
 
-    const lidarComLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (email.trim().toLowerCase() !== 'madebycotrim@gmail.com') {
-            definirErro('Acesso Classificado. Apenas o E-mail Mestre Root (Fabricante) pode autenticar-se na malha.');
-            return;
+    // Valida se o usuário está autenticado e se é o email correto
+    useEffect(() => {
+        if (usuarioAtual) {
+            if (usuarioAtual.email === 'madebycotrim@gmail.com') {
+                navigate('/central');
+            } else {
+                definirErro(`Acesso Negado. Email não autorizado: ${usuarioAtual.email}`);
+                definirLoading(false);
+            }
         }
+    }, [usuarioAtual, navigate]);
 
+    const lidarComLoginGoogle = async () => {
         definirLoading(true);
         definirErro('');
 
         try {
-            // Em ambiente real, garantimos via Claim que é root/central
-            await entrar({ login_hint: email });
-            navigate('/central/painel');
+            await entrar({ login_hint: 'madebycotrim@gmail.com' });
+            // O useEffect acima validará o email e redirecionará
         } catch (err: any) {
-            definirErro('Acesso negado. Credenciais inválidas ou sem permissão Central.');
-        } finally {
             definirLoading(false);
+            definirErro('Erro ao entrar com Google. Tente novamente.');
+            console.error('Erro de autenticação:', err);
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-            <div className="max-w-md w-full">
-                <div className="text-center mb-10">
-                    <ShieldAlert className="text-indigo-500 mx-auto mb-4" size={40} />
-                    <h1 className="text-2xl font-semibold text-white tracking-tight">SCAE Server</h1>
-                    <p className="text-slate-400 mt-2 text-sm">Painel Central de Administração</p>
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Background grid sutil */}
+            <div className="absolute inset-0 opacity-5" style={{
+                backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+                backgroundSize: '50px 50px'
+            }}></div>
+
+            {/* Orb de luz sutil */}
+            <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-slate-700/10 rounded-full blur-3xl"></div>
+
+            <div className="max-w-md w-full relative z-10">
+                {/* Header */}
+                <div className="text-center mb-12">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-800/50 border border-slate-700/80 mb-6">
+                        <ShieldAlert className="text-slate-400" size={32} />
+                    </div>
+                    <h1 className="text-3xl font-bold text-slate-100 tracking-tight">SCAE</h1>
+                    <p className="text-slate-400 mt-2 text-sm font-medium">Central de Administração</p>
+                    <div className="flex items-center justify-center gap-2 mt-4">
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
+                        <p className="text-slate-600 text-xs font-mono">Sistema Restrito</p>
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
+                    </div>
                 </div>
 
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 shadow-lg">
-                    <form onSubmit={lidarComLogin} className="space-y-5">
-                        {erro && (
-                            <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-400 text-sm text-center">
-                                {erro}
-                            </div>
+                {/* Card */}
+                <div className="bg-slate-800/60 border border-slate-800/80 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+                    {erro && (
+                        <div className="p-4 bg-slate-800/40 border border-slate-700/80 rounded-xl text-slate-300 text-sm text-center mb-6">
+                            <p className="font-medium">{erro}</p>
+                        </div>
+                    )}
+
+                    {/* Google Sign In Button */}
+                    <button
+                        onClick={lidarComLoginGoogle}
+                        disabled={loading}
+                        className="w-full bg-slate-800 hover:bg-slate-700 disabled:bg-slate-700 text-slate-100 font-medium py-3 rounded-xl transition-all flex justify-center items-center gap-3 text-sm border border-slate-700/80 hover:border-slate-700/80"
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className="animate-spin" size={18} />
+                                <span>Autenticando...</span>
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                <span>Entrar com Google</span>
+                            </>
                         )}
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5">E-mail do Administrador</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => definirEmail(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
-                                placeholder="root@scae.com"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5">Senha Mestra</label>
-                            <div className="relative">
-                                <input
-                                    type="password"
-                                    value={senha}
-                                    onChange={(e) => definirSenha(e.target.value)}
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-4 pr-10 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
-                                    placeholder="••••••••"
-                                    required
-                                />
-                                <KeyRound className="absolute right-3 top-3.5 text-slate-500" size={16} />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors flex justify-center items-center mt-6 text-sm"
-                        >
-                            {loading ? <Loader2 className="animate-spin" size={18} /> : 'Acessar Central'}
-                        </button>
-                    </form>
+                    </button>
                 </div>
             </div>
         </div>

@@ -6,25 +6,25 @@ interface FeedbackAcesso {
     mensagem: string;
     hora: string;
 }
-import { usarEscola } from '@escola/ProvedorEscola';
-import { usarInstalacaoPWA } from '@compartilhado/hooks/usarInstalacaoPWA';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { usarEscola } from '@/escola/ProvedorEscola';
+import { usarInstalacaoPWA } from '@/compartilhado/hooks/usarInstalacaoPWA';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { usarTipoAcesso } from '../hooks/usarTipoAcesso';
 import { usarModoFila } from '../hooks/usarModoFila';
 import { usarLeitorQR } from '../hooks/usarLeitorQR';
 import { usarControleAcessoWorker } from '../hooks/usarControleAcessoWorker';
-import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
+import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import { ajustarTimestampLocal } from '../servicos/clockDrift.service';
 import { obterChavePublica, verificarAssinaturaECDSA } from '../utils/validarQR';
 import { anunciarNome } from '../utils/anunciarNome';
 import { buscarAlunoEmCache, alunoEstaRevogado } from '../servicos/cacheMemoria';
-import { Registrador, ACOES_AUDITORIA } from '@compartilhado/servicos/auditoria';
+import { Registrador, ACOES_AUDITORIA } from '@/compartilhado/servicos/auditoria';
 import { TIPO_ACESSO, TipoAcesso } from '../types/controleAcesso.tipos';
 import { StatusConexao } from './StatusConexao';
 import { format } from 'date-fns';
 import { ShieldCheck, UserX, ScanLine, Zap, Clock, Radar, Fingerprint, Download, Smartphone } from 'lucide-react';
-import { CartaoConteudo } from '@compartilhado/componentes/UI';
+import { CartaoConteudo } from '@/compartilhado/componentes/UI';
 
 const log = criarRegistrador('ControleAcesso:Quiosque');
 

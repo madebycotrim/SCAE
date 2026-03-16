@@ -1,7 +1,7 @@
 ﻿import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Aluno } from '../tipos/academico';
-import { mascararDadoPessoal } from '@compartilhado/utils/registrarLocal';
-import { CartaoConteudo } from '@compartilhado/componentes/UI';
+import { mascararDadoPessoal } from '@/compartilhado/utils/registrarLocal';
+import { CartaoConteudo } from '@/compartilhado/componentes/UI';
 
 interface ListaAlunosProps {
     alunos: Aluno[];

@@ -1,6 +1,6 @@
 ﻿import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import toast from 'react-hot-toast';
 
 const log = criarRegistrador('Notificacoes');

@@ -1,10 +1,10 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
-import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { api } from '@compartilhado/servicos/api';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
+import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { api } from '@/compartilhado/servicos/api';
 import {
     Users,
     Search,
@@ -24,12 +24,12 @@ import {
     GraduationCap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('Turmas');
-import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
-import { Registrador } from '@compartilhado/servicos/auditoria';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { Registrador } from '@/compartilhado/servicos/auditoria';
+import { usarEscola } from '@/escola/ProvedorEscola';
 
 import FormTurmaModal from './FormTurmaModal';
 import { turmaServico } from '../servicos/turma.servico';

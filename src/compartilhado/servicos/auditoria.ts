@@ -1,7 +1,7 @@
 ﻿import { bancoLocal } from './bancoLocal';
 import { api } from './api';
-import { autenticacao } from '@compartilhado/servicos/firebase.config';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { autenticacao } from '@/compartilhado/servicos/firebase.config';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const registradorInterno = criarRegistrador('Auditoria');
 
@@ -156,7 +156,7 @@ export async function registrarAuditoria({
 /**
  * Busca logs de auditoria com filtros.
  */
-export async function buscarLogs(filtros: Partial<import('@compartilhado/types/bancoLocal.tipos').FiltrosAuditoria> = {}) {
+export async function buscarLogs(filtros: Partial<import('@/compartilhado/types/bancoLocal.tipos').FiltrosAuditoria> = {}) {
     try {
         const banco = await bancoLocal.iniciarBanco();
         let logs = await banco.getAll('logs_auditoria');

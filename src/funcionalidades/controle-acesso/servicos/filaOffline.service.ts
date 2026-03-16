@@ -1,5 +1,5 @@
-﻿import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+﻿import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { ajustarTimestampLocal } from './clockDrift.service';
 
 const log = criarRegistrador('FilaOffline');

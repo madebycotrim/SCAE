@@ -1,8 +1,8 @@
-﻿import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
+﻿import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { RegrasHorariosApi } from '../servicos/regrasAcessoApi';
 import type { JanelaHorarioAcesso, ConfiguracaoHorarios } from '../types/regrasHorarios.tipos';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 

@@ -1,4 +1,4 @@
-﻿import { api } from '@compartilhado/servicos/api';
+﻿import { api } from '@/compartilhado/servicos/api';
 import {
     RespostaResponsavel,
     RespostaListaResponsaveis,

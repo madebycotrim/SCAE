@@ -1,6 +1,6 @@
 ﻿import { useEffect, useRef } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('ControleAcesso:LeitorQR');
 

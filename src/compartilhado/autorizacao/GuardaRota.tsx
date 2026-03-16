@@ -4,7 +4,7 @@
  */
 import { ReactNode } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from './ContextoPermissoes';
 
 export interface GuardaRotaProps {

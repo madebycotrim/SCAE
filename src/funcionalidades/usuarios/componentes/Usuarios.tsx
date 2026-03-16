@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
-import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
+import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import {
     Users,
     Search,
@@ -19,12 +19,12 @@ import {
     UserCircle2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
-import { Registrador } from '@compartilhado/servicos/auditoria';
-import type { UsuarioLocal } from '@compartilhado/types/bancoLocal.tipos';
-import { api } from '@compartilhado/servicos/api';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { Registrador } from '@/compartilhado/servicos/auditoria';
+import type { UsuarioLocal } from '@/compartilhado/types/bancoLocal.tipos';
+import { api } from '@/compartilhado/servicos/api';
 import { usuarioServico } from '../servicos/usuario.servico';
 
 const log = criarRegistrador('Usuarios');

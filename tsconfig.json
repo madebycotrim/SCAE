@@ -26,7 +26,12 @@
         /* Path aliases (espelho do vite.config.js) */
         "baseUrl": ".",
         "paths": {
-            "@/*": ["src/*"]
+            "@/*": ["src/*"],
+            "@tenant/*": ["src/tenant/*"],
+            "@funcionalidades/*": ["src/funcionalidades/*"],
+            "@compartilhado/*": ["src/compartilhado/*"],
+            "@configuracoes/*": ["src/configuracoes/*"],
+            "@principal/*": ["src/principal/*"]
         }
     },
     "include": [

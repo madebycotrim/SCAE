@@ -1,8 +1,8 @@
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { api } from '@compartilhado/servicos/api';
-import { Registrador } from '@compartilhado/servicos/auditoria';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import type { UsuarioLocal } from '@compartilhado/types/bancoLocal.tipos';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { api } from '@/compartilhado/servicos/api';
+import { Registrador } from '@/compartilhado/servicos/auditoria';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import type { UsuarioLocal } from '@/compartilhado/types/bancoLocal.tipos';
 
 const log = criarRegistrador('UsuarioServico');
 

@@ -1,7 +1,7 @@
 ﻿/// <reference lib="webworker" />
 
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import type { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import type { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 
 const API_URL = import.meta.env?.VITE_API_URL || '/api'; // fallback Vite
 

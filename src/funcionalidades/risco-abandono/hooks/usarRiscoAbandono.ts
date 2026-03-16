@@ -1,10 +1,10 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
 import { riscoAbandonoServico } from '../servicos/riscoAbandono.servico';
 import { AlertaRiscoAbandono, StatusRiscoAbandono } from '../types/riscoAbandono.tipos';
-import { Registrador } from '@compartilhado/servicos/auditoria';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { Registrador } from '@/compartilhado/servicos/auditoria';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import { usarNotificacoes } from '@/compartilhado/contextos/ContextoNotificacoes';
+import { usarEscola } from '@/escola/ProvedorEscola';
 
 const log = criarRegistrador('RiscoAbandono');
 

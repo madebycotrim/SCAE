@@ -5,9 +5,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { responsavelServico } from '../servicos/responsavelServico';
-import { usarEscola } from '@escola/ProvedorEscola';
-import { usarInstalacaoPWA } from '@compartilhado/hooks/usarInstalacaoPWA';
-import { usarNotificacoesFCM } from '@compartilhado/hooks/usarNotificacoesFCM';
+import { usarEscola } from '@/escola/ProvedorEscola';
+import { usarInstalacaoPWA } from '@/compartilhado/hooks/usarInstalacaoPWA';
+import { usarNotificacoesFCM } from '@/compartilhado/hooks/usarNotificacoesFCM';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {

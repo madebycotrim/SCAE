@@ -1,8 +1,8 @@
-﻿import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { api } from '@compartilhado/servicos/api';
-import { Registrador } from '@compartilhado/servicos/auditoria';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
+﻿import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { api } from '@/compartilhado/servicos/api';
+import { Registrador } from '@/compartilhado/servicos/auditoria';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import { Aluno, ResultadoImportacao, FiltrosAluno } from '../tipos/academico';
 import toast from 'react-hot-toast';
 

@@ -1,9 +1,9 @@
 ﻿import { useState } from 'react';
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
-import { SelectComBusca } from '@compartilhado/componentes/SelectComBusca';
+import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
+import { SelectComBusca } from '@/compartilhado/componentes/SelectComBusca';
 import { CheckCircle, Users, ArrowRight, GraduationCap } from 'lucide-react';
 import { TurmaLocal } from '../tipos/academico';
-import { Botao } from '@compartilhado/componentes/UI';
+import { Botao } from '@/compartilhado/componentes/UI';
 
 interface PromocaoLoteModalProps {
     quantidade: number;

@@ -1,9 +1,9 @@
 ﻿import { useEffect, useRef, useState, useCallback } from 'react';
 import ControleAcessoWorker from '../servicos/controleAcesso.worker?worker';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { usarEscola } from '@escola/ProvedorEscola';
-import { autenticacao } from '@compartilhado/servicos/firebase.config';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { usarEscola } from '@/escola/ProvedorEscola';
+import { autenticacao } from '@/compartilhado/servicos/firebase.config';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('ControleAcessoWorker');
 

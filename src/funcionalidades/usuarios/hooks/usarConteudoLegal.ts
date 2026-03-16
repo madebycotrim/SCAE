@@ -1,5 +1,5 @@
-﻿import { usarEscolaOpcional } from '@escola/ProvedorEscola';
-import { AMBIENTE } from '@configuracoes/ambiente';
+﻿import { usarEscolaOpcional } from '@/escola/ProvedorEscola';
+import { AMBIENTE } from '@/configuracoes/ambiente';
 
 interface BaseLegal {
     titulo: string;

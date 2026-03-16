@@ -1,6 +1,6 @@
 import { QRCodeCanvas } from 'qrcode.react';
 import { Aluno } from '../tipos/academico';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { usarEscola } from '@/escola/ProvedorEscola';
 
 interface ImpressaoCredenciaisLoteProps {
     alunos: Aluno[];

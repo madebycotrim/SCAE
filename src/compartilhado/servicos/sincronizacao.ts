@@ -1,8 +1,8 @@
 // TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 import { api } from './api';
 import { bancoLocal } from './bancoLocal';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import type { AlunoLocal, RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import type { AlunoLocal, RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 
 const log = criarRegistrador('Sync');
 

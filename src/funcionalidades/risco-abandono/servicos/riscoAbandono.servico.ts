@@ -1,8 +1,8 @@
-﻿import { api } from '@compartilhado/servicos/api';
+﻿import { api } from '@/compartilhado/servicos/api';
 import { AlertaRiscoAbandono, StatusRiscoAbandono } from '../types/riscoAbandono.tipos';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import type { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import type { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const registrar = criarRegistrador('ServicoRiscoAbandono');
 

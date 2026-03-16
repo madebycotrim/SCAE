@@ -1,10 +1,10 @@
 ﻿import { useState, useRef, useEffect, useMemo } from 'react';
-import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
-import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { Registrador } from '@compartilhado/servicos/auditoria';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
+import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { Registrador } from '@/compartilhado/servicos/auditoria';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
 
 import {
     Download,

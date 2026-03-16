@@ -4,7 +4,7 @@
  * Redireciona para login da escola com slug.
  */
 import { Outlet, Navigate, useParams } from 'react-router-dom';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 
 export default function GuardaQuiosque({ children }: { children?: React.ReactNode }) {
     const { usuarioAtual } = usarAutenticacao();

@@ -1,13 +1,13 @@
 // TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
-import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
-import { usarBuscaGlobal } from '@compartilhado/hooks/usarBuscaGlobal';
-import { usarEscola } from '@escola/ProvedorEscola';
-import { usarInstalacaoPWA } from '@compartilhado/hooks/usarInstalacaoPWA';
-import { mascararEmail } from '@compartilhado/utils/formatar';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { usarNotificacoes } from '@/compartilhado/contextos/ContextoNotificacoes';
+import { usarBuscaGlobal } from '@/compartilhado/hooks/usarBuscaGlobal';
+import { usarEscola } from '@/escola/ProvedorEscola';
+import { usarInstalacaoPWA } from '@/compartilhado/hooks/usarInstalacaoPWA';
+import { mascararEmail } from '@/compartilhado/utils/formatar';
 import {
     LayoutDashboard,
     Users,
@@ -34,9 +34,9 @@ import {
     Smartphone,
     Download
 } from 'lucide-react';
-import { servicoSincronizacao } from '@compartilhado/servicos/sincronizacao';
+import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('Layout');
 
@@ -154,7 +154,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     const confirmarAcesso = async () => {
         if (!usuario) return;
         try {
-            const banco = await import('@compartilhado/servicos/bancoLocal').then(m => m.bancoLocal.iniciarBanco());
+            const banco = await import('@/compartilhado/servicos/bancoLocal').then(m => m.bancoLocal.iniciarBanco());
             const usuarioAtualizado = { ...usuario, pendente: false, ativo: true };
             await banco.put('usuarios', usuarioAtualizado);
             // Force reload logic or context update could be better, but a reload is safe for ensuring state
@@ -174,7 +174,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         <Lock size={40} className="text-rose-500" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 mb-2">Conta Desativada</h2>
-                    <p className="text-slate-500 mb-8 leading-relaxed">
+                    <p className="text-slate-400 mb-8 leading-relaxed">
                         Seu acesso ao sistema foi suspenso. Se você acredita que isso é um erro, entre em contato com a administração.
                     </p>
 
@@ -197,7 +197,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         <Crown size={40} className="text-escola" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 mb-2">Bem-vindo(a) ao SCAE!</h2>
-                    <p className="text-slate-500 mb-8 leading-relaxed">
+                    <p className="text-slate-400 mb-8 leading-relaxed">
                         Você recebeu acesso de <span className="font-bold text-escola">{usuario.papel}</span>.
                         Para continuar, confirme seus dados e aceite o convite para utilizar o sistema.
                     </p>
@@ -256,7 +256,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                 <h1 className="font-black text-white leading-tight uppercase tracking-widest">
                                     SCAE
                                 </h1>
-                                <p className="text-[12px] text-slate-500 font-bold truncate max-w-[160px] uppercase tracking-tighter">{nomeEscola}</p>
+                                <p className="text-[12px] text-slate-400 font-bold truncate max-w-[160px] uppercase tracking-tighter">{nomeEscola}</p>
                             </div>
                         )}
                     </div>
@@ -267,7 +267,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         className={`
                             absolute -right-3 top-1/2 -translate-y-1/2 
                             w-6 h-6 bg-slate-950 border border-slate-800 rounded-full 
-                            flex items-center justify-center text-slate-500 hover:text-white hover:bg-slate-800
+                            flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800
                             z-50 hidden lg:flex transition-colors
                         `}
                     >
@@ -287,7 +287,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             {gruposMenu.map((grupo, idx) => (
                                 <div key={idx} className="space-y-1">
                                     {!sidebarMinimizado && (
-                                        <p className="pl-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 mt-6 first:mt-0 leading-none">
+                                        <p className="pl-3 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 mt-6 first:mt-0 leading-none">
                                             {grupo.titulo}
                                         </p>
                                     )}
@@ -312,7 +312,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                     >
                                                         <Icone
                                                             size={16}
-                                                            className={ativo ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300 transition-colors'}
+                                                            className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
                                                         />
 
                                                         {!sidebarMinimizado && (
@@ -335,7 +335,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         <div>
                             {!sidebarMinimizado && (
                                 <div className="mt-6 mb-2">
-                                    <p className="pl-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none mb-3">
+                                    <p className="pl-3 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-3">
                                         Administração
                                     </p>
                                 </div>
@@ -362,7 +362,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                         >
                                             <Icone
                                                 size={16}
-                                                className={ativo ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300 transition-colors'}
+                                                className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
                                             />
                                             {!sidebarMinimizado && (
                                                 <span className="text-sm">
@@ -414,7 +414,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                     <p className="text-[12px] font-black text-white truncate uppercase tracking-tight">
                                         {usuario?.nome_completo || usuarioAtual?.displayName || 'Usuário'}
                                     </p>
-                                    <p className="text-[10.5px] text-slate-500 truncate font-bold tracking-tighter" title={usuarioAtual?.email}>
+                                    <p className="text-[10.5px] text-slate-400 truncate font-bold tracking-tighter" title={usuarioAtual?.email}>
                                         {mascararEmail(usuarioAtual?.email)}
                                     </p>
                                 </div>
@@ -492,7 +492,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                 const corCategoria =
                                                     res.categoria === 'acao' ? 'bg-amber-100 text-amber-600' :
                                                         res.categoria === 'dado' ? 'bg-indigo-100 text-indigo-600' :
-                                                            'bg-slate-100 text-slate-500';
+                                                            'bg-slate-100 text-slate-400';
 
                                                 const labelCategoria =
                                                     res.categoria === 'acao' ? 'Ação' :
@@ -609,7 +609,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                                             {new Date(notificacao.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                         </span>
                                                                     </div>
-                                                                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                                                    <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                                                                         {notificacao.mensagem}
                                                                     </p>
                                                                 </div>

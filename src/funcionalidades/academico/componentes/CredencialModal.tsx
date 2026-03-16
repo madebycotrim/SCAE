@@ -1,9 +1,9 @@
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
+import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { QrCode, Printer, Download, User } from 'lucide-react';
-import { Botao } from '@compartilhado/componentes/UI';
+import { Botao } from '@/compartilhado/componentes/UI';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Aluno } from '../tipos/academico';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { usarEscola } from '@/escola/ProvedorEscola';
 
 interface CredencialModalProps {
     aluno: Aluno;

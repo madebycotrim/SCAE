@@ -1,9 +1,9 @@
-﻿import { usarConsulta } from '@compartilhado/hooks/usarConsulta';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { Botao, CartaoConteudo } from '@compartilhado/componentes/UI';
-import { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
+﻿import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { Botao, CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 import {
     TrendingUp,
     ArrowUpRight,

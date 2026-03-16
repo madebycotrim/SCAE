@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 
 export interface RegistroLeitura {
     tipo: 'SUCESSO' | 'ERRO';
-    aluno?: import('@compartilhado/types/bancoLocal.tipos').AlunoLocal | null;
+    aluno?: import('@/compartilhado/types/bancoLocal.tipos').AlunoLocal | null;
     mensagem: string;
     hora: string;
 }

@@ -3,9 +3,9 @@
  *
  * @module RegrasHorarios/servicos/RegrasHorariosApi
  */
-import { api } from '@compartilhado/servicos/api';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { api } from '@/compartilhado/servicos/api';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('RegrasHorariosApi');
 

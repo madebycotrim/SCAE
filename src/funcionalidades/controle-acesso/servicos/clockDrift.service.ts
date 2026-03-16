@@ -4,7 +4,7 @@
  * É OBRIGATÓRIO tratar os desvios de horário ocorridos durante offline para
  * validade jurídica da porta de entrada e retenção LGPD.
  */
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('ClockDrift');
 

@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { Botao, CartaoConteudo } from '@compartilhado/componentes/UI';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { Botao, CartaoConteudo } from '@/compartilhado/componentes/UI';
 import {
     Maximize2,
     ArrowLeft,
@@ -18,11 +18,11 @@ import {
 } from 'lucide-react';
 
 import { format } from 'date-fns';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarTipoAcesso } from '../hooks/usarTipoAcesso';
 import { usarControleAcessoWorker } from '../hooks/usarControleAcessoWorker';
 import { TIPO_ACESSO } from '../types/controleAcesso.tipos';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { FeedbackLeitura, RegistroLeitura } from './FeedbackLeitura';
 
 const log = criarRegistrador('ControleAcesso');

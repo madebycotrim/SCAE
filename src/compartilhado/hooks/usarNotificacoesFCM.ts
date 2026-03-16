@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getToken } from 'firebase/messaging';
 import { messaging } from '../servicos/firebase.config';
-import { responsavelServico } from '@funcionalidades/academico/servicos/responsavelServico';
+import { responsavelServico } from '@/funcionalidades/academico/servicos/responsavelServico';
 import toast from 'react-hot-toast';
 
 /**

@@ -1,5 +1,5 @@
 ﻿export type PapelUsuario = 'CENTRAL' | 'ADMIN' | 'COORDENACAO' | 'SECRETARIA' | 'PORTEIRO' | 'VISUALIZACAO';
-import type { ConfiguracaoHorarios } from '@funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
+import type { ConfiguracaoHorarios } from '@/funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
 
 export interface AlunoLocal {
     matricula: string;

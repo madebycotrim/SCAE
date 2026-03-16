@@ -53,7 +53,7 @@ import {
     PaginaUsuariosCentral,
     PaginaAuditoriaCentral,
     LayoutCentral
-} from '@configuracoes/rotas';
+} from '@/configuracoes/rotas';
 
 // Serviço de sincronização
 import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
@@ -117,37 +117,42 @@ function EscolaShell() {
     );
 }
 
-/**
- * Shell da Gestão Central — Não depende de Escola/escola específico.
- */
-const CentralShell = () => (
-    <ProvedorAutenticacao>
-        <ProvedorPermissoes>
-            <Suspense fallback={<CarregandoPagina />}>
-                <Outlet />
-            </Suspense>
-        </ProvedorPermissoes>
-    </ProvedorAutenticacao>
-);
-
 function App() {
     return (
         <Router>
             <QueryClientProvider client={clienteConsulta}>
                 <Routes>
                     {/* ═══ MÓDULO ROOT - GESTÃO CENTRAL ═══ */}
-                    <Route path="/central/login" element={<PaginaLoginCentral />} />
-                    <Route path="/central" element={
-                        <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
-                            <LayoutCentral>
-                                <CentralShell />
-                            </LayoutCentral>
-                        </GuardaRota>
-                    }>
-                        <Route index element={<PaginaPainelCentral />} />
-                        <Route path="escolas" element={<PaginaGestaoEscolas />} />
-                        <Route path="usuarios" element={<PaginaUsuariosCentral />} />
-                        <Route path="auditoria" element={<PaginaAuditoriaCentral />} />
+                    <Route path="/central" element={<ProvedorAutenticacao><ProvedorPermissoes><Suspense fallback={<CarregandoPagina />}><Outlet /></Suspense></ProvedorPermissoes></ProvedorAutenticacao>}>
+                        <Route path="login" element={<PaginaLoginCentral />} />
+                        <Route index element={
+                            <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
+                                <LayoutCentral>
+                                    <PaginaPainelCentral />
+                                </LayoutCentral>
+                            </GuardaRota>
+                        } />
+                        <Route path="escolas" element={
+                            <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
+                                <LayoutCentral>
+                                    <PaginaGestaoEscolas />
+                                </LayoutCentral>
+                            </GuardaRota>
+                        } />
+                        <Route path="usuarios" element={
+                            <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
+                                <LayoutCentral>
+                                    <PaginaUsuariosCentral />
+                                </LayoutCentral>
+                            </GuardaRota>
+                        } />
+                        <Route path="auditoria" element={
+                            <GuardaRota papeis={['CENTRAL']} desabilitarEscolaCheck={true}>
+                                <LayoutCentral>
+                                    <PaginaAuditoriaCentral />
+                                </LayoutCentral>
+                            </GuardaRota>
+                        } />
                     </Route>
 
                     {/* ═══ Todas as rotas da escola ficam sob /:slugEscola ═══ */}

@@ -1,7 +1,7 @@
 ﻿/**
  * Serviço que encapsula a chamada desprotegida da Cloudflare API para o Login Temporário do Responsável
  */
-import { api } from '@compartilhado/servicos/api'; // reaproveitamos o proxy padrao
+import { api } from '@/compartilhado/servicos/api'; // reaproveitamos o proxy padrao
 
 const RESPONSAVEL_API_URL = '/responsavel';
 

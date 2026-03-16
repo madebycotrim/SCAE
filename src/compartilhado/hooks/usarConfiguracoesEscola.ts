@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ConfiguracoesServico } from '@compartilhado/servicos/configuracoes.servico';
+import { ConfiguracoesServico } from '@/compartilhado/servicos/configuracoes.servico';
 import toast from 'react-hot-toast';
 
 export function usarConfiguracoesEscola() {

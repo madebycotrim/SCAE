@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
+import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { BookOpen, Users, GraduationCap, ChevronRight, CheckCircle, MapPin, Calendar, Clock, Hash, ArrowLeft } from 'lucide-react';
-import { Botao } from '@compartilhado/componentes/UI';
+import { Botao } from '@/compartilhado/componentes/UI';
 
 interface FormTurmaModalProps {
     turma?: any | null;

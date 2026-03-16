@@ -1,8 +1,8 @@
 ﻿import { useState, useEffect } from 'react';
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
+import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { Users, Shield, UserCheck, Plus, Lock, Mail, GraduationCap } from 'lucide-react';
-import { Botao } from '@compartilhado/componentes/UI';
-import { mascararDadoPessoal } from '@compartilhado/utils/registrarLocal';
+import { Botao } from '@/compartilhado/componentes/UI';
+import { mascararDadoPessoal } from '@/compartilhado/utils/registrarLocal';
 
 interface FormUsuarioModalProps {
     usuario?: any | null;

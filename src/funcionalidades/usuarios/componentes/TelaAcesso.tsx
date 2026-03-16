@@ -1,11 +1,11 @@
 ﻿import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { usarEscola } from '@/escola/ProvedorEscola';
 import { ShieldCheck, Lock, QrCode, ScanLine, Fingerprint, Check, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Registrador } from '@compartilhado/servicos/auditoria';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { Registrador } from '@/compartilhado/servicos/auditoria';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('Login');
 

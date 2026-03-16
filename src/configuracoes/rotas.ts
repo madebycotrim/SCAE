@@ -10,34 +10,34 @@
 import { lazy } from 'react';
 
 // --- Lazy loading de todas as páginas ---
-export const PaginaLogin = lazy(() => import('@funcionalidades/usuarios/componentes/TelaAcesso'));
-export const PaginaPainel = lazy(() => import('@funcionalidades/dashboard/componentes/Painel'));
-export const PaginaAlunos = lazy(() => import('@funcionalidades/academico/componentes/Alunos'));
-export const PaginaTurmas = lazy(() => import('@funcionalidades/academico/componentes/Turmas'));
-export const PaginaTerminalAcesso = lazy(() => import('@funcionalidades/controle-acesso/componentes/TerminalAcesso'));
-export const PaginaQuiosqueAutoatendimento = lazy(() => import('@funcionalidades/controle-acesso/componentes/QuiosqueAutoatendimento'));
-export const PaginaRelatorios = lazy(() => import('@funcionalidades/relatorios/componentes/Relatorios'));
-export const PaginaAuditoria = lazy(() => import('@funcionalidades/auditoria/componentes/RegistroAuditoria'));
-export const PaginaUsuarios = lazy(() => import('@funcionalidades/usuarios/componentes/Usuarios'));
-export const PaginaConfiguracaoHorarios = lazy(() => import('@funcionalidades/configuracao-horarios/componentes/FormHorariosAcesso'));
-export const PaginaRiscoAbandono = lazy(() => import('@funcionalidades/risco-abandono/componentes/PainelRiscoAbandono'));
-export const PaginaCartaoDigital = lazy(() => import('@funcionalidades/academico/componentes/CartaoDigital'));
-import PaginaLoginResponsavelComp from '@funcionalidades/academico/componentes/TelaLoginResponsavel';
-import PaginaPainelResponsavelComp from '@funcionalidades/academico/componentes/PainelResponsavel';
+export const PaginaLogin = lazy(() => import('@/funcionalidades/usuarios/componentes/TelaAcesso'));
+export const PaginaPainel = lazy(() => import('@/funcionalidades/dashboard/componentes/Painel'));
+export const PaginaAlunos = lazy(() => import('@/funcionalidades/academico/componentes/Alunos'));
+export const PaginaTurmas = lazy(() => import('@/funcionalidades/academico/componentes/Turmas'));
+export const PaginaTerminalAcesso = lazy(() => import('@/funcionalidades/controle-acesso/componentes/TerminalAcesso'));
+export const PaginaQuiosqueAutoatendimento = lazy(() => import('@/funcionalidades/controle-acesso/componentes/QuiosqueAutoatendimento'));
+export const PaginaRelatorios = lazy(() => import('@/funcionalidades/relatorios/componentes/Relatorios'));
+export const PaginaAuditoria = lazy(() => import('@/funcionalidades/auditoria/componentes/RegistroAuditoria'));
+export const PaginaUsuarios = lazy(() => import('@/funcionalidades/usuarios/componentes/Usuarios'));
+export const PaginaConfiguracaoHorarios = lazy(() => import('@/funcionalidades/configuracao-horarios/componentes/FormHorariosAcesso'));
+export const PaginaRiscoAbandono = lazy(() => import('@/funcionalidades/risco-abandono/componentes/PainelRiscoAbandono'));
+export const PaginaCartaoDigital = lazy(() => import('@/funcionalidades/academico/componentes/CartaoDigital'));
+import PaginaLoginResponsavelComp from '@/funcionalidades/academico/componentes/TelaLoginResponsavel';
+import PaginaPainelResponsavelComp from '@/funcionalidades/academico/componentes/PainelResponsavel';
 
 export const PaginaLoginResponsavel = PaginaLoginResponsavelComp;
 export const PaginaPainelResponsavel = PaginaPainelResponsavelComp;
-export const PaginaTermosUso = lazy(() => import('@compartilhado/paginas/TermosUso'));
-export const PaginaPoliticaPrivacidade = lazy(() => import('@compartilhado/paginas/PoliticaPrivacidade'));
-export const PaginaInicial = lazy(() => import('@principal/PaginaInicial'));
+export const PaginaTermosUso = lazy(() => import('@/compartilhado/paginas/TermosUso'));
+export const PaginaPoliticaPrivacidade = lazy(() => import('@/compartilhado/paginas/PoliticaPrivacidade'));
+export const PaginaInicial = lazy(() => import('@/principal/PaginaInicial'));
 
 // --- Gestão Central ---
-export const PaginaLoginCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/LoginCentral'));
-export const PaginaPainelCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/PainelCentral'));
-export const PaginaGestaoEscolas = lazy(() => import('@funcionalidades/gestao-central/componentes/PaginaGestaoEscolas').then(m => ({ default: m.PaginaGestaoEscolas })));
-export const PaginaUsuariosCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/PaginaUsuariosCentral').then(m => ({ default: m.PaginaUsuariosCentral })));
-export const PaginaAuditoriaCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/PaginaAuditoriaCentral').then(m => ({ default: m.PaginaAuditoriaCentral })));
-export const LayoutCentral = lazy(() => import('@funcionalidades/gestao-central/componentes/LayoutCentral').then(m => ({ default: m.LayoutCentral })));
+export const PaginaLoginCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/LoginCentral'));
+export const PaginaPainelCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/PainelCentral'));
+export const PaginaGestaoEscolas = lazy(() => import('@/funcionalidades/gestao-central/componentes/PaginaGestaoEscolas').then(m => ({ default: m.PaginaGestaoEscolas })));
+export const PaginaUsuariosCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/PaginaUsuariosCentral').then(m => ({ default: m.PaginaUsuariosCentral })));
+export const PaginaAuditoriaCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/PaginaAuditoriaCentral').then(m => ({ default: m.PaginaAuditoriaCentral })));
+export const LayoutCentral = lazy(() => import('@/funcionalidades/gestao-central/componentes/LayoutCentral'));
 
 /**
  * Rotas do painel administrativo (desktop/mobile).

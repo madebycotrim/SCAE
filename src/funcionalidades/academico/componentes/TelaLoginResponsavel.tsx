@@ -4,11 +4,11 @@
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { usarEscola } from '@/escola/ProvedorEscola';
 import { responsavelServico } from '../servicos/responsavelServico';
 import { Shield, Fingerprint, LogIn, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('Responsavel');
 

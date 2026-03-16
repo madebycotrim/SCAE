@@ -1,8 +1,8 @@
 ﻿import { useState, useEffect } from 'react';
-import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
-import { usarPermissoes } from '@compartilhado/autorizacao/ContextoPermissoes';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
+import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
 import {
     Activity,
     Search,
@@ -21,9 +21,9 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { mascararEmail } from '@compartilhado/utils/formatar';
+import { mascararEmail } from '@/compartilhado/utils/formatar';
 
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
+import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 
 export default function RegistroAuditoria() {
     const { podeVerLogs, ehAdmin } = usarPermissoes();

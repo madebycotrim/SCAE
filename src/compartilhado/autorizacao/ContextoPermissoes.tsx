@@ -1,8 +1,8 @@
 ﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { usarAutenticacao } from '@compartilhado/autenticacao/ContextoAutenticacao';
-import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
-import { api } from '@compartilhado/servicos/api';
-import { bancoLocal } from '@compartilhado/servicos/bancoLocal';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import { api } from '@/compartilhado/servicos/api';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 
 const EMAIL_RAIZ = 'madebycotrim@gmail.com';
 const log = criarRegistrador('Permissoes');

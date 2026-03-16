@@ -1,8 +1,8 @@
 ﻿import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usarEscolaOpcional } from '@escola/ProvedorEscola';
-import { usarConteudoLegal } from '@funcionalidades/usuarios/hooks/usarConteudoLegal';
-import { Botao } from '@compartilhado/componentes/UI';
+import { usarEscolaOpcional } from '@/escola/ProvedorEscola';
+import { usarConteudoLegal } from '@/funcionalidades/usuarios/hooks/usarConteudoLegal';
+import { Botao } from '@/compartilhado/componentes/UI';
 
 /**
  * Página pública de Política de Privacidade.

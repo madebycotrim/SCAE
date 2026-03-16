@@ -100,7 +100,7 @@ export default function ModalUniversal({
                             {titulo}
                         </h2>
                         {subtitulo && (
-                            <p className="text-sm text-slate-500 mt-0.5 leading-relaxed font-medium truncate">
+                            <p className="text-sm text-slate-400 mt-0.5 leading-relaxed font-medium truncate">
                                 {subtitulo}
                             </p>
                         )}

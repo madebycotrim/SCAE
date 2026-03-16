@@ -2,7 +2,7 @@
  * Instância centralizada da API com injeção automática de escola_id e JWT.
  * Mantém compatibilidade com os métodos existentes: obter, enviar, remover.
  */
-import { autenticacao } from '@compartilhado/servicos/firebase.config';
+import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 
 const URL_BASE = import.meta.env.VITE_API_URL || '/api';
 

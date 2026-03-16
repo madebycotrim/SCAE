@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 import { ehDescompassoInaceitavel } from '../servicos/clockDrift.service';
-import { usarEscola } from '@escola/ProvedorEscola';
+import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarControleAcessoWorker } from '../hooks/usarControleAcessoWorker';
 
 export function StatusConexao() {

@@ -1,4 +1,4 @@
-﻿import { criarRegistrador } from '@compartilhado/utils/registrarLocal';
+﻿import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('ControleAcesso:Validador');
 

@@ -1,7 +1,7 @@
 ﻿/**
  * Módulo de Caching em memória do Controle de Acesso, rodando O(1) Set/Map sem dependências de Promise nem I/O.
  */
-import { AlunoLocal } from '@compartilhado/types/bancoLocal.tipos';
+import { AlunoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 
 export interface DadosAluno extends AlunoLocal { }
 

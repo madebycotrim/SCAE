@@ -1,10 +1,10 @@
 ﻿import { useState, useMemo, useEffect } from 'react';
-import type { RegistroAcessoLocal } from '@compartilhado/types/bancoLocal.tipos';
+import type { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 import { usarRiscoAbandono } from '../hooks/usarRiscoAbandono';
 import { AlertaRiscoAbandono, StatusRiscoAbandono } from '../types/riscoAbandono.tipos';
-import LayoutAdministrativo from '@compartilhado/componentes/LayoutAdministrativo';
-import ModalUniversal from '@compartilhado/componentes/ModalUniversal';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@compartilhado/componentes/UI';
+import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
 import {
     Activity,
     AlertCircle,
