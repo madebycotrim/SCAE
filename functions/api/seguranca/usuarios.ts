@@ -88,31 +88,44 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
 }
 
 async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response> {
-    const idEscola = extrairEscolaId(contexto.request);
-    verificarPermissao(contexto, ['ADMIN']);
+    try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarPermissao(contexto, ['ADMIN']);
 
-    const url = new URL(contexto.request.url);
-    const email = url.searchParams.get("email");
+        const url = new URL(contexto.request.url);
+        const email = url.searchParams.get("email");
 
-    if (!email) {
-        throw new ErroValidacao('E-mail obrigatório para remoção', 'USER_ID_AUSENTE');
+        if (!email) {
+            throw new ErroValidacao('E-mail obrigatório para remoção', 'USER_ID_AUSENTE');
+        }
+
+        if (email === contexto.data.user?.email) {
+            throw new ErroPermissao('Você não pode remover seu próprio acesso administrativo');
+        }
+
+        try {
+            const resultado = await contexto.env.DB_SCAE.prepare(
+                "DELETE FROM usuarios WHERE email = ? AND escola_id = ?"
+            ).bind(email, idEscola).run();
+
+            if (resultado.meta.changes === 0) {
+                throw new ErroNaoEncontrado('Usuário não encontrado para exclusão');
+            }
+        } catch (dbError) {
+            if (dbError instanceof ErroBase) throw dbError;
+            throw new ErroInterno(`Falha ao remover usuário: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
+        }
+
+        return Response.json({
+            mensagem: 'Usuário removido com sucesso'
+        });
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao remover usuário');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
-
-    if (email === contexto.data.user?.email) {
-        throw new ErroPermissao('Você não pode remover seu próprio acesso administrativo');
-    }
-
-    const resultado = await contexto.env.DB_SCAE.prepare(
-        "DELETE FROM usuarios WHERE email = ? AND escola_id = ?"
-    ).bind(email, idEscola).run();
-
-    if (resultado.meta.changes === 0) {
-        throw new ErroNaoEncontrado('Usuário não encontrado para exclusão');
-    }
-
-    return Response.json({
-        mensagem: 'Usuário removido com sucesso'
-    });
 }
 
 export {
