@@ -168,8 +168,8 @@ export default function Usuarios() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="py-5 px-8 text-center"><Esqueleto className="w-24 h-6 mx-auto rounded-xl" /></td>
-                                        <td className="py-5 px-8"><Esqueleto className="w-20 h-5 rounded-lg" /></td>
+                                        <td className="py-5 px-8 text-center"><Esqueleto className="w-24 h-6 mx-auto rounded-2xl" /></td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-20 h-5 rounded-2xl" /></td>
                                         <td className="py-5 px-8 text-right"><Esqueleto className="w-32 h-8 ml-auto" /></td>
                                     </tr>
                                 ))
@@ -207,7 +207,7 @@ export default function Usuarios() {
                                                 </div>
                                             </td>
                                             <td className="py-5 px-8 text-center">
-                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave transition-all hover:shadow-media hover:-translate-y-0.5 ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave transition-all hover:shadow-media hover:-translate-y-0.5 ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
                                                     papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                                         papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                                             papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
@@ -266,20 +266,20 @@ export default function Usuarios() {
 function BadgeStatus({ ativo, pendente }: { ativo: boolean, pendente?: boolean }) {
     if (pendente) {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 shadow-suave transition-all hover:scale-110">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 shadow-suave transition-all hover:scale-110">
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> Aguardando
             </span>
         );
     }
     if (ativo) {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-suave transition-all hover:scale-110">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-suave transition-all hover:scale-110">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Ativo
             </span>
         );
     }
     return (
-        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 shadow-suave transition-all hover:scale-110">
+        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 shadow-suave transition-all hover:scale-110">
             <div className="w-1.5 h-1.5 rounded-full bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Bloqueado
         </span>
     );

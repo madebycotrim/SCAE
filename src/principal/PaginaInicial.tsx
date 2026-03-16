@@ -1,4 +1,4 @@
-﻿// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
+// TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -118,7 +118,7 @@ export default function PaginaInicial() {
                                 Implantação gratuita para escolas públicas.
                             </p>
                         </div>
-                        <div className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all group-hover:scale-105 ${temaEscuro
+                        <div className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all group-hover:scale-105 ${temaEscuro
                             ? 'bg-[#0d1f3c] hover:bg-[#0a1628] text-white shadow-suave'
                             : 'bg-[#0d1f3c] hover:bg-[#0a1628] text-white shadow-suave'
                             }`}>
@@ -200,7 +200,7 @@ export default function PaginaInicial() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                         <div className={`p-8 rounded-2xl border transition-all hover:shadow-media ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-rose-900/30 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-rose-900/30 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
                                 <AlertTriangle className="w-6 h-6" />
                             </div>
                             <h3 className={`text-lg font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Alertas de Evasão</h3>
@@ -208,7 +208,7 @@ export default function PaginaInicial() {
                         </div>
 
                         <div className={`p-8 rounded-2xl border transition-all hover:shadow-media ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>
                                 <WifiOff className="w-6 h-6" />
                             </div>
                             <h3 className={`text-lg font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Funciona Offline</h3>
@@ -216,7 +216,7 @@ export default function PaginaInicial() {
                         </div>
 
                         <div className={`p-8 rounded-2xl border transition-all hover:shadow-media ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-sky-900/30 text-sky-400' : 'bg-sky-50 text-sky-400'}`}>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-sky-900/30 text-sky-400' : 'bg-sky-50 text-sky-400'}`}>
                                 <Palette className="w-6 h-6" />
                             </div>
                             <h3 className={`text-lg font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Identidade da Escola</h3>
@@ -224,7 +224,7 @@ export default function PaginaInicial() {
                         </div>
 
                         <div className={`p-8 rounded-2xl border transition-all hover:shadow-media ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-slate-800 text-[#0d1f3c]' : 'bg-slate-100 text-[#0d1f3c]'}`}>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-slate-800 text-[#0d1f3c]' : 'bg-slate-100 text-[#0d1f3c]'}`}>
                                 <ShieldCheck className="w-6 h-6" />
                             </div>
                             <h3 className={`text-lg font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>LGPD desde o Início</h3>
@@ -235,7 +235,7 @@ export default function PaginaInicial() {
                     <div className="text-center">
                         <button
                             onClick={() => definirModalSobreAberto(true)}
-                            className={`group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-medium text-sm transition-all hover:scale-105 ${temaEscuro
+                            className={`group inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl font-medium text-sm transition-all hover:scale-105 ${temaEscuro
                                 ? 'bg-slate-800 text-white hover:bg-slate-700 shadow-suave'
                                 : 'bg-[#0d1f3c] text-white hover:bg-[#0a1628] shadow-suave'
                                 }`}
@@ -302,7 +302,7 @@ export default function PaginaInicial() {
                     </h2>
                     <button
                         onClick={() => definirModalContatoAberto(true)}
-                        className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-base transition-all bg-transparent text-white border-2 border-white/20 hover:border-white/40 hover:bg-white/10 active:scale-95 shadow-suave"
+                        className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-base transition-all bg-transparent text-white border-2 border-white/20 hover:border-white/40 hover:bg-white/10 active:scale-95 shadow-suave"
                     >
                         Fale conosco
                     </button>

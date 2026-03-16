@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { SelectComBusca } from '@/compartilhado/componentes/SelectComBusca';
 import { CheckCircle, User, Hash, GraduationCap, Power, Mail, ChevronRight, ArrowLeft } from 'lucide-react';
@@ -70,7 +70,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                             <input
                                 type="text"
                                 required
-                                className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                                className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 placeholder:font-medium"
                                 value={dadosFormulario.nome_completo}
                                 onChange={(e) => definirDadosFormulario({ ...dadosFormulario, nome_completo: e.target.value })}
                                 placeholder="Ex: João da Silva"
@@ -85,7 +85,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all disabled:bg-slate-100 disabled:text-slate-500 placeholder:text-slate-400"
+                                    className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all disabled:bg-slate-100 disabled:text-slate-500 placeholder:text-slate-400"
                                     value={dadosFormulario.matricula}
                                     onChange={(e) => definirDadosFormulario({ ...dadosFormulario, matricula: e.target.value })}
                                     disabled={!!aluno}
@@ -104,13 +104,13 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                     value={dadosFormulario.turma_id}
                                     onChange={(valor) => definirDadosFormulario({ ...dadosFormulario, turma_id: valor as string })}
                                     placeholder="Selecione..."
-                                    className={`w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold transition-all flex items-center justify-between ${dadosFormulario.turma_id ? 'text-slate-800 border-slate-300' : 'text-slate-400'}`}
+                                    className={`w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold transition-all flex items-center justify-between ${dadosFormulario.turma_id ? 'text-slate-800 border-slate-300' : 'text-slate-400'}`}
                                 />
                             </div>
 
                             {/* Status Toggle */}
                             {ehEdicao && (
-                                <div className="md:col-span-2 p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-inner">
+                                <div className="md:col-span-2 p-5 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner">
                                     <label className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">
                                         <Power size={12} /> Situação da Matrícula
                                     </label>
@@ -118,7 +118,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                         <button
                                             type="button"
                                             onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: true })}
-                                            className={`flex-1 h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${dadosFormulario.ativo
+                                            className={`flex-1 h-10 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${dadosFormulario.ativo
                                                 ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                                 : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
                                                 }`}
@@ -128,7 +128,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                         <button
                                             type="button"
                                             onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: false })}
-                                            className={`flex-1 h-10 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${!dadosFormulario.ativo
+                                            className={`flex-1 h-10 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${!dadosFormulario.ativo
                                                 ? 'bg-rose-600 text-white border-rose-600 shadow-suave'
                                                 : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
                                                 }`}
@@ -147,7 +147,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
 
                 {etapaAtual === 2 && (
                     <div className="space-y-8 animate-fade-in">
-                        <div className="p-5 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                        <div className="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100">
                             <h4 className="text-[11px] font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2 mb-2">
                                 <Mail size={14} className="text-indigo-600" /> Acesso ao Portal do Responsável
                             </h4>
@@ -162,7 +162,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                             </label>
                             <input
                                 type="email"
-                                className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                                className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 placeholder:font-medium"
                                 value={dadosFormulario.email_responsavel}
                                 onChange={(e) => definirDadosFormulario({ ...dadosFormulario, email_responsavel: e.target.value })}
                                 placeholder="Ex: responsável@email.com"

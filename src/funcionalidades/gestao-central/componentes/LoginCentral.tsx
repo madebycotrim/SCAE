@@ -43,7 +43,7 @@ export default function LoginCentral() {
             <div className="max-w-xl w-full relative z-10 animate-fade-in">
                 {/* Seção de Cabeçalho */}
                 <div className="text-center mb-12">
-                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-slate-900 shadow-2xl shadow-slate-300 mb-8 -rotate-6 hover:rotate-0 transition-transform duration-500 group">
+                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-slate-900 shadow-2xl shadow-slate-300 mb-8 -rotate-6 hover:rotate-0 transition-transform duration-500 group">
                         <ShieldAlert className="text-white" size={40} strokeWidth={2.5} />
                     </div>
                     <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase italic leading-tight">SCAE</h1>
@@ -51,7 +51,7 @@ export default function LoginCentral() {
                 </div>
 
                 {/* Card Principal */}
-                <div className="bg-white border border-slate-200 rounded-[48px] p-12 md:p-16 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.08)] relative overflow-hidden">
+                <div className="bg-white border border-slate-200 rounded-2xl p-12 md:p-16 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.08)] relative overflow-hidden">
                     {/* Elemento Decorativo Interno */}
                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-slate-50 rounded-full blur-3xl opacity-50"></div>
 
@@ -70,7 +70,7 @@ export default function LoginCentral() {
                         <button
                             onClick={lidarComLoginGoogle}
                             disabled={loading}
-                            className="group w-full h-20 bg-slate-900 hover:bg-black disabled:bg-slate-800 text-white rounded-[24px] transition-all duration-500 flex justify-center items-center gap-5 shadow-2xl shadow-slate-200 active:scale-[0.98] relative overflow-hidden"
+                            className="group w-full h-20 bg-slate-900 hover:bg-black disabled:bg-slate-800 text-white rounded-2xl transition-all duration-500 flex justify-center items-center gap-5 shadow-2xl shadow-slate-200 active:scale-[0.98] relative overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
 

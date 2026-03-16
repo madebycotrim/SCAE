@@ -68,23 +68,32 @@ interface PropsCardEstatistica {
 const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }: PropsCardEstatistica) => {
     const corAcento = {
         indigo: 'border-l-slate-400',
-        amber: 'border-l-amber-400',
-        rose: 'border-l-rose-400',
-        emerald: 'border-l-emerald-400'
+        amber: 'border-l-amber-500',
+        rose: 'border-l-rose-500',
+        emerald: 'border-l-emerald-500'
     };
 
     const corIcone = {
-        indigo: 'text-slate-600 bg-slate-50',
-        amber: 'text-amber-600 bg-amber-50',
-        rose: 'text-rose-600 bg-rose-50',
-        emerald: 'text-emerald-600 bg-emerald-50'
+        indigo: 'text-slate-500 border-slate-200',
+        amber: 'text-amber-500 border-amber-200',
+        rose: 'text-rose-500 border-rose-200',
+        emerald: 'text-emerald-500 border-emerald-200'
     };
 
     return (
-        <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border border-slate-200 border-l-4 ${corAcento[cor]} rounded-xl shadow-suave`}>
-            <div className="flex justify-between items-start mb-3 z-10 relative">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border border-slate-200/50 shadow-suave transition-transform ${corIcone[cor]}`}>
+        <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border-2 border-slate-200/60 border-l-4 ${corAcento[cor]} rounded-none rounded-r-lg hover:shadow-md`}>
+            <div className="flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border-2 bg-white ${corIcone[cor]} z-10 transition-transform group-hover:scale-105`}>
                     <Icone size={18} strokeWidth={2} />
+                </div>
+                <div className="z-10 flex-1">
+                    <h3 className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mb-0.5 leading-none">{titulo}</h3>
+                    <div className="flex items-baseline gap-2">
+                        <p className="text-xl font-black text-slate-700 leading-tight">{valor}</p>
+                        {subtitulo && (
+                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate">{subtitulo}</p>
+                        )}
+                    </div>
                 </div>
                 {tendencia !== undefined && (
                     <div className={`flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-wider ${(tendencia > 0 && !inverterTendencia) || (tendencia < 0 && inverterTendencia)
@@ -96,15 +105,6 @@ const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendenci
                     </div>
                 )}
             </div>
-            <div className="z-10 relative">
-                <h3 className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] mb-1 leading-none">{titulo}</h3>
-                <div className="flex items-baseline gap-2">
-                    <p className="text-xl font-black text-slate-800 tracking-tighter leading-tight">{valor}</p>
-                    {subtitulo && (
-                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate">{subtitulo}</p>
-                    )}
-                </div>
-            </div>
         </CartaoConteudo>
     );
 };
@@ -112,7 +112,7 @@ const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendenci
 const SecaoHeader = ({ titulo, subtitulo, icone: Icone }: { titulo: string; subtitulo: string; icone: any }) => (
     <div className="flex items-center justify-between mb-6 group">
         <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 shadow-suave transition-all">
+            <div className="w-10 h-10 rounded-xl bg-white border-2 border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 shadow-suave transition-all">
                 <Icone size={20} strokeWidth={2.5} />
             </div>
             <div>
@@ -153,7 +153,7 @@ const LiveAccessFeed = ({ registros, alunos }) => {
                         const isEntrada = reg.tipo_movimentacao === 'ENTRADA';
                         return (
                             <div key={reg.id} className="p-3 rounded-lg hover:bg-slate-50 transition-all flex items-center gap-4 group/item">
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shadow-suave transition-transform ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center border-2 shadow-suave transition-transform ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                                     {isEntrada ? <LogIn size={16} /> : <LogOut size={16} />}
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -482,9 +482,9 @@ export default function Painel() {
                         icone={Shield}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-suave flex items-center justify-between group hover:border-slate-400 transition-all">
+                        <div className="bg-white border-2 border-slate-200 p-5 rounded-xl shadow-suave flex items-center justify-between group hover:border-slate-400 transition-all">
                             <div className="flex items-center gap-4">
-                                <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors border border-slate-100">
+                                <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors border-2 border-slate-100">
                                     <Users size={16} />
                                 </div>
                                 <div>
@@ -495,9 +495,9 @@ export default function Painel() {
                             <ArrowRight size={12} className="text-slate-300 group-hover:translate-x-1 group-hover:text-slate-900 transition-all" />
                         </div>
 
-                        <div className="bg-white border border-slate-200 p-5 rounded-xl shadow-suave flex items-center justify-between group hover:border-slate-400 transition-all">
+                        <div className="bg-white border-2 border-slate-200 p-5 rounded-xl shadow-suave flex items-center justify-between group hover:border-slate-400 transition-all">
                             <div className="flex items-center gap-4">
-                                <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors border border-slate-100">
+                                <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors border-2 border-slate-100">
                                     <FileText size={16} />
                                 </div>
                                 <div>
@@ -508,7 +508,7 @@ export default function Painel() {
                             <ArrowRight size={12} className="text-slate-300 group-hover:translate-x-1 group-hover:text-slate-900 transition-all" />
                         </div>
 
-                        <div className="sm:col-span-2 bg-slate-950 rounded-xl p-5 border border-slate-800 relative overflow-hidden flex items-center justify-between group">
+                        <div className="sm:col-span-2 bg-slate-950 rounded-xl p-5 border-2 border-slate-800 relative overflow-hidden flex items-center justify-between group">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[50px] rounded-full -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700"></div>
                             <div className="relative z-10 border-l-2 border-emerald-500 pl-4">
                                 <h4 className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] mb-1">Status do Sistema</h4>

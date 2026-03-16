@@ -203,7 +203,7 @@ export default function Turmas() {
                         placeholder="Nome, professor ou turno..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-8 rounded-lg"
+                        className="w-full h-8 rounded-2xl"
                     />
                 </div>
 
@@ -211,12 +211,12 @@ export default function Turmas() {
                     {/* Filtro de Ano */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-8">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-200 h-8">
                             {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                                 <button
                                     key={ano}
                                     onClick={() => definirFiltroAnoLetivo(ano)}
-                                    className={`px-4 h-full rounded-md text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
+                                    className={`px-4 h-full rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
                                         ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
                                         : 'text-slate-400 border-transparent hover:text-slate-600'
                                         }`}
@@ -230,14 +230,14 @@ export default function Turmas() {
                     {/* Filtro de Turno */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Turno</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-8">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-200 h-8">
                             {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
                                 const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIG_TURNO[filtro as keyof typeof CONFIG_TURNO]?.icone || Clock);
                                 return (
                                     <button
                                         key={filtro}
                                         onClick={() => definirFiltroTurno(filtro)}
-                                        className={`px-3 h-full rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
+                                        className={`px-3 h-full rounded-2xl text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
                                             ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                             : 'text-slate-400 border-transparent hover:text-slate-600'
                                             }`}
@@ -310,19 +310,19 @@ export default function Turmas() {
                                             </td>
                                             <td className="py-4 px-8">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 border border-slate-200/50 transition-colors">
+                                                    <div className="w-7 h-7 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 border border-slate-200/50 transition-colors">
                                                         <GraduationCap size={14} />
                                                     </div>
                                                     <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{turma.professor_regente || 'Não designado'}</span>
                                                 </div>
                                             </td>
                                             <td className="py-4 px-8 text-center">
-                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-slate-200/60">
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-2xl border border-slate-200/60">
                                                     <MapPin size={12} /> {turma.sala || 'N/A'}
                                                 </div>
                                             </td>
                                             <td className="py-4 px-8">
-                                                <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.1em] border ${turnoCfg.bg} ${turnoCfg.text} ${turnoCfg.border}`}>
+                                                <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-2xl text-[9px] font-black uppercase tracking-[0.1em] border ${turnoCfg.bg} ${turnoCfg.text} ${turnoCfg.border}`}>
                                                     <div className={`w-1 h-1 rounded-full ${turnoCfg.indicator}`}></div>
                                                     <turnoCfg.icone size={10} />
                                                     {turma.turno}

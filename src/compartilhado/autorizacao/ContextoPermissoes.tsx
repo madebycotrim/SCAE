@@ -153,7 +153,7 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
                             // Tentar sincronizar com API imediatamente
                             if (navigator.onLine) {
                                 try {
-                                    await api.enviar('/usuarios', adminUser);
+                                    await api.enviar('/seguranca/usuarios', adminUser);
                                     log.info('Admin sincronizado com sucesso.');
                                 } catch (e) {
                                     log.warn('Falha ao sincronizar admin (será tentado depois)', e);

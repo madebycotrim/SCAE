@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Dashboard interna do Responsável.
  * Exibe a Timeline (ECA), opções DPO (Baixar JSON e Descadastrar).
  */
@@ -178,7 +178,7 @@ export default function PainelResponsavel() {
                                             }
                                         </div>
 
-                                        <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-suave flex flex-col">
+                                        <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-suave flex flex-col">
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className={`text-[10px] font-bold uppercase tracking-wider ${ehEntrada ? 'text-emerald-600' : 'text-rose-500'}`}>
                                                     {acesso.tipo_movimentacao}

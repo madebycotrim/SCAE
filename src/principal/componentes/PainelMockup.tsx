@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface PainelMockupProps {
     temaEscuro: boolean;
@@ -149,7 +149,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                 transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
                 className="mt-16 w-full max-w-[280px] mx-auto relative z-30 sm:hidden"
             >
-                <div className={`w-full rounded-[2.5rem] border-[8px] p-3 shadow-2xl relative overflow-hidden transition-all duration-500 ${temaEscuro ? 'bg-[#0B0F19] border-slate-800 shadow-[0_20px_50px_rgb(0,0,0,0.5)] shadow-sky-500/10' : 'bg-slate-50 border-slate-800 shadow-[0_20px_50px_rgb(0,0,0,0.2)]'}`}>
+                <div className={`w-full rounded-2xl border-[8px] p-3 shadow-2xl relative overflow-hidden transition-all duration-500 ${temaEscuro ? 'bg-[#0B0F19] border-slate-800 shadow-[0_20px_50px_rgb(0,0,0,0.5)] shadow-sky-500/10' : 'bg-slate-50 border-slate-800 shadow-[0_20px_50px_rgb(0,0,0,0.2)]'}`}>
 
                     {/* iPhone Notch/Island */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-current rounded-b-2xl z-20 flex justify-center items-end pb-1.5 gap-2" style={{ color: temaEscuro ? '#1e293b' : '#0f172a' }}>

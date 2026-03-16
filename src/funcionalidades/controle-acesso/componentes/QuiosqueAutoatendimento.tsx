@@ -245,7 +245,7 @@ export default function QuiosqueAutoatendimento() {
                                 ${confFila.animacoesAtivadas ? 'duration-500 animate-in fade-in zoom-in-95' : 'duration-0'} 
                                 ${statusLeitura === 'SUCESSO' ? 'bg-emerald-600/90' : 'bg-rose-600/90'}
                                 `}>
-                                <div className="w-48 h-48 rounded-[3rem] bg-white flex items-center justify-center mb-10 shadow-2xl animate-bounce">
+                                <div className="w-48 h-48 rounded-2xl bg-white flex items-center justify-center mb-10 shadow-2xl animate-bounce">
                                     {statusLeitura === 'SUCESSO'
                                         ? <ShieldCheck size={100} strokeWidth={2.5} className="text-emerald-600" />
                                         : <UserX size={100} strokeWidth={2.5} className="text-rose-600" />
@@ -316,7 +316,7 @@ export default function QuiosqueAutoatendimento() {
                             </div>
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-8 opacity-20 group-hover/side:opacity-40 transition-opacity">
-                                <div className="w-32 h-32 rounded-[3rem] border-2 border-dashed border-slate-700 flex items-center justify-center relative bg-slate-800/20">
+                                <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-slate-700 flex items-center justify-center relative bg-slate-800/20">
                                     <ScanLine size={48} className="animate-pulse" />
                                 </div>
                                 <p className="text-[10px] font-black text-center uppercase tracking-[0.5em] max-w-[200px] leading-loose">

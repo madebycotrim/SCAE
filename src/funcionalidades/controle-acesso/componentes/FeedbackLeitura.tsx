@@ -1,4 +1,4 @@
-﻿import { ShieldCheck, UserX, Clock, UserCircle2, Ban } from 'lucide-react';
+import { ShieldCheck, UserX, Clock, UserCircle2, Ban } from 'lucide-react';
 import { format } from 'date-fns';
 
 export interface RegistroLeitura {
@@ -39,7 +39,7 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
                 <div className="relative inline-block group">
                     <div className={`absolute inset-0 blur-3xl opacity-40 group-hover:opacity-60 transition-opacity rounded-full ${ehSucesso ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
                     <div className={`
-                        relative w-40 h-40 rounded-[3rem] flex items-center justify-center 
+                        relative w-40 h-40 rounded-2xl flex items-center justify-center 
                         border-2 backdrop-blur-3xl shadow-2xl transition-transform duration-500 group-hover:rotate-6
                         ${ehSucesso ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400' : 'bg-rose-500/20 border-rose-400/30 text-rose-400'}
                     `}>
@@ -63,7 +63,7 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
 
                 {/* Card do Aluno Premium */}
                 {registro.aluno ? (
-                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-md shadow-2xl space-y-4 animate-in zoom-in-90 delay-150 fill-mode-both">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-md shadow-2xl space-y-4 animate-in zoom-in-90 delay-150 fill-mode-both">
                         <div className="flex flex-col items-center">
                             <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4 border border-white/10 text-white/60">
                                 <UserCircle2 size={32} />
@@ -82,7 +82,7 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
                         </div>
                     </div>
                 ) : (
-                    <div className="py-8 px-12 bg-rose-500/10 border border-rose-500/20 rounded-[2rem] text-rose-300 font-bold text-xl uppercase tracking-tight flex items-center justify-center gap-4">
+                    <div className="py-8 px-12 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-300 font-bold text-xl uppercase tracking-tight flex items-center justify-center gap-4">
                         <UserX size={32} />
                         {registro.mensagem}
                     </div>

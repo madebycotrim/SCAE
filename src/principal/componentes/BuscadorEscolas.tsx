@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { Search, X, Building, MapPin, ChevronRight, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -124,7 +124,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                         </button>
                     )}
                     <button
-                        className="bg-[#0d1f3c] hover:bg-[#0a1628] text-white px-6 py-3 rounded-xl font-semibold shadow-suave transition-all hover:-translate-y-0.5 active:scale-95 active:translate-y-0 overflow-hidden relative group/btn"
+                        className="bg-[#0d1f3c] hover:bg-[#0a1628] text-white px-6 py-3 rounded-2xl font-semibold shadow-suave transition-all hover:-translate-y-0.5 active:scale-95 active:translate-y-0 overflow-hidden relative group/btn"
                         onClick={() => {
                             const slug = termoBusca.trim().toLowerCase().replace(/\s+/g, '-');
                             if (slug) aoSelecionarEscola(slug);
@@ -208,7 +208,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                                     </p>
                                     <button
                                         onClick={() => { definirEstaFocado(false); aoAbrirModalContato(); }}
-                                        className={`mt-5 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all shadow-suave
+                                        className={`mt-5 flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all shadow-suave
                                             ${temaEscuro
                                                 ? 'bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/30 hover:border-sky-500/50'
                                                 : 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-100 hover:border-sky-200'}`}

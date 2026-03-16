@@ -32,8 +32,8 @@ export default function ListaAlunos({
 }: ListaAlunosProps) {
     if (alunos.length === 0) {
         return (
-            <div className="bg-white rounded-xl border border-slate-200 p-20 text-center animate-fade-in shadow-suave">
-                <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mb-5 mx-auto border border-slate-100">
+            <div className="bg-white rounded-2xl border border-slate-200 p-20 text-center animate-fade-in shadow-suave">
+                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-5 mx-auto border border-slate-100">
                     <Users size={32} className="text-slate-300" />
                 </div>
                 <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2 text-center ml-2">Dados não identificados</h3>
@@ -77,7 +77,7 @@ export default function ListaAlunos({
                                         <td className="py-5 px-8 text-center"><Esqueleto className="w-4 h-4 mx-auto" /></td>
                                         <td className="py-5 px-8">
                                             <div className="flex items-center gap-3">
-                                                <Esqueleto className="w-9 h-9 rounded-lg" />
+                                                <Esqueleto className="w-9 h-9 rounded-2xl" />
                                                 <div className="space-y-2">
                                                     <Esqueleto className="w-32 h-3" />
                                                     <Esqueleto className="w-24 h-2 opacity-60" />
@@ -86,7 +86,7 @@ export default function ListaAlunos({
                                         </td>
                                         <td className="py-5 px-8"><Esqueleto className="w-16 h-4" /></td>
                                         <td className="py-5 px-8"><Esqueleto className="w-20 h-4" /></td>
-                                        <td className="py-5 px-8"><Esqueleto className="w-16 h-5 rounded-lg" /></td>
+                                        <td className="py-5 px-8"><Esqueleto className="w-16 h-5 rounded-2xl" /></td>
                                         <td className="py-5 px-8 text-right"><Esqueleto className="w-24 h-8 ml-auto" /></td>
                                     </tr>
                                 ))
@@ -102,7 +102,7 @@ export default function ListaAlunos({
                                     </td>
                                     <td className="py-4 px-8">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 font-black text-[9px] shrink-0 border border-slate-200 transition-all">
+                                            <div className="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 font-black text-[9px] shrink-0 border border-slate-200 transition-all">
                                                 {aluno.nome_completo.split(' ').map((n, i, arr) => i === 0 || i === arr.length - 1 ? n[0] : '').join('').toUpperCase().substring(0, 2)}
                                             </div>
                                             <div className="flex flex-col gap-0.5">
@@ -112,7 +112,7 @@ export default function ListaAlunos({
                                         </div>
                                     </td>
                                     <td className="py-4 px-8">
-                                        <span className="text-[9px] font-mono font-black text-slate-700 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md">
+                                        <span className="text-[9px] font-mono font-black text-slate-700 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-2xl">
                                             {aluno.matricula}
                                         </span>
                                     </td>
@@ -121,11 +121,11 @@ export default function ListaAlunos({
                                     </td>
                                     <td className="py-4 px-8">
                                         {aluno.ativo !== false ? (
-                                            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-600 bg-slate-50 border border-slate-200">
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-600 bg-slate-50 border border-slate-200">
                                                 <div className="w-1 h-1 rounded-full bg-emerald-500 pulse-subtle"></div> Ativo
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-rose-600 bg-rose-50 border border-rose-100">
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-rose-600 bg-rose-50 border border-rose-100">
                                                 <div className="w-1 h-1 rounded-full bg-rose-500"></div> Suspenso
                                             </span>
                                         )}
@@ -134,21 +134,21 @@ export default function ListaAlunos({
                                         <div className="flex items-center justify-end gap-1">
                                             <button
                                                 onClick={() => aoVerQRCode(aluno.matricula)}
-                                                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all"
+                                                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
                                                 title="Visualizar Credencial"
                                             >
                                                 <QrCode size={16} />
                                             </button>
                                             <button
                                                 onClick={() => aoEditar(aluno)}
-                                                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all"
+                                                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
                                                 title="Configurar Registro"
                                             >
                                                 <Edit2 size={16} />
                                             </button>
                                             <button
                                                 onClick={() => aoExcluir(aluno)}
-                                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
                                                 title="Remover do Sistema"
                                             >
                                                 <Trash2 size={16} />
@@ -164,9 +164,9 @@ export default function ListaAlunos({
 
             {
                 totalPaginas > 1 && (
-                    <div className="bg-white rounded-xl border border-slate-200 p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-suave mt-8">
+                    <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-suave mt-8">
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
+                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-2xl">
                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
                                 <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
                             </div>
@@ -175,7 +175,7 @@ export default function ListaAlunos({
                             <button
                                 onClick={() => aoMudarPagina(paginaAtual - 1)}
                                 disabled={paginaAtual === 1}
-                                className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
+                                className="w-9 h-9 flex items-center justify-center rounded-2xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
                             >
                                 <ChevronLeft size={16} />
                             </button>
@@ -190,7 +190,7 @@ export default function ListaAlunos({
                                         <button
                                             key={pageNum}
                                             onClick={() => aoMudarPagina(pageNum)}
-                                            className={`w-9 h-9 rounded-lg text-[9px] font-black tracking-widest transition-all border ${paginaAtual === pageNum
+                                            className={`w-9 h-9 rounded-2xl text-[9px] font-black tracking-widest transition-all border ${paginaAtual === pageNum
                                                 ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                                 : 'text-slate-400 border-transparent hover:text-slate-900 hover:bg-slate-50'
                                                 }`}
@@ -204,7 +204,7 @@ export default function ListaAlunos({
                             <button
                                 onClick={() => aoMudarPagina(paginaAtual + 1)}
                                 disabled={paginaAtual === totalPaginas}
-                                className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
+                                className="w-9 h-9 flex items-center justify-center rounded-2xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-20 transition-all"
                             >
                                 <ChevronRight size={16} />
                             </button>

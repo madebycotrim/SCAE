@@ -171,7 +171,7 @@ export default function FormHorariosAcesso() {
 
                 {/* --- SEÇÃO DE SEGURANÇA DO CARTÃO DIGITAL (DESIGN REFINADO) --- */}
                 <div className="max-w-5xl mx-auto">
-                    <div className="bg-white border border-slate-200 rounded-[32px] overflow-hidden relative shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden relative shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex flex-col lg:flex-row items-center justify-between p-6 lg:p-8 gap-8">
                             <div className="flex items-center gap-6">
                                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all duration-500 shadow-inner ${
@@ -237,7 +237,7 @@ export default function FormHorariosAcesso() {
                                     className="max-w-md w-full animate-in zoom-in-95 slide-in-from-bottom-4 duration-500"
                                     onClick={(e) => e.stopPropagation()}
                                 >
-                                    <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] relative overflow-hidden">
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] relative overflow-hidden">
                                         
                                         {/* Badge de Alerta Discreta */}
                                         <div className="flex items-center gap-3 mb-6">
@@ -307,10 +307,10 @@ export default function FormHorariosAcesso() {
                     <div className="animate-fade-in space-y-4 max-w-5xl mx-auto">
 
                         {janelas.length === 0 && (
-                            <CartaoConteudo className="text-center py-24 bg-white border-2 border-dashed border-slate-200/60 rounded-[40px] group transition-all hover:border-indigo-200 hover:bg-indigo-50/30 overflow-hidden relative">
+                            <CartaoConteudo className="text-center py-24 bg-white border-2 border-dashed border-slate-200/60 rounded-2xl group transition-all hover:border-indigo-200 hover:bg-indigo-50/30 overflow-hidden relative">
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none"></div>
                                 
-                                <div className="w-24 h-24 bg-gradient-to-br from-indigo-50 to-white rounded-[32px] flex items-center justify-center mx-auto mb-8 border border-indigo-100 shadow-suave text-indigo-500 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 relative z-10">
+                                <div className="w-24 h-24 bg-gradient-to-br from-indigo-50 to-white rounded-2xl flex items-center justify-center mx-auto mb-8 border border-indigo-100 shadow-suave text-indigo-500 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 relative z-10">
                                     <Clock size={40} strokeWidth={1.5} />
                                 </div>
                                 <h4 className="text-2xl font-black text-slate-900 mb-3 tracking-tight relative z-10">Ritmo da Portaria Silencioso</h4>
@@ -338,7 +338,7 @@ export default function FormHorariosAcesso() {
                                 return (
                                     <div
                                         key={indice}
-                                        className="relative bg-white rounded-[32px] border border-slate-200/60 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row overflow-hidden group/card"
+                                        className="relative bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row overflow-hidden group/card"
                                     >
                                         {/* LADO ESQUERDO (Status visual) */}
                                         <div className={`w-full md:w-[300px] shrink-0 flex flex-col justify-center items-center py-10 relative overflow-hidden transition-all duration-500 ${
@@ -360,7 +360,7 @@ export default function FormHorariosAcesso() {
 
                                             <div className="relative z-10 flex flex-col items-center">
                                                 {/* Ícone no top */}
-                                                <div className={`w-16 h-16 rounded-[22px] flex items-center justify-center mb-5 backdrop-blur-md shadow-xl transition-transform duration-500 group-hover/card:scale-105 ${
+                                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-5 backdrop-blur-md shadow-xl transition-transform duration-500 group-hover/card:scale-105 ${
                                                     isEntrada
                                                     ? 'bg-white/90 text-amber-600 border border-white'
                                                     : 'bg-white/20 text-white border border-white/30'
@@ -493,7 +493,7 @@ export default function FormHorariosAcesso() {
                         {janelas.length > 0 && (
                              <button
                                  onClick={adicionarJanela}
-                                 className="w-full mt-12 h-20 border-2 border-dashed border-slate-200 rounded-[32px] text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white hover:border-indigo-300 hover:text-indigo-600 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 flex items-center justify-center gap-4 group"
+                                 className="w-full mt-12 h-20 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white hover:border-indigo-300 hover:text-indigo-600 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 flex items-center justify-center gap-4 group"
                              >
                                  <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
                                      <Plus size={20} strokeWidth={3} />

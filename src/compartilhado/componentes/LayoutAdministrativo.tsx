@@ -183,7 +183,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                     <button
                         onClick={aoSair}
-                        className="w-full py-4 bg-slate-100 text-slate-600 rounded-xl font-bold text-lg hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-transparent transition-all"
+                        className="w-full py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold text-lg hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-transparent transition-all"
                     >
                         Sair do Sistema
                     </button>
@@ -207,7 +207,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                     <button
                         onClick={confirmarAcesso}
-                        className="w-full py-4 bg-escola text-white rounded-xl font-bold text-lg bg-escola-hover hover:scale-[1.02] active:scale-95 transition-all shadow-escola"
+                        className="w-full py-4 bg-escola text-white rounded-2xl font-bold text-lg bg-escola-hover hover:scale-[1.02] active:scale-95 transition-all shadow-escola"
                     >
                         Confirmar e Acessar
                     </button>
@@ -308,8 +308,8 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                             w-full flex items-center transition-all duration-150 group
                                                             ${sidebarMinimizado ? 'justify-center p-2' : 'gap-3 px-3 py-2'}
                                                             ${ativo
-                                                                ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-lg'
-                                                                : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-lg'
+                                                                ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-2xl'
+                                                                : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-2xl'
                                                             }
                                                         `}
                                                         title={sidebarMinimizado ? item.texto : ""}
@@ -358,8 +358,8 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                 w-full flex items-center transition-all duration-150 group
                                                 ${sidebarMinimizado ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'}
                                                 ${ativo
-                                                    ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-lg'
-                                                    : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-lg'
+                                                    ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-2xl'
+                                                    : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-2xl'
                                                 }
                                             `}
                                             title={sidebarMinimizado ? item.texto : ""}
@@ -386,7 +386,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     <button
                         onClick={() => definirNotificacoesAberta(!notificacoesAberta)}
                         className={`
-                            w-full flex items-center justify-between p-3 rounded-xl transition-all group relative
+                            w-full flex items-center justify-between p-3 rounded-2xl transition-all group relative
                             ${notificacoesAberta ? 'bg-slate-900 border border-slate-800' : 'bg-transparent border border-transparent hover:bg-slate-900/50'}
                         `}
                     >
@@ -409,7 +409,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         {!sidebarMinimizado && (
                             <div className="flex items-center gap-2">
                                 {naoLidas > 0 && (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-sky-500/10 text-sky-400 text-[9px] font-black">
+                                    <span className="px-1.5 py-0.5 rounded-2xl bg-sky-500/10 text-sky-400 text-[9px] font-black">
                                         {naoLidas}
                                     </span>
                                 )}
@@ -424,7 +424,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     {/* Lista de Notificações na Sidebar (Dropdown ou Expansível) */}
                     {notificacoesAberta && (
                         <div className={`
-                            mt-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200
+                            mt-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200
                             ${sidebarMinimizado ? 'fixed left-20 ml-2 w-80 shadow-2xl z-[60]' : 'w-full'}
                         `}>
                             <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
@@ -457,7 +457,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                             >
                                                 <div className="flex gap-3">
                                                     <div className={`
-                                                        shrink-0 w-6 h-6 rounded-lg flex items-center justify-center
+                                                        shrink-0 w-6 h-6 rounded-2xl flex items-center justify-center
                                                         ${notificacao.tipo === 'error' ? 'bg-rose-500/20 text-rose-400' :
                                                           notificacao.tipo === 'success' ? 'bg-emerald-500/20 text-emerald-400' :
                                                           notificacao.tipo === 'warning' ? 'bg-amber-500/20 text-amber-400' :
@@ -497,7 +497,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                 {/* Seção de Instalação PWA (Discreta) */}
                 {podeInstalar && (
-                    <div className={`px-4 py-3 bg-sky-500/5 mx-2 mb-2 rounded-xl border border-sky-400/10 transition-all ${sidebarMinimizado ? 'justify-center flex' : ''}`}>
+                    <div className={`px-4 py-3 bg-sky-500/5 mx-2 mb-2 rounded-2xl border border-sky-400/10 transition-all ${sidebarMinimizado ? 'justify-center flex' : ''}`}>
                         <button
                             onClick={instalarApp}
                             className={`
@@ -565,7 +565,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     <div className="flex items-center gap-5">
                         <button
                             onClick={() => definirSidebarAberto(!sidebarAberto)}
-                            className="lg:hidden p-2 -ml-1 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors"
+                            className="lg:hidden p-2 -ml-1 text-slate-400 hover:bg-slate-50 rounded-2xl transition-colors"
                         >
                             <Menu size={18} />
                         </button>
@@ -590,7 +590,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                     definirMostrarResultados(true);
                                 }}
                                 onFocus={() => definirMostrarResultados(true)}
-                                className="pl-9 pr-12 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-900/5 rounded-lg text-[11px] font-bold w-64 focus:w-80 h-full outline-none transition-all duration-300"
+                                className="pl-9 pr-12 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-900/5 rounded-2xl text-[11px] font-bold w-64 focus:w-80 h-full outline-none transition-all duration-300"
                             />
 
                             {/* Resultados da Busca */}
@@ -600,7 +600,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                         className="fixed inset-0 z-[45]"
                                         onClick={() => definirMostrarResultados(false)}
                                     />
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
                                         <div className="p-2 border-b border-slate-50 bg-slate-50/50">
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 py-1">Funcionalidades Sugeridas</p>
                                         </div>
@@ -625,9 +625,9 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                             definirTermo('');
                                                             definirMostrarResultados(false);
                                                         }}
-                                                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-all text-left group"
+                                                        className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-all text-left group"
                                                     >
-                                                        <div className={`w-9 h-9 ${corCategoria} rounded-lg flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors`}>
+                                                        <div className={`w-9 h-9 ${corCategoria} rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors`}>
                                                             <Icone size={18} />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -652,12 +652,10 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             )}
                         </div>
 
-                        <div className="h-6 w-px bg-slate-200"></div>
-
                         {/* Contêiner de Ações */}
                         {acoes && (
                             <div className="flex items-center gap-5 h-8">
-                                <div className="h-6 w-px bg-slate-200"></div>
+                                <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
                                 <div className="flex items-center gap-3 h-full">{acoes}</div>
                             </div>
                         )}

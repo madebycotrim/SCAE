@@ -105,7 +105,7 @@ export default function CartaoDigital() {
                                         type="text"
                                         required
                                         placeholder="Digite sua matrícula"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3 pl-11 pr-4 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                                         value={matricula}
                                         onChange={(e) => setMatricula(e.target.value)}
                                     />
@@ -119,7 +119,7 @@ export default function CartaoDigital() {
                                     <input 
                                         type="date"
                                         required
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3 pl-11 pr-4 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                                         value={nascimento}
                                         onChange={(e) => setNascimento(e.target.value)}
                                     />
@@ -127,7 +127,7 @@ export default function CartaoDigital() {
                             </div>
 
                             {error && (
-                                <p className="text-red-400 text-sm text-center bg-red-400/10 p-3 rounded-lg border border-red-400/20">
+                                <p className="text-red-400 text-sm text-center bg-red-400/10 p-3 rounded-2xl border border-red-400/20">
                                     {(error as Error).message}
                                 </p>
                             )}
@@ -135,7 +135,7 @@ export default function CartaoDigital() {
                             <button 
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2"
+                                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2"
                             >
                                 {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'GERAR CARTÃO'}
                             </button>
@@ -150,7 +150,7 @@ export default function CartaoDigital() {
                         {/* Cartão Digital Estilo Premium */}
                         <div 
                             ref={cartaoRef}
-                            className="w-full bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-3xl p-6 shadow-2xl relative overflow-hidden border border-white/10"
+                            className="w-full bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden border border-white/10"
                         >
                             {/* Círculos de fundo */}
                             <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
@@ -204,7 +204,7 @@ export default function CartaoDigital() {
                             {/* Selo Offline */}
                             {!navigator.onLine && (
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 pointer-events-none">
-                                    <div className="px-4 py-2 border-4 border-white/20 rounded-xl bg-slate-900/40 backdrop-blur-sm flex items-center gap-2">
+                                    <div className="px-4 py-2 border-4 border-white/20 rounded-2xl bg-slate-900/40 backdrop-blur-sm flex items-center gap-2">
                                         <WifiOff className="w-8 h-8 text-white/40" />
                                         <span className="text-white/40 font-black text-2xl uppercase tracking-tighter">OFFLINE</span>
                                     </div>

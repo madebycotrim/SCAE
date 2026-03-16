@@ -99,8 +99,8 @@ export function PaginaGestaoEscolas() {
         <div className="space-y-16 animate-fade-in font-sans selection:bg-slate-950 selection:text-white">
             {/* Sistema de Telemetria Global - Estilo Centro de Comando */}
             <section className="relative">
-                <div className="absolute inset-0 bg-slate-100/30 blur-3xl rounded-[64px] -z-10"></div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 rounded-[40px] overflow-hidden border border-slate-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.03)] divide-x divide-slate-100">
+                <div className="absolute inset-0 bg-slate-100/30 blur-3xl rounded-2xl -z-10"></div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.03)] divide-x divide-slate-100">
                     <HealthMetric 
                         label="Fluxo / 24h" 
                         valor={saude?.totalAcessosHoje || 0} 
@@ -133,7 +133,7 @@ export function PaginaGestaoEscolas() {
             <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12">
                 <div className="space-y-6">
                     <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 bg-slate-950 rounded-[28px] flex items-center justify-center text-white shadow-2xl shadow-slate-200 rotate-2 group hover:rotate-0 transition-all duration-700">
+                        <div className="w-20 h-20 bg-slate-950 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-slate-200 rotate-2 group hover:rotate-0 transition-all duration-700">
                             <Building2 size={36} strokeWidth={2} />
                         </div>
                         <div className="space-y-1">
@@ -144,7 +144,7 @@ export function PaginaGestaoEscolas() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-6 w-full lg:w-auto">
-                    <div className="bg-white p-2 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-2 w-full sm:w-[400px]">
+                    <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-2 w-full sm:w-[400px]">
                         <Search className="ml-4 text-slate-300" size={18} />
                         <input 
                             type="text" 
@@ -158,7 +158,7 @@ export function PaginaGestaoEscolas() {
                         onClick={() => definirModalAberto(true)}
                         icone={Plus} 
                         tamanho="lg" 
-                        className="bg-black text-white hover:bg-slate-800 border-none rounded-[24px] px-12 h-16 shadow-2xl shadow-slate-200 font-black uppercase tracking-[0.2em] text-[11px] whitespace-nowrap active:scale-95 transition-all w-full sm:w-auto"
+                        className="bg-black text-white hover:bg-slate-800 border-none rounded-2xl px-12 h-16 shadow-2xl shadow-slate-200 font-black uppercase tracking-[0.2em] text-[11px] whitespace-nowrap active:scale-95 transition-all w-full sm:w-auto"
                     >
                         Nova Unidade
                     </Botao>
@@ -166,7 +166,7 @@ export function PaginaGestaoEscolas() {
             </header>
 
             {/* Registro de Ativos de Rede (Escolas) */}
-            <CartaoConteudo className="border-slate-100 shadow-[0_40px_100px_rgba(0,0,0,0.04)] rounded-[48px]">
+            <CartaoConteudo className="border-slate-100 shadow-[0_40px_100px_rgba(0,0,0,0.04)] rounded-2xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
@@ -227,7 +227,7 @@ export function PaginaGestaoEscolas() {
             {/* Modal Onboarding - Protocolo de Inicialização Multi-Fases */}
             {modalAberto && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-xl animate-fade-in font-sans">
-                    <div className="bg-white w-full max-w-2xl rounded-[64px] shadow-2xl border border-white/20 overflow-hidden relative animate-scale-up">
+                    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden relative animate-scale-up">
                         {/* Header do Modal com Indicador de Progresso */}
                         <div className="p-10 border-b border-slate-50">
                             <div className="flex justify-between items-center mb-10">
@@ -262,14 +262,14 @@ export function PaginaGestaoEscolas() {
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome da Instituição</label>
                                                 <input required type="text" placeholder="Ex: CEM 01 de Brasília" value={form.nome_escola}
                                                     onChange={(e) => definirForm({...form, nome_escola: e.target.value})}
-                                                    className="w-full h-16 bg-slate-50 border border-slate-100 rounded-3xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
+                                                    className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
                                                 />
                                             </div>
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ID Único (Slug)</label>
                                                 <input required type="text" placeholder="cem-01-bsb" value={form.id}
                                                     onChange={(e) => definirForm({...form, id: e.target.value.toLowerCase().replace(/\s+/g, '-')})}
-                                                    className="w-full h-16 bg-slate-50 border border-slate-100 rounded-3xl px-6 text-base font-mono font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
+                                                    className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-mono font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -277,7 +277,7 @@ export function PaginaGestaoEscolas() {
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Domínio de E-mail Autorizado</label>
                                             <input required type="text" placeholder="@edu.se.df.gov.br" value={form.dominio_email}
                                                 onChange={(e) => definirForm({...form, dominio_email: e.target.value})}
-                                                className="w-full h-16 bg-slate-50 border border-slate-100 rounded-3xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
+                                                className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
                                             />
                                             <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest ml-1 italic">Apenas usuários com este domínio poderão acessar o painel administrativo.</p>
                                         </div>
@@ -291,7 +291,7 @@ export function PaginaGestaoEscolas() {
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Logo URL (Icone)</label>
                                             <input type="url" placeholder="https://exemplo.com/logo.png" value={form.logo_url}
                                                 onChange={(e) => definirForm({...form, logo_url: e.target.value})}
-                                                className="w-full h-16 bg-slate-50 border border-slate-100 rounded-3xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
+                                                className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
                                             />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -304,7 +304,7 @@ export function PaginaGestaoEscolas() {
                                                     />
                                                     <input type="text" value={form.cor_primaria}
                                                         onChange={(e) => definirForm({...form, cor_primaria: e.target.value})}
-                                                        className="flex-1 h-16 bg-slate-50 border border-slate-100 rounded-3xl px-6 text-sm font-mono font-bold text-slate-900 focus:bg-white outline-none"
+                                                        className="flex-1 h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-mono font-bold text-slate-900 focus:bg-white outline-none"
                                                     />
                                                 </div>
                                             </div>
@@ -317,7 +317,7 @@ export function PaginaGestaoEscolas() {
                                                     />
                                                     <input type="text" value={form.cor_secundaria}
                                                         onChange={(e) => definirForm({...form, cor_secundaria: e.target.value})}
-                                                        className="flex-1 h-16 bg-slate-50 border border-slate-100 rounded-3xl px-6 text-sm font-mono font-bold text-slate-900 focus:bg-white outline-none"
+                                                        className="flex-1 h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-mono font-bold text-slate-900 focus:bg-white outline-none"
                                                     />
                                                 </div>
                                             </div>
@@ -328,7 +328,7 @@ export function PaginaGestaoEscolas() {
                                 {/* FASE 3: Configurações */}
                                 {fase === 3 && (
                                     <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
-                                        <div className="bg-slate-50/50 p-8 rounded-[40px] border border-slate-100 grid grid-cols-1 gap-6">
+                                        <div className="bg-slate-50/50 p-8 rounded-2xl border border-slate-100 grid grid-cols-1 gap-6">
                                             <div className="flex items-center justify-between group">
                                                 <div className="space-y-1">
                                                     <h4 className="text-sm font-black text-slate-950 uppercase tracking-tight italic">Síntese de Voz (TTS)</h4>
@@ -360,7 +360,7 @@ export function PaginaGestaoEscolas() {
                                             </div>
                                         </div>
                                         
-                                        <div className="p-6 bg-slate-950 rounded-[32px] text-white flex items-center gap-4">
+                                        <div className="p-6 bg-slate-950 rounded-2xl text-white flex items-center gap-4">
                                             <ShieldAlert className="text-slate-500" size={24} />
                                             <p className="text-[9px] font-black uppercase tracking-[0.2em] leading-relaxed opacity-80">
                                                 A ativação final gerará as chaves ECDSA P-256 mestras. Este processo é irreversível e cria um novo tenant isolado na infraestrutura.
@@ -377,7 +377,7 @@ export function PaginaGestaoEscolas() {
                                         type="button" 
                                         variante="ghost" 
                                         onClick={() => definirFase(fase - 1)}
-                                        className="px-10 h-16 rounded-[24px] uppercase font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-950"
+                                        className="px-10 h-16 rounded-2xl uppercase font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-950"
                                     >
                                         Voltar
                                     </Botao>
@@ -390,7 +390,7 @@ export function PaginaGestaoEscolas() {
                                             if (fase === 1 && (!form.nome_escola || !form.id || !form.dominio_email)) return toast.error('Complete a identidade core.');
                                             definirFase(fase + 1);
                                         }}
-                                        className="px-12 h-16 bg-slate-950 text-white rounded-[28px] uppercase font-black text-[11px] tracking-[0.2em] shadow-xl shadow-slate-200"
+                                        className="px-12 h-16 bg-slate-950 text-white rounded-2xl uppercase font-black text-[11px] tracking-[0.2em] shadow-xl shadow-slate-200"
                                     >
                                         Próximo Passo
                                     </Botao>
@@ -399,7 +399,7 @@ export function PaginaGestaoEscolas() {
                                         type="submit"
                                         loading={criando}
                                         disabled={criando}
-                                        className="px-16 h-20 bg-black text-white rounded-[32px] hover:bg-slate-800 font-black uppercase text-[12px] tracking-[0.3em] shadow-2xl shadow-slate-200 min-w-[240px] active:scale-95 transition-all text-highlight"
+                                        className="px-16 h-20 bg-black text-white rounded-2xl hover:bg-slate-800 font-black uppercase text-[12px] tracking-[0.3em] shadow-2xl shadow-slate-200 min-w-[240px] active:scale-95 transition-all text-highlight"
                                     >
                                         {criando ? 'Protocolando...' : 'Inicializar Unidade'}
                                     </Botao>
@@ -450,27 +450,27 @@ function BadgeStatus({ status }: { status: 'ATIVA' | 'SUSPENSA' | 'PENDENTE' }) 
 function SkeletonCentral() {
     return (
         <div className="space-y-16 animate-pulse pb-20">
-            <div className="h-44 bg-white border-slate-200 rounded-[48px]" />
+            <div className="h-44 bg-white border-slate-200 rounded-2xl" />
             <div className="flex justify-between">
-                <div className="w-96 h-20 bg-white rounded-[32px]" />
-                <div className="w-64 h-20 bg-white rounded-[32px]" />
+                <div className="w-96 h-20 bg-white rounded-2xl" />
+                <div className="w-64 h-20 bg-white rounded-2xl" />
             </div>
-            <div className="h-[600px] bg-white rounded-[48px]" />
+            <div className="h-[600px] bg-white rounded-2xl" />
         </div>
     );
 }
 
 function ErroCentral({ erro, onContexto }: any) {
     return (
-        <div className="bg-white border border-slate-200 p-20 rounded-[64px] flex flex-col items-center text-center gap-10 max-w-2xl mx-auto shadow-2xl shadow-slate-200/50 my-20">
-            <div className="w-24 h-24 bg-slate-50 rounded-[32px] flex items-center justify-center text-slate-300 border border-slate-100 shadow-inner">
+        <div className="bg-white border border-slate-200 p-20 rounded-2xl flex flex-col items-center text-center gap-10 max-w-2xl mx-auto shadow-2xl shadow-slate-200/50 my-20">
+            <div className="w-24 h-24 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 border border-slate-100 shadow-inner">
                 <AlertTriangle size={44} strokeWidth={2} />
             </div>
             <div className="space-y-4">
                 <h3 className="text-3xl font-black text-slate-950 uppercase tracking-tighter italic">Interrupção de Sinal</h3>
                 <p className="text-slate-400 text-base font-medium leading-relaxed max-w-md mx-auto">{erro}</p>
             </div>
-            <Botao variante="primario" className="px-16 py-6 bg-black text-white rounded-[28px] hover:bg-slate-800 transition-all font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl" onClick={onContexto}>Retomar Protocolo</Botao>
+            <Botao variante="primario" className="px-16 py-6 bg-black text-white rounded-2xl hover:bg-slate-800 transition-all font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl" onClick={onContexto}>Retomar Protocolo</Botao>
         </div>
     );
 }

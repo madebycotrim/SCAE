@@ -282,7 +282,7 @@ export default function TerminalAcesso() {
                     </div>
 
                     {/* Industrial Scanner Frame */}
-                    <div className="relative w-full max-w-lg aspect-square bg-black rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] ring-1 ring-white/10 group-hover:ring-indigo-500/30 transition-all duration-700">
+                    <div className="relative w-full max-w-lg aspect-square bg-black rounded-2xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] ring-1 ring-white/10 group-hover:ring-indigo-500/30 transition-all duration-700">
                         {/* Scanner Component */}
                         <div id="reader" className="w-full h-full bg-black scale-[1.05] grayscale contrast-125 opacity-80 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700"></div>
 
@@ -299,7 +299,7 @@ export default function TerminalAcesso() {
                         </div>
 
                         {/* Moldura de Segurança (Cor do Dia) - Glow Externo */}
-                        <div className="absolute inset-2 border-[6px] rounded-[2.5rem] pointer-events-none z-0 opacity-40 animate-pulse" 
+                        <div className="absolute inset-2 border-[6px] rounded-2xl pointer-events-none z-0 opacity-40 animate-pulse" 
                              style={{ borderColor: corDoDia, boxShadow: `0 0 40px ${corDoDia}30` }}></div>
 
                         {/* Scanning Laser Animation */}
@@ -334,7 +334,7 @@ export default function TerminalAcesso() {
                         {ultimoAcesso ? (
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
                                 {/* Telemetry Card */}
-                                <div className="bg-slate-800/50 rounded-[2.5rem] p-10 border border-white/5 text-center relative overflow-hidden shadow-2xl backdrop-blur-3xl group-hover:border-indigo-500/20 transition-all">
+                                <div className="bg-slate-800/50 rounded-2xl p-10 border border-white/5 text-center relative overflow-hidden shadow-2xl backdrop-blur-3xl group-hover:border-indigo-500/20 transition-all">
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
                                     <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tighter leading-none">
                                         {ultimoAcesso.aluno?.nome_completo || 'Unknown'}
@@ -360,7 +360,7 @@ export default function TerminalAcesso() {
                                         <Clock size={20} className="text-slate-600" strokeWidth={2} />
                                     </div>
 
-                                    <div className={`flex items-center justify-between p-6 rounded-[2rem] border-2 shadow-2xl transition-all ${ultimoAcesso.tipo === 'SUCESSO'
+                                    <div className={`flex items-center justify-between p-6 rounded-2xl border-2 shadow-2xl transition-all ${ultimoAcesso.tipo === 'SUCESSO'
                                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                                         : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
                                         }`}>
@@ -376,7 +376,7 @@ export default function TerminalAcesso() {
                             <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-8 opacity-40 group-hover:opacity-60 transition-opacity">
                                 <div className="relative">
                                     <div className="absolute inset-0 bg-indigo-500/20 blur-3xl animate-pulse"></div>
-                                    <div className="relative w-24 h-24 rounded-[2rem] border-2 border-dashed border-slate-700 flex items-center justify-center bg-slate-900/50">
+                                    <div className="relative w-24 h-24 rounded-2xl border-2 border-dashed border-slate-700 flex items-center justify-center bg-slate-900/50">
                                         <Radar size={40} className="animate-spin-slow" strokeWidth={1.5} />
                                     </div>
                                 </div>

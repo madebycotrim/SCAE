@@ -1,4 +1,15 @@
 @import "tailwindcss";
+
+@theme {
+  --radius-xs: 1rem;
+  --radius-sm: 1rem;
+  --radius-md: 1rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1rem;
+  --radius-4xl: 1rem;
+}
 @import "@fontsource/outfit/100.css";
 @import "@fontsource/outfit/300.css";
 @import "@fontsource/outfit/400.css";

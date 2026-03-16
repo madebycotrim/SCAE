@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "wrangler pages dev dist --port 8788 --d1 DB_SCAE=scae_db --kv KV_SCAE",
+    "dev:full": "npm run build && concurrently \"npm run dev:api\" \"vite\"",
     "dev:live": "cross-env VITE_PROXY_TARGET=https://scae.pages.dev npm run dev",
     "build": "vite build",
     "lint": "eslint ."
@@ -40,6 +42,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
