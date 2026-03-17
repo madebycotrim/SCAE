@@ -32,6 +32,7 @@ export interface DadosContexto {
 export interface ContextoSCAE {
     request: Request;
     env: AmbienteSCAE;
+    params: Record<string, string>;
     data: DadosContexto;
     next: () => Promise<Response>;
 }
