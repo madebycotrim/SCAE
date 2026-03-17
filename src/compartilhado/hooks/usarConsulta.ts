@@ -12,16 +12,16 @@ export function usarConsulta<T = any>(
     opcoes?: { staleTime?: number; refetchInterval?: number }
 ) {
     const [dados, definirDados] = useState<T | null>(null);
-    const [carregando, definirCarregando] = useState(false); // Começa false para respeitar o delay
+    const [carregando, definirCarregando] = useState(false);
     const [erro, definirErro] = useState<Error | null>(null);
     const montado = useRef(true);
 
     const carregar = useCallback(async (exibirLoading = true) => {
         let timerCarregando: any;
 
-        // Só ativa o estado 'carregando' se demorar mais que 180ms
-        // Isso evita o 'flicker' em consultas rápidas no IndexedDB
-        if (exibirLoading || !dados) {
+        // Ativa o estado 'carregando' (que controla a barra de progresso no topo)
+        // Se exibirLoading for false (refresh sutil), não ativamos o estado carregando
+        if (exibirLoading) {
             timerCarregando = setTimeout(() => {
                 if (montado.current) definirCarregando(true);
             }, 180);
@@ -43,12 +43,12 @@ export function usarConsulta<T = any>(
                 definirCarregando(false);
             }
         }
-    }, [buscar, dados]);
+    }, [buscar]);
 
     useEffect(() => {
         montado.current = true;
         
-        // Chamada inicial
+        // Chamada inicial: sempre exibe loading se for a primeira vez
         carregar(true);
 
         let intervalo: ReturnType<typeof setInterval> | undefined;
@@ -67,6 +67,8 @@ export function usarConsulta<T = any>(
     return {
         dados,
         carregando,
+        // carregarInicial: quando está carregando e NÃO tem dados ainda (usado para skeletons)
+        carregandoInicial: carregando && !dados,
         erro,
         recarregar: () => carregar(true),
         atualizarSutil: () => carregar(false)

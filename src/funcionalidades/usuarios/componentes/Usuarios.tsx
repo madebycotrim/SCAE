@@ -36,7 +36,7 @@ import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 export default function Usuarios() {
     const { usuarioAtual } = usarAutenticacao();
     const { ehCentral } = usarPermissoes();
-    const { dados: usuariosBrutos, carregando, recarregar: carregarUsuarios } = usarConsulta(
+    const { dados: usuariosBrutos, carregando, carregandoInicial, recarregar: carregarUsuarios } = usarConsulta(
         ['usuarios-online'],
         () => usuarioServico.carregarOnline()
     );
@@ -164,7 +164,7 @@ export default function Usuarios() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {carregando ? (
+                            {carregandoInicial ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i} className="animate-fade-in">
                                         <td className="py-5 px-8">

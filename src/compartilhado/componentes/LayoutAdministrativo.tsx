@@ -1,6 +1,7 @@
 // TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
 import { usarNotificacoes } from '@/compartilhado/contextos/ContextoNotificacoes';
@@ -39,12 +40,9 @@ import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { BarraProgressoGlobal } from '@/compartilhado/componentes/UI';
+import { ReactNode } from 'react';
 
 const log = criarRegistrador('Layout');
-
-
-
-import { ReactNode } from 'react';
 
 interface LayoutAdministrativoProps {
     children: ReactNode;
@@ -66,7 +64,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     const prefixoAdmin = `/${slugEscola}/admin`;
 
     // Estado do Sidebar
-    const [sidebarAberto, definirSidebarAberto] = useState(true); // Mobile
+    const [sidebarAberto, definirSidebarAberto] = useState(false); // Mobile
     const [sidebarMinimizado, definirSidebarMinimizado] = useState(() => {
         return localStorage.getItem('sidebarMinimizado') === 'true';
     });
@@ -82,22 +80,35 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     // Busca Global
     const { termo, definirTermo, resultados } = usarBuscaGlobal();
     const [mostrarResultados, definirMostrarResultados] = useState(false);
+    
+    // Estados para preservação de UI
+    const [animado, definirAnimado] = useState(false);
+    const mainRef = useRef<HTMLElement>(null);
+    const scrollPosicaoRef = useRef(0);
 
-    // Atalhos de Teclado
+    // Animar entrada apenas uma vez por montagem do layout
     useEffect(() => {
-        const tratarTeclas = (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('input-busca-global')?.focus();
-            }
-            if (e.key === 'Escape') {
-                definirMostrarResultados(false);
-            }
-        };
-
-        window.addEventListener('keydown', tratarTeclas);
-        return () => window.removeEventListener('keydown', tratarTeclas);
+        definirAnimado(true);
     }, []);
+
+    // Preservar posição de scroll ao re-renderizar (carregando/atualizando dados)
+    useLayoutEffect(() => {
+        if (mainRef.current) {
+            mainRef.current.scrollTop = scrollPosicaoRef.current;
+        }
+    });
+
+    const lidarComScroll = (e: React.UIEvent<HTMLElement>) => {
+        scrollPosicaoRef.current = e.currentTarget.scrollTop;
+    };
+
+    // Resetar scroll ao mudar de página (navegação real)
+    useEffect(() => {
+        scrollPosicaoRef.current = 0;
+        if (mainRef.current) {
+            mainRef.current.scrollTop = 0;
+        }
+    }, [localizacao.pathname]);
 
     // Fechar sidebar mobile ao navegar
     useEffect(() => {
@@ -156,7 +167,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             const banco = await import('@/compartilhado/servicos/bancoLocal').then(m => m.bancoLocal.iniciarBanco());
             const usuarioAtualizado = { ...usuario, pendente: false, ativo: true };
             await banco.put('usuarios', usuarioAtualizado);
-            // Force reload logic or context update could be better, but a reload is safe for ensuring state
             window.location.reload();
         } catch (e) {
             log.error('Erro ao confirmar acesso', e);
@@ -192,18 +202,18 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         return (
             <div className="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-md max-w-md w-full p-8 text-center border border-slate-100">
-                    <div className="w-20 h-20 bg-escola-claro rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-escola">
-                        <Crown size={40} className="text-escola" />
+                    <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-indigo-200">
+                        <Crown size={40} className="text-indigo-600" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 mb-2">Bem-vindo(a) ao SCAE!</h2>
                     <p className="text-slate-400 mb-8 leading-relaxed">
-                        Você recebeu acesso de <span className="font-bold text-escola">{usuario.papel}</span>.
+                        Você recebeu acesso de <span className="font-bold text-indigo-600">{usuario.papel}</span>.
                         Para continuar, confirme seus dados e aceite o convite para utilizar o sistema.
                     </p>
 
                     <button
                         onClick={confirmarAcesso}
-                        className="w-full py-4 bg-escola text-white rounded-2xl font-bold text-lg bg-escola-hover hover:scale-[1.02] active:scale-95 transition-all shadow-escola"
+                        className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-indigo-600/20"
                     >
                         Confirmar e Acessar
                     </button>
@@ -261,7 +271,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         )}
                     </div>
 
-                    {/* Botão de Alternância (Discreto) */}
                     <button
                         onClick={() => definirSidebarMinimizado(!sidebarMinimizado)}
                         className={`
@@ -281,7 +290,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent
                     ${sidebarMinimizado ? 'px-3' : 'px-4'}
                 `}>
-                    {/* Menu Principal */}
                     <div className="mb-4">
                         <div className="space-y-4">
                             {gruposMenu.map((grupo, idx) => (
@@ -297,31 +305,27 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                             const ativo = localizacao.pathname.startsWith(`${prefixoAdmin}${item.rota}`);
 
                                             return (
-                                                <div key={item.rota} className="space-y-0.5">
-                                                    <button
-                                                        onClick={() => navegar(`${prefixoAdmin}${item.rota}`)}
-                                                        className={`
-                                                            w-full flex items-center transition-all duration-150 group
-                                                            ${sidebarMinimizado ? 'justify-center p-2' : 'gap-3 px-3 py-2'}
-                                                            ${ativo
-                                                                ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-2xl'
-                                                                : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-2xl'
-                                                            }
-                                                        `}
-                                                        title={sidebarMinimizado ? item.texto : ""}
-                                                    >
-                                                        <Icone
-                                                            size={16}
-                                                            className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
-                                                        />
-
-                                                        {!sidebarMinimizado && (
-                                                            <span className="text-sm">
-                                                                {item.texto}
-                                                            </span>
-                                                        )}
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    key={item.rota}
+                                                    onClick={() => navegar(`${prefixoAdmin}${item.rota}`)}
+                                                    className={`
+                                                        w-full flex items-center transition-all duration-150 group
+                                                        ${sidebarMinimizado ? 'justify-center p-2' : 'gap-3 px-3 py-2'}
+                                                        ${ativo
+                                                            ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-2xl'
+                                                            : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-2xl'
+                                                        }
+                                                    `}
+                                                    title={sidebarMinimizado ? item.texto : ""}
+                                                >
+                                                    <Icone
+                                                        size={16}
+                                                        className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
+                                                    />
+                                                    {!sidebarMinimizado && (
+                                                        <span className="text-sm">{item.texto}</span>
+                                                    )}
+                                                </button>
                                             );
                                         })}
                                     </div>
@@ -329,188 +333,42 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             ))}
                         </div>
                     </div>
-
-                    {/* Seção Administrativa removida a pedido do usuário */}
-
                 </nav>
 
-                {/* Seção de Notificações na Sidebar */}
-                <div className="px-4 mb-4">
-                    <button
-                        onClick={() => definirNotificacoesAberta(!notificacoesAberta)}
-                        className={`
-                            w-full flex items-center justify-between p-3 rounded-2xl transition-all group relative
-                            ${notificacoesAberta ? 'bg-slate-900 border border-slate-800' : 'bg-transparent border border-transparent hover:bg-slate-900/50'}
-                        `}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <Bell 
-                                    size={18} 
-                                    className={`${naoLidas > 0 ? 'text-sky-400' : 'text-slate-400'} group-hover:text-slate-200 transition-colors`} 
-                                />
-                                {naoLidas > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-950 animate-pulse"></span>
-                                )}
-                            </div>
-                            {!sidebarMinimizado && (
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-slate-200 transition-colors">
-                                    Notificações
-                                </span>
-                            )}
-                        </div>
-                        {!sidebarMinimizado && (
-                            <div className="flex items-center gap-2">
-                                {naoLidas > 0 && (
-                                    <span className="px-1.5 py-0.5 rounded-2xl bg-sky-500/10 text-sky-400 text-[9px] font-black">
-                                        {naoLidas}
-                                    </span>
-                                )}
-                                <ChevronRight 
-                                    size={12} 
-                                    className={`text-slate-600 transition-transform duration-300 ${notificacoesAberta ? 'rotate-90' : ''}`} 
-                                />
-                            </div>
-                        )}
-                    </button>
-
-                    {/* Lista de Notificações na Sidebar (Dropdown ou Expansível) */}
-                    {notificacoesAberta && (
-                        <div className={`
-                            mt-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200
-                            ${sidebarMinimizado ? 'fixed left-20 ml-2 w-80 shadow-md z-[60]' : 'w-full'}
-                        `}>
-                            <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
-                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Recentes</span>
-                                {naoLidas > 0 && (
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); marcarTodasComoLidas(); }}
-                                        className="text-[8px] font-black uppercase text-sky-400 hover:text-sky-300 transition-colors"
-                                    >
-                                        Limpar tudo
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
-                                {notificacoes.length === 0 ? (
-                                    <div className="p-8 text-center">
-                                        <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight italic">Nenhum alerta novo</p>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col">
-                                        {notificacoes.map((notificacao) => (
-                                            <div
-                                                key={notificacao.id}
-                                                className={`
-                                                    p-3 border-b border-slate-800/50 last:border-0 hover:bg-slate-800/30 transition-colors group/item
-                                                    ${!notificacao.lida ? 'bg-sky-500/5' : ''}
-                                                `}
-                                                onClick={() => !notificacao.lida && marcarComoLida(notificacao.id)}
-                                            >
-                                                <div className="flex gap-3">
-                                                    <div className={`
-                                                        shrink-0 w-6 h-6 rounded-2xl flex items-center justify-center
-                                                        ${notificacao.tipo === 'error' ? 'bg-rose-500/20 text-rose-400' :
-                                                          notificacao.tipo === 'success' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                          notificacao.tipo === 'warning' ? 'bg-amber-500/20 text-amber-400' :
-                                                          'bg-sky-500/20 text-sky-400'}
-                                                    `}>
-                                                        {notificacao.tipo === 'error' && <XCircle size={12} />}
-                                                        {notificacao.tipo === 'success' && <CheckCircle size={12} />}
-                                                        {notificacao.tipo === 'warning' && <AlertTriangle size={12} />}
-                                                        {(notificacao.tipo === 'info' || !notificacao.tipo) && <Info size={12} />}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className={`text-[11px] font-bold truncate ${!notificacao.lida ? 'text-slate-100' : 'text-slate-400'}`}>
-                                                            {notificacao.titulo}
-                                                        </p>
-                                                        <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5 leading-tight">
-                                                            {notificacao.mensagem}
-                                                        </p>
-                                                    </div>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            removerNotificacao(notificacao.id);
-                                                        }}
-                                                        className="opacity-0 group-hover/item:opacity-100 p-1 text-slate-600 hover:text-rose-400 transition-all"
-                                                    >
-                                                        <X size={12} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Seção de Instalação PWA (Discreta) */}
-                {podeInstalar && (
-                    <div className={`px-4 py-3 bg-sky-500/5 mx-2 mb-2 rounded-2xl border border-sky-400/10 transition-all ${sidebarMinimizado ? 'justify-center flex' : ''}`}>
-                        <button
-                            onClick={instalarApp}
-                            className={`
-                                flex items-center gap-3 w-full text-sky-400 hover:text-sky-300 transition-colors
-                                ${sidebarMinimizado ? 'justify-center p-1' : 'px-2 py-1'}
-                            `}
-                            title={sidebarMinimizado ? "Baixar Aplicativo" : ""}
-                        >
-                            <Smartphone size={18} className="shrink-0" />
-                            {!sidebarMinimizado && (
-                                <span className="text-[10px] font-black uppercase tracking-widest truncate">Baixar Aplicativo</span>
-                            )}
-                        </button>
-                    </div>
-                )}
-
-                {/* Rodapé - Perfil do Usuário */}
+                {/* Perfil */}
                 <div className="p-4 border-t border-[rgba(255,255,255,0.06)] z-10">
                     <div className={`flex items-center ${sidebarMinimizado ? 'justify-center flex-col gap-4' : 'justify-between px-1'}`}>
-
-                        {/* Avatar e Infos */}
                         <div className={`flex items-center ${sidebarMinimizado ? 'flex-col gap-4' : 'gap-3 min-w-0'}`}>
-                            <div className="relative shrink-0 cursor-pointer">
-                                <div className="w-9 h-9 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-inner group-hover:border-slate-700 transition-colors">
+                            <div className="relative shrink-0">
+                                <div className="w-9 h-9 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-inner overflow-hidden">
                                     {usuarioAtual?.email?.[0]?.toUpperCase() || 'U'}
                                 </div>
                                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-slate-950"></div>
                             </div>
-
                             {!sidebarMinimizado && (
                                 <div className="flex-1 min-w-0 pr-2">
                                     <p className="text-[12px] font-black text-white truncate uppercase tracking-tight">
-                                        {usuario?.nome_completo || usuarioAtual?.displayName || 'Usuário'}
+                                        {usuario?.nome_completo || 'Usuário'}
                                     </p>
-                                    <p className="text-[10.5px] text-slate-400 truncate font-bold tracking-tighter" title={usuarioAtual?.email}>
+                                    <p className="text-[10.5px] text-slate-400 truncate font-bold tracking-tighter">
                                         {mascararEmail(usuarioAtual?.email)}
                                     </p>
                                 </div>
                             )}
                         </div>
-
-                        {/* Botão Sair */}
                         <button
                             onClick={aoSair}
-                            className={`
-                                flex items-center justify-center shrink-0 transition-all duration-150 group rounded-lg
-                                ${sidebarMinimizado ? 'w-9 h-9 hover:bg-[rgba(239,68,68,0.08)]' : 'w-8 h-8 hover:bg-[rgba(239,68,68,0.08)]'}
-                            `}
+                            className="group p-2 rounded-lg hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 transition-all"
                             title="Sair"
                         >
-                            <LogOut size={16} className="text-slate-400 group-hover:text-red-400 transition-colors" />
+                            <LogOut size={16} />
                         </button>
                     </div>
                 </div>
             </aside>
 
-            {/* Area de Conteúdo Principal */}
-            <div className="flex-1 flex flex-col min-w-0 bg-gray-50 relative overflow-hidden">
-
-                {/* Cabeçalho */}
+            {/* Area de Conteúdo */}
+            <div className="flex-1 flex flex-col min-w-0 relative">
                 <header
                     className="bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-8"
                     style={{ height: '64px' }}
@@ -522,7 +380,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         >
                             <Menu size={18} />
                         </button>
-
                         <div className="flex flex-col justify-center">
                             <h1 className="text-lg font-black text-slate-900 leading-none tracking-tight uppercase">{titulo}</h1>
                             {subtitulo && <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 hidden sm:block">{subtitulo}</p>}
@@ -530,7 +387,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
 
                     <div className="flex items-center gap-5">
-                        {/* Barra de Busca - Oculta em telas pequenas */}
+                        {/* Busca */}
                         <div className="hidden md:flex items-center relative group h-8">
                             <Search className="absolute left-3 w-3.5 h-3.5 text-slate-400 group-focus-within:text-slate-900 transition-colors pointer-events-none" />
                             <input
@@ -546,30 +403,13 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                 className="pl-9 pr-12 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-900/5 rounded-2xl text-[11px] font-bold w-64 focus:w-80 h-full outline-none transition-all duration-300"
                             />
 
-                            {/* Resultados da Busca */}
                             {mostrarResultados && resultados.length > 0 && (
                                 <>
-                                    <div
-                                        className="fixed inset-0 z-[45]"
-                                        onClick={() => definirMostrarResultados(false)}
-                                    />
+                                    <div className="fixed inset-0 z-[45]" onClick={() => definirMostrarResultados(false)} />
                                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-md border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
-                                        <div className="p-2 border-b border-slate-50 bg-slate-50/50">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 py-1">Funcionalidades Sugeridas</p>
-                                        </div>
                                         <div className="max-h-[320px] overflow-y-auto p-1.5 flex flex-col gap-1">
                                             {resultados.map((res) => {
                                                 const Icone = res.icone;
-                                                const corCategoria =
-                                                    res.categoria === 'acao' ? 'bg-amber-100 text-amber-600' :
-                                                        res.categoria === 'dado' ? 'bg-indigo-100 text-indigo-600' :
-                                                            'bg-slate-100 text-slate-400';
-
-                                                const labelCategoria =
-                                                    res.categoria === 'acao' ? 'Ação' :
-                                                        res.categoria === 'dado' ? 'Consulta' :
-                                                            'Página';
-
                                                 return (
                                                     <button
                                                         key={res.id}
@@ -580,19 +420,11 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                         }}
                                                         className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-all text-left group"
                                                     >
-                                                        <div className={`w-9 h-9 ${corCategoria} rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors`}>
+                                                        <div className="w-9 h-9 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                                             <Icone size={18} />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{res.titulo}</p>
-                                                                <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border transition-colors ${res.categoria === 'acao' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                                    res.categoria === 'dado' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                                                                        'bg-slate-50 text-slate-400 border-slate-100 group-hover:text-blue-600 group-hover:border-blue-200'
-                                                                    }`}>
-                                                                    {labelCategoria}
-                                                                </span>
-                                                            </div>
+                                                            <p className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{res.titulo}</p>
                                                             <p className="text-[10px] text-slate-400 truncate mt-0.5">{res.descricao}</p>
                                                         </div>
                                                         <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-all" />
@@ -605,7 +437,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             )}
                         </div>
 
-                        {/* Contêiner de Ações */}
                         {acoes && (
                             <div className="flex items-center gap-5 h-8">
                                 <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
@@ -615,11 +446,21 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
                 </header>
 
-                {/* Conteúdo da Página */}
-                <main className="flex-1 overflow-y-auto p-8 md:p-10 lg:p-12 scroll-smooth z-10 custom-scrollbar bg-slate-50/30">
-                    <div className="max-w-[1600px] mx-auto animate-slide-up">
+                {/* Conteúdo */}
+                <main 
+                    ref={mainRef}
+                    onScroll={lidarComScroll}
+                    className="flex-1 overflow-y-auto p-8 md:p-10 lg:p-12 scroll-smooth z-10 custom-scrollbar bg-slate-50/30"
+                >
+                    <motion.div 
+                        key={localizacao.pathname}
+                        initial={!animado ? { opacity: 0, y: 20 } : false}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                        className="max-w-[1600px] mx-auto"
+                    >
                         {children}
-                    </div>
+                    </motion.div>
                 </main>
             </div>
         </div>

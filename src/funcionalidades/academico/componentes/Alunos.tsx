@@ -25,7 +25,7 @@ export default function Alunos() {
     const { adicionarNotificacao } = usarNotificacoes();
     const escola = usarEscola();
 
-    const { dados, carregando, recarregar } = usarConsulta(
+    const { dados, carregando, carregandoInicial, recarregar } = usarConsulta(
         ['alunos-e-turmas-online'],
         () => alunoServico.carregarOnline()
     );
@@ -254,7 +254,7 @@ export default function Alunos() {
                 aoExcluir={excluirAluno}
                 aoMudarPagina={definirPaginaAtual}
                 obterCorAvatar={obterCorAvatar}
-                carregando={carregando}
+                carregando={carregandoInicial}
             />
 
             <BarraSelecaoLote

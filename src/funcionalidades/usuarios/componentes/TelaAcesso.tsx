@@ -184,6 +184,21 @@ export default function TelaAcesso() {
                                 </p>
                             </div>
 
+                            {/* Domínio Permitido — Estilo Selo de Segurança */}
+                            {dominioEmail && (
+                                <div className="flex justify-center mb-10">
+                                    <div className="inline-flex items-center gap-3 px-1.5 py-1.5 pr-5 bg-slate-50 border border-slate-200/60 rounded-full hover:border-indigo-200 hover:bg-white transition-all duration-300 group shadow-sm active:scale-95 cursor-default">
+                                        <div className="w-8 h-8 rounded-full bg-[#0d1f3c] flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
+                                            <Lock size={14} className="text-white" />
+                                        </div>
+                                        <div className="flex flex-col text-left">
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Acesso Institucional</span>
+                                            <span className="text-xs font-bold text-indigo-600 leading-none">{dominioEmail}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Botão Google OAuth */}
                             <button
                                 onClick={() => handleGoogleLogin('user')}
@@ -207,17 +222,6 @@ export default function TelaAcesso() {
                                 </div>
                             )}
 
-                            {/* Link Aluno - QR Code */}
-                            <div className="mt-8 text-center">
-                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-4">É aluno?</p>
-                                <button
-                                    onClick={() => navegar(`/${slugEscola}/cartao`)}
-                                    className="w-full flex items-center justify-center gap-2 py-3.5 px-5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-black rounded-2xl transition-all shadow-sm border border-indigo-100"
-                                >
-                                    <QrCode className="w-4 h-4" />
-                                    GERAR MEU QR CODE
-                                </button>
-                            </div>
 
                             {/* Separador */}
                             <div className="mt-6 border-t border-slate-100"></div>

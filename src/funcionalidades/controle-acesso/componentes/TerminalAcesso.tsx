@@ -19,6 +19,7 @@ import {
 
 import { format } from 'date-fns';
 import { usarEscola } from '@/escola/ProvedorEscola';
+import { usarRegrasHorarios } from '@/funcionalidades/configuracao-horarios';
 import { usarTipoAcesso } from '../hooks/usarTipoAcesso';
 import { usarControleAcessoWorker } from '../hooks/usarControleAcessoWorker';
 import { TIPO_ACESSO } from '../types/controleAcesso.tipos';
@@ -33,6 +34,7 @@ export default function TerminalAcesso() {
     const navigate = useNavigate();
     const escola = usarEscola();
     const { usuarioAtual } = usarAutenticacao();
+    const { regras: janelas } = usarRegrasHorarios(escola.id);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
     const tipoAcessoAtual = usarTipoAcesso();
     const { acionarWorker, statusWorker } = usarControleAcessoWorker();
@@ -148,6 +150,46 @@ export default function TerminalAcesso() {
                     });
                     audioErro.current.play().catch(() => { });
                 } else {
+                    const movimentacao = tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO ? 'ENTRADA' : tipoAcessoAtual;
+                    const horaMinutos = format(new Date(), 'HH:mm');
+
+                    // 3. Verificar Janelas de Horário
+                    const janelasDoSentido = janelas.filter(j => j.tipoAcesso === movimentacao || j.tipoAcesso === 'AMBOS');
+                    
+                    // Se houver janelas cadastradas, o acesso tem que estar dentro de alguma delas.
+                    // Se não houver janelas cadastradas para o sentido, consideramos liberado (comportamento padrão).
+                    const estaNoHorario = janelasDoSentido.length === 0 || janelasDoSentido.some(j => {
+                        return horaMinutos >= j.horaInicio && horaMinutos <= j.horaFim;
+                    });
+
+                    if (!estaNoHorario) {
+                        definirUltimoAcesso({
+                            tipo: 'AVISO',
+                            mensagem: 'FORA DE HORÁRIO',
+                            hora: format(new Date(), 'HH:mm:ss'),
+                            aluno: aluno
+                        });
+                        audioErro.current.play().catch(() => { });
+                        
+                        // Registramos mesmo fora de horário para auditoria
+                        const registroFora = {
+                            id: crypto.randomUUID(),
+                            escola_id: escola.id,
+                            aluno_matricula: aluno.matricula,
+                            aluno_nome: aluno.nome_completo,
+                            aluno_turma: aluno.turma_id,
+                            timestamp_acesso: new Date().toISOString(),
+                            tipo_movimentacao: movimentacao,
+                            metodo_leitura: payloadValido ? 'qr_assinada' : 'qr_legado',
+                            sincronizado: 0,
+                            // Nota: Adicionamos a descrição para o histórico, se o campo existir no futuro
+                            observacao: 'FORA DE HORÁRIO'
+                        };
+                        await banco.add('registros_acesso', registroFora);
+                        acionarWorker();
+                        return;
+                    }
+
                     const novoRegistro = {
                         id: crypto.randomUUID(),
                         escola_id: escola.id,
@@ -155,7 +197,7 @@ export default function TerminalAcesso() {
                         aluno_nome: aluno.nome_completo,
                         aluno_turma: aluno.turma_id,
                         timestamp_acesso: new Date().toISOString(),
-                        tipo_movimentacao: tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO ? 'ENTRADA' : tipoAcessoAtual,
+                        tipo_movimentacao: movimentacao,
                         metodo_leitura: payloadValido ? 'qr_assinada' : 'qr_legado',
                         sincronizado: 0
                     };

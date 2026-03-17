@@ -144,7 +144,7 @@ function App() {
                         {/* ═══ SUPERFÍCIE PÚBLICA: Páginas Auxiliares ═══ */}
                         <Route path="termos-de-uso" element={<PaginaTermosUso />} />
                         <Route path="politica-de-privacidade" element={<PaginaPoliticaPrivacidade />} />
-                        <Route path="cartao" element={<PaginaCartaoDigital />} />
+                        <Route path="aluno" element={<PaginaCartaoDigital />} />
 
 
                         {/* ═══ SUPERFÍCIE 2: Painel Administrativo ═══ */}

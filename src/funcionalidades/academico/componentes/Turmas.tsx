@@ -38,7 +38,7 @@ export default function Turmas() {
     const navegar = useNavigate();
     const { podeAcessar } = usarPermissoes();
     const escola = usarEscola();
-    const { dados, carregando, recarregar: carregarTurmas } = usarConsulta(
+    const { dados, carregando, carregandoInicial, recarregar: carregarTurmas } = usarConsulta(
         ['turmas-online'],
         () => turmaServico.carregarOnline()
     );
@@ -263,7 +263,7 @@ export default function Turmas() {
 
             {/* Listagem em Tabela SaaS */}
             <CartaoConteudo className="mt-8">
-                {carregando ? (
+                {carregandoInicial ? (
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse whitespace-nowrap">
                             <thead>

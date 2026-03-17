@@ -2,7 +2,7 @@ import { ShieldCheck, UserX, Clock, UserCircle2, Ban } from 'lucide-react';
 import { format } from 'date-fns';
 
 export interface RegistroLeitura {
-    tipo: 'SUCESSO' | 'ERRO';
+    tipo: 'SUCESSO' | 'ERRO' | 'AVISO';
     aluno?: import('@/compartilhado/types/bancoLocal.tipos').AlunoLocal | null;
     mensagem: string;
     hora: string;
@@ -12,6 +12,8 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
     if (!registro) return null;
 
     const ehSucesso = registro.tipo === 'SUCESSO';
+    const ehAviso = registro.tipo === 'AVISO';
+    const ehErro = registro.tipo === 'ERRO';
 
     // Cor do dia baseada na data atual para segurança visual do porteiro
     const dataHoje = format(new Date(), 'yyyy-MM-dd');
@@ -26,7 +28,7 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
         <div className={`
             fixed inset-0 z-[100] flex items-center justify-center p-6
             transition-all duration-500 animate-in fade-in zoom-in-95
-            ${ehSucesso ? 'bg-emerald-950/95' : 'bg-rose-950/95'}
+            ${ehSucesso ? 'bg-emerald-950/95' : ehAviso ? 'bg-amber-950/95' : 'bg-rose-950/95'}
             backdrop-blur-2xl
         `} onClick={aoEncerrar}>
 
@@ -37,14 +39,18 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
 
                 {/* Ícone Gigante com Efeito de Glow */}
                 <div className="relative inline-block group">
-                    <div className={`absolute inset-0 blur-3xl opacity-40 group-hover:opacity-60 transition-opacity rounded-full ${ehSucesso ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+                    <div className={`absolute inset-0 blur-3xl opacity-40 group-hover:opacity-60 transition-opacity rounded-full ${ehSucesso ? 'bg-emerald-400' : ehAviso ? 'bg-amber-400' : 'bg-rose-400'}`}></div>
                     <div className={`
                         relative w-40 h-40 rounded-2xl flex items-center justify-center 
                         border-2 backdrop-blur-3xl shadow-2xl transition-transform duration-500 group-hover:rotate-6
-                        ${ehSucesso ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400' : 'bg-rose-500/20 border-rose-400/30 text-rose-400'}
+                        ${ehSucesso ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400' : 
+                          ehAviso ? 'bg-amber-500/20 border-amber-400/30 text-amber-400' : 
+                          'bg-rose-500/20 border-rose-400/30 text-rose-400'}
                     `}>
                         {ehSucesso ? (
                             <ShieldCheck size={80} strokeWidth={2.5} className="drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]" />
+                        ) : ehAviso ? (
+                            <Clock size={80} strokeWidth={2.5} className="drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
                         ) : (
                             <Ban size={80} strokeWidth={2.5} className="drop-shadow-[0_0_15px_rgba(248,113,113,0.5)]" />
                         )}
@@ -54,9 +60,9 @@ export function FeedbackLeitura({ registro, aoEncerrar }: { registro: RegistroLe
                 <div className="space-y-2">
                     <h2 className={`
                         text-7xl font-black uppercase tracking-tighter leading-none
-                        ${ehSucesso ? 'text-emerald-400' : 'text-rose-400'}
+                        ${ehSucesso ? 'text-emerald-400' : ehAviso ? 'text-amber-400' : 'text-rose-400'}
                     `}>
-                        {ehSucesso ? 'Liberado' : 'Bloqueado'}
+                        {ehSucesso ? 'Liberado' : ehAviso ? 'Atenção' : 'Bloqueado'}
                     </h2>
                     <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] ml-2">Sistema de Controle de Acesso</p>
                 </div>

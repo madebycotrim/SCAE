@@ -41,7 +41,7 @@ export default function PaginaInicial() {
     const irParaPerfil = (perfil: 'aluno' | 'gestor') => {
         if (!escolaSelecionada) return;
         if (perfil === 'aluno') {
-            navegar(`/${escolaSelecionada}/cartao`);
+            navegar(`/${escolaSelecionada}/aluno`);
         } else {
             navegar(`/${escolaSelecionada}/login`);
         }

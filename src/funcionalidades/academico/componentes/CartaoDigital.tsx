@@ -1,15 +1,15 @@
-import { useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useQuery } from '@tanstack/react-query';
 import { usarEscola } from '@/escola/ProvedorEscola';
-import { Loader2, QrCode, Download, User, Calendar, CreditCard, WifiOff, ShieldCheck } from 'lucide-react';
+import { Loader2, QrCode, Download, User, Calendar, CreditCard, WifiOff, ShieldCheck, ScanLine, Fingerprint, Check, Building2, ChevronLeft, GraduationCap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { useEffect } from 'react';
 
 export default function CartaoDigital() {
     const { slugEscola } = useParams();
+    const navegar = useNavigate();
     const escola = usarEscola();
     const [matricula, setMatricula] = useState('');
     const [nascimento, setNascimento] = useState('');
@@ -25,47 +25,29 @@ export default function CartaoDigital() {
                 throw new Error(erro.mensagem || 'Falha ao carregar cartão');
             }
             const dados = await res.json();
-            // Salva no localStorage para acesso offline futuro
             localStorage.setItem(`scae_cartao_${slugEscola}`, JSON.stringify(dados));
             return dados;
         },
         enabled: false,
     });
 
-    // Tentar carregar do cache ao abrir a página (Offline-First)
-    useEffect(() => {
-        const cache = localStorage.getItem(`scae_cartao_${slugEscola}`);
-        if (cache && !mostrarCartao) {
-            // No modo offline, deixamos o cache aparecer mas avisamos
-        }
-    }, [slugEscola]);
-
-    // Lógica de atualização dinâmica (Auto-refresh do QR)
     useEffect(() => {
         let intervalo: any;
-        
         if (mostrarCartao && cartao?.dados?.qrDinamico && navigator.onLine) {
             intervalo = setInterval(() => {
                 refetch();
-            }, 15000); // 15 segundos conforme a regra de ouro
+            }, 15000);
         }
-
         return () => clearInterval(intervalo);
     }, [mostrarCartao, cartao?.dados?.qrDinamico, refetch]);
 
     const handleAcessar = (e: React.FormEvent) => {
         e.preventDefault();
-        
-        // Se estiver offline, tenta usar o cache do localStorage
         if (!navigator.onLine) {
             const cache = localStorage.getItem(`scae_cartao_${slugEscola}`);
             if (cache) {
                 const dadosCache = JSON.parse(cache);
-                // Validação simples offline: matrícula coincide?
                 if (dadosCache.dados.matricula === matricula) {
-                    // Simula sucesso com dados do cache
-                    // No mundo real, deveríamos validar a senha/nascimento também, 
-                    // mas o cache já é seguro pois foi salvo após um login online.
                     setMostrarCartao(true);
                     return;
                 }
@@ -73,7 +55,6 @@ export default function CartaoDigital() {
             toast.error('Sem internet e sem dados salvos. Acesse online uma vez.');
             return;
         }
-
         refetch().then((result) => {
             if (result.data) setMostrarCartao(true);
         });
@@ -90,197 +71,259 @@ export default function CartaoDigital() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-            <AnimatePresence mode="wait">
-                {!mostrarCartao ? (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="w-full max-w-md bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-md"
+        <div 
+            className="flex min-h-screen w-full font-sans overflow-hidden bg-slate-50"
+            style={{
+                backgroundImage: 'linear-gradient(rgba(15,23,42,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.04) 1px, transparent 1px)',
+                backgroundSize: '40px 40px'
+            }}
+        >
+            <div className="flex-1 flex items-center justify-center p-5 md:p-10">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full max-w-[1000px] rounded-2xl overflow-hidden flex flex-col md:flex-row min-h-[560px] bg-white"
+                    style={{ boxShadow: '0 32px 64px rgba(6,13,31,0.18), 0 0 0 1px rgba(15,23,42,0.06)' }}
+                >
+                    {/* ─── PAINEL ESQUERDO (Mesmo estilo do Login de Equipe) ─── */}
+                    <div 
+                        className="md:w-[52%] p-14 relative flex flex-col justify-between overflow-hidden"
+                        style={{ background: 'linear-gradient(145deg, #060d1f 0%, #0a1628 60%, #0d1f3c 100%)' }}
                     >
-                        <div className="flex justify-center mb-6">
-                            <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20">
-                                <QrCode className="w-12 h-12 text-indigo-400" />
-                            </div>
+                        <div className="absolute top-[10%] right-[8%] opacity-[0.05]">
+                            <QrCode className="w-28 h-28 text-white" strokeWidth={1} />
+                        </div>
+                        <div className="absolute bottom-[12%] right-[5%] opacity-[0.04] rotate-12">
+                            <ScanLine className="w-20 h-20 text-white" strokeWidth={1} />
+                        </div>
+                        <div className="absolute top-[48%] right-[25%] opacity-[0.03] -rotate-6">
+                            <Fingerprint className="w-16 h-16 text-white" strokeWidth={1} />
                         </div>
 
-                        <h2 className="text-2xl font-bold text-white text-center mb-2">Cartão Digital</h2>
-                        <p className="text-slate-400 text-center mb-8">Acesse seu QR Code para entrada na escola</p>
+                        {/* Logo SCAE */}
+                        <div className="relative z-10 flex items-center gap-2.5">
+                            <div className="p-2 rounded-lg bg-white/[0.08] border border-white/[0.12]">
+                                <ShieldCheck className="w-5 h-5 text-white" />
+                            </div>
+                            <span className="text-xl font-bold text-white tracking-tight">SCAE<span className="text-sky-400">.</span></span>
+                        </div>
 
-                        <form onSubmit={handleAcessar} className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Matrícula</label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                                    <input 
-                                        type="text"
-                                        required
-                                        placeholder="Digite sua matrícula"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3 pl-11 pr-4 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                                        value={matricula}
-                                        onChange={(e) => setMatricula(e.target.value)}
-                                    />
-                                </div>
+                        {/* Conteúdo Central */}
+                        <div className="relative z-10 space-y-7 my-auto">
+                            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.08] border border-white/[0.15]">
+                                <Building2 className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                                <span className="text-xs font-semibold text-slate-200 uppercase tracking-[0.15em]">{escola.nomeEscola}</span>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Data de Nascimento</label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                                    <input 
-                                        type="date"
-                                        required
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-2xl py-3 pl-11 pr-4 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                                        value={nascimento}
-                                        onChange={(e) => setNascimento(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            {error && (
-                                <p className="text-red-400 text-sm text-center bg-red-400/10 p-3 rounded-2xl border border-red-400/20">
-                                    {(error as Error).message}
+                                <h2 className="text-[2rem] md:text-[2.1rem] font-black text-white leading-[1.15] tracking-tight">
+                                    Olá, Estudante!<br />
+                                    Tudo pronto para entrar?
+                                </h2>
+                                <p className="text-slate-400 text-[15px] leading-relaxed mt-3 max-w-[20rem]">
+                                    Gere seu QR Code institucional e apresente-o no terminal para validar sua entrada ou saída.
                                 </p>
-                            )}
-
-                            <button 
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-2xl shadow-sm shadow-indigo-600/10 transition-all flex items-center justify-center gap-2"
-                            >
-                                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'GERAR CARTÃO'}
-                            </button>
-                        </form>
-                    </motion.div>
-                ) : (
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="w-full max-w-sm flex flex-col items-center gap-6"
-                    >
-                        {/* Cartão Digital Estilo Premium */}
-                        <div 
-                            ref={cartaoRef}
-                            className="w-full bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-2xl p-6 shadow-md relative overflow-hidden border border-white/10"
-                        >
-                            {/* Círculos de fundo */}
-                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
-                            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-400/10 rounded-full blur-3xl"></div>
-
-                            <div className="flex justify-between items-start mb-8 relative">
-                                <div className="flex items-center gap-2">
-                                    <CreditCard className="w-6 h-6 text-white/80" />
-                                    <span className="text-white/60 text-xs font-bold uppercase tracking-widest">Digital ID</span>
-                                </div>
-                                <div className="bg-white/20 px-3 py-1 rounded-full border border-white/20">
-                                    <span className="text-white text-[10px] font-bold">{escola.nomeEscola}</span>
-                                </div>
                             </div>
 
-                            <div className="flex flex-col items-center gap-6 relative">
-                                <div className="bg-white p-4 rounded-2xl shadow-sm border-4 border-white/20">
-                                    <QRCodeCanvas 
-                                        id="qr-aluno"
-                                        value={cartao?.dados?.qrPayload} 
-                                        size={200}
-                                        level="H"
-                                        includeMargin
-                                    />
-                                </div>
-
-                                <div className="text-center">
-                                    <h3 className="text-2xl font-bold text-white mb-1 uppercase tracking-tight">
-                                        {cartao?.dados?.nome_completo}
-                                    </h3>
-                                    <p className="text-indigo-200 text-sm font-medium">
-                                        Turma: <span className="text-white">{cartao?.dados?.turma_id || 'Não alocado'}</span>
-                                    </p>
-                                    <p className="text-indigo-300 text-xs mt-1">
-                                        Matrícula: {cartao?.dados?.matricula}
-                                    </p>
-                                    
-                                    {cartao?.dados?.qrDinamico && (
-                                        <div className="mt-3 flex items-center justify-center gap-1.5">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                                            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Código Dinâmico Ativo</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="mt-8 pt-6 border-t border-white/10 flex justify-between items-center relative">
-                                <div className="text-[10px] text-white/40 font-mono">
-                                    SCAE SECURE | V.2.0
-                                </div>
-                                <div className="flex gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-white/40"></div>
-                                    <div className="w-2 h-2 rounded-full bg-white/20"></div>
-                                    <div className="w-2 h-2 rounded-full bg-white/10"></div>
-                                </div>
-                            </div>
-
-                            {/* Selo Offline */}
-                            {!navigator.onLine && (
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 pointer-events-none">
-                                    <div className="px-4 py-2 border-4 border-white/20 rounded-2xl bg-slate-900/40 backdrop-blur-sm flex items-center gap-2">
-                                        <WifiOff className="w-8 h-8 text-white/40" />
-                                        <span className="text-white/40 font-black text-2xl uppercase tracking-tighter">OFFLINE</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Seção de Protocolo (Novo design premium) */}
-                        <div className="w-full bg-slate-800/50 border border-slate-700/50 rounded-3xl p-5 backdrop-blur-sm animate-in fade-in zoom-in duration-700">
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="space-y-2.5">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                                        <ShieldCheck size={18} className="text-indigo-400" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-[10px] font-black text-white uppercase tracking-widest leading-none">Protocolo de Validação</h4>
-                                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-1">Status: Proteção Ativa</p>
-                                    </div>
+                                    <Check className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                                    <span className="text-[13px] text-slate-300">
+                                        {escola.qrDinamico ? 'QR Code Dinâmico e Seguro' : 'QR Code Fixo e Persistente'}
+                                    </span>
                                 </div>
-                                <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg">
-                                    <span className="text-[8px] font-black text-indigo-300 uppercase tracking-widest">
-                                        {cartao?.dados?.qrDinamico ? 'Funcionamento Dinâmico' : 'Funcionamento Offline'}
+                                <div className="flex items-center gap-3">
+                                    <Check className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                                    <span className="text-[13px] text-slate-300">Acesso rápido via matrícula</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Check className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                                    <span className="text-[13px] text-slate-300">
+                                        {escola.qrDinamico ? 'Renovação anti-fraude' : 'Funciona 100% Offline'}
                                     </span>
                                 </div>
                             </div>
-                            
-                            <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase tracking-tight">
-                                {cartao?.dados?.qrDinamico 
-                                    ? 'Este código expira automaticamente para sua segurança. Evite tirar prints para garantir o acesso.'
-                                    : 'O código permanece o mesmo. Ideal para locais onde o aluno possui pouco sinal de internet.'}
-                            </p>
                         </div>
 
-                        {/* Ações */}
-                        <div className="grid grid-cols-2 gap-4 w-full">
+                        {/* Rodapé Interno */}
+                        <div className="relative z-10">
                             <button 
-                                onClick={handleDownload}
-                                className="bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest py-4 rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-3 group"
+                                onClick={() => navegar('/')}
+                                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.12] hover:bg-white/[0.1] transition-all"
                             >
-                                <Download className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
-                                Salvar ID
-                            </button>
-                            <button 
-                                onClick={() => setMostrarCartao(false)}
-                                className="bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest py-4 rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-3 group"
-                            >
-                                <QrCode className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
-                                Novo Acesso
+                                <ChevronLeft className="w-3 h-3 text-slate-400" />
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Voltar à escola</span>
                             </button>
                         </div>
+                    </div>
 
-                        <p className="text-slate-500 text-xs text-center px-4 leading-relaxed">
-                            Apresente seu celular no leitor do portão para entrar ou sair da escola.
-                        </p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    {/* ─── PAINEL DIREITO (Formulário ou Cartão) ─── */}
+                    <div className="md:w-[48%] flex flex-col items-center justify-center bg-white relative p-10">
+                        <AnimatePresence mode="wait">
+                            {!mostrarCartao ? (
+                                <motion.div 
+                                    key="login-aluno"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="w-full max-w-[280px]"
+                                >
+                                    <div className="text-center mb-8">
+                                        <div className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center mx-auto mb-4 bg-slate-100 border border-slate-200">
+                                            <GraduationCap className="w-6 h-6 text-slate-600" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Acesso do Aluno</h3>
+                                        <p className="text-slate-500 text-sm font-medium mt-1.5 leading-relaxed">
+                                            Identifique-se para visualizar <br />seu Cartão Digital SCAE
+                                        </p>
+                                    </div>
+
+                                    <form onSubmit={handleAcessar} className="space-y-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Matrícula</label>
+                                            <div className="relative">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input 
+                                                    type="text"
+                                                    required
+                                                    value={matricula}
+                                                    onChange={(e) => setMatricula(e.target.value)}
+                                                    placeholder="Digite sua matrícula"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-11 pr-4 text-slate-800 text-sm font-bold focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all placeholder:font-medium placeholder:text-slate-400"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data de Nascimento</label>
+                                            <div className="relative">
+                                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input 
+                                                    type="date"
+                                                    required
+                                                    value={nascimento}
+                                                    onChange={(e) => setNascimento(e.target.value)}
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-11 pr-4 text-slate-800 text-sm font-bold focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {error && (
+                                            <div className="mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-black rounded-2xl text-center uppercase tracking-tight">
+                                                {(error as Error).message}
+                                            </div>
+                                        )}
+
+                                        <button 
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="w-full bg-[#0d1f3c] hover:bg-[#0a1628] text-white font-black text-xs uppercase tracking-[0.2em] py-4 rounded-2xl shadow-suave hover:shadow-media transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+                                        >
+                                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'GERAR CARTÃO'}
+                                        </button>
+                                    </form>
+                                </motion.div>
+                            ) : (
+                                <motion.div 
+                                    key="cartao-visual"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="w-full flex flex-col items-center gap-6"
+                                >
+                                    <div 
+                                        ref={cartaoRef}
+                                        className="w-full max-w-[300px] bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden border border-white/10"
+                                    >
+                                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+                                        <div className="flex justify-between items-start mb-6 relative">
+                                            <div className="flex items-center gap-2">
+                                                <CreditCard className="w-5 h-5 text-white/80" />
+                                                <span className="text-white/60 text-[9px] font-black uppercase tracking-widest">Digital ID</span>
+                                            </div>
+                                            <div className="bg-white/20 px-2 py-1 rounded-lg border border-white/20">
+                                                <span className="text-white text-[8px] font-black truncate max-w-[100px] block">{escola.nomeEscola}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col items-center gap-5 relative z-10">
+                                            <div className="bg-white p-3 rounded-2xl shadow-sm border-2 border-white/20">
+                                                <QRCodeCanvas 
+                                                    id="qr-aluno"
+                                                    value={cartao?.dados?.qrPayload} 
+                                                    size={160}
+                                                    level="H"
+                                                    includeMargin
+                                                />
+                                            </div>
+                                            <div className="text-center">
+                                                <h3 className="text-lg font-black text-white mb-0.5 uppercase tracking-tight">
+                                                    {cartao?.dados?.nome_completo}
+                                                </h3>
+                                                <p className="text-indigo-200 text-[10px] font-black uppercase tracking-widest">
+                                                    Turma: <span className="text-white">{cartao?.dados?.turma_id || '---'}</span>
+                                                </p>
+                                                {cartao?.dados?.qrDinamico && (
+                                                    <div className="mt-2 flex items-center justify-center gap-1.5">
+                                                        <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></div>
+                                                        <span className="text-[8px] font-black text-indigo-300 uppercase tracking-widest">Código Dinâmico Ativo</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {!navigator.onLine && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px] z-20 pointer-events-none">
+                                                <div className="px-4 py-2 border-2 border-white/20 rounded-xl bg-slate-900/80 flex items-center gap-2 -rotate-12">
+                                                    <WifiOff className="w-5 h-5 text-white/40" />
+                                                    <span className="text-white/40 font-black text-xl uppercase tracking-tighter">OFFLINE</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Status de Validação — Novo design premium */}
+                                    <div className="w-full max-w-[300px] p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${cartao?.dados?.qrDinamico ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'}`}>
+                                            <ShieldCheck size={16} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                                                {cartao?.dados?.qrDinamico ? 'Atualização em Tempo Real' : 'Acesso Persistente'}
+                                            </p>
+                                            <p className="text-[10px] font-bold text-slate-600 leading-tight">
+                                                {cartao?.dados?.qrDinamico 
+                                                    ? 'Este código expira e se renova automaticamente para sua segurança.' 
+                                                    : 'Este código é fixo e ideal para locais com pouco sinal de internet.'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-3 w-full max-w-[300px]">
+                                        <button 
+                                            onClick={handleDownload}
+                                            className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-black text-[10px] uppercase tracking-widest py-3 rounded-2xl transition-all border border-slate-200 flex items-center justify-center gap-2 shadow-sm"
+                                        >
+                                            <Download className="w-3.5 h-3.5" /> Salvar
+                                        </button>
+                                        <button 
+                                            onClick={() => setMostrarCartao(false)}
+                                            className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-black text-[10px] uppercase tracking-widest py-3 rounded-2xl transition-all border border-slate-200 flex items-center justify-center gap-2 shadow-sm"
+                                        >
+                                            <QrCode className="w-3.5 h-3.5" /> Novo
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
+
+                <div className="absolute bottom-4 right-6 z-20">
+                    <span className="text-[10px] font-bold text-slate-300 transition-opacity uppercase tracking-[0.3em] opacity-30 cursor-default select-none">
+                        madebycotrim
+                    </span>
+                </div>
+            </div>
         </div>
     );
 }

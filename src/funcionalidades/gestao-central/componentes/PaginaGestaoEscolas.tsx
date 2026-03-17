@@ -50,7 +50,10 @@ export function PaginaGestaoEscolas() {
 
     const carregarDados = async () => {
         try {
-            definirCarregando(true);
+            // Só ativa o estado carregando total se não houver dados (evita flicker no save/edit)
+            if (escolas.length === 0) {
+                definirCarregando(true);
+            }
             const [respEscolas, respSaude] = await Promise.all([
                 api.obter<EscolaSistema[]>('/central/escolas'),
                 api.obter<DadosSaude>('/central/saude')
@@ -155,7 +158,8 @@ export function PaginaGestaoEscolas() {
         e.slug.toLowerCase().includes(busca.toLowerCase())
     );
 
-    if (carregando) return <SkeletonCentral />;
+    // Solo mostra esqueleto se estiver carregando e não houver dados
+    if (carregando && escolas.length === 0) return <SkeletonCentral />;
 
     if (erro) return <ErroCentral erro={erro} onContexto={carregarDados} />;
     return (

@@ -30,7 +30,7 @@ import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 export default function RegistroAuditoria() {
     const { podeVerLogs, ehAdmin } = usarPermissoes();
-    const { dados: logsBrutos, carregando, recarregar: carregarLogs } = usarConsulta(
+    const { dados: logsBrutos, carregando, carregandoInicial, recarregar: carregarLogs } = usarConsulta(
         ['logs-auditoria-online'],
         async () => {
             const logs = await api.obter<any[]>('/seguranca/auditoria');
@@ -165,7 +165,7 @@ export default function RegistroAuditoria() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {carregando ? (
+                            {carregandoInicial ? (
                                 Array.from({ length: 8 }).map((_, i) => (
                                     <tr key={i} className="animate-fade-in">
                                         <td className="py-4 px-8"><Esqueleto className="w-24 h-5 rounded-lg" /></td>

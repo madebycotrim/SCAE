@@ -27,7 +27,9 @@ import {
     Sun,
     CloudSun,
     Moon,
-    Timer
+    Timer,
+    RefreshCw,
+    Cloud
 } from 'lucide-react';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
 
@@ -39,23 +41,32 @@ export default function FormHorariosAcesso() {
     const [salvando, definirSalvando] = useState(false);
     const { ehAdmin, ehCentral, usuario } = usarPermissoes();
     const [confirmandoQR, setConfirmandoQR] = useState<{ dinamico: boolean } | null>(null);
+    const [statusSincronizacao, definirStatusSincronizacao] = useState<'sincronizado' | 'salvando' | 'erro' | 'pendente'>('sincronizado');
 
     const carregando = carregandoHorarios || carregandoConfigs;
 
-    // ... (resto do código igual até o return)
-
-    // Carregar janelas do hook ao montar
+    // Carregar janelas apenas no carregamento inicial
     useEffect(() => {
-        if (regras.length > 0) {
+        if (regras.length > 0 && janelas.length === 0 && !carregandoHorarios) {
             definirJanelas(regras);
         }
-    }, [regras]);
+    }, [regras, janelas.length, carregandoHorarios]);
 
-    const obterTurnoConfig = (hora: string) => {
+    const obterTurnoConfig = (hora: string, tipo: JanelaHorarioAcesso['tipoAcesso'] = 'ENTRADA') => {
         if (!hora) return { label: 'Turno Indefinido', icone: Clock, cor: 'indigo', css: 'text-slate-400 bg-slate-50 border-slate-200' };
         const h = parseInt(hora.split(':')[0], 10);
-        if (h >= 5 && h < 12) return { label: 'Turno Matutino', icone: Sun, cor: 'amber', css: 'text-amber-600 bg-amber-50 border-amber-100' };
-        if (h >= 12 && h < 18) return { label: 'Turno Vespertino', icone: CloudSun, cor: 'orange', css: 'text-orange-600 bg-orange-50 border-orange-100' };
+        
+        // Matutino: Entrada cedo ou Saída de quem estudou de manhã (até 13h59)
+        if ((h >= 5 && h < 12) || (h >= 12 && h < 14 && tipo === 'SAIDA')) {
+            return { label: 'Turno Matutino', icone: Sun, cor: 'amber', css: 'text-amber-600 bg-amber-50 border-amber-100' };
+        }
+        
+        // Vespertino: Entrada após meio-dia ou Saída de quem estudou à tarde (até 19h59)
+        if ((h >= 12 && h < 18 && tipo === 'ENTRADA') || (h >= 14 && h < 20 && tipo === 'SAIDA')) {
+            return { label: 'Turno Vespertino', icone: CloudSun, cor: 'orange', css: 'text-orange-600 bg-orange-50 border-orange-100' };
+        }
+        
+        // Noturno: Entrada após 18h ou Saídas tarde da noite
         return { label: 'Turno Noturno', icone: Moon, cor: 'indigo', css: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
     };
 
@@ -71,20 +82,48 @@ export default function FormHorariosAcesso() {
     };
 
     const adicionarJanela = () => {
-        definirJanelas([
-            ...janelas,
-            {
-                horaInicio: '07:00',
-                horaFim: '08:30',
-                tipoAcesso: 'ENTRADA',
-                descricao: '',
-            },
-        ]);
+        const temEntradaMatutina = janelas.some(j => {
+            const h = parseInt(j.horaInicio.split(':')[0], 10);
+            return h < 12 && j.tipoAcesso === 'ENTRADA';
+        });
 
-        // Timeout pequeno apenas para rolar a tela até o novo elemento caso a lista esteja grande
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
+        const temSaidaMatutina = janelas.some(j => {
+            const h = parseInt(j.horaInicio.split(':')[0], 10);
+            return h >= 11 && h < 14 && j.tipoAcesso === 'SAIDA';
+        });
+
+        const temEntradaVespertina = janelas.some(j => {
+            const h = parseInt(j.horaInicio.split(':')[0], 10);
+            return h >= 12 && h < 15 && j.tipoAcesso === 'ENTRADA';
+        });
+
+        const temSaidaVespertina = janelas.some(j => {
+            const h = parseInt(j.horaInicio.split(':')[0], 10);
+            return h >= 17 && h < 19 && j.tipoAcesso === 'SAIDA';
+        });
+
+        const temEntradaNoturna = janelas.some(j => {
+            const h = parseInt(j.horaInicio.split(':')[0], 10);
+            return h >= 18 && j.tipoAcesso === 'ENTRADA';
+        });
+
+        let novaJanela: JanelaHorarioAcesso;
+
+        if (!temEntradaMatutina) {
+            novaJanela = { horaInicio: '07:00', horaFim: '07:45', tipoAcesso: 'ENTRADA', descricao: 'Turno Matutino' };
+        } else if (!temSaidaMatutina) {
+            novaJanela = { horaInicio: '12:00', horaFim: '12:30', tipoAcesso: 'SAIDA', descricao: 'Turno Matutino' };
+        } else if (!temEntradaVespertina) {
+            novaJanela = { horaInicio: '13:00', horaFim: '13:45', tipoAcesso: 'ENTRADA', descricao: 'Turno Vespertino' };
+        } else if (!temSaidaVespertina) {
+            novaJanela = { horaInicio: '18:00', horaFim: '18:30', tipoAcesso: 'SAIDA', descricao: 'Turno Vespertino' };
+        } else if (!temEntradaNoturna) {
+            novaJanela = { horaInicio: '19:00', horaFim: '19:45', tipoAcesso: 'ENTRADA', descricao: 'Turno Noturno' };
+        } else {
+            novaJanela = { horaInicio: '22:15', horaFim: '22:45', tipoAcesso: 'SAIDA', descricao: 'Turno Noturno' };
+        }
+
+        definirJanelas([...janelas, novaJanela]);
     };
 
     const removerJanela = (indice: number) => {
@@ -103,38 +142,57 @@ export default function FormHorariosAcesso() {
         definirJanelas(novasJanelas);
     };
 
-    const aoSalvar = async () => {
-        // Validações
-        for (let i = 0; i < janelas.length; i++) {
-            const j = janelas[i];
-            if (j.horaInicio >= j.horaFim) {
-                toast.error(`A Janela ${i + 1} precisa terminar depois da hora de início.`);
-                return;
-            }
+    // Auto-save inteligente com debounce
+    useEffect(() => {
+        // Evita salvar se não houver mudanças reais em relação ao que veio do servidor
+        if (regras.length > 0 && JSON.stringify(janelas) === JSON.stringify(regras)) {
+            definirStatusSincronizacao('sincronizado');
+            return;
+        }
+        if (carregandoHorarios) return;
+
+        // Se janelas estiver vazia e regras também, não faz nada
+        if (janelas.length === 0 && regras.length === 0) {
+            definirStatusSincronizacao('sincronizado');
+            return;
         }
 
-        // Validação de sobreposição
-        for (let i = 0; i < janelas.length; i++) {
-            for (let k = i + 1; k < janelas.length; k++) {
-                const j1 = janelas[i];
-                const j2 = janelas[k];
-                if ((j1.horaInicio < j2.horaFim) && (j1.horaFim > j2.horaInicio)) {
-                    toast.error(`Sobreposição detectada entre os horários ${i + 1} e ${k + 1}. Ajuste-os para evitar conflitos na portaria.`);
+        definirStatusSincronizacao('pendente');
+
+        const timeout = setTimeout(async () => {
+            // Validações silenciosas
+            for (let i = 0; i < janelas.length; i++) {
+                const j = janelas[i];
+                if (j.horaInicio >= j.horaFim) {
+                    definirStatusSincronizacao('erro');
                     return;
                 }
             }
-        }
 
-        definirSalvando(true);
-        try {
-            await salvarHorarios(janelas);
-            toast.success('Horários salvos com sucesso!');
-        } catch (e) {
-            toast.error('Erro ao salvar horários: ' + (e instanceof Error ? e.message : 'Tente novamente'));
-        } finally {
-            definirSalvando(false);
-        }
-    };
+            for (let i = 0; i < janelas.length; i++) {
+                for (let k = i + 1; k < janelas.length; k++) {
+                    const j1 = janelas[i];
+                    const j2 = janelas[k];
+                    // Check for overlap: (start1 < end2) && (end1 > start2)
+                    if ((j1.horaInicio < j2.horaFim) && (j1.horaFim > j2.horaInicio)) {
+                        definirStatusSincronizacao('erro');
+                        return;
+                    }
+                }
+            }
+
+            // Se chegou aqui, está pronto para salvar
+            definirStatusSincronizacao('salvando');
+            try {
+                await salvarHorarios(janelas);
+                definirStatusSincronizacao('sincronizado');
+            } catch (e) {
+                definirStatusSincronizacao('erro');
+            }
+        }, 1500);
+
+        return () => clearTimeout(timeout);
+    }, [janelas, regras, salvarHorarios, carregandoHorarios]);
 
     const handleSolicitarMudanca = (dinamico: boolean) => {
         if (!ehAdmin && !ehCentral) {
@@ -157,24 +215,34 @@ export default function FormHorariosAcesso() {
         }
     };
 
-    const AcoesHeader = (
-        <Botao
-            variante="primario"
-            tamanho="sm"
-            icone={Save}
-            loading={salvando}
-            onClick={aoSalvar}
-            className="shadow-suave"
-        >
-            Salvar Horários
-        </Botao>
+    const StatusSync = (
+        <div className={`flex items-center gap-2.5 px-4 py-2 rounded-2xl border transition-all duration-500 ${
+            statusSincronizacao === 'sincronizado' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' :
+            statusSincronizacao === 'salvando' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' :
+            statusSincronizacao === 'erro' ? 'bg-rose-50 border-rose-100 text-rose-600' :
+            'bg-slate-50 border-slate-100 text-slate-400'
+        }`}>
+            {statusSincronizacao === 'salvando' ? (
+                <RefreshCw size={14} className="animate-spin" />
+            ) : statusSincronizacao === 'erro' ? (
+                <AlertCircle size={14} />
+            ) : (
+                <Cloud size={14} />
+            )}
+            <span className="text-[10px] font-black uppercase tracking-widest">
+                {statusSincronizacao === 'sincronizado' ? 'Sincronizado' :
+                 statusSincronizacao === 'salvando' ? 'Sincronizando...' :
+                 statusSincronizacao === 'erro' ? 'Erro de Validação' :
+                 'Aguardando...'}
+            </span>
+        </div>
     );
 
     return (
         <LayoutAdministrativo
             titulo="Gestão de Portaria Inteligente"
             subtitulo="Controle os períodos oficiais de fluxo escolar para automação de registros e segurança."
-            acoes={AcoesHeader}
+            acoes={StatusSync}
         >
             <div className="space-y-6 pb-16">
 
@@ -361,7 +429,7 @@ export default function FormHorariosAcesso() {
                         <div className="relative pl-8 space-y-12 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200/60">
                             {janelas.map((janela, indice) => {
                                 const isEntrada = janela.tipoAcesso === 'ENTRADA';
-                                const turno = obterTurnoConfig(janela.horaInicio);
+                                const turno = obterTurnoConfig(janela.horaInicio, janela.tipoAcesso);
                                 const duracao = calcularDuracao(janela.horaInicio, janela.horaFim);
 
                                 return (
