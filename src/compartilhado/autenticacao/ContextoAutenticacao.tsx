@@ -1,5 +1,14 @@
-﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { 
+    onAuthStateChanged, 
+    signInWithPopup, 
+    GoogleAuthProvider, 
+    signOut, 
+    User, 
+    setPersistence, 
+    browserSessionPersistence, 
+    indexedDBLocalPersistence 
+} from 'firebase/auth';
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
@@ -29,6 +38,28 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
     const [carregando, definirCarregando] = useState(true);
 
     useEffect(() => {
+        // 🔐 Configuração Dinâmica de Persistência
+        const configurarPersistencia = async () => {
+            const caminho = window.location.pathname;
+            const ehQuiosque = caminho.includes('/quiosque');
+            
+            try {
+                if (ehQuiosque) {
+                    // Regra SCAE: Quiosque nunca expira (IndexedDB para sobreviver a crash de navegador)
+                    await setPersistence(autenticacao, indexedDBLocalPersistence);
+                    log.info('Persistência: INDEXEDDB (Modo Quiosque)');
+                } else {
+                    // Regra Geral: Admin e Central encerram sessão ao fechar a aba por segurança
+                    await setPersistence(autenticacao, browserSessionPersistence);
+                    log.info('Persistência: SESSION (Modo Administrativo/Central)');
+                }
+            } catch (err) {
+                log.error('Erro ao configurar persistência de sessão:', err);
+            }
+        };
+
+        configurarPersistencia();
+
         const cancelarInscricao = onAuthStateChanged(autenticacao, async (usuario) => {
             if (usuario) {
                 // Atualiza token se necessário

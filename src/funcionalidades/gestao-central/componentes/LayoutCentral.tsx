@@ -1,11 +1,10 @@
 import { ReactNode, useEffect } from 'react';
 import { setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
+import { Toaster } from 'react-hot-toast';
 
 export function LayoutCentral({ children }: { children: ReactNode }) {
     useEffect(() => {
-        // Configura a sessão da Central para expirar ao fechar a guia/janela
-        // Nota: Isso não afeta o Tablet se ele estiver em outra URL/Configuração de persistência local
         if (autenticacao) {
             setPersistence(autenticacao, browserSessionPersistence).catch(console.error);
         }
@@ -13,6 +12,8 @@ export function LayoutCentral({ children }: { children: ReactNode }) {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-black selection:text-white flex flex-col">
+            <Toaster position="top-right" />
+            
             {/* Área de Conteúdo Principal - Sem Cabeçalho (Visual Imersivo) */}
             <main className="flex-1 relative overflow-hidden flex flex-col">
                 {/* Decoradores de Fundo */}

@@ -31,7 +31,7 @@ export const Botao: React.FC<BotaoProps> = ({
 }) => {
     const estaCarregando = loading || carregando;
 
-    const baseStyles = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-tight transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 outline-none focus:ring-2 focus:ring-offset-2";
+    const baseStyles = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-tight transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer";
 
     const variantes = {
         primario: "bg-[#0F172A] text-white hover:bg-[#1E293B] border border-slate-800 shadow-[0_10px_20px_-5px_rgba(15,23,42,0.3)] shadow-indigo-500/5 focus:ring-slate-400",

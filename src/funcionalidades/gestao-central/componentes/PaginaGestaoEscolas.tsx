@@ -34,11 +34,12 @@ export function PaginaGestaoEscolas() {
     const [modalAberto, definirModalAberto] = useState(false);
     const [fase, definirFase] = useState(1);
     const [criando, definirCriando] = useState(false);
+    const [editandoId, definirEditandoId] = useState<string | null>(null);
     const [form, definirForm] = useState({
         nome_escola: '',
         id: '',
         dominio_email: '',
-        cor_primaria: '#000000',
+        cor_primaria: '#030712',
         cor_secundaria: '#ffffff',
         logo_url: '',
         config_qr_dinamico: false,
@@ -66,22 +67,76 @@ export function PaginaGestaoEscolas() {
         carregarDados();
     }, []);
 
+    const abrirEdicao = async (escola: EscolaSistema) => {
+        try {
+            const dadosCompletos = await api.obter<any>(`/central/escolas/${escola.id}`);
+            definirForm({
+                nome_escola: dadosCompletos.nome || escola.nome,
+                id: dadosCompletos.slug || escola.slug,
+                dominio_email: dadosCompletos.dominio_email || '',
+                cor_primaria: dadosCompletos.cor_primaria || '#030712',
+                cor_secundaria: dadosCompletos.cor_secundaria || '#ffffff',
+                logo_url: dadosCompletos.logo_url || '',
+                config_qr_dinamico: dadosCompletos.config_qr_dinamico ?? false,
+                tts_ativado: dadosCompletos.tts_ativado ?? true
+            });
+            definirEditandoId(escola.id);
+            definirFase(1);
+            definirModalAberto(true);
+        } catch (err: any) {
+            toast.error('O sistema não conseguiu recuperar os dados completos desta unidade.');
+        }
+    };
+
+    const alternarStatus = async (escola: EscolaSistema) => {
+        const novoStatus = escola.status === 'ATIVA' ? 'SUSPENSA' : 'ATIVA';
+        const acao = novoStatus === 'ATIVA' ? 'reativar' : 'suspender';
+        
+        if (!window.confirm(`Deseja ${acao} o sinal da unidade ${escola.nome}?`)) return;
+
+        try {
+            await api.atualizar(`/central/escolas/${escola.id}`, { status: novoStatus });
+            toast.success(`Unidade ${escola.nome} ${novoStatus === 'ATIVA' ? 'operacional' : 'suspensa'}.`);
+            carregarDados();
+        } catch (err: any) {
+            toast.error('Falha ao comunicar mudança de status para a infraestrutura.');
+        }
+    };
+
     const lidarComCriacao = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // 🛡️ Prevenção de submissão precoce (Bug relatado: cadastra sozinho ao dar Enter ou double click)
+        if (fase < 3) {
+            if (fase === 1 && (!form.nome_escola || !form.id || !form.dominio_email)) {
+                return toast.error('Complete a identidade core antes de avançar.');
+            }
+            definirFase(fase + 1);
+            return;
+        }
+
         try {
             definirCriando(true);
-            await api.enviar('/central/escolas', form);
-            toast.success('Protocolo de unidade ativado!');
+            
+            if (editandoId) {
+                await api.atualizar(`/central/escolas/${editandoId}`, form);
+                toast.success('Diretrizes da unidade atualizadas!');
+            } else {
+                await api.enviar('/central/escolas', form);
+                toast.success('Protocolo de unidade ativado!');
+            }
+
             definirModalAberto(false);
+            definirEditandoId(null);
             definirFase(1);
             definirForm({ 
                 nome_escola: '', id: '', dominio_email: '', 
-                cor_primaria: '#000000', cor_secundaria: '#ffffff', 
+                cor_primaria: '#030712', cor_secundaria: '#ffffff', 
                 logo_url: '', config_qr_dinamico: false, tts_ativado: true 
             });
             carregarDados();
         } catch (err: any) {
-            toast.error(err.message || 'Erro ao inicializar unidade.');
+            toast.error(err.message || 'Erro no processamento do protocolo.');
         } finally {
             definirCriando(false);
         }
@@ -155,7 +210,16 @@ export function PaginaGestaoEscolas() {
                         />
                     </div>
                     <Botao 
-                        onClick={() => definirModalAberto(true)}
+                        onClick={() => {
+                            definirEditandoId(null);
+                            definirForm({ 
+                                nome_escola: '', id: '', dominio_email: '', 
+                                cor_primaria: '#030712', cor_secundaria: '#ffffff', 
+                                logo_url: '', config_qr_dinamico: false, tts_ativado: true 
+                            });
+                            definirFase(1);
+                            definirModalAberto(true);
+                        }}
                         icone={Plus} 
                         tamanho="lg" 
                         className="bg-black text-white hover:bg-slate-800 border-none rounded-2xl px-12 h-16 shadow-2xl shadow-slate-200 font-black uppercase tracking-[0.2em] text-[11px] whitespace-nowrap active:scale-95 transition-all w-full sm:w-auto"
@@ -201,19 +265,40 @@ export function PaginaGestaoEscolas() {
                                             </div>
                                         </td>
                                         <td className="py-12 px-12 text-right">
-                                            <div className="flex items-center justify-end gap-5 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+                                            <div className="flex items-center justify-end gap-5 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0 relative z-20">
                                                 <a 
                                                     href={`/${escola.slug}/admin`} 
                                                     target="_blank" 
                                                     rel="noreferrer"
                                                     title="Terminal Administrativo"
-                                                    className="h-14 w-14 bg-white text-slate-950 rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-slate-100"
+                                                    className="h-14 w-14 bg-white text-slate-950 rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-slate-100 cursor-pointer active:scale-90"
                                                 >
                                                     <ExternalLink size={20} strokeWidth={2.5} />
                                                 </a>
+                                                
                                                 <div className="w-px h-10 bg-slate-100"></div>
-                                                <Botao variante="ghost" tamanho="sm" icone={Edit2} className="hover:bg-slate-100 rounded-2xl transition-all h-14 w-14 flex items-center justify-center p-0" />
-                                                <Botao variante="ghost" tamanho="sm" icone={Ban} className="hover:bg-rose-50 text-rose-500 rounded-2xl transition-all h-14 w-14 flex items-center justify-center p-0" />
+                                                
+                                                <Botao 
+                                                    variante="secundario" 
+                                                    tamanho="sm" 
+                                                    icone={Edit2} 
+                                                    className="rounded-2xl h-14 w-14 flex items-center justify-center p-0 border-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.06)]"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        abrirEdicao(escola);
+                                                    }}
+                                                />
+                                                
+                                                <Botao 
+                                                    variante="secundario" 
+                                                    tamanho="sm" 
+                                                    icone={escola.status === 'ATIVA' ? Ban : Zap} 
+                                                    className={`${escola.status === 'ATIVA' ? 'text-rose-500' : 'text-emerald-500'} rounded-2xl h-14 w-14 flex items-center justify-center p-0 border-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.06)]`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        alternarStatus(escola);
+                                                    }}
+                                                />
                                             </div>
                                         </td>
                                     </tr>
@@ -374,6 +459,7 @@ export function PaginaGestaoEscolas() {
                             <div className="mt-12 flex items-center justify-between gap-6 border-t border-slate-50 pt-10">
                                 {fase > 1 ? (
                                     <Botao 
+                                        key="btn-voltar"
                                         type="button" 
                                         variante="ghost" 
                                         onClick={() => definirFase(fase - 1)}
@@ -381,10 +467,11 @@ export function PaginaGestaoEscolas() {
                                     >
                                         Voltar
                                     </Botao>
-                                ) : <div />}
+                                ) : <div key="vazio-voltar" />}
 
                                 {fase < 3 ? (
                                     <Botao 
+                                        key="btn-proximo"
                                         type="button"
                                         onClick={() => {
                                             if (fase === 1 && (!form.nome_escola || !form.id || !form.dominio_email)) return toast.error('Complete a identidade core.');
@@ -396,12 +483,13 @@ export function PaginaGestaoEscolas() {
                                     </Botao>
                                 ) : (
                                     <Botao 
+                                        key="btn-finalizar"
                                         type="submit"
                                         loading={criando}
                                         disabled={criando}
                                         className="px-16 h-20 bg-black text-white rounded-2xl hover:bg-slate-800 font-black uppercase text-[12px] tracking-[0.3em] shadow-2xl shadow-slate-200 min-w-[240px] active:scale-95 transition-all text-highlight"
                                     >
-                                        {criando ? 'Protocolando...' : 'Inicializar Unidade'}
+                                        {criando ? 'Protocolando...' : editandoId ? 'Atualizar Diretrizes' : 'Inicializar Unidade'}
                                     </Botao>
                                 )}
                             </div>
