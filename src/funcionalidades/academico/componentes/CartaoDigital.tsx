@@ -235,7 +235,7 @@ export default function CartaoDigital() {
                         <div className="w-full bg-slate-800/50 border border-slate-700/50 rounded-3xl p-5 backdrop-blur-sm animate-in fade-in zoom-in duration-700">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                                    <div className="p-2 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
                                         <ShieldCheck size={18} className="text-indigo-400" />
                                     </div>
                                     <div>

@@ -1,4 +1,4 @@
-Ôªøimport { bancoLocal } from './bancoLocal';
+import { bancoLocal } from './bancoLocal';
 import { api } from './api';
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
@@ -6,11 +6,11 @@ import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 const registradorInterno = criarRegistrador('Auditoria');
 
 /**
- * Servi√ßo de Auditoria - Registro de A√ß√µes para Conformidade LGPD
- * Armazena logs imut√°veis de todas as a√ß√µes administrativas no Cloudflare D1/R2.
+ * ServiÁo de Auditoria - Registro de AÁıes para Conformidade LGPD
+ * Armazena logs imut·veis de todas as aÁıes administrativas no Cloudflare D1/R2.
  */
 
-// Tipos de a√ß√µes auditadas
+// Tipos de aÁıes auditadas
 export const ACOES_AUDITORIA = {
     // Alunos
     CRIAR_ALUNO: 'CRIAR_ALUNO',
@@ -22,12 +22,12 @@ export const ACOES_AUDITORIA = {
     EDITAR_TURMA: 'EDITAR_TURMA',
     DELETAR_TURMA: 'DELETAR_TURMA',
 
-    // Usu√°rios/Permiss√µes
+    // Usu·rios/Permissıes
     CRIAR_USUARIO: 'CRIAR_USUARIO',
     EDITAR_PERMISSOES: 'EDITAR_PERMISSOES',
     DESATIVAR_USUARIO: 'DESATIVAR_USUARIO',
 
-    // Seguran√ßa
+    // SeguranÁa
     LOGIN: 'LOGIN',
     LOGOUT: 'LOGOUT',
     TENTATIVA_ACESSO_NEGADO: 'TENTATIVA_ACESSO_NEGADO',
@@ -57,15 +57,15 @@ export interface ParamsAuditoria {
 
 /**
  * Objeto centralizador de registro de auditoria.
- * Prefer√≠vel para uso em componentes e hooks.
+ * PreferÌvel para uso em componentes e hooks.
  */
 export const Registrador = {
     /**
-     * Registra uma a√ß√£o no log de auditoria.
-     * @param acao - C√≥digo da a√ß√£o (ex: 'ALUNO_CRIAR', 'LOGIN_SUCESSO')
+     * Registra uma aÁ„o no log de auditoria.
+     * @param acao - CÛdigo da aÁ„o (ex: 'ALUNO_CRIAR', 'LOGIN_SUCESSO')
      * @param entidadeTipo - Tipo da entidade afetada (ex: 'aluno', 'turma', 'usuario')
      * @param entidadeId - ID da entidade afetada
-     * @param detalhes - Objeto com detalhes (ex: { nome: 'Jo√£o', turma: '1A' })
+     * @param detalhes - Objeto com detalhes (ex: { nome: 'Jo„o', turma: '1A' })
      * @param dadosAnteriores - (Opcional) Estado anterior para diff
      */
     registrar: async (
@@ -79,7 +79,7 @@ export const Registrador = {
             const usuario = autenticacao.currentUser;
             const emailUsuario = usuario ? usuario.email : 'sistema@anonimo';
 
-            // Mascarar dados sens√≠veis antes de registrar/logar
+            // Mascarar dados sensÌveis antes de registrar/logar
             const detalhesMascarados = { ...detalhes };
 
             if (detalhesMascarados.email) detalhesMascarados.email = registradorInterno.mascarar(detalhesMascarados.email as string, 'email');
@@ -101,7 +101,7 @@ export const Registrador = {
 };
 
 /**
- * Registra uma a√ß√£o de auditoria bruta.
+ * Registra uma aÁ„o de auditoria bruta.
  */
 export async function registrarAuditoria({
     usuarioEmail,
@@ -244,6 +244,6 @@ export async function sincronizarLogs() {
             registradorInterno.info(`${logsSincronizados.length} logs de auditoria sincronizados.`);
         }
     } catch (erro) {
-        registradorInterno.error('Erro na sincroniza√ß√£o de logs', erro);
+        registradorInterno.error('Erro na sincronizaÁ„o de logs', erro);
     }
 }

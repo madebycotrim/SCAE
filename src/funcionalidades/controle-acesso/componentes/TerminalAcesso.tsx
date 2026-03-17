@@ -324,7 +324,7 @@ export default function TerminalAcesso() {
                         <h3 className="text-xs font-black text-slate-300 flex items-center gap-3 uppercase tracking-widest">
                             <Terminal size={18} className="text-indigo-500" /> Informações do Aluno
                         </h3>
-                        <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-indigo-400 transition-colors">
+                        <div className="w-8 h-8 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-indigo-400 transition-colors">
                             <Zap size={14} />
                         </div>
                     </div>

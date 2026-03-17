@@ -171,14 +171,14 @@ export default function RegistroAuditoria() {
                                         <td className="py-4 px-8"><Esqueleto className="w-24 h-5 rounded-lg" /></td>
                                         <td className="py-4 px-8">
                                             <div className="flex items-center gap-3">
-                                                <Esqueleto className="w-9 h-9 rounded-xl" />
+                                                <Esqueleto className="w-9 h-9 rounded-2xl" />
                                                 <div className="space-y-2">
                                                     <Esqueleto className="w-32 h-3" />
                                                     <Esqueleto className="w-24 h-2 opacity-60" />
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-8 text-center"><Esqueleto className="w-16 h-5 mx-auto rounded-xl" /></td>
+                                        <td className="py-4 px-8 text-center"><Esqueleto className="w-16 h-5 mx-auto rounded-2xl" /></td>
                                         <td className="py-4 px-8"><Esqueleto className="w-32 h-4" /></td>
                                         <td className="py-4 px-8 text-right"><Esqueleto className="w-24 h-8 ml-auto" /></td>
                                     </tr>
@@ -199,7 +199,7 @@ export default function RegistroAuditoria() {
                                     </td>
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-suave">
+                                            <div className="w-9 h-9 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-suave">
                                                 <User size={14} />
                                             </div>
                                             <div className="flex flex-col">
@@ -213,7 +213,7 @@ export default function RegistroAuditoria() {
                                         </div>
                                     </td>
                                     <td className="px-8 py-4 text-center">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60 transition-all group-hover:bg-white group-hover:text-slate-800">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-200/60 transition-all group-hover:bg-white group-hover:text-slate-800">
                                             {log.entidade_tipo}
                                         </span>
                                     </td>
@@ -255,7 +255,7 @@ export default function RegistroAuditoria() {
                 {/* Footer Pagination Premium */}
                 <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-suave">
+                        <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-2xl shadow-suave">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
                             <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{pagina} de {totalPaginas}</span>
                         </div>
@@ -312,7 +312,7 @@ export default function RegistroAuditoria() {
                         <div>
                             <div className="flex items-center justify-between mb-4 px-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/20">
+                                    <div className="p-2 bg-indigo-500/10 rounded-2xl text-indigo-400 border border-indigo-500/20">
                                         <Code size={18} strokeWidth={2.5} />
                                     </div>
                                     <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Dados Internos da Ação</span>

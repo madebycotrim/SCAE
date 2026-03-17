@@ -1,4 +1,4 @@
-ï»¿import { usarEscolaOpcional } from '@/escola/ProvedorEscola';
+import { usarEscolaOpcional } from '@/escola/ProvedorEscola';
 import { AMBIENTE } from '@/configuracoes/ambiente';
 
 interface BaseLegal {
@@ -31,30 +31,30 @@ export function usarConteudoLegal(): ConteudoLegal {
 
     const basesLegais: BaseLegal[] = [
         {
-            titulo: 'ExecuÃ§Ã£o de PolÃ­ticas PÃºblicas (Art. 7Âº, III)',
-            descricao: 'Tratamento de dados estritamente necessÃ¡rio para garantir a prestaÃ§Ã£o do serviÃ§o pÃºblico de educaÃ§Ã£o e a seguranÃ§a no ambiente escolar.'
+            titulo: 'Execução de Políticas Públicas (Art. 7º, III)',
+            descricao: 'Tratamento de dados estritamente necessário para garantir a prestação do serviço público de educação e a segurança no ambiente escolar.'
         },
         {
-            titulo: 'ObrigaÃ§Ã£o Legal ou RegulatÃ³ria (Art. 7Âº, II)',
-            descricao: 'Para manutenÃ§Ã£o de diÃ¡rios de classe, controle de evasÃ£o escolar e reporte de frequÃªncia Ã s secretarias competentes do Governo.'
+            titulo: 'Obrigação Legal ou Regulatória (Art. 7º, II)',
+            descricao: 'Para manutenção de diários de classe, controle de evasão escolar e reporte de frequência às secretarias competentes do Governo.'
         },
         {
-            titulo: 'ProteÃ§Ã£o de CrianÃ§as e Adolescentes (Art. 14)',
-            descricao: 'O tratamento de dados pessoais de crianÃ§as e adolescentes serÃ¡ realizado em seu melhor interesse e com a finalidade de proteÃ§Ã£o Ã  sua integridade no ambiente escolar.'
+            titulo: 'Proteção de Crianças e Adolescentes (Art. 14)',
+            descricao: 'O tratamento de dados pessoais de crianças e adolescentes será realizado em seu melhor interesse e com a finalidade de proteção à sua integridade no ambiente escolar.'
         }
     ];
 
     return {
-        prazoRetencaoRegistros: '2 anos letivos apÃ³s o evento',
+        prazoRetencaoRegistros: '2 anos letivos após o evento',
         prazoRetencaoAuditoria: '5 anos',
         basesLegais,
         nomeFornecedor: AMBIENTE.nomeFornecedor,
-        caraterUso: 'temporÃ¡rio, nÃ£o exclusivo e intransferÃ­vel, nos termos do contrato firmado entre as partes',
+        caraterUso: 'temporário, não exclusivo e intransferível, nos termos do contrato firmado entre as partes',
         exigeConsentimento: false,
         nomeEncarregadoDPO: nomeDPO || import.meta.env.VITE_DPO_NOME || 'Encarregado de Dados (DPO)',
         emailEncarregadoDPO: emailDPO || import.meta.env.VITE_DPO_EMAIL || '',
-        foro: foro || 'BrasÃ­lia/DF',
-        dataUltimaRevisao: '05 de MarÃ§o de 2026'
+        foro: foro || 'Brasília/DF',
+        dataUltimaRevisao: '05 de Março de 2026'
     };
 }
 

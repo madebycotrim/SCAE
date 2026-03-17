@@ -36,7 +36,7 @@ export default function ImpressaoCredenciaisLote({ alunos }: ImpressaoCredenciai
                                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">SCAE ID</span>
                             </div>
 
-                            <div className="w-48 h-48 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-slate-100 p-2">
+                            <div className="w-48 h-48 bg-white rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100 p-2">
                                 <QRCodeCanvas 
                                     value={qrPayload} 
                                     size={160}

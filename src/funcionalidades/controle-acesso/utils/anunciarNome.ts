@@ -1,10 +1,10 @@
-Ôªø/**
- * Utilit√°rio de S√≠ntese de Voz (TTS) para anunciar o nome do aluno.
+/**
+ * Utilit·rio de SÌntese de Voz (TTS) para anunciar o nome do aluno.
  */
 export function anunciarNome(nome: string) {
     if (!('speechSynthesis' in window)) return;
 
-    // Cancelar qualquer an√∫ncio anterior para n√£o encavalar
+    // Cancelar qualquer an˙ncio anterior para n„o encavalar
     window.speechSynthesis.cancel();
 
     const anuncio = new SpeechSynthesisUtterance(nome);

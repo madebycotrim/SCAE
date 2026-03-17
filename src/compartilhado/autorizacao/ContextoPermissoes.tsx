@@ -1,4 +1,4 @@
-Ôªøimport { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { api } from '@/compartilhado/servicos/api';
@@ -40,7 +40,7 @@ interface PermissoesContextType {
 
 const ContextoPermissoes = createContext<PermissoesContextType | undefined>(undefined);
 
-// Matriz de Permiss√µes por Papel
+// Matriz de Permissıes por Papel
 const MATRIZ_PERMISSOES: Record<string, Record<string, Record<string, boolean>>> = {
     CENTRAL: {
         dashboard: { visualizar: true },
@@ -123,14 +123,14 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
             }
 
             try {
-                // Buscar usu√°rio do banco local
+                // Buscar usu·rio do banco local
                 const banco = await bancoLocal.iniciarBanco();
                 const usuarioBD = await banco.get('usuarios', usuarioAtual.email);
 
                 if (usuarioBD) {
                     definirUsuario(usuarioBD);
                 } else {
-                    // Usu√°rio n√£o cadastrado - APENAS EMAIL_RAIZ √© CENTRAL
+                    // Usu·rio n„o cadastrado - APENAS EMAIL_RAIZ È CENTRAL
                     if (usuarioAtual.email === EMAIL_RAIZ) {
                         log.info(`Admin principal (CENTRAL) detectado: ${log.mascarar(usuarioAtual.email, 'email')}`);
                         const adminUser = {
@@ -156,22 +156,22 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
                                     await api.enviar('/seguranca/usuarios', adminUser);
                                     log.info('Admin sincronizado com sucesso.');
                                 } catch (e) {
-                                    log.warn('Falha ao sincronizar admin (ser√° tentado depois)', e);
+                                    log.warn('Falha ao sincronizar admin (ser· tentado depois)', e);
                                 }
                             }
                         } catch (e) {
                             log.error('Erro ao salvar admin', e);
                         }
                     } else {
-                        // Cadastro Autom√°tico com permiss√£o m√≠nima (VISUALIZA√á√ÉO)
-                        log.info(`Novo usu√°rio detectado, registrando com VISUALIZA√á√ÉO: ${usuarioAtual.email}`);
+                        // Cadastro Autom·tico com permiss„o mÌnima (VISUALIZA«√O)
+                        log.info(`Novo usu·rio detectado, registrando com VISUALIZA«√O: ${usuarioAtual.email}`);
 
                         const novoUsuario = {
                             email: usuarioAtual.email,
                             nome_completo: usuarioAtual.displayName || usuarioAtual.email,
                             papel: 'VISUALIZACAO',
                             ativo: true,
-                            pendente: true, // Novo usu√°rio come√ßa pendente
+                            pendente: true, // Novo usu·rio comeÁa pendente
                             criado_por: 'system_auto',
                             criado_em: new Date().toISOString(),
                             atualizado_em: new Date().toISOString()
@@ -185,17 +185,17 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
 
                             // Tentar sincronizar com API se online
                             if (navigator.onLine) {
-                                // Import din√¢mico ou usar a api se j√° importada (vou adicionar o import no topo)
+                                // Import din‚mico ou usar a api se j· importada (vou adicionar o import no topo)
                                 await api.enviar('/usuarios', novoUsuario);
                             }
                         } catch (e) {
-                            log.error('Erro ao registrar novo usu√°rio automaticamente', e);
+                            log.error('Erro ao registrar novo usu·rio automaticamente', e);
                         }
                     }
                 }
             } catch (erro) {
-                log.error('Erro ao carregar permiss√µes do usu√°rio', erro);
-                // Fallback seguro: sem permiss√µes
+                log.error('Erro ao carregar permissıes do usu·rio', erro);
+                // Fallback seguro: sem permissıes
                 definirUsuario(null);
             } finally {
                 definirCarregando(false);
@@ -206,8 +206,8 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
     }, [usuarioAtual]);
 
     /**
-     * Verifica se o usu√°rio possui uma permiss√£o espec√≠fica
-     * @param {string} acao - A√ß√£o a verificar (ex: 'editar')
+     * Verifica se o usu·rio possui uma permiss„o especÌfica
+     * @param {string} acao - AÁ„o a verificar (ex: 'editar')
      * @param {string} recurso - Recurso (ex: 'alunos')
      * @returns {boolean}
      */
@@ -226,7 +226,7 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
     };
 
     /**
-     * Verifica se o usu√°rio tem papel espec√≠fico
+     * Verifica se o usu·rio tem papel especÌfico
      * @param {string} papel - Papel a verificar
      * @returns {boolean}
      */
@@ -235,8 +235,8 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
     };
 
     /**
-     * Verifica se o usu√°rio tem pelo menos um dos pap√©is fornecidos
-     * @param {string[]} papeis - Array de pap√©is
+     * Verifica se o usu·rio tem pelo menos um dos papÈis fornecidos
+     * @param {string[]} papeis - Array de papÈis
      * @returns {boolean}
      */
     const temAlgumPapel = (papeis: string[]): boolean => {
@@ -253,7 +253,7 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
         temPapel,
         temAlgumPapel,
 
-        // Atalhos √∫teis
+        // Atalhos ˙teis
         ehCentral: usuario?.papel === 'CENTRAL',
         ehAdmin: usuario?.papel === 'ADMIN',
         ehCoordenacao: usuario?.papel === 'COORDENACAO',
@@ -261,7 +261,7 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
         ehPorteiro: usuario?.papel === 'PORTEIRO',
         ehVisualizacao: usuario?.papel === 'VISUALIZACAO',
 
-        // Permiss√µes compostas comuns
+        // Permissıes compostas comuns
         podeGerenciarAlunos: pode('editar', 'alunos') || pode('criar', 'alunos'),
         podeGerenciarTurmas: pode('editar', 'turmas') || pode('criar', 'turmas'),
         podeVerRelatorios: pode('visualizar', 'relatorios'),
@@ -275,7 +275,7 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
     );
 }
 
-// Hook para usar permiss√µes
+// Hook para usar permissıes
 export function usarPermissoes() {
     const contexto = useContext(ContextoPermissoes);
 

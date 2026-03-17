@@ -165,7 +165,7 @@ export default function ListaAlunos({
                 totalPaginas > 1 && (
                     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-suave mt-8">
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl">
+                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-2xl">
                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
                                 <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
                             </div>

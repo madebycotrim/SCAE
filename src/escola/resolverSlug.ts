@@ -1,18 +1,18 @@
-﻿/**
+/**
  * Resolve o escola com base no slug na URL.
  * Formato: seuapp.com/:slugEscola/dashboard
- * Ex: seuapp.com/escola-abc â†’ slug = "escola-abc"
+ * Ex: seuapp.com/escola-abc → slug = "escola-abc"
  *
  * Em desenvolvimento local: localhost:5173/escola-abc/painel
  */
 export function resolverSlugDaUrl() {
     const segmentos = window.location.pathname.split('/');
-    // Primeiro segmento não vazio após a barra
+    // Primeiro segmento n�o vazio ap�s a barra
     return segmentos.find(s => s.length > 0) ?? '';
 }
 
 /**
- * Constrói a URL da API para um escola específico.
+ * Constr�i a URL da API para um escola espec�fico.
  * @param {string} slug - Identificador da escola
  * @returns {string} URL completa da API de escola
  */

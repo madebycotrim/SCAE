@@ -1,4 +1,4 @@
-ï»¿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Building, User, Phone, CheckCircle2 } from 'lucide-react';
 import FocusTrap from 'focus-trap-react';
@@ -38,7 +38,7 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
 
     const aoEnviar = (e: React.FormEvent) => {
         e.preventDefault();
-        // SimulaÃ§Ã£o de envio
+        // Simulação de envio
         setTimeout(() => {
             definirEnviado(true);
             setTimeout(() => {
@@ -79,11 +79,11 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                             ${temaEscuro ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
                                 <div>
                                     <h2 id="modal-contato-titulo" className={`text-xl font-extrabold ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>Fale Conosco</h2>
-                                    <p className={`text-sm mt-1 font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Implemente a inovaÃ§Ã£o na sua escola.</p>
+                                    <p className={`text-sm mt-1 font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Implemente a inovação na sua escola.</p>
                                 </div>
                                 <button
                                     onClick={aoFechar}
-                                    className={`p-2 rounded-xl transition-colors shadow-suave
+                                    className={`p-2 rounded-2xl transition-colors shadow-suave
                                     ${temaEscuro ? 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-200'}`}
                                     aria-label="Fechar"
                                 >
@@ -104,7 +104,7 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                             <CheckCircle2 className="w-8 h-8" />
                                         </div>
                                         <h3 className={`text-2xl font-bold mb-2 ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>Recebemos seu contato!</h3>
-                                        <p className={`${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Nossa equipe entrarÃ¡ em contato com vocÃª ou com a escola em breve.</p>
+                                        <p className={`${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Nossa equipe entrará em contato com você ou com a escola em breve.</p>
                                     </motion.div>
                                 ) : (
                                     <form onSubmit={aoEnviar} className="space-y-5">
@@ -121,7 +121,7 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                                     placeholder="Como podemos te chamar?"
                                                     value={nome}
                                                     onChange={(e) => definirNome(e.target.value)}
-                                                    className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none focus:ring-2 transition-all
+                                                    className={`w-full pl-11 pr-4 py-3 rounded-2xl border outline-none focus:ring-2 transition-all
                                                     ${temaEscuro
                                                             ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-sky-500 focus:ring-sky-500/20'
                                                             : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:ring-sky-500/20'}`}
@@ -138,10 +138,10 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                                     id="escola-contato"
                                                     type="text"
                                                     required
-                                                    placeholder="InstituiÃ§Ã£o de ensino"
+                                                    placeholder="Instituição de ensino"
                                                     value={escola}
                                                     onChange={(e) => definirEscola(e.target.value)}
-                                                    className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none focus:ring-2 transition-all
+                                                    className={`w-full pl-11 pr-4 py-3 rounded-2xl border outline-none focus:ring-2 transition-all
                                                     ${temaEscuro
                                                             ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-sky-500 focus:ring-sky-500/20'
                                                             : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:ring-sky-500/20'}`}
@@ -161,7 +161,7 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                                     placeholder="(00) 00000-0000"
                                                     value={telefone}
                                                     onChange={(e) => definirTelefone(e.target.value)}
-                                                    className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none focus:ring-2 transition-all
+                                                    className={`w-full pl-11 pr-4 py-3 rounded-2xl border outline-none focus:ring-2 transition-all
                                                     ${temaEscuro
                                                             ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-600 focus:border-sky-500 focus:ring-sky-500/20'
                                                             : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:ring-sky-500/20'}`}
@@ -170,10 +170,10 @@ export function ModalContato({ aberto, aoFechar, temaEscuro }: ModalContatoProps
                                         </div>
                                         <button
                                             type="submit"
-                                            className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-sky-600/20 transition-all hover:shadow-sky-500/30 active:scale-[0.98]"
+                                            className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-sky-600/20 transition-all hover:shadow-sky-500/30 active:scale-[0.98]"
                                         >
                                             <Send className="w-5 h-5" />
-                                            Enviar SolicitaÃ§Ã£o
+                                            Enviar Solicitação
                                         </button>
                                     </form>
                                 )}

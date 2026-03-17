@@ -207,26 +207,26 @@ export default function Turmas() {
             carregando={carregando}
         >
             <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
-                <div className="flex flex-col gap-1.5 flex-1 w-full">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Turma</label>
+                <div className="flex flex-col gap-2 flex-1 w-full">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Turma</label>
                     <InputBusca
                         icone={Search}
                         placeholder="Nome, professor ou turno..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-8 rounded-xl"
+                        className="w-full h-11"
                     />
                 </div>
 
                 {/* Filtro de Ano */}
-                <div className="flex flex-col gap-1.5 shrink-0">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                    <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                <div className="flex flex-col gap-2 shrink-0">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
+                    <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11 min-w-[180px]">
                         {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                             <button
                                 key={ano}
                                 onClick={() => definirFiltroAnoLetivo(ano)}
-                                className={`px-4 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
+                                className={`flex-1 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border ${filtroAnoLetivo === ano
                                     ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
                                     : 'text-slate-400 border-transparent hover:text-slate-600'
                                     }`}
@@ -238,16 +238,16 @@ export default function Turmas() {
                 </div>
 
                 {/* Filtro de Turno */}
-                <div className="flex flex-col gap-1.5 shrink-0">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Turno</label>
-                    <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                <div className="flex flex-col gap-2 shrink-0">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Turno</label>
+                    <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11">
                         {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
                             const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIG_TURNO[filtro as keyof typeof CONFIG_TURNO]?.icone || Clock);
                             return (
                                 <button
                                     key={filtro}
                                     onClick={() => definirFiltroTurno(filtro)}
-                                    className={`px-3 h-full rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
+                                    className={`px-4 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
                                         ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                         : 'text-slate-400 border-transparent hover:text-slate-600'
                                         }`}
@@ -359,7 +359,7 @@ export default function Turmas() {
                                                             {totalAlunos} / {lotacao}
                                                         </span>
                                                         <span className={ocupacao >= 90 ? 'text-rose-600' : 'text-slate-400'}>
-                                                            {Math.round(ocupacao)}%
+                                                            {ocupacao.toFixed(1)}%
                                                         </span>
                                                     </div>
                                                     <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/30">

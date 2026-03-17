@@ -1,14 +1,14 @@
-Ôªø/**
- * Barrel export do m√≥dulo de Usu√°rios e Autentica√ß√£o.
+/**
+ * Barrel export do mÛdulo de Usu·rios e AutenticaÁ„o.
  */
 
 export { default as Usuarios } from './componentes/Usuarios';
 export { default as FormUsuarioModal } from './componentes/FormUsuarioModal';
 export { default as TelaAcesso } from './componentes/TelaAcesso';
 
-// Hooks de Sess√£o e Conte√∫do Legal
+// Hooks de Sess„o e Conte˙do Legal
 export * from './hooks/usarConteudoLegal';
 export * from './hooks/useSessaoQuiosque';
 
-// Servi√ßos
+// ServiÁos
 export * from './servicos/sessaoQuiosque.service';

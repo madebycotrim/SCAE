@@ -1,9 +1,9 @@
-ï»¿/**
- * Temas por escola â€” configuraÃ§Ã£o visual por escola.
+/**
+ * Temas por escola — configuração visual por escola.
  * Cada escola pode sobrescrever cores, fontes e logo.
  *
- * Em produÃ§Ã£o, estes dados viriam da API.
- * Este arquivo serve como fallback/referÃªncia.
+ * Em produção, estes dados viriam da API.
+ * Este arquivo serve como fallback/referência.
  */
 
 export const TEMAS_PADRAO = {
@@ -19,7 +19,7 @@ export const TEMAS_PADRAO = {
 
 /**
  * Aplica o tema de uma escola ao documento.
- * @param {object} tema - Objeto com variÃ¡veis CSS do tema
+ * @param {object} tema - Objeto com variáveis CSS do tema
  */
 export function aplicarTema(tema) {
     const raiz = document.documentElement;

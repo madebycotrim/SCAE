@@ -1,5 +1,5 @@
-﻿/**
- * Hook para monitorar e renovar a sessão do tablet quiosque.
+/**
+ * Hook para monitorar e renovar a sess�o do tablet quiosque.
  * Renova o token Firebase a cada 50 minutos (tokens expiram em 60min).
  */
 import { useState, useEffect, useCallback } from 'react';

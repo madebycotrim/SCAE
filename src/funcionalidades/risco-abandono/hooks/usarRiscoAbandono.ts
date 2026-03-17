@@ -1,4 +1,4 @@
-ï»¿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { riscoAbandonoServico } from '../servicos/riscoAbandono.servico';
 import { AlertaRiscoAbandono, StatusRiscoAbandono } from '../types/riscoAbandono.tipos';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
@@ -10,7 +10,7 @@ const log = criarRegistrador('RiscoAbandono');
 
 /**
  * Hook para gerenciar o estado do Motor de Risco de Abandono.
- * Lida com a busca de alertas, processamento do motor e atualizaÃ§Ãµes de status.
+ * Lida com a busca de alertas, processamento do motor e atualizações de status.
  */
 export function usarRiscoAbandono() {
     const { id: idEscola } = usarEscola();
@@ -37,7 +37,7 @@ export function usarRiscoAbandono() {
         try {
             const sucesso = await riscoAbandonoServico.atualizarStatus(alertaId, novoStatus);
             if (sucesso) {
-                // AtualizaÃ§Ã£o otimista no estado local
+                // Atualização otimista no estado local
                 definirAlertas(anterior => anterior.map(a =>
                     a.id === alertaId ? { ...a, status: novoStatus } : a
                 ));
@@ -62,12 +62,12 @@ export function usarRiscoAbandono() {
                 titulo: 'Motor de Risco de Abandono Executado',
                 mensagem: resultado.gerados > 0
                     ? `O motor identificou ${resultado.gerados} novos alunos em risco de abandono escolar.`
-                    : 'A varredura foi concluÃ­da. Nenhum novo risco crÃ­tico detectado.',
+                    : 'A varredura foi concluída. Nenhum novo risco crítico detectado.',
                 tipo: resultado.gerados > 0 ? 'warning' : 'success',
                 link: `/${idEscola}/admin/risco-abandono`
             });
 
-            await buscarAlertas(); // Recarrega apÃ³s processar
+            await buscarAlertas(); // Recarrega após processar
         } catch (erro) {
             log.error('Erro no motor de risco de abandono', erro);
             Registrador.registrar('RISCO_ABANDONO_MOTOR_FALHA', 'alerta', '', { erro: erro instanceof Error ? erro.message : 'Erro desconhecido' });

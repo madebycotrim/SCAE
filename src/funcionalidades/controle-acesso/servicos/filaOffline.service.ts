@@ -1,4 +1,4 @@
-Ôªøimport { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { ajustarTimestampLocal } from './clockDrift.service';
 
@@ -10,9 +10,9 @@ export interface RegistroOffline {
     alunoMatricula: string;
     tipoMovimentacao: 'ENTRADA' | 'SAIDA';
     metodoLeitura: 'qr_celular' | 'qr_carteirinha' | 'manual';
-    timestampLocal: number; // Hor√°rio no momento exato do scan (sem ajuste)
+    timestampLocal: number; // Hor·rio no momento exato do scan (sem ajuste)
     timestampAjustado: number; // Recalculado via clockDrift.service
-    sincronizado: boolean; // false at√© o envio para o D1
+    sincronizado: boolean; // false atÈ o envio para o D1
 }
 
 /**
@@ -29,7 +29,7 @@ export async function enfileirarRegistro(registro: RegistroOffline): Promise<voi
             timestamp_acesso: new Date(registro.timestampAjustado).toISOString(),
         });
     } catch (e) {
-        log.error('Falha de I/O Cr√≠tica no idb', e);
+        log.error('Falha de I/O CrÌtica no idb', e);
     }
 }
 

@@ -77,7 +77,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
             {!resultado ? (
                 <div className="space-y-8 pb-4">
                     {/* Seletor de Método (Tabs Premium V2) */}
-                    <div className="flex p-1 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex p-1 bg-slate-50 rounded-2xl border border-slate-200">
                         <button
                             onClick={() => definirAbaAtiva('arquivo')}
                             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'arquivo' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
@@ -106,7 +106,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                         disabled={importando}
                                     />
                                     <div className="flex flex-col items-center">
-                                        <div className="w-14 h-14 bg-slate-50 text-slate-400 border border-slate-200 rounded-xl flex items-center justify-center mb-4 transition-transform shadow-suave">
+                                        <div className="w-14 h-14 bg-slate-50 text-slate-400 border border-slate-200 rounded-2xl flex items-center justify-center mb-4 transition-transform shadow-suave">
                                             <Upload size={24} />
                                         </div>
                                         <h4 className="font-black text-slate-800 text-xs uppercase tracking-tight">Selecione ou arraste a planilha</h4>
@@ -115,7 +115,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                 </div>
 
                                 <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 flex items-start gap-4">
-                                    <div className="p-2 bg-slate-800 rounded-xl text-slate-400 shrink-0">
+                                    <div className="p-2 bg-slate-800 rounded-2xl text-slate-400 shrink-0">
                                         <Info size={16} />
                                     </div>
                                     <div>
@@ -133,7 +133,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                         <Clipboard size={14} /> Buffer de Colagem
                                     </label>
                                     <textarea
-                                        className="w-full h-44 p-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 resize-none font-mono custom-scrollbar"
+                                        className="w-full h-44 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 resize-none font-mono custom-scrollbar"
                                         placeholder="Selecione os dados no Excel (Ctrl+C), e cole aqui (Ctrl+V)..."
                                         value={textoColado}
                                         onChange={(e) => definirTextoColado(e.target.value)}
@@ -161,7 +161,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
             ) : (
                 <div className="py-2 animate-zoom-in">
                     <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-slate-900 text-white rounded-xl flex items-center justify-center mb-5 mx-auto shadow-lg shadow-slate-900/10">
+                        <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center mb-5 mx-auto shadow-lg shadow-slate-900/10">
                             <CheckCircle size={32} strokeWidth={2.5} />
                         </div>
                         <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-1">Batch Concluído</h3>
@@ -169,12 +169,12 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mb-8">
-                        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 text-center shadow-suave">
+                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-center shadow-suave">
                             <p className="text-slate-900 font-black text-3xl mb-1 tracking-tighter">{resultado.sucessos}</p>
                             <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em]">Sincronizados</p>
                         </div>
 
-                        <div className="bg-rose-50 p-6 rounded-xl border border-rose-100 text-center shadow-suave">
+                        <div className="bg-rose-50 p-6 rounded-2xl border border-rose-100 text-center shadow-suave">
                             <p className="text-rose-700 font-black text-3xl mb-1 tracking-tighter">{resultado.erros}</p>
                             <p className="text-[9px] text-rose-500 font-black uppercase tracking-[0.2em]">Inconsistências</p>
                         </div>

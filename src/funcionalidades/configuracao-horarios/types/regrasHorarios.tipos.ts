@@ -1,5 +1,5 @@
-﻿/**
- * Tipos do módulo de Regras de Acesso.
+/**
+ * Tipos do m�dulo de Regras de Acesso.
  * Tipos compartilhados re-exportados de @/compartilhado/types/horarios.tipos.ts
  */
 export type { TipoAcessoHorario, JanelaHorarioAcesso, ConfiguracaoHorarios } from '@/compartilhado/types/horarios.tipos';

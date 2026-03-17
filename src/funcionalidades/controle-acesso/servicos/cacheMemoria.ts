@@ -1,13 +1,13 @@
-﻿/**
- * Módulo de Caching em memória do Controle de Acesso, rodando O(1) Set/Map sem dependências de Promise nem I/O.
+/**
+ * M�dulo de Caching em mem�ria do Controle de Acesso, rodando O(1) Set/Map sem depend�ncias de Promise nem I/O.
  */
 import { AlunoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 
 export interface DadosAluno extends AlunoLocal { }
 
 export interface CacheControleAcesso {
-    alunosAtivos: Map<string, DadosAluno>;  // matricula â†’ dados (lookup O(1) memory)
-    qrsRevogados: Set<string>;              // set de matrículas revogadas (O(1))
+    alunosAtivos: Map<string, DadosAluno>;  // matricula → dados (lookup O(1) memory)
+    qrsRevogados: Set<string>;              // set de matr�culas revogadas (O(1))
     ultimaAtualizacao: number;
 }
 

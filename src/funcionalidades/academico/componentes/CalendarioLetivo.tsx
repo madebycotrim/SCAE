@@ -82,7 +82,7 @@ export default function CalendarioLetivo() {
                 <div className="lg:col-span-1">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-24">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
                                 <Plus size={20} />
                             </div>
                             <h2 className="font-black text-slate-800 uppercase tracking-tight">Novo Dia Não-Letivo</h2>
@@ -95,7 +95,7 @@ export default function CalendarioLetivo() {
                                     type="date" 
                                     value={novaData}
                                     onChange={e => definirNovaData(e.target.value)}
-                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
                                     required
                                 />
                             </div>
@@ -107,7 +107,7 @@ export default function CalendarioLetivo() {
                                     placeholder="Ex: Feriado Nacional de Tiradentes"
                                     value={novaDescricao}
                                     onChange={e => definirNovaDescricao(e.target.value)}
-                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
                                 />
                             </div>
 
@@ -116,7 +116,7 @@ export default function CalendarioLetivo() {
                                 <select 
                                     value={novoTipo}
                                     onChange={e => definirNovoTipo(e.target.value as any)}
-                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
                                 >
                                     <option value="FERIADO">Feriado</option>
                                     <option value="RECESSO">Recesso</option>
@@ -128,13 +128,13 @@ export default function CalendarioLetivo() {
                             <button 
                                 type="submit"
                                 disabled={mutationAdicionar.isPending}
-                                className="w-full py-4 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
+                                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
                             >
                                 {mutationAdicionar.isPending ? 'Sincronizando...' : 'Adicionar ao Calendário'}
                             </button>
                         </form>
 
-                        <div className="mt-8 p-4 bg-amber-50 rounded-xl border border-amber-100 flex gap-3 text-amber-700">
+                        <div className="mt-8 p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3 text-amber-700">
                             <ShieldAlert size={20} className="shrink-0" />
                             <p className="text-[11px] font-bold leading-relaxed">
                                 Dias salvos aqui serão <span className="underline">ignorados</span> pelo motor de detecção de evasão. Fins de semana já são ignorados automaticamente.
@@ -220,7 +220,7 @@ export default function CalendarioLetivo() {
                                                     acao: () => mutationRemover.mutate(dia.data)
                                                 });
                                             }}
-                                            className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                            className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all opacity-0 group-hover:opacity-100"
                                         >
                                             <Trash2 size={20} />
                                         </button>

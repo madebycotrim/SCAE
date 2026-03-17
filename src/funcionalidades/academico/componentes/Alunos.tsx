@@ -184,47 +184,45 @@ export default function Alunos() {
             carregando={carregando}
         >
             <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
-                <div className="flex flex-col gap-1.5 flex-1 w-full">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Aluno</label>
+                <div className="flex flex-col gap-2 flex-1 w-full">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Aluno</label>
                     <InputBusca
                         icone={Search}
                         placeholder="Nome, matrícula ou turma..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-8 rounded-xl"
+                        className="w-full h-11"
                     />
                 </div>
 
                 {/* Filtro de Ano Letivo */}
-                <div className="flex flex-col gap-1.5 shrink-0">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                    <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                <div className="flex flex-col gap-2 shrink-0">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
+                    <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11 min-w-[180px]">
                         {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                             <button
                                 key={ano}
                                 onClick={() => definirFiltroAnoLetivo(ano)}
-                                className={`px-4 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${filtroAnoLetivo === ano
+                                className={`flex-1 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border ${filtroAnoLetivo === ano
                                     ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
                                     : 'text-slate-400 border-transparent hover:text-slate-600'
                                     }`}
                             >
-                                <span className="flex items-center gap-2">
-                                    <Calendar size={12} /> {ano}
-                                </span>
+                                <Calendar size={12} /> {ano}
                             </button>
                         ))}
                     </div>
                 </div>
 
                 {/* Filtro de Status */}
-                <div className="flex flex-col gap-1.5 shrink-0">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação</label>
-                    <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                <div className="flex flex-col gap-2 shrink-0">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação</label>
+                    <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11">
                         {(['ativos', 'inativos', 'todos'] as const).map((status) => (
                             <button
                                 key={status}
                                 onClick={() => definirFiltroStatus(status)}
-                                className={`px-3 h-full rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
+                                className={`px-4 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
                                     ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                     : 'text-slate-400 border-transparent hover:text-slate-600'
                                     }`}

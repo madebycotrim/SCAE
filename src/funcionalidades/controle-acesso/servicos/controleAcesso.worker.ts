@@ -1,4 +1,4 @@
-ï»¿/// <reference lib="webworker" />
+/// <reference lib="webworker" />
 
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import type { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
@@ -7,7 +7,7 @@ const API_URL = import.meta.env?.VITE_API_URL || '/api'; // fallback Vite
 
 let isSyncing = false;
 
-// FunÃ§Ã£o nativa Fetch para enviar em batches
+// Função nativa Fetch para enviar em batches
 async function processarLote(batch: RegistroAcessoLocal[], authHeader: string, idEscola: string): Promise<string[]> {
     try {
         const resposta = await fetch(`${API_URL}/registros-acesso`, {
@@ -26,7 +26,7 @@ async function processarLote(batch: RegistroAcessoLocal[], authHeader: string, i
         // API retorna as IDs de quem foi sincronizado com sucesso
         return data.filter(r => r.status === 'sincronizado').map(r => r.id);
     } catch (e) {
-        console.warn('[WORKER] API inatingÃ­vel no momento. Retentando futuramente.', e);
+        console.warn('[WORKER] API inatingível no momento. Retentando futuramente.', e);
         return [];
     }
 }
@@ -78,7 +78,7 @@ self.addEventListener('message', async (e: MessageEvent) => {
     if (tipo === 'INICIAR_DRENAGEM') {
         if (!authHeader || !idEscola) return;
 
-        // Impede execuÃ§Ã£o fÃºtil se o sistema operacional sabe que a rede caiu
+        // Impede execução fútil se o sistema operacional sabe que a rede caiu
         if (!navigator.onLine) {
             postMessage({ type: 'SYNC_STATUS', payload: { status: 'OFFLINE' } });
             return;

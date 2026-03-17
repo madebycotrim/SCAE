@@ -1,8 +1,8 @@
-ï»¿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { TIPO_ACESSO } from '../types/controleAcesso.tipos';
 
 /**
- * Hook para determinar o tipo de acesso (Entrada/SaÃ­da) baseado no horÃ¡rio.
+ * Hook para determinar o tipo de acesso (Entrada/Saída) baseado no horário.
  * Regra:
  * 06:00 - 13:00 -> ENTRADA
  * 13:01 - 22:00 -> SAIDA

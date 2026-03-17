@@ -1,8 +1,8 @@
-ï»¿/**
- * Cliente de consultas â€” wrapper sobre @tanstack/react-query.
+/**
+ * Cliente de consultas — wrapper sobre @tanstack/react-query.
  *
  * Defaults otimizados para SCAE:
- * - staleTime 5min (dados nÃ£o mudam entre leituras QR)
+ * - staleTime 5min (dados não mudam entre leituras QR)
  * - retry 2x
  * - refetchOnWindowFocus desativado (tablet fixo)
  */

@@ -1,6 +1,6 @@
-Ôªø/**
- * Tokens de design base ‚Äî podem ser sobrescritos pelo escola.
- * Valores padr√£o usados quando o escola n√£o define tema.
+/**
+ * Tokens de design base ó podem ser sobrescritos pelo escola.
+ * Valores padr„o usados quando o escola n„o define tema.
  */
 export interface DefTemaBase {
     cores: Record<string, string>;

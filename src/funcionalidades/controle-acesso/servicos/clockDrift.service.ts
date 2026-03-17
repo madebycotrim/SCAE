@@ -1,8 +1,8 @@
-Ôªø/**
- * Servi√ßo de ajuste de Clock Drift para registros offline.
+/**
+ * ServiÁo de ajuste de Clock Drift para registros offline.
  *
- * √â OBRIGAT√ìRIO tratar os desvios de hor√°rio ocorridos durante offline para
- * validade jur√≠dica da porta de entrada e reten√ß√£o LGPD.
+ * … OBRIGAT”RIO tratar os desvios de hor·rio ocorridos durante offline para
+ * validade jurÌdica da porta de entrada e retenÁ„o LGPD.
  */
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
@@ -13,17 +13,17 @@ let desvioClockCache: number | null = null;
 let descompassoInaceitavel = false;
 
 /**
- * Busca o hor√°rio em um servidor confi√°vel e compara com a hora local local (tablet).
+ * Busca o hor·rio em um servidor confi·vel e compara com a hora local local (tablet).
  * Se offline de novo, o fetch falha, e usaremos o desvioCache se houver.
  */
 export async function corrigirClockDrift(): Promise<void> {
     try {
         const timestampAntigo = Date.now();
-        // Fallback para uma rota que retorna o Date.now() ou do cabe√ßalho de resposta:
+        // Fallback para uma rota que retorna o Date.now() ou do cabeÁalho de resposta:
         const resposta = await fetch(import.meta.env.VITE_API_URL + '/saude', { method: 'HEAD' });
 
         const dataServidorStr = resposta.headers.get('date');
-        if (!dataServidorStr) return; // Se n√£o houver cabe√ßalho DATE, pule a checagem
+        if (!dataServidorStr) return; // Se n„o houver cabeÁalho DATE, pule a checagem
 
         const timestampServidor = new Date(dataServidorStr).getTime();
         const desvioMs = timestampServidor - timestampAntigo;
@@ -36,20 +36,20 @@ export async function corrigirClockDrift(): Promise<void> {
         } else {
             descompassoInaceitavel = true;
             log.error(`Clock Drift > 5 Minutos Detectado: ${desvioMs}ms`);
-            // Precisar√≠amos disparar uma flag global para o aviso na Interface, ou jogar o log num Zustand global 
+            // PrecisarÌamos disparar uma flag global para o aviso na Interface, ou jogar o log num Zustand global 
         }
 
     } catch (e) {
-        log.warn('Falha na corre√ß√£o do clock drift no momento (Offline?)', e);
+        log.warn('Falha na correÁ„o do clock drift no momento (Offline?)', e);
     }
 }
 
 /**
- * Aplica o desvio do rel√≥gio a um timestamp local gerado em offlline.
+ * Aplica o desvio do relÛgio a um timestamp local gerado em offlline.
  */
 export function ajustarTimestampLocal(timestampTablet: number): number {
     if (desvioClockCache === null || descompassoInaceitavel) {
-        return timestampTablet; // n√£o ajusta ou n√£o pode ajustar
+        return timestampTablet; // n„o ajusta ou n„o pode ajustar
     }
     return timestampTablet + desvioClockCache;
 }

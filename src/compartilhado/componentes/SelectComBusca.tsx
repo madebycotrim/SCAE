@@ -1,4 +1,4 @@
-ï»¿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown, Search, Check } from 'lucide-react';
 
@@ -17,7 +17,7 @@ interface SelectComBuscaProps {
 }
 
 /**
- * Componente de seleÃ§Ã£o customizado com busca integrada.
+ * Componente de seleção customizado com busca integrada.
  * Utiliza portais para evitar problemas de overflow/z-index.
  */
 export function SelectComBusca({ options, value, onChange, placeholder = "Selecione...", label, className }: SelectComBuscaProps) {
@@ -81,14 +81,14 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
                 width: coords.width,
                 zIndex: 9999
             }}
-            className="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         >
             <div className="p-2 border-b border-slate-50 bg-slate-50/50">
                 <div className="relative">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                         className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-indigo-500 placeholder:text-slate-300 transition-colors"
-                        placeholder="Filtrar opÃ§Ãµes..."
+                        placeholder="Filtrar opções..."
                         value={termo}
                         onChange={(e) => definirTermo(e.target.value)}
                         autoFocus
@@ -117,7 +117,7 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
                     ))
                 ) : (
                     <div className="p-4 text-center text-slate-400 text-sm font-medium">
-                        Nenhuma opÃ§Ã£o encontrada.
+                        Nenhuma opção encontrada.
                     </div>
                 )}
             </div>
@@ -131,7 +131,7 @@ export function SelectComBusca({ options, value, onChange, placeholder = "Seleci
             <button
                 type="button"
                 onClick={() => definirAberto(!aberto)}
-                className={className || `w-full px-4 h-12 bg-white border-2 border-slate-300 rounded-xl text-sm font-bold flex items-center justify-between transition-colors shadow-suave focus:outline-none focus:border-indigo-600 hover:border-slate-400
+                className={className || `w-full px-4 h-12 bg-white border-2 border-slate-300 rounded-2xl text-sm font-bold flex items-center justify-between transition-colors shadow-suave focus:outline-none focus:border-indigo-600 hover:border-slate-400
                     ${aberto ? 'border-indigo-600 ring-2 ring-indigo-50' : ''}
                 `}
             >

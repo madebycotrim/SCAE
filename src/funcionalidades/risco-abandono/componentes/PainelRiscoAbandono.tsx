@@ -131,8 +131,8 @@ export default function PainelRiscoAbandono() {
 
                 {/* Toolbar de Filtros */}
                 <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
-                    <div className="flex flex-col gap-1.5 flex-1 w-full">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Aluno</label>
+                    <div className="flex flex-col gap-2 flex-1 w-full">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Aluno</label>
                         <InputBusca
                             icone={Search}
                             placeholder="Pesquisar por nome ou matrícula..."
@@ -141,13 +141,13 @@ export default function PainelRiscoAbandono() {
                                 definirPesquisa(e.target.value);
                                 definirPaginaAtual(1);
                             }}
-                            className="w-full h-8 rounded-xl"
+                            className="w-full h-11"
                         />
                     </div>
 
-                    <div className="flex flex-col gap-1.5 shrink-0">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação do Alerta</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                    <div className="flex flex-col gap-2 shrink-0">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação do Alerta</label>
+                        <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11">
                             {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
                                 <button
                                     key={status}
@@ -155,9 +155,9 @@ export default function PainelRiscoAbandono() {
                                         definirFiltroStatus(status);
                                         definirPaginaAtual(1);
                                     }}
-                                    className={`px-5 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center border ${filtroStatus === status
-                                        ? 'bg-slate-800 text-white border-slate-700 shadow-suave'
-                                        : 'text-slate-400 hover:text-slate-800 hover:bg-white border-transparent'
+                                    className={`px-5 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center border ${filtroStatus === status
+                                        ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
+                                        : 'text-slate-400 hover:text-slate-800'
                                         }`}
                                 >
                                     {status === 'TODOS' ? 'Todos' : status === 'PENDENTE' ? 'Urgentes' : status === 'EM_ANALISE' ? 'Em Análise' : 'Resolvido'}
@@ -248,7 +248,7 @@ export default function PainelRiscoAbandono() {
                                                     <select
                                                         value={alerta.status}
                                                         onChange={(e) => tratarAlerta(alerta.id, e.target.value as StatusRiscoAbandono)}
-                                                        className="text-[10px] font-black uppercase tracking-widest border-2 border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-600 outline-none hover:border-indigo-300 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer shadow-suave"
+                                                        className="text-[10px] font-black uppercase tracking-widest border-2 border-slate-200 rounded-2xl px-3 py-2 bg-white text-slate-600 outline-none hover:border-indigo-300 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer shadow-suave"
                                                     >
                                                         <option value="PENDENTE">Status: Urgente</option>
                                                         <option value="EM_ANALISE">Status: Em Análise</option>
@@ -277,7 +277,7 @@ export default function PainelRiscoAbandono() {
                 {totalPaginas > 1 && (
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-6 px-2">
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1.5 bg-white border-2 border-slate-200 px-3 py-1.5 rounded-xl shadow-suave">
+                            <div className="flex items-center gap-1.5 bg-white border-2 border-slate-200 px-3 py-1.5 rounded-2xl shadow-suave">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
                                 <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
                             </div>
@@ -414,7 +414,7 @@ function CardMetrica({ label, valor, icon, cor }: { label: string, valor: number
 
     return (
         <div className={`p-5 bg-white border-2 border-slate-200/60 border-l-4 ${cores[cor]} rounded-none rounded-r-lg hover:shadow-md transition-all hover:-translate-y-0.5 relative overflow-hidden group flex items-center gap-4`}>
-            <div className={`w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0 border-2 ${iconCores[cor]} z-10 transition-transform group-hover:scale-105`}>
+            <div className={`w-10 h-10 bg-white rounded-2xl flex items-center justify-center shrink-0 border-2 ${iconCores[cor]} z-10 transition-transform group-hover:scale-105`}>
                 {icon}
             </div>
             <div className="z-10">
@@ -428,20 +428,20 @@ function CardMetrica({ label, valor, icon, cor }: { label: string, valor: number
 function BadgeStatus({ status }: { status: StatusRiscoAbandono }) {
     if (status === 'PENDENTE') {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border-2 border-rose-200 shadow-suave transition-all hover:scale-105">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border-2 border-rose-200 shadow-suave transition-all hover:scale-105">
                 <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Urgente
             </span>
         );
     }
     if (status === 'EM_ANALISE') {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border-2 border-amber-200 shadow-suave transition-all hover:scale-105">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border-2 border-amber-200 shadow-suave transition-all hover:scale-105">
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]"></div> Em Análise
             </span>
         );
     }
     return (
-        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-suave transition-all hover:scale-105">
+        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-suave transition-all hover:scale-105">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Resolvido
         </span>
     );

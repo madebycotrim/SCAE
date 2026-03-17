@@ -1,4 +1,4 @@
-﻿export type TipoAcesso = 'ENTRADA' | 'SAIDA';
+export type TipoAcesso = 'ENTRADA' | 'SAIDA';
 
 export const TIPO_ACESSO = {
     ENTRADA: 'ENTRADA' as TipoAcesso,

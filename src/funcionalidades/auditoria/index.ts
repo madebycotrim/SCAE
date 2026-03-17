@@ -1,1 +1,1 @@
-﻿export { default as RegistroAuditoria } from './componentes/RegistroAuditoria';
+export { default as RegistroAuditoria } from './componentes/RegistroAuditoria';

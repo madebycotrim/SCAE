@@ -1,5 +1,5 @@
-Ôªø/**
- * GuardaRota ‚Äî Componente que protege rotas verificando autentica√ß√£o + papel + escola.
+/**
+ * GuardaRota ó Componente que protege rotas verificando autenticaÁ„o + papel + escola.
  * Redireciona para login relativo ao slug da escola.
  */
 import { ReactNode } from 'react';
@@ -18,7 +18,7 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
     const { usuario, carregando } = usarPermissoes();
     const { slugEscola } = useParams();
 
-    // Carregando estado de auth/permiss√µes
+    // Carregando estado de auth/permissıes
     if (carregando) {
         return (
             <div className="flex items-center justify-center h-screen bg-slate-50">
@@ -27,7 +27,7 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
         );
     }
 
-    // N√£o autenticado ‚Üí redirecionar para login da escola ou da Gest√£o Central
+    // N„o autenticado ? redirecionar para login da escola ou da Gest„o Central
     if (!usuarioAtual) {
         if (desabilitarEscolaCheck || (!slugEscola && papeis?.includes('CENTRAL'))) {
             return <Navigate to="/central/login" replace />;
@@ -35,25 +35,25 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
         return <Navigate to={`/${slugEscola}/login`} replace />;
     }
 
-    // Restri√ß√£o Absoluta e Hardcoded para o Root/Dono
+    // RestriÁ„o Absoluta e Hardcoded para o Root/Dono
     if (papeis?.includes('CENTRAL') && usuarioAtual.email !== 'madebycotrim@gmail.com') {
         return (
             <div className="flex items-center justify-center h-screen bg-slate-950">
                 <div className="text-center max-w-md p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
                     <div className="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-500/30">
-                        <span className="text-2xl">üõ°Ô∏è</span>
+                        <span className="text-2xl">???</span>
                     </div>
                     <h2 className="text-xl font-bold text-white mb-2">Acesso Classificado Root</h2>
-                    <p className="text-slate-400 mb-6">Apenas a conta madebycotrim@gmail.com possui permiss√£o para enxergar o M√≥dulo Central.</p>
-                    <a href="/" className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-xl font-bold hover:bg-[#0a1628] transition-colors border border-transparent shadow-suave">
-                        Sair desta √°rea
+                    <p className="text-slate-400 mb-6">Apenas a conta madebycotrim@gmail.com possui permiss„o para enxergar o MÛdulo Central.</p>
+                    <a href="/" className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-2xl font-bold hover:bg-[#0a1628] transition-colors border border-transparent shadow-suave">
+                        Sair desta ·rea
                     </a>
                 </div>
             </div>
         );
     }
 
-    // Se pap√©is foram definidos, verificar se o usu√°rio tem permiss√£o
+    // Se papÈis foram definidos, verificar se o usu·rio tem permiss„o
     if (papeis && papeis.length > 0) {
         let temPermissao = false;
 
@@ -69,11 +69,11 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
                 <div className="flex items-center justify-center h-screen bg-slate-50">
                     <div className="text-center max-w-md p-8">
                         <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-2xl">üîí</span>
+                            <span className="text-2xl">??</span>
                         </div>
                         <h2 className="text-xl font-bold text-slate-800 mb-2">Acesso Restrito</h2>
-                        <p className="text-slate-500 mb-6">Voc√™ n√£o tem permiss√£o para acessar esta p√°gina.</p>
-                        <a href={desabilitarEscolaCheck ? '/central/login' : `/${slugEscola}/admin/painel`} className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-xl font-bold hover:bg-[#0a1628] transition-colors shadow-suave">
+                        <p className="text-slate-500 mb-6">VocÍ n„o tem permiss„o para acessar esta p·gina.</p>
+                        <a href={desabilitarEscolaCheck ? '/central/login' : `/${slugEscola}/admin/painel`} className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-2xl font-bold hover:bg-[#0a1628] transition-colors shadow-suave">
                             {desabilitarEscolaCheck ? 'Voltar para Login Central' : 'Voltar ao Painel'}
                         </a>
                     </div>

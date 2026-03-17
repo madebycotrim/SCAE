@@ -132,22 +132,22 @@ export default function Usuarios() {
             carregando={carregando}
         >
             <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
-                <div className="flex flex-col gap-1.5 flex-1 w-full">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Funcionário</label>
+                <div className="flex flex-col gap-2 flex-1 w-full">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Funcionário</label>
                     <InputBusca
                         icone={Search}
                         placeholder="Nome, e-mail ou cargo..."
                         value={busca}
                         onChange={(e) => definirBusca(e.target.value)}
-                        className="w-full h-8 rounded-xl"
+                        className="w-full h-11"
                     />
                 </div>
                 
-                <div className="flex flex-col gap-1.5 shrink-0">
-                    <label className="text-[9px] font-black text-transparent uppercase tracking-[0.2em] ml-1 leading-none">Info</label>
-                    <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 h-8 rounded-xl shadow-sm">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total</span>
-                        <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Pessoas</span>
+                <div className="flex flex-col gap-2 shrink-0">
+                    <label className="text-[10px] font-black text-transparent uppercase tracking-[0.2em] ml-1 leading-none">Info</label>
+                    <div className="flex items-center gap-4 bg-white border border-slate-200 px-5 h-11 rounded-2xl shadow-sm">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total</span>
+                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Registros</span>
                     </div>
                 </div>
             </BarraFiltro>

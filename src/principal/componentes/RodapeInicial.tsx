@@ -1,4 +1,4 @@
-ï»¿import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 interface RodapeInicialProps {
@@ -21,11 +21,11 @@ export function RodapeInicial({ temaEscuro }: RodapeInicialProps) {
 
     return (
         <footer className={`relative z-10 py-8 text-center flex flex-col items-center justify-center gap-2 transition-colors ${temaEscuro ? 'bg-[#0B0F19] text-slate-500' : 'bg-white border-t border-slate-100 text-slate-400'}`}>
-            <p className="text-sm font-medium">Â© {new Date().getFullYear()} SCAE. Desenvolvido por um estudante universitÃ¡rio para melhorar a seguranÃ§a nas escolas pÃºblicas brasileiras.</p>
+            <p className="text-sm font-medium">© {new Date().getFullYear()} SCAE. Desenvolvido por um estudante universitário para melhorar a segurança nas escolas públicas brasileiras.</p>
             <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
                 <Link to="/termos-de-uso" className="hover:text-slate-700 hover:underline transition-colors">Termos de Uso</Link>
                 <span className="text-slate-300">&bull;</span>
-                <Link to="/politica-de-privacidade" className="hover:text-slate-700 hover:underline transition-colors">PolÃ­tica de Privacidade</Link>
+                <Link to="/politica-de-privacidade" className="hover:text-slate-700 hover:underline transition-colors">Política de Privacidade</Link>
             </div>
             <button
                 onClick={lidarComClique}

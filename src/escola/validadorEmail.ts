@@ -1,16 +1,16 @@
-Ôªøimport { PerfilEscola } from "./ProvedorEscola";
+import { PerfilEscola } from "./ProvedorEscola";
 
 /**
- * Valida√ß√£o de dom√≠nio de email da escola.
- * Garante que o usu√°rio s√≥ loga com email do dom√≠nio autorizado.
- * Ex: joao@colegioabc.com.br √¢≈ì‚Ä¶ | joao@gmail.com √¢¬ù≈í
+ * ValidaÁ„o de domÌnio de email da escola.
+ * Garante que o usu·rio sÛ loga com email do domÌnio autorizado.
+ * Ex: joao@colegioabc.com.br ‚úÖ | joao@gmail.com ‚ùå
  *
- * @param email - Email do usu√°rio autenticado via Google
+ * @param email - Email do usu·rio autenticado via Google
  * @param configEscola - Config do escola
- * @returns true se o email pertence ao dom√≠nio da escola
+ * @returns true se o email pertence ao domÌnio da escola
  */
 export function emailPertenceAEscola(email: string, configEscola: PerfilEscola): boolean {
-    // Se a escola n√£o definiu dom√≠nios autorizados, aceitar qualquer email
+    // Se a escola n„o definiu domÌnios autorizados, aceitar qualquer email
     if (!configEscola.dominioEmail) {
         return true;
     }

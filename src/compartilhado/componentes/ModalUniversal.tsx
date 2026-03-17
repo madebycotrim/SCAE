@@ -89,7 +89,7 @@ export default function ModalUniversal({
                     ${tema.bg} bg-opacity-60 backdrop-blur-sm relative z-20
                 `}>
                     <div className={`
-                        p-2.5 rounded-xl bg-white ring-1 ${tema.ring} shrink-0 
+                        p-2.5 rounded-2xl bg-white ring-1 ${tema.ring} shrink-0 
                         ${tema.text} flex items-center justify-center
                     `}>
                         <Icone size={24} strokeWidth={2} />
@@ -109,7 +109,7 @@ export default function ModalUniversal({
                     <button
                         onClick={aoFechar}
                         className="
-                            group shrink-0 p-2 rounded-xl transition-all duration-200
+                            group shrink-0 p-2 rounded-2xl transition-all duration-200
                             text-slate-400 hover:text-rose-500 hover:bg-white hover:ring-1 hover:ring-rose-100
                         "
                         title="Fechar (ESC)"

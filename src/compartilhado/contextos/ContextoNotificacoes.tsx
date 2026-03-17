@@ -1,4 +1,4 @@
-Ôªøimport { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import toast from 'react-hot-toast';
@@ -32,12 +32,12 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
     const [notificacoes, definirNotificacoes] = useState<Notificacao[]>([]);
     const [naoLidas, definirNaoLidas] = useState(0);
 
-    // Chave √∫nica por usu√°rio para n√£o misturar notifica√ß√µes no mesmo PC
+    // Chave ˙nica por usu·rio para n„o misturar notificaÁıes no mesmo PC
     const chaveStorage = usuarioAtual?.email
         ? `notificacoes_${usuarioAtual.email}`
         : 'notificacoes_visitante';
 
-    // Carregar notifica√ß√µes do localStorage ao iniciar ou mudar de usu√°rio
+    // Carregar notificaÁıes do localStorage ao iniciar ou mudar de usu·rio
     useEffect(() => {
         const salvas = localStorage.getItem(chaveStorage);
         if (salvas) {
@@ -45,7 +45,7 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
                 const parsed = JSON.parse(salvas);
                 definirNotificacoes(parsed);
             } catch (e) {
-                log.error('Erro ao carregar notifica√ß√µes', e);
+                log.error('Erro ao carregar notificaÁıes', e);
                 definirNotificacoes([]);
             }
         } else {
@@ -66,7 +66,7 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
 
         const nova = {
             id: crypto.randomUUID(),
-            titulo: conteudo.titulo || 'Notifica√ß√£o',
+            titulo: conteudo.titulo || 'NotificaÁ„o',
             mensagem: conteudo.mensagem || '',
             tipo: conteudo.tipo || 'info', // info, success, warning, error
             link: conteudo.link || null,
@@ -74,7 +74,7 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
             timestamp: new Date().toISOString()
         };
 
-        // Adiciona e mant√©m no m√°ximo as √∫ltimas 50 notifica√ß√µes para n√£o pesar o storage
+        // Adiciona e mantÈm no m·ximo as ˙ltimas 50 notificaÁıes para n„o pesar o storage
         definirNotificacoes(anterior => {
             const novaLista = [nova, ...anterior];
             if (novaLista.length > 50) return novaLista.slice(0, 50);
@@ -87,9 +87,9 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
         } else if (nova.tipo === 'success') {
             toast.success(nova.titulo);
         } else if (nova.tipo === 'warning') {
-            toast(nova.titulo, { icon: '‚ö†Ô∏è' });
+            toast(nova.titulo, { icon: '??' });
         } else {
-            toast(nova.titulo, { icon: '‚ÑπÔ∏è' });
+            toast(nova.titulo, { icon: '??' });
         }
     }, []);
 

@@ -1,6 +1,6 @@
-Ôªø/**
- * Enum de pap√©is do sistema (RBAC).
- * Pap√©is ordenados por n√≠vel de acesso decrescente.
+/**
+ * Enum de papÈis do sistema (RBAC).
+ * PapÈis ordenados por nÌvel de acesso decrescente.
  */
 export const PAPEIS = {
     CENTRAL: 'CENTRAL',
@@ -12,19 +12,19 @@ export const PAPEIS = {
 };
 
 /**
- * Labels amig√°veis para exibi√ß√£o na UI.
+ * Labels amig·veis para exibiÁ„o na UI.
  */
 export const PAPEIS_LABELS = {
-    [PAPEIS.CENTRAL]: 'Gest√£o Central',
+    [PAPEIS.CENTRAL]: 'Gest„o Central',
     [PAPEIS.ADMIN]: 'Administrador',
-    [PAPEIS.COORDENACAO]: 'Coordena√ß√£o',
+    [PAPEIS.COORDENACAO]: 'CoordenaÁ„o',
     [PAPEIS.SECRETARIA]: 'Secretaria',
     [PAPEIS.PORTEIRO]: 'Controle de Acesso',
-    [PAPEIS.VISUALIZACAO]: 'Visualiza√ß√£o',
+    [PAPEIS.VISUALIZACAO]: 'VisualizaÁ„o',
 };
 
 /**
- * Hierarquia de pap√©is ‚Äî maior n√∫mero = mais permiss√µes.
+ * Hierarquia de papÈis ó maior n˙mero = mais permissıes.
  */
 export const HIERARQUIA_PAPEIS = {
     [PAPEIS.VISUALIZACAO]: 1,
@@ -36,9 +36,9 @@ export const HIERARQUIA_PAPEIS = {
 };
 
 /**
- * Verifica se o papel √© de n√≠vel igual ou superior ao requerido.
- * @param {string} papelUsuario - Papel do usu√°rio
- * @param {string} papelRequerido - Papel m√≠nimo necess√°rio
+ * Verifica se o papel È de nÌvel igual ou superior ao requerido.
+ * @param {string} papelUsuario - Papel do usu·rio
+ * @param {string} papelRequerido - Papel mÌnimo necess·rio
  * @returns {boolean}
  */
 export function temNivelMinimo(papelUsuario, papelRequerido) {

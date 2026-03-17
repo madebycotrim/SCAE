@@ -1,4 +1,4 @@
-﻿export type TipoAcessoHorario = 'ENTRADA' | 'SAIDA' | 'AMBOS';
+export type TipoAcessoHorario = 'ENTRADA' | 'SAIDA' | 'AMBOS';
 
 export const TIPO_ACESSO_HORARIO = {
     ENTRADA: 'ENTRADA' as TipoAcessoHorario,
@@ -8,7 +8,7 @@ export const TIPO_ACESSO_HORARIO = {
 
 export interface JanelaHorarioAcesso {
     id?: string;
-    diaSemana?: number; // 0-6 (Domingo a Sábado)
+    diaSemana?: number; // 0-6 (Domingo a S�bado)
     horaInicio: string; // HH:mm
     horaFim: string; // HH:mm
     tipoAcesso: TipoAcessoHorario;

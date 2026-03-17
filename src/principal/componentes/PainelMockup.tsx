@@ -37,7 +37,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                         {/* Fake App Body */}
                         <div className="p-6 flex gap-6 h-[420px]">
                             {/* Sidebar Mock */}
-                            <div className={`w-48 rounded-xl flex flex-col gap-3 p-4 hidden md:flex ${temaEscuro ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                            <div className={`w-48 rounded-2xl flex flex-col gap-3 p-4 hidden md:flex ${temaEscuro ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
                                 <div className={`h-10 rounded-lg flex items-center px-3 gap-3 ${temaEscuro ? 'bg-sky-500/20 text-sky-400' : 'bg-sky-100 text-sky-600'}`}>
                                     <div className="w-4 h-4 rounded bg-current opacity-80"></div>
                                     <div className="h-2 w-16 bg-current rounded opacity-80"></div>
@@ -184,13 +184,13 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
 
                         {/* Atrasos e Ocupação Row */}
                         <div className="grid grid-cols-2 gap-3">
-                            <div className={`rounded-xl p-3 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-suave'}`}>
+                            <div className={`rounded-2xl p-3 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-suave'}`}>
                                 <div className={`absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-xl ${temaEscuro ? 'bg-slate-500/5' : 'bg-slate-200/50'}`}></div>
                                 <div className={`text-[9px] font-bold uppercase tracking-wider ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>Atrasos</div>
                                 <div className={`text-2xl font-black tracking-tighter mt-1 ${temaEscuro ? 'text-slate-300' : 'text-slate-700'}`}>12</div>
                             </div>
 
-                            <div className={`rounded-xl p-3 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-suave'}`}>
+                            <div className={`rounded-2xl p-3 flex flex-col justify-between border relative overflow-hidden ${temaEscuro ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-100 shadow-suave'}`}>
                                 <div className={`absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-xl ${temaEscuro ? 'bg-sky-500/10' : 'bg-[#0d1f3c]/5'}`}></div>
                                 <div className={`text-[9px] font-bold uppercase tracking-wider ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>Ocupação</div>
                                 <div className={`text-2xl font-black tracking-tighter mt-1 ${temaEscuro ? 'text-sky-400' : 'text-[#0d1f3c]'}`}>98%</div>

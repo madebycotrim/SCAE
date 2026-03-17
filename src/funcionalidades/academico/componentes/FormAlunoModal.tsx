@@ -183,7 +183,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                             </div>
 
                             <div className="p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl flex gap-4 items-center">
-                                <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-sm flex-shrink-0">
+                                <div className="p-3 bg-white rounded-2xl border border-indigo-100 shadow-sm flex-shrink-0">
                                     <ShieldCheck size={20} className="text-indigo-600" />
                                 </div>
                                 <div className="space-y-1">

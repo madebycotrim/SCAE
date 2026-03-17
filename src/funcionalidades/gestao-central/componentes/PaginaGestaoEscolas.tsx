@@ -265,7 +265,7 @@ export function PaginaGestaoEscolas() {
                                             <BadgeStatus status={escola.status} />
                                         </td>
                                         <td className="py-12 px-12">
-                                            <div className="inline-flex flex-col gap-1 bg-slate-50/50 px-4 py-2 rounded-xl border border-slate-100 group-hover:bg-white transition-colors">
+                                            <div className="inline-flex flex-col gap-1 bg-slate-50/50 px-4 py-2 rounded-2xl border border-slate-100 group-hover:bg-white transition-colors">
                                                 <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] leading-none">Ativação</span>
                                                 <span className="text-[10px] font-mono font-black text-slate-900">
                                                     {new Date(escola.criadoEm).toLocaleDateString('pt-BR')}
@@ -525,7 +525,7 @@ function HealthMetric({ label, valor, sub, icone: Icone, customColor }: any) {
     return (
         <div className="p-10 flex flex-col gap-6 group hover:bg-slate-50 transition-all duration-700 cursor-default">
             <div className="flex items-center justify-between">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}
                      style={{ backgroundColor: customColor ? `${customColor}10` : '#f8fafc', color: customColor || '#64748b' }}>
                     <Icone size={18} strokeWidth={2.5} />
                 </div>

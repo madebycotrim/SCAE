@@ -37,7 +37,7 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
                 {/* Banner de Resumo Sóbrio V2 */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
                     <div className="flex items-center gap-5 relative z-10">
-                        <div className="w-12 h-12 bg-slate-800 text-slate-400 border border-slate-700 rounded-xl flex items-center justify-center shadow-suave">
+                        <div className="w-12 h-12 bg-slate-800 text-slate-400 border border-slate-700 rounded-2xl flex items-center justify-center shadow-suave">
                             <Users size={24} strokeWidth={2.5} />
                         </div>
                         <div>

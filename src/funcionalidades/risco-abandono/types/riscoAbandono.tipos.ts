@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Tipagens atreladas ao retorno do endpoint de Risco de Abandono (Motor de Faltas).
  */
 export type StatusRiscoAbandono = 'PENDENTE' | 'EM_ANALISE' | 'RESOLVIDO';

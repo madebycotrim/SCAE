@@ -71,7 +71,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                 </div>
                                 <button
                                     onClick={aoFechar}
-                                    className={`p-2.5 rounded-xl transition-colors shadow-suave
+                                    className={`p-2.5 rounded-2xl transition-colors shadow-suave
                                     ${temaEscuro ? 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600' : 'bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-200'}`}
                                     aria-label="Fechar Modal"
                                 >
@@ -208,7 +208,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                             aoFechar();
                                             aoAbrirModalContato();
                                         }}
-                                        className="relative z-10 inline-flex items-center gap-2 bg-white text-sky-900 hover:bg-sky-50 hover:scale-105 active:scale-95 px-8 py-3.5 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                                        className="relative z-10 inline-flex items-center gap-2 bg-white text-sky-900 hover:bg-sky-50 hover:scale-105 active:scale-95 px-8 py-3.5 rounded-2xl font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                                     >
                                         Entre em contato
                                     </button>

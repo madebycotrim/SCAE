@@ -37,7 +37,7 @@ export function StatusConexao() {
             {/* Indicador de Falha ou Pendência */}
             {(!online || pendentes > 0) && (
                 <div className={`
-                    flex items-center gap-3 px-4 py-2 rounded-xl border bg-white/80 backdrop-blur-md shadow-sm
+                    flex items-center gap-3 px-4 py-2 rounded-2xl border bg-white/80 backdrop-blur-md shadow-sm
                     text-[10px] font-bold uppercase tracking-wider transition-all duration-300
                     ${online ? 'border-slate-200 text-slate-500' : 'border-rose-200 bg-rose-50 text-rose-600 animate-pulse'}
                 `}>
@@ -48,7 +48,7 @@ export function StatusConexao() {
 
             {/* Alerta de Relógio */}
             {relogioQuebrado && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wider shadow-sm">
                     <AlertTriangle size={14} />
                     <span>Ajustar Relógio</span>
                 </div>

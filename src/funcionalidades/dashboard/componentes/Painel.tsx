@@ -85,7 +85,7 @@ const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendenci
     return (
         <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border border-slate-200 border-l-4 ${corAcento[cor]} rounded-2xl`}>
             <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border-2 bg-white ${corIcone[cor]} z-10 transition-transform group-hover:scale-105`}>
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 bg-white ${corIcone[cor]} z-10 transition-transform group-hover:scale-105`}>
                     <Icone size={18} strokeWidth={2} />
                 </div>
                 <div className="z-10 flex-1">
@@ -167,7 +167,7 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
                     <Radar size={14} className={`text-slate-600 ${conectado ? 'animate-pulse' : 'text-rose-400'}`} />
                     Acessos em Tempo Real
                 </h3>
-                <div className={`flex items-center gap-2 px-3 py-1 bg-white border rounded-xl shadow-sm transition-colors ${conectado ? 'border-slate-200' : 'border-rose-200 bg-rose-50'}`}>
+                <div className={`flex items-center gap-2 px-3 py-1 bg-white border rounded-2xl shadow-sm transition-colors ${conectado ? 'border-slate-200' : 'border-rose-200 bg-rose-50'}`}>
                     <span className="relative flex h-1.5 w-1.5">
                         {conectado && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
                         <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${conectado ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
@@ -200,9 +200,9 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
                                     layout
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    className="p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all flex items-center gap-4 group/item"
+                                    className="p-3 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all flex items-center gap-4 group/item"
                                 >
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 shadow-sm transition-transform ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border-2 shadow-sm transition-transform ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                                         {isEntrada ? <LogIn size={18} /> : <LogOut size={18} />}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -406,7 +406,7 @@ export default function Painel() {
                                         <h4 className="text-lg font-black text-slate-800 uppercase tracking-tight">Frequência da Semana</h4>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-200 shadow-sm">
                                     <TrendingUp size={16} className="text-indigo-600" />
                                     <span className="text-[11px] font-black text-slate-600 uppercase">Média: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)} alunos/dia</span>
                                 </div>
@@ -454,19 +454,19 @@ export default function Painel() {
                             </div>
 
                             <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+                                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Estudantes</p>
                                     <p className="text-sm font-black text-slate-700">{estatisticas.totalAlunos}</p>
                                 </div>
-                                <div className="p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+                                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Turmas Ativas</p>
                                     <p className="text-sm font-black text-slate-700">{estatisticas.totalTurmas}</p>
                                 </div>
-                                <div className="p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+                                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Permanência Média</p>
                                     <p className="text-sm font-black text-slate-700">{estatisticas.permanenciaMedia}</p>
                                 </div>
-                                <div className="p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+                                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Sistema</p>
                                     <div className="flex items-center gap-1.5 mt-0.5">
                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

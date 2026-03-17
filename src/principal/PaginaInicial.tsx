@@ -1,8 +1,8 @@
 // TODO: refatorar arquivo longo (> 300 linhas) para extrair lógica em hooks ou componentes menores, reduzindo a dívida técnica
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight, Smartphone, ShieldCheck, Zap, Users, Building2, WifiOff, AlertTriangle, Palette, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Smartphone, ShieldCheck, Zap, Users, Building2, WifiOff, AlertTriangle, Palette, ChevronDown, GraduationCap } from 'lucide-react';
 
 import { CabecalhoInicial } from './componentes/CabecalhoInicial';
 import { BuscadorEscolas } from './componentes/BuscadorEscolas';
@@ -22,6 +22,7 @@ export default function PaginaInicial() {
     const [modalSobreAberto, definirModalSobreAberto] = useState(false);
     const [modalContatoAberto, definirModalContatoAberto] = useState(false);
     const [escolasCadastradas, definirEscolasCadastradas] = useState<EscolaCadastrada[]>([]);
+    const [escolaSelecionada, definirEscolaSelecionada] = useState<string | null>(null);
     const navegar = useNavigate();
 
     // Carrega todas as escolas cadastradas ao montar a página
@@ -34,7 +35,16 @@ export default function PaginaInicial() {
     }, []);
 
     const selecionarEscola = (slug: string) => {
-        navegar(`/${slug}/login`);
+        definirEscolaSelecionada(slug);
+    };
+
+    const irParaPerfil = (perfil: 'aluno' | 'gestor') => {
+        if (!escolaSelecionada) return;
+        if (perfil === 'aluno') {
+            navegar(`/${escolaSelecionada}/cartao`);
+        } else {
+            navegar(`/${escolaSelecionada}/login`);
+        }
     };
 
     return (
@@ -90,11 +100,84 @@ export default function PaginaInicial() {
                     </p>
                 </motion.div>
 
-                <BuscadorEscolas
-                    temaEscuro={temaEscuro}
-                    aoSelecionarEscola={selecionarEscola}
-                    aoAbrirModalContato={() => definirModalContatoAberto(true)}
-                />
+                <AnimatePresence mode="wait">
+                    {!escolaSelecionada ? (
+                        <motion.div
+                            key="busca"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="w-full"
+                        >
+                            <BuscadorEscolas
+                                temaEscuro={temaEscuro}
+                                aoSelecionarEscola={selecionarEscola}
+                                aoAbrirModalContato={() => definirModalContatoAberto(true)}
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="perfil"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="w-full max-w-2xl mx-auto"
+                        >
+                            <div className={`p-8 rounded-3xl border shadow-premium ${temaEscuro ? 'bg-[#0B0F19]/80 border-slate-700/50' : 'bg-white border-slate-100'}`}>
+                                <div className="flex items-center justify-between mb-8">
+                                    <h2 className={`text-2xl font-black uppercase tracking-tight ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
+                                        Como deseja acessar?
+                                    </h2>
+                                    <button 
+                                        onClick={() => definirEscolaSelecionada(null)}
+                                        className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${temaEscuro ? 'bg-slate-800 text-slate-400 hover:text-white' : 'bg-slate-50 text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        Mudar Escola
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => irParaPerfil('aluno')}
+                                        className={`group relative flex flex-col items-center gap-6 p-8 rounded-2xl border transition-all text-center hover:-translate-y-1 active:scale-[0.98] ${temaEscuro 
+                                            ? 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800 hover:border-sky-500/50' 
+                                            : 'bg-slate-50 border-slate-200 hover:bg-white hover:border-sky-500 hover:shadow-media'}`}
+                                    >
+                                        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300 ${temaEscuro ? 'bg-sky-500/10 text-sky-400 group-hover:scale-110' : 'bg-sky-50 text-sky-600 group-hover:scale-110'}`}>
+                                            <GraduationCap size={44} strokeWidth={2} />
+                                        </div>
+                                        <div>
+                                            <p className={`text-lg font-black uppercase tracking-tight mb-1 ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>Sou Aluno</p>
+                                            <p className={`text-[10px] font-bold uppercase tracking-widest ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Acessar meu Cartão Digital / QR Code</p>
+                                        </div>
+                                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <ChevronDown className="w-5 h-5 -rotate-90 text-sky-500" />
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => irParaPerfil('gestor')}
+                                        className={`group relative flex flex-col items-center gap-6 p-8 rounded-2xl border transition-all text-center hover:-translate-y-1 active:scale-[0.98] ${temaEscuro 
+                                            ? 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800 hover:border-indigo-500/50' 
+                                            : 'bg-slate-50 border-slate-200 hover:bg-white hover:border-indigo-600 hover:shadow-media'}`}
+                                    >
+                                        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300 ${temaEscuro ? 'bg-indigo-500/10 text-indigo-400 group-hover:scale-110' : 'bg-indigo-50 text-indigo-700 group-hover:scale-110'}`}>
+                                            <ShieldCheck size={44} strokeWidth={2} />
+                                        </div>
+                                        <div>
+                                            <p className={`text-lg font-black uppercase tracking-tight mb-1 ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>Sou Gestor / Equipe</p>
+                                            <p className={`text-[10px] font-bold uppercase tracking-widest ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Acessar Painel de Controle Escolar</p>
+                                        </div>
+                                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <ChevronDown className="w-5 h-5 -rotate-90 text-indigo-500" />
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* CTA Gestor — Destaque visual próprio */}
                 <motion.div

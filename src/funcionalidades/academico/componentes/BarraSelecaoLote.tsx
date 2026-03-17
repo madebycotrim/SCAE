@@ -21,19 +21,19 @@ export default function BarraSelecaoLote({ quantidade, aoPromover, aoImprimir, a
                 <div className="flex gap-2">
                     <button
                         onClick={aoImprimir}
-                        className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 border border-slate-700"
+                        className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 border border-slate-700"
                     >
                         <Printer size={14} className="text-indigo-400" /> Imprimir
                     </button>
                     <button
                         onClick={aoPromover}
-                        className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-500 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20"
+                        className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-500 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/20"
                     >
                         <Plus size={14} /> Enturmar
                     </button>
                     <button
                         onClick={aoCancelar}
-                        className="px-4 py-2 bg-transparent text-slate-500 hover:text-slate-300 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all"
+                        className="px-4 py-2 bg-transparent text-slate-500 hover:text-slate-300 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all"
                     >
                         Cancelar
                     </button>

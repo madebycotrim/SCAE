@@ -235,7 +235,7 @@ export default function FormHorariosAcesso() {
                                 <button
                                     onClick={() => handleSolicitarMudanca(false)}
                                     disabled={carregandoConfigs}
-                                    className={`flex-1 h-full rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center justify-center gap-2 ${
+                                    className={`flex-1 h-full rounded-2xl text-[10px] font-black tracking-widest transition-all flex items-center justify-center gap-2 ${
                                         configs?.qrDinamico === false 
                                         ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' 
                                         : 'text-slate-400 hover:text-slate-500'
@@ -247,7 +247,7 @@ export default function FormHorariosAcesso() {
                                 <button
                                     onClick={() => handleSolicitarMudanca(true)}
                                     disabled={carregandoConfigs}
-                                    className={`flex-1 h-full rounded-xl text-[10px] font-black tracking-widest transition-all flex items-center justify-center gap-2 ${
+                                    className={`flex-1 h-full rounded-2xl text-[10px] font-black tracking-widest transition-all flex items-center justify-center gap-2 ${
                                         configs?.qrDinamico === true 
                                         ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' 
                                         : 'text-slate-400 hover:text-slate-500'
@@ -270,7 +270,7 @@ export default function FormHorariosAcesso() {
                                         
                                         {/* Badge de Alerta Discreta */}
                                         <div className="flex items-center gap-3 mb-6">
-                                            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+                                            <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
                                                 <ShieldAlert size={20} />
                                             </div>
                                             <div>
@@ -394,14 +394,14 @@ export default function FormHorariosAcesso() {
                                                 </div>
 
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-dashed ${
+                                                    <div className={`px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-dashed ${
                                                         isEntrada ? 'text-amber-600 border-amber-200 bg-amber-50/30' : 'text-indigo-600 border-indigo-200 bg-indigo-50/30'
                                                     }`}>
                                                         Fluxo de {isEntrada ? 'Entrada' : 'Saída'}
                                                     </div>
                                                     <button
                                                         onClick={() => removerJanela(indice)}
-                                                        className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all"
+                                                        className="w-9 h-9 rounded-2xl flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -422,7 +422,7 @@ export default function FormHorariosAcesso() {
                                                                     type="time"
                                                                     value={janela.horaInicio}
                                                                     onChange={(e) => atualizarJanela(indice, 'horaInicio', e.target.value)}
-                                                                    className="w-full h-11 bg-white border border-slate-200 rounded-xl text-lg font-black text-center p-0 text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm [&::-webkit-datetime-edit]:flex [&::-webkit-datetime-edit]:justify-center [&::-webkit-datetime-edit-fields-wrapper]:flex [&::-webkit-datetime-edit-fields-wrapper]:justify-center [&::-webkit-calendar-picker-indicator]:hidden"
+                                                                    className="w-full h-11 bg-white border border-slate-200 rounded-2xl text-lg font-black text-center p-0 text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm [&::-webkit-datetime-edit]:flex [&::-webkit-datetime-edit]:justify-center [&::-webkit-datetime-edit-fields-wrapper]:flex [&::-webkit-datetime-edit-fields-wrapper]:justify-center [&::-webkit-calendar-picker-indicator]:hidden"
                                                                 />
                                                             </div>
                                                             <div className="w-4 h-0.5 bg-slate-300/50 rounded-full mt-4"></div>
@@ -432,7 +432,7 @@ export default function FormHorariosAcesso() {
                                                                     type="time"
                                                                     value={janela.horaFim}
                                                                     onChange={(e) => atualizarJanela(indice, 'horaFim', e.target.value)}
-                                                                    className="w-full h-11 bg-white border border-slate-200 rounded-xl text-lg font-black text-center p-0 text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm [&::-webkit-datetime-edit]:flex [&::-webkit-datetime-edit]:justify-center [&::-webkit-datetime-edit-fields-wrapper]:flex [&::-webkit-datetime-edit-fields-wrapper]:justify-center [&::-webkit-calendar-picker-indicator]:hidden"
+                                                                    className="w-full h-11 bg-white border border-slate-200 rounded-2xl text-lg font-black text-center p-0 text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm [&::-webkit-datetime-edit]:flex [&::-webkit-datetime-edit]:justify-center [&::-webkit-datetime-edit-fields-wrapper]:flex [&::-webkit-datetime-edit-fields-wrapper]:justify-center [&::-webkit-calendar-picker-indicator]:hidden"
                                                                 />
                                                             </div>
                                                         </div>
@@ -445,7 +445,7 @@ export default function FormHorariosAcesso() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => atualizarJanela(indice, 'tipoAcesso', 'ENTRADA')}
-                                                                className={`flex-1 flex flex-col justify-center items-center h-full rounded-xl transition-all gap-1 ${
+                                                                className={`flex-1 flex flex-col justify-center items-center h-full rounded-2xl transition-all gap-1 ${
                                                                     isEntrada ? 'bg-white text-amber-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
                                                                 }`}
                                                             >
@@ -455,7 +455,7 @@ export default function FormHorariosAcesso() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => atualizarJanela(indice, 'tipoAcesso', 'SAIDA')}
-                                                                className={`flex-1 flex flex-col justify-center items-center h-full rounded-xl transition-all gap-1 ${
+                                                                className={`flex-1 flex flex-col justify-center items-center h-full rounded-2xl transition-all gap-1 ${
                                                                     !isEntrada ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
                                                                 }`}
                                                             >

@@ -155,7 +155,7 @@ export default function Relatorios() {
                                         : 'hover:bg-slate-50 text-slate-500 hover:text-slate-900'
                                         }`}
                                 >
-                                    <div className={`p-2 rounded-xl border shrink-0 transition-colors ${estaSelecionado
+                                    <div className={`p-2 rounded-2xl border shrink-0 transition-colors ${estaSelecionado
                                         ? 'bg-slate-800 border-slate-700 text-sky-400'
                                         : 'bg-white border-slate-100 text-slate-400 group-hover:text-slate-600 shadow-suave'
                                         }`}>
@@ -234,7 +234,7 @@ export default function Relatorios() {
                                                 <Calendar size={14} className="text-slate-400" />
                                                 Ano Letivo
                                             </div>
-                                            <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-100 h-10">
+                                            <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-100 h-10">
                                                 {[anoAtual - 1, anoAtual, anoAtual + 1].map((ano) => (
                                                     <button
                                                         key={ano}
@@ -258,7 +258,7 @@ export default function Relatorios() {
                                                 <Clock size={14} className="text-slate-400" />
                                                 Período
                                             </div>
-                                            <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-100 h-10">
+                                            <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-100 h-10">
                                                 {([1, 2] as const).map((sem) => (
                                                     <button
                                                         key={sem}
@@ -307,7 +307,7 @@ export default function Relatorios() {
                                                                 definirFiltros({ ...filtros, turma: 'Todas' });
                                                                 definirMostrarDropdownTurma(false);
                                                             }}
-                                                            className="px-4 py-3 text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors rounded-xl flex items-center justify-between group"
+                                                            className="px-4 py-3 text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors rounded-2xl flex items-center justify-between group"
                                                         >
                                                             Geral (Toda a instituição)
                                                             {filtros.turma === 'Todas' && <CheckCircle2 size={16} className="text-slate-900" />}
@@ -319,7 +319,7 @@ export default function Relatorios() {
                                                                     definirFiltros({ ...filtros, turma: t });
                                                                     definirMostrarDropdownTurma(false);
                                                                 }}
-                                                                className="px-4 py-3 text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors rounded-xl flex items-center justify-between group"
+                                                                className="px-4 py-3 text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors rounded-2xl flex items-center justify-between group"
                                                             >
                                                                 {t}
                                                                 <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-1 group-hover:translate-x-0" />
@@ -333,7 +333,7 @@ export default function Relatorios() {
 
                                     {/* Mini-Resumo Dinâmico (Preenchimento de Espaço) */}
                                     <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex items-start gap-4 mt-6">
-                                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shadow-suave border border-slate-100 shrink-0">
+                                        <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-suave border border-slate-100 shrink-0">
                                             <Info size={18} />
                                         </div>
                                         <div className="flex-1 mt-0.5">

@@ -106,7 +106,7 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
                                     : 'bg-white border-slate-200/60 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                                     }`}
                             >
-                                <div className={`p-2.5 rounded-xl shrink-0 border transition-colors ${papel === p.id ? 'bg-white border-indigo-100 text-indigo-600 shadow-suave' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                <div className={`p-2.5 rounded-2xl shrink-0 border transition-colors ${papel === p.id ? 'bg-white border-indigo-100 text-indigo-600 shadow-suave' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
                                     <p.icone size={18} />
                                 </div>
                                 <div className="min-w-0 pr-2">

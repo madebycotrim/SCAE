@@ -223,7 +223,7 @@ export default function QuiosqueAutoatendimento() {
                     {/* Moldura de Câmera Quadrada */}
                     <div className="relative w-full max-w-md aspect-square z-10">
                         <div className="relative h-full bg-white rounded-2xl p-4 shadow-xl border border-slate-200 overflow-hidden">
-                            <div className="absolute inset-4 rounded-xl overflow-hidden bg-slate-50 shadow-inner border border-slate-100 flex items-center justify-center">
+                            <div className="absolute inset-4 rounded-2xl overflow-hidden bg-slate-50 shadow-inner border border-slate-100 flex items-center justify-center">
                                 {/* Camera */}
                                 <div id="quiosque-camera" className={`w-full h-full object-cover transition-all duration-1000 ${statusLeitor !== 'ATIVO' ? 'opacity-0' : 'opacity-100 grayscale-[20%] group-hover:grayscale-0'}`}></div>
                                 
@@ -330,11 +330,11 @@ export default function QuiosqueAutoatendimento() {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4 pt-8 border-t border-slate-50">
-                                        <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-center">
+                                        <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-center">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Horário</p>
                                             <p className="text-sm font-black text-slate-700">{ultimoAcesso.hora}</p>
                                         </div>
-                                        <div className={`p-4 border rounded-xl text-center ${statusLeitura === 'SUCESSO' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'}`}>
+                                        <div className={`p-4 border rounded-2xl text-center ${statusLeitura === 'SUCESSO' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'}`}>
                                             <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-1">Status</p>
                                             <p className="text-xs font-black uppercase tracking-tighter">{statusLeitura === 'SUCESSO' ? 'OK' : 'OPS'}</p>
                                         </div>

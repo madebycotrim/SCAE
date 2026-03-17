@@ -1,12 +1,12 @@
-ï»¿/**
- * API de Controle de Acesso â€” endpoints de registro de fluxo escolar.
+/**
+ * API de Controle de Acesso — endpoints de registro de fluxo escolar.
  *
  * @module controle-acesso/servicos/controleAcesso.api
  */
 import { api } from '@/compartilhado/servicos/api';
 
 /**
- * Registra um acesso (entrada/saÃ­da) no backend.
+ * Registra um acesso (entrada/saída) no backend.
  */
 export async function registrarAcesso(registro: import('@/compartilhado/types/bancoLocal.tipos').RegistroAcessoLocal): Promise<{ id: string; status: string }> {
     return api.enviar('/acesso/registros', registro);

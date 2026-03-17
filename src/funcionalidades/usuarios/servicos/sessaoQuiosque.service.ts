@@ -1,7 +1,7 @@
-Ôªø/**
- * Servi√ßo de sess√£o quiosque ‚Äî mant√©m a sess√£o Firebase ativa indefinidamente.
- * Usa indexedDBLocalPersistence do Firebase para sobreviver a reinicializa√ß√µes.
- * O admin loga uma vez ‚Äî o tablet nunca pede login novamente.
+/**
+ * ServiÁo de sess„o quiosque ó mantÈm a sess„o Firebase ativa indefinidamente.
+ * Usa indexedDBLocalPersistence do Firebase para sobreviver a reinicializaÁıes.
+ * O admin loga uma vez ó o tablet nunca pede login novamente.
  *
  * @module autenticacao/servicos/sessaoQuiosque.service
  */
@@ -9,7 +9,7 @@ import { setPersistence, indexedDBLocalPersistence } from 'firebase/auth';
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 
 /**
- * Configura a sess√£o Firebase para persistir indefinidamente no IndexedDB.
+ * Configura a sess„o Firebase para persistir indefinidamente no IndexedDB.
  * Deve ser chamado ANTES do login no modo quiosque.
  *
  * @returns {Promise<void>}
@@ -19,7 +19,7 @@ export async function configurarSessaoPermanente(): Promise<void> {
 }
 
 /**
- * Verifica se existe uma sess√£o ativa no dispositivo.
+ * Verifica se existe uma sess„o ativa no dispositivo.
  *
  * @returns {Promise<boolean>}
  */
@@ -28,10 +28,10 @@ export function verificarSessaoAtiva(): boolean {
 }
 
 /**
- * Renova o token de autentica√ß√£o se estiver prestes a expirar.
+ * Renova o token de autenticaÁ„o se estiver prestes a expirar.
  * Chamado periodicamente pelo hook useSessaoQuiosque.
  *
- * @returns {Promise<string|null>} Token renovado ou null se sem sess√£o
+ * @returns {Promise<string|null>} Token renovado ou null se sem sess„o
  */
 export async function renovarToken(): Promise<string | null> {
     if (!autenticacao.currentUser) return null;
