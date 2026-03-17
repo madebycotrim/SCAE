@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { BookOpen, Users, GraduationCap, ChevronRight, CheckCircle, MapPin, Calendar, Clock, Hash, ArrowLeft } from 'lucide-react';
 import { Botao } from '@/compartilhado/componentes/UI';
+import toast from 'react-hot-toast';
 
 interface FormTurmaModalProps {
     turma?: any | null;
@@ -24,10 +25,10 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
 
     useEffect(() => {
         if (turma) {
-            definirSerieTurma(turma.serie);
-            definirLetraTurma(turma.letra);
-            definirTurno(turma.turno);
-            definirAnoLetivo(turma.ano_letivo.toString());
+            definirSerieTurma(turma.serie?.toString() || '');
+            definirLetraTurma(turma.letra || '');
+            definirTurno(turma.turno || 'Matutino');
+            definirAnoLetivo(turma.ano_letivo?.toString() || new Date().getFullYear().toString());
             definirLotacaoMaxima(turma.lotacao_maxima?.toString() || '40');
             definirProfessorRegente(turma.professor_regente || '');
             definirSala(turma.sala || '');
@@ -35,12 +36,14 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
     }, [turma]);
 
     const podeAvancar = serieTurma !== '' && letraTurma !== '';
+    const temAlunos = (turma?.totalAlunos || 0) > 0;
 
     const manipularSalvar = async () => {
         try {
             definirCarregando(true);
             await aoSalvar({
-                serie: serieTurma,
+                idAntigo: turma?.id, // Útil caso o ID mude (renomeação de turma vazia)
+                serie: parseInt(serieTurma),
                 letra: letraTurma,
                 turno,
                 ano_letivo: parseInt(anoLetivo),
@@ -51,6 +54,13 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
         } finally {
             definirCarregando(false);
         }
+    };
+
+    const exibirAvisoImutavel = () => {
+        toast.error('Esta turma já possui alunos vinculados. Para alterar Série, Letra ou Turno, a turma deve estar vazia.', {
+            duration: 6000,
+            icon: '🔒'
+        });
     };
 
     return (
@@ -81,12 +91,11 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                         <button
                                             key={s}
                                             type="button"
-                                            disabled={!!turma}
-                                            onClick={() => definirSerieTurma(s)}
+                                            onClick={() => temAlunos ? exibirAvisoImutavel() : definirSerieTurma(s)}
                                             className={`h-11 rounded-xl text-[11px] font-black transition-all border uppercase tracking-wider ${serieTurma === s
                                                 ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
-                                                : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:bg-slate-50'
-                                                }`}
+                                                : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:bg-slate-50'
+                                                } ${temAlunos ? 'opacity-50 cursor-help' : ''}`}
                                         >
                                             {s}º Ano
                                         </button>
@@ -104,12 +113,11 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                         <button
                                             key={l}
                                             type="button"
-                                            disabled={!!turma}
-                                            onClick={() => definirLetraTurma(l)}
+                                            onClick={() => temAlunos ? exibirAvisoImutavel() : definirLetraTurma(l)}
                                             className={`w-10 h-10 rounded-xl text-base font-black transition-all border ${letraTurma === l
                                                 ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
-                                                : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 hover:text-slate-800 disabled:opacity-50'
-                                                }`}
+                                                : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 hover:text-slate-800'
+                                                } ${temAlunos ? 'opacity-50 cursor-help' : ''}`}
                                         >
                                             {l}
                                         </button>
@@ -127,11 +135,11 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                         <button
                                             key={t}
                                             type="button"
-                                            onClick={() => definirTurno(t)}
+                                            onClick={() => temAlunos ? exibirAvisoImutavel() : definirTurno(t)}
                                             className={`h-9 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${turno === t
                                                 ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
                                                 : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 hover:bg-slate-50'
-                                                }`}
+                                                } ${temAlunos ? 'opacity-50 cursor-help' : ''}`}
                                         >
                                             {t}
                                         </button>
@@ -152,7 +160,8 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                         value={anoLetivo}
                                         onChange={(e) => definirAnoLetivo(e.target.value)}
                                         className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all disabled:bg-slate-100 disabled:text-slate-500"
-                                        disabled={!!turma}
+                                        disabled={temAlunos}
+                                        onClick={() => temAlunos && exibirAvisoImutavel()}
                                     />
                                 </div>
 

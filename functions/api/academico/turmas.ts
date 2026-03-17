@@ -1,4 +1,4 @@
-﻿import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../seguranca';
 import { esquemaTurma } from './turmas.esquemas';
@@ -10,7 +10,12 @@ async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {
 
         try {
             const { results } = await contexto.env.DB_SCAE.prepare(
-                "SELECT id, escola_id, serie, letra, turno, ano_letivo, criado_em FROM turmas WHERE escola_id = ? ORDER BY id"
+                `SELECT 
+                    t.*,
+                    (SELECT COUNT(*) FROM alunos a WHERE a.turma_id = t.id AND a.escola_id = t.escola_id AND a.ativo = 1) as totalAlunos
+                FROM turmas t 
+                WHERE t.escola_id = ? 
+                ORDER BY t.id`
             ).bind(idEscola).all();
 
             return Response.json({
@@ -47,18 +52,25 @@ async function processarCriacaoTurma(contexto: ContextoSCAE): Promise<Response> 
             throw new ErroValidacao('Dados da turma inválidos', 'TURMA_VALIDACAO_001', { detalhes: resultadoZod.error.format() });
         }
 
-        const { id, serie, letra, turno, ano_letivo, criado_em } = resultadoZod.data;
+        const { id, serie, letra, turno, ano_letivo, professor_regente, sala, lotacao_maxima, criado_em } = resultadoZod.data;
 
         try {
             // UPSERT
             await contexto.env.DB_SCAE.prepare(
-                `INSERT INTO turmas (id, escola_id, serie, letra, turno, ano_letivo, criado_em) VALUES (?, ?, ?, ?, ?, ?, ?)
+                `INSERT INTO turmas (id, escola_id, serie, letra, turno, ano_letivo, professor_regente, sala, lotacao_maxima, criado_em) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id, escola_id) DO UPDATE SET
                     serie = excluded.serie,
                     letra = excluded.letra,
                     turno = excluded.turno,
-                    ano_letivo = excluded.ano_letivo`
-            ).bind(id, idEscola, serie ?? null, letra ?? null, turno ?? null, ano_letivo ?? null, criado_em || new Date().toISOString()).run();
+                    ano_letivo = excluded.ano_letivo,
+                    professor_regente = excluded.professor_regente,
+                    sala = excluded.sala,
+                    lotacao_maxima = excluded.lotacao_maxima`
+            ).bind(
+                id, idEscola, serie ?? null, letra ?? null, turno ?? null, ano_letivo ?? null, 
+                professor_regente ?? null, sala ?? null, lotacao_maxima ?? 40, criado_em || new Date().toISOString()
+            ).run();
         } catch (dbError) {
             throw new ErroInterno(`Falha ao inserir turma: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
         }

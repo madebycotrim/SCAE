@@ -2,10 +2,13 @@ import { z } from 'zod';
 
 export const esquemaTurma = z.object({
     id: z.string().min(1, 'ID da turma é obrigatório').max(50),
-    serie: z.string().nullable().optional(),
+    serie: z.coerce.number().int().nullable().optional(),
     letra: z.string().nullable().optional(),
     turno: z.string().nullable().optional(),
     ano_letivo: z.coerce.number().int().optional(),
+    professor_regente: z.string().nullable().optional(),
+    sala: z.string().nullable().optional(),
+    lotacao_maxima: z.coerce.number().int().optional(),
     criado_em: z.string().optional()
 });
 

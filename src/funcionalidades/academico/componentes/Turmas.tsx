@@ -124,8 +124,12 @@ export default function Turmas() {
         };
 
         try {
-            // Salva online - O backend cuida do ON CONFLICT se o ID for o mesmo
-            // Se o ID mudou (renomeação), o backend processa conforme a regra de negócio
+            // Se o ID mudou (renomeação de turma vazia), removemos a antiga primeiro
+            if (turmaEmEdicao && (turmaEmEdicao as any).id !== idTurma) {
+                await turmaServico.excluirTurma((turmaEmEdicao as any).id);
+            }
+
+            // Salva a nova versão (ou insere a renomeada)
             await turmaServico.salvarTurma(novaTurma, !!turmaEmEdicao);
 
             toast.success(turmaEmEdicao ? 'Configurações de turma atualizadas' : 'Turma criada com sucesso');
