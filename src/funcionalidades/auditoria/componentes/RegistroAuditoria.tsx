@@ -26,6 +26,7 @@ import toast from 'react-hot-toast';
 import { mascararEmail } from '@/compartilhado/utils/formatar';
 
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 export default function RegistroAuditoria() {
     const { podeVerLogs, ehAdmin } = usarPermissoes();
@@ -42,6 +43,7 @@ export default function RegistroAuditoria() {
     const [pagina, definirPagina] = useState(1);
     const [logSelecionado, definirLogSelecionado] = useState(null);
     const [mapaUsuarios, definirMapaUsuarios] = useState<Record<string, string>>({});
+    const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao'} | null>(null);
 
     const LOGS_PER_PAGE = 15;
     const EH_ADMIN_SUPREMO = ehAdmin;
@@ -63,24 +65,28 @@ export default function RegistroAuditoria() {
         }
     };
 
-    const excluirLog = async (id: string) => {
+    const excluirLog = (id: string) => {
         if (!EH_ADMIN_SUPREMO) return;
 
-        if (!window.confirm("A exclusão de logs de auditoria compromete a rastreabilidade legal (Marco Civil). Deseja continuar?")) {
-            return;
-        }
+        definirConfirmacao({
+            aberto: true,
+            titulo: 'Remover Log de Auditoria',
+            mensagem: 'A exclusão de logs de auditoria compromete a rastreabilidade legal (Marco Civil). Deseja continuar?',
+            variante: 'perigoso',
+            acao: async () => {
+                try {
+                    const banco = await bancoLocal.iniciarBanco();
+                    await banco.delete('logs_auditoria', id);
+                    carregarLogs();
+                    toast.success("Registro de trilha removido");
 
-        try {
-            const banco = await bancoLocal.iniciarBanco();
-            await banco.delete('logs_auditoria', id);
-            carregarLogs();
-            toast.success("Registro de trilha removido");
-
-            if (logSelecionado?.id === id) definirLogSelecionado(null);
-        } catch (e) {
-            console.error(e);
-            toast.error("Erro ao remover registro.");
-        }
+                    if (logSelecionado?.id === id) definirLogSelecionado(null);
+                } catch (e) {
+                    console.error(e);
+                    toast.error("Erro ao remover registro.");
+                }
+            }
+        });
     };
 
     const logsFiltrados = logs.filter((l: any) =>
@@ -279,7 +285,6 @@ export default function RegistroAuditoria() {
                 </div>
             </CartaoConteudo>
 
-            {/* Modal Detalhes JSON High-Tech */}
             {logSelecionado && (
                 <ModalUniversal
                     titulo="Detalhes da Atividade"
@@ -336,6 +341,19 @@ export default function RegistroAuditoria() {
                         </Botao>
                     </div>
                 </ModalUniversal>
+            )}
+
+            {confirmacao?.aberto && (
+                <ModalConfirmacao
+                    titulo={confirmacao.titulo}
+                    mensagem={confirmacao.mensagem}
+                    aoConfirmar={() => {
+                        confirmacao.acao();
+                        definirConfirmacao(null);
+                    }}
+                    aoCancelar={() => definirConfirmacao(null)}
+                    variante={confirmacao.variante}
+                />
             )}
         </LayoutAdministrativo>
     );

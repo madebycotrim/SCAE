@@ -42,8 +42,6 @@ import {
     PaginaConfiguracaoHorarios,
     PaginaRiscoAbandono,
     PaginaCartaoDigital,
-    PaginaLoginResponsavel,
-    PaginaPainelResponsavel,
     PaginaTermosUso,
     PaginaPoliticaPrivacidade,
     PaginaInicial,
@@ -78,7 +76,7 @@ function Layout({ children }: { children: ReactNode }) {
             <main className="flex-grow bg-gray-100">
                 {children}
             </main>
-            <Toaster position="top-right" />
+            <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
         </div>
     );
 }
@@ -148,11 +146,6 @@ function App() {
                         <Route path="politica-de-privacidade" element={<PaginaPoliticaPrivacidade />} />
                         <Route path="cartao" element={<PaginaCartaoDigital />} />
 
-                        {/* ═══ MÓDULO DO RESPONSÁVEL (Portal e Cadastro) ═══ */}
-                        <Route path="responsavel">
-                            <Route index element={<PaginaLoginResponsavel />} />
-                            <Route path="painel" element={<PaginaPainelResponsavel />} />
-                        </Route>
 
                         {/* ═══ SUPERFÍCIE 2: Painel Administrativo ═══ */}
                         <Route path="admin">

@@ -6,6 +6,7 @@ import { Calendar as CalendarIcon, Plus, Trash2, ShieldAlert, RefreshCw } from '
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 interface DiaCalendario {
     data: string;
@@ -19,6 +20,7 @@ export default function CalendarioLetivo() {
     const [novaData, definirNovaData] = useState('');
     const [novaDescricao, definirNovaDescricao] = useState('');
     const [novoTipo, definirNovoTipo] = useState<DiaCalendario['tipo']>('FERIADO');
+    const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao'} | null>(null);
 
     const { data: dias = [], isLoading } = useQuery({
         queryKey: ['calendario'],
@@ -61,9 +63,12 @@ export default function CalendarioLetivo() {
     };
 
     const aoSincronizar = () => {
-        if (confirm('Deseja importar automaticamente todos os feriados e recessos oficiais da SEEDF para o ano de 2026? Isso não removerá seus registros manuais.')) {
-            mutationSincronizar.mutate();
-        }
+        definirConfirmacao({
+            aberto: true,
+            titulo: 'Sincronizar SEEDF',
+            mensagem: 'Deseja importar automaticamente todos os feriados e recessos oficiais da SEEDF para o ano de 2026? Isso não removerá seus registros manuais.',
+            acao: () => mutationSincronizar.mutate()
+        });
     };
 
     return (
@@ -207,9 +212,13 @@ export default function CalendarioLetivo() {
 
                                         <button 
                                             onClick={() => {
-                                                if (confirm('Remover este dia do calendário?')) {
-                                                    mutationRemover.mutate(dia.data);
-                                                }
+                                                definirConfirmacao({
+                                                    aberto: true,
+                                                    titulo: 'Remover Dia',
+                                                    mensagem: 'Deseja remover este dia do calendário escolar?',
+                                                    variante: 'perigoso',
+                                                    acao: () => mutationRemover.mutate(dia.data)
+                                                });
                                             }}
                                             className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                         >
@@ -223,6 +232,18 @@ export default function CalendarioLetivo() {
                 </div>
 
             </div>
+            {confirmacao?.aberto && (
+                <ModalConfirmacao
+                    titulo={confirmacao.titulo}
+                    mensagem={confirmacao.mensagem}
+                    aoConfirmar={() => {
+                        confirmacao.acao();
+                        definirConfirmacao(null);
+                    }}
+                    aoCancelar={() => definirConfirmacao(null)}
+                    variante={confirmacao.variante}
+                />
+            )}
         </LayoutAdministrativo>
     );
 }

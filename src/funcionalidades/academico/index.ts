@@ -1,13 +1,11 @@
 /**
  * Barrel export do módulo Acadêmico.
- * Centraliza Alunos, Turmas e Portal do Responsável.
+ * Centraliza Alunos e Turmas.
  */
 
 // Componentes Principais (Telas)
 export { default as Alunos } from './componentes/Alunos';
 export { default as Turmas } from './componentes/Turmas';
-export { default as PainelResponsavel } from './componentes/PainelResponsavel';
-export { default as TelaLoginResponsavel } from './componentes/TelaLoginResponsavel';
 
 // Modais e Componentes de Apoio
 export { default as FormAlunoModal } from './componentes/FormAlunoModal';
@@ -17,6 +15,3 @@ export { default as ImportacaoAlunosModal } from './componentes/ImportacaoAlunos
 
 // Tipos
 export * from './tipos/academico';
-
-// Serviços
-export * from './servicos/responsavelServico';

@@ -32,6 +32,7 @@ import { usarEscola } from '@/escola/ProvedorEscola';
 
 import FormTurmaModal from './FormTurmaModal';
 import { turmaServico } from '../servicos/turma.servico';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 export default function Turmas() {
     const navegar = useNavigate();
@@ -52,6 +53,7 @@ export default function Turmas() {
     const [termoBusca, definirTermoBusca] = useState(termoInicial);
     const [filtroTurno, definirFiltroTurno] = useState(turnoInicial);
     const [filtroAnoLetivo, definirFiltroAnoLetivo] = useState(new Date().getFullYear().toString());
+    const [turmaParaExcluir, definirTurmaParaExcluir] = useState<string | null>(null);
 
     // Sincronizar com URL
     useEffect(() => {
@@ -135,16 +137,21 @@ export default function Turmas() {
         }
     };
 
-    const excluirTurma = async (id: string) => {
-        if (!window.confirm(`Tem certeza que deseja excluir a turma ${id}?`)) return;
+    const excluirTurma = (id: string) => {
+        definirTurmaParaExcluir(id);
+    };
 
+    const confirmarExclusao = async () => {
+        if (!turmaParaExcluir) return;
         try {
-            await turmaServico.excluirTurma(id);
+            await turmaServico.excluirTurma(turmaParaExcluir);
             toast.success('Turma excluída com sucesso');
             carregarTurmas();
         } catch (erro) {
             log.error('Erro ao excluir', erro);
             toast.error('Não foi possível excluir a turma.');
+        } finally {
+            definirTurmaParaExcluir(null);
         }
     };
 
@@ -196,7 +203,7 @@ export default function Turmas() {
             carregando={carregando}
         >
             <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
-                <div className="flex flex-col gap-1.5 flex-1">
+                <div className="flex flex-col gap-1.5 flex-1 w-full">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Turma</label>
                     <InputBusca
                         icone={Search}
@@ -207,47 +214,45 @@ export default function Turmas() {
                     />
                 </div>
 
-                <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
-                    {/* Filtro de Ano */}
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
-                            {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
+                {/* Filtro de Ano */}
+                <div className="flex flex-col gap-1.5 shrink-0">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
+                    <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                        {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
+                            <button
+                                key={ano}
+                                onClick={() => definirFiltroAnoLetivo(ano)}
+                                className={`px-4 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
+                                    ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
+                                    : 'text-slate-400 border-transparent hover:text-slate-600'
+                                    }`}
+                            >
+                                <Calendar size={12} /> {ano}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Filtro de Turno */}
+                <div className="flex flex-col gap-1.5 shrink-0">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Turno</label>
+                    <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                        {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
+                            const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIG_TURNO[filtro as keyof typeof CONFIG_TURNO]?.icone || Clock);
+                            return (
                                 <button
-                                    key={ano}
-                                    onClick={() => definirFiltroAnoLetivo(ano)}
-                                    className={`px-4 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
-                                        ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
+                                    key={filtro}
+                                    onClick={() => definirFiltroTurno(filtro)}
+                                    className={`px-3 h-full rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
+                                        ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                         : 'text-slate-400 border-transparent hover:text-slate-600'
                                         }`}
                                 >
-                                    <Calendar size={12} /> {ano}
+                                    <IconeTurno size={12} />
+                                    {filtro === 'TODOS' ? 'Todos' : filtro}
                                 </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Filtro de Turno */}
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Turno</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
-                            {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
-                                const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIG_TURNO[filtro as keyof typeof CONFIG_TURNO]?.icone || Clock);
-                                return (
-                                    <button
-                                        key={filtro}
-                                        onClick={() => definirFiltroTurno(filtro)}
-                                        className={`px-3 h-full rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
-                                            ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
-                                            : 'text-slate-400 border-transparent hover:text-slate-600'
-                                            }`}
-                                    >
-                                        <IconeTurno size={12} />
-                                        {filtro === 'TODOS' ? 'Todos' : filtro}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                            );
+                        })}
                     </div>
                 </div>
             </BarraFiltro>
@@ -385,6 +390,17 @@ export default function Turmas() {
                     turma={turmaEmEdicao}
                     aoFechar={() => definirModalAberto(false)}
                     aoSalvar={salvarTurma}
+                />
+            )}
+
+            {turmaParaExcluir && (
+                <ModalConfirmacao
+                    titulo="Excluir Turma"
+                    mensagem={`Tem certeza que deseja excluir a turma ${turmaParaExcluir}? Esta ação removerá a turma do sistema.`}
+                    textoConfirmar="Sim, Excluir"
+                    aoConfirmar={confirmarExclusao}
+                    aoCancelar={() => definirTurmaParaExcluir(null)}
+                    variante="perigoso"
                 />
             )}
         </LayoutAdministrativo>

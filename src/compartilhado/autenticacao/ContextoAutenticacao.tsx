@@ -45,13 +45,9 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
             
             try {
                 if (ehQuiosque) {
-                    // Regra SCAE: Quiosque nunca expira (IndexedDB para sobreviver a crash de navegador)
                     await setPersistence(autenticacao, indexedDBLocalPersistence);
-                    log.info('Persistência: INDEXEDDB (Modo Quiosque)');
                 } else {
-                    // Regra Geral: Admin e Central encerram sessão ao fechar a aba por segurança
                     await setPersistence(autenticacao, browserSessionPersistence);
-                    log.info('Persistência: SESSION (Modo Administrativo/Central)');
                 }
             } catch (err) {
                 log.error('Erro ao configurar persistência de sessão:', err);
@@ -74,7 +70,6 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
                         setTimeout(tentarSync, 500);
                         return;
                     }
-                    log.info('Usuário autenticado. Iniciando sincronização automática...');
                     servicoSincronizacao.sincronizarTudo().catch(e => log.warn('Erro na auto-sync', e));
                 };
                 tentarSync();

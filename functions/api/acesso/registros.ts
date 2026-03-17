@@ -39,38 +39,6 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
                     1
                 ).run();
 
-                // Se for um novo registro (não duplicata), notificar os responsáveis
-                // Note: success no D1 indica se a query rodou, não se inseriu (IGNORE sempre dá success).
-                // Para ser preciso, poderíamos verificar meta.changes ou as chaves primárias.
-                // Para o MVP: Disparamos sempre que o registro chegar, o app do pai lida com a timeline.
-
-                // Buscar responsáveis vinculados que possuem token FCM
-                const { results: responsaveis } = await contexto.env.DB_SCAE.prepare(`
-                    SELECT r.fcm_token, a.nome_completo as nome_aluno
-                    FROM responsaveis r
-                    INNER JOIN vinculos_responsavel_aluno v ON r.id = v.responsavel_id AND r.escola_id = v.escola_id
-                    INNER JOIN alunos a ON v.aluno_matricula = a.matricula AND v.escola_id = a.escola_id
-                    WHERE v.aluno_matricula = ? AND v.escola_id = ? AND r.fcm_token IS NOT NULL
-                `).bind(registro.aluno_matricula, idEscola).all<{ fcm_token: string, nome_aluno: string }>();
-
-                if (responsaveis && responsaveis.length > 0) {
-                    const acao = registro.tipo_movimentacao === 'ENTRADA' ? 'entrou na' : 'saiu da';
-                    const titulo = `SCAE: ${registro.tipo_movimentacao}`;
-                    const corpo = `${responsaveis[0].nome_aluno} ${acao} escola agora.`;
-
-                    // Dispara em paralelo para todos os dispositivos vinculados (ex: pai e mãe)
-                    const promessas = responsaveis.map(resp =>
-                        FabricaFCM.enviarNotificacao(
-                            resp.fcm_token,
-                            titulo,
-                            corpo,
-                            { tipo: registro.tipo_movimentacao, aluno_id: registro.aluno_matricula },
-                            (contexto.env as any).FIREBASE_SERVER_KEY
-                        )
-                    );
-                    await Promise.allSettled(promessas);
-                }
-
                 resultados.push({ id: registro.id, status: 'sincronizado' });
 
             } catch (erro) {

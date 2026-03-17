@@ -39,22 +39,29 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                     <div id="area-impressao-credencial" className="relative group p-6 bg-white border border-slate-200 rounded-2xl shadow-suave flex flex-col items-center w-full max-w-[300px]">
                         
                         {/* Cabeçalho da Escola no Cartão */}
-                        <div className="w-full flex justify-between items-center mb-6 px-1">
-                            <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded bg-slate-900 flex items-center justify-center text-[8px] font-black text-white">
-                                    {escola.nomeEscola.substring(0, 1)}
-                                </div>
-                                <span className="text-[9px] font-black text-slate-800 uppercase tracking-tight truncate max-w-[120px]">
+                        <div className="w-full flex justify-center items-center mb-6">
+                            <div className="flex items-center gap-3">
+                                {escola.logoUrl ? (
+                                    <img 
+                                        src={escola.logoUrl} 
+                                        alt="Logo Escola" 
+                                        className="w-8 h-8 object-contain"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-800 border border-slate-200">
+                                        {escola.nomeEscola.substring(0, 1)}
+                                    </div>
+                                )}
+                                <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">
                                     {escola.nomeEscola}
                                 </span>
                             </div>
-                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">SCAE ID</span>
                         </div>
 
-                        <div className="w-48 h-48 bg-white rounded-xl flex items-center justify-center overflow-hidden relative border border-slate-100 p-2 shadow-inner">
+                        <div className="w-48 h-48 flex items-center justify-center overflow-hidden relative">
                             <QRCodeCanvas 
                                 value={qrPayload} 
-                                size={170}
+                                size={180}
                                 level="H"
                                 includeMargin={false}
                             />
@@ -74,9 +81,8 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-slate-100 w-full flex justify-center">
-                            <p className="text-[8px] font-bold text-slate-300 uppercase tracking-[0.2em]">Validação via Terminal SCAE</p>
-                        </div>
+                        {/* Rodapé do cartão simplificado */}
+                        <div className="mt-4 w-full"></div>
                     </div>
 
                     <div className="w-full grid grid-cols-2 gap-3">

@@ -31,6 +31,7 @@ import { usuarioServico } from '../servicos/usuario.servico';
 const log = criarRegistrador('Usuarios');
 
 import FormUsuarioModal from './FormUsuarioModal';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 export default function Usuarios() {
     const { usuarioAtual } = usarAutenticacao();
@@ -44,6 +45,7 @@ export default function Usuarios() {
     const [busca, definirBusca] = useState('');
     const [modalAberto, definirModalAberto] = useState(false);
     const [usuarioEmEdicao, definirUsuarioEmEdicao] = useState<UsuarioLocal | null>(null);
+    const [usuarioParaExcluir, definirUsuarioParaExcluir] = useState<UsuarioLocal | null>(null);
 
     const salvarUsuario = async (dados: any) => {
         try {
@@ -68,18 +70,22 @@ export default function Usuarios() {
         }
     };
 
-    const excluirUsuario = async (user: any) => {
-        if (!window.confirm(`Tem certeza que deseja EXCLUIR permanentemente o usuário ${user.email}? Esta ação não pode ser desfeita.`)) {
-            return;
-        }
+    const excluirUsuario = (user: any) => {
+        definirUsuarioParaExcluir(user);
+    };
 
+    const confirmarExclusao = async () => {
+        if (!usuarioParaExcluir) return;
+        const email = usuarioParaExcluir.email;
         try {
-            await usuarioServico.excluirUsuario(user.email);
+            await usuarioServico.excluirUsuario(email);
             carregarUsuarios();
-            toast.success(`Usuário ${user.email} excluído com sucesso!`);
+            toast.success(`Usuário ${email} excluído com sucesso!`);
         } catch (erro) {
             log.error('Erro ao excluir usuário', erro);
             toast.error("Erro ao excluir usuário");
+        } finally {
+            definirUsuarioParaExcluir(null);
         }
     };
 
@@ -126,25 +132,27 @@ export default function Usuarios() {
             carregando={carregando}
         >
             <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
-                <div className="flex flex-col gap-2.5 flex-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Buscar Funcionário</label>
+                <div className="flex flex-col gap-1.5 flex-1 w-full">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Funcionário</label>
                     <InputBusca
                         icone={Search}
                         placeholder="Nome, e-mail ou cargo..."
                         value={busca}
                         onChange={(e) => definirBusca(e.target.value)}
-                        className="w-full h-8 rounded-2xl"
+                        className="w-full h-8 rounded-xl"
                     />
                 </div>
-                <div className="flex items-center gap-4 ml-6 self-end pb-1">
-                    <div className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-suave">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Cadastrado</span>
-                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Pessoas</span>
+                
+                <div className="flex flex-col gap-1.5 shrink-0">
+                    <label className="text-[9px] font-black text-transparent uppercase tracking-[0.2em] ml-1 leading-none">Info</label>
+                    <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 h-8 rounded-xl shadow-sm">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total</span>
+                        <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Pessoas</span>
                     </div>
                 </div>
             </BarraFiltro>
 
-            <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-2xl overflow-hidden mt-8">
+            <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl overflow-hidden mt-8">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
@@ -257,6 +265,17 @@ export default function Usuarios() {
                     usuario={usuarioEmEdicao}
                     aoFechar={() => definirModalAberto(false)}
                     aoSalvar={salvarUsuario}
+                />
+            )}
+
+            {usuarioParaExcluir && (
+                <ModalConfirmacao
+                    titulo="Excluir Usuário"
+                    mensagem={`Tem certeza que deseja EXCLUIR permanentemente o usuário ${usuarioParaExcluir.email}? Esta ação não pode ser desfeita.`}
+                    textoConfirmar="Sim, Excluir"
+                    aoConfirmar={confirmarExclusao}
+                    aoCancelar={() => definirUsuarioParaExcluir(null)}
+                    variante="perigoso"
                 />
             )}
         </LayoutAdministrativo>

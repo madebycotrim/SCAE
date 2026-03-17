@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Smartphone, Users, ShieldCheck, Palette, WifiOff, AlertTriangle } from 'lucide-react';
 import FocusTrap from 'focus-trap-react';
@@ -98,34 +98,18 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                         </div>
                                     </div>
 
-                                    {/* 2 — Portal do Responsável */}
-                                    <div className="flex flex-col md:flex-row gap-6 items-start">
-                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
-                                        ${temaEscuro ? 'bg-emerald-900/30 border-emerald-800/50 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
-                                            <Smartphone className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">2</div>
-                                        </div>
-                                        <div>
-                                            <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Portal do Responsável</h3>
-                                            <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                <em className="block mb-2 opacity-80">Pais tranquilos produzem alunos mais seguros.</em>
-                                                Uma ponte de confiança entre a escola e a família. Os pais se cadastram pelo <strong>link público da escola</strong>, vinculam-se aos filhos e acessam um painel com o histórico completo de entradas e saídas. Cada responsável vê <strong>apenas os dados dos seus próprios filhos</strong> — ninguém mais.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* 3 — Alertas de Risco de Evasão */}
+                                    {/* 2 — Alertas de Risco de Evasão */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-rose-900/30 border-rose-800/50 text-rose-400' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
                                             <AlertTriangle className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">3</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">2</div>
                                         </div>
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Alertas de Risco de Evasão Escolar</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
                                                 <em className="block mb-2 opacity-80">Uma falta não deveria se tornar uma evasão por falta de informação.</em>
-                                                O sistema monitora a frequência diariamente e <strong>sinaliza alunos com 3 ou mais faltas consecutivas</strong> sem justificativa. Esses alertas aparecem em um painel exclusivo da coordenação pedagógica, permitindo que o orientador educacional entre em contato com a família <strong>antes</strong> que o quadro se agrave. Quando o aluno retorna, o alerta é arquivado automaticamente — sem burocracia e sem intervenção manual.
+                                                O sistema monitora a frequência diariamente e <strong>sinaliza alunos com 3 ou mais faltas consecutivas</strong> sem justificativa. Esses alertas aparecem em um painel exclusivo da coordenação pedagógica, permitindo que o orientador educacional aja <strong>antes</strong> que o quadro se agrave.
                                             </p>
                                         </div>
                                     </div>
@@ -135,7 +119,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-amber-900/30 border-amber-800/50 text-amber-400' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="16" x="4" y="4" rx="2" /><rect width="6" height="6" x="9" y="9" rx="1" /><path d="M15 2v2" /><path d="M15 20v2" /><path d="M2 15h2" /><path d="M2 9h2" /><path d="M20 15h2" /><path d="M20 9h2" /><path d="M9 2v2" /><path d="M9 20v2" /></svg>
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">4</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">3</div>
                                         </div>
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Gestão de Turmas e Horários de Acesso</h3>
@@ -151,7 +135,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-fuchsia-900/30 border-fuchsia-800/50 text-fuchsia-400' : 'bg-fuchsia-50 border-fuchsia-100 text-fuchsia-600'}`}>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-fuchsia-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">5</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-fuchsia-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">4</div>
                                         </div>
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Painel Administrativo e Gestão Central</h3>
@@ -167,7 +151,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-orange-900/30 border-orange-800/50 text-orange-400' : 'bg-orange-50 border-orange-100 text-orange-600'}`}>
                                             <WifiOff className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">6</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">5</div>
                                         </div>
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Funciona Mesmo Sem Internet</h3>
@@ -183,23 +167,23 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-cyan-900/30 border-cyan-800/50 text-cyan-400' : 'bg-cyan-50 border-cyan-100 text-cyan-600'}`}>
                                             <Palette className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-cyan-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">7</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-cyan-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">6</div>
                                         </div>
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>A Cara da Sua Escola</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
                                                 <em className="block mb-2 opacity-80">O sistema veste a identidade da sua instituição.</em>
-                                                Cada escola recebe uma <strong>URL exclusiva</strong> (ex: <code className="text-xs px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">seuapp.com/sua-escola</code>) e as cores da instituição são aplicadas automaticamente em <strong>todas as telas</strong> — da tela de login ao quiosque do portão, passando pelo painel administrativo. Para os pais, a experiência é a de um sistema próprio da escola, não de uma plataforma genérica.
+                                                Cada escola recebe uma <strong>URL exclusiva</strong> (ex: <code className="text-xs px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">seuapp.com/sua-escola</code>) e as cores da instituição são aplicadas automaticamente em <strong>todas as telas</strong>. Para a comunidade escolar, a experiência é a de um sistema próprio da escola, não de uma plataforma genérica.
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* 8 — LGPD */}
+                                    {/* 7 — LGPD */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
                                         ${temaEscuro ? 'bg-blue-900/30 border-blue-800/50 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
                                             <ShieldCheck className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">8</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">7</div>
                                         </div>
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Conformidade LGPD desde o Primeiro Dia</h3>
@@ -217,7 +201,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                                     <h4 className="text-white font-extrabold text-2xl mb-3 relative z-10">O próximo passo lógico para a sua instituição.</h4>
                                     <p className="text-sky-200/80 text-base font-medium mb-6 max-w-lg mx-auto relative z-10">
-                                        Assuma o controle de acesso e eleve a percepção de valor e segurança da sua escola perante as famílias.
+                                        Assuma o controle de acesso e eleve a percepção de valor e segurança da sua escola.
                                     </p>
                                     <button
                                         onClick={() => {

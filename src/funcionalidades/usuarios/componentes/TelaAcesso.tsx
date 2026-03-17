@@ -138,7 +138,7 @@ export default function TelaAcesso() {
                                     para cada entrada.
                                 </h2>
                                 <p className="text-slate-400 text-[15px] leading-relaxed mt-3 max-w-[20rem]">
-                                    Da porta ao celular dos pais — em segundos.
+                                    Tecnologia de ponta para o dia a dia da sua escola.
                                 </p>
                             </div>
 
@@ -150,7 +150,7 @@ export default function TelaAcesso() {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Check className="w-4 h-4 text-sky-400 flex-shrink-0" />
-                                    <span className="text-[13px] text-slate-300">Portal exclusivo para responsáveis</span>
+                                    <span className="text-[13px] text-slate-300">QR Code Digital para alunos</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Check className="w-4 h-4 text-sky-400 flex-shrink-0" />
@@ -207,12 +207,17 @@ export default function TelaAcesso() {
                                 </div>
                             )}
 
-                            {/* Domínio institucional */}
-                            <p className="mt-6 text-center text-sm text-slate-400 font-medium leading-relaxed">
-                                Utilize seu e-mail institucional {dominioEmail && (
-                                    <>da escola: <br /><strong className="text-slate-800 font-semibold break-all">{dominioEmail.startsWith('@') ? dominioEmail : `@${dominioEmail}`}</strong></>
-                                )}
-                            </p>
+                            {/* Link Aluno - QR Code */}
+                            <div className="mt-8 text-center">
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-4">É aluno?</p>
+                                <button
+                                    onClick={() => navegar(`/${slugEscola}/cartao`)}
+                                    className="w-full flex items-center justify-center gap-2 py-3.5 px-5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-black rounded-2xl transition-all shadow-sm border border-indigo-100"
+                                >
+                                    <QrCode className="w-4 h-4" />
+                                    GERAR MEU QR CODE
+                                </button>
+                            </div>
 
                             {/* Separador */}
                             <div className="mt-6 border-t border-slate-100"></div>

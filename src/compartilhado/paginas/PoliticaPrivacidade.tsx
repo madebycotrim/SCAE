@@ -1,5 +1,5 @@
-﻿import { ShieldCheck, ArrowLeft } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { usarEscolaOpcional } from '@/escola/ProvedorEscola';
 import { usarConteudoLegal } from '@/funcionalidades/usuarios/hooks/usarConteudoLegal';
 import { Botao } from '@/compartilhado/componentes/UI';
@@ -11,7 +11,6 @@ import { Botao } from '@/compartilhado/componentes/UI';
  */
 export default function PoliticaPrivacidade() {
     const navegar = useNavigate();
-    const { slugEscola } = useParams();
     const escola = usarEscolaOpcional();
     const nomeEscola = escola?.nomeEscola || 'Desenvolvedor SCAE';
     const nomeAmigavel = escola?.nomeEscola || 'SCAE';
@@ -69,7 +68,7 @@ export default function PoliticaPrivacidade() {
                             <>O <strong>{nomeEscola}</strong>, na qualidade de Controladora de Dados, adota esta Política de Privacidade para informar</>
                         ) : (
                             <>Esta Política de Privacidade informa</>
-                        )} como os dados pessoais de alunos, responsáveis e colaboradores são coletados,
+                        )} como os dados pessoais de alunos e colaboradores são coletados,
                         tratados e protegidos pela plataforma SCAE, operada tecnicamente por <strong>{nomeFornecedor}</strong> (Operador
                         de Dados) — desenvolvedor independente, pessoa física, sem fins lucrativos —, em conformidade
                         com a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais — LGPD).
@@ -87,7 +86,7 @@ export default function PoliticaPrivacidade() {
                             <strong>Matrícula institucional (código SIGE)</strong> — Finalidade: identificação unívoca do aluno no sistema, vinculando os registros de acesso ao seu perfil escolar.
                         </li>
                         <li className="mb-2">
-                            <strong>Nome completo</strong> — Finalidade: identificação legível do aluno nos relatórios e notificações geradas para a escola e responsáveis.
+                            <strong>Nome completo</strong> — Finalidade: identificação legível do aluno nos relatórios gerados para a gestão escolar.
                         </li>
                         <li className="mb-2">
                             <strong>Turma</strong> — Finalidade: organização e filtragem dos registros de acesso por grupo escolar, facilitando a gestão pela equipe pedagógica.
@@ -105,7 +104,7 @@ export default function PoliticaPrivacidade() {
 
                     <p className="indent-[1.25cm] font-bold mt-4">
                         O sistema NÃO coleta, em hipótese alguma, os seguintes dados: fotografia ou imagem do aluno;
-                        número de telefone (do aluno ou responsável); CPF (do aluno ou responsável); biometria de
+                        número de telefone; CPF; biometria de
                         qualquer tipo; localização GPS; dados de saúde; dados bancários ou financeiros; nem qualquer
                         outro dado além dos expressamente listados acima.
                     </p>
@@ -151,7 +150,6 @@ export default function PoliticaPrivacidade() {
                                 utilizados exclusivamente para fins de segurança e rastreabilidade de acessos.)</span>
                         </li>
                         <li className="mb-2">Dados do aluno ativo: mantidos durante o período de matrícula ativa na instituição, acrescido de 90 dias após o encerramento do vínculo.</li>
-                        <li className="mb-2">Dados de responsável desvinculado: excluídos em até 30 dias após a desvinculação.</li>
                     </ul>
                     <p className="indent-[1.25cm]">
                         Após o prazo aplicável, os dados são anonimizados de forma irreversível, conforme o Art. 16
@@ -175,7 +173,7 @@ export default function PoliticaPrivacidade() {
                     <p className="indent-[1.25cm]">
                         O sistema é projetado para minimizar o tráfego internacional de dados, utilizando as
                         regiões de disponibilidade mais próximas à jurisdição brasileira. Os dados pessoais
-                        de alunos e responsáveis não são comercializados com terceiros em nenhuma hipótese.
+                        não são comercializados com terceiros em nenhuma hipótese.
                     </p>
                     <p className="indent-[1.25cm]">
                         O sistema pode registrar dados técnicos de sessão, como identificador de dispositivo e
@@ -208,7 +206,7 @@ export default function PoliticaPrivacidade() {
                     {/* ─── SEÇÃO 6 ─── */}
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">6. DIREITOS DOS TITULARES</h2>
                     <p className="indent-[1.25cm]">
-                        Os alunos (representados por seus responsáveis) e demais usuários podem, a qualquer momento,
+                        Os alunos e demais usuários podem, a qualquer momento,
                         exercer os seguintes direitos previstos no Art. 18 da LGPD:
                     </p>
                     <ul className="list-disc pl-[2.5cm]">
@@ -229,20 +227,7 @@ export default function PoliticaPrivacidade() {
                     </ul>
                     <p className="indent-[1.25cm]">
                         As solicitações serão respondidas em até 15 (quinze) dias úteis, conforme o §3º do
-                        Art. 18 da LGPD.
-                    </p>
-                    <p className="indent-[1.25cm]">
-                        Para exercer seus direitos, acesse o Portal do Titular:{' '}
-                        {slugEscola ? (
-                            <span
-                                className="font-bold text-blue-600 underline cursor-pointer ml-1"
-                                onClick={() => navegar(`/${slugEscola}/responsavel`)}
-                            >
-                                Acessar o Portal do Responsável
-                            </span>
-                        ) : (
-                            <span className="font-bold ml-1">Para usuários escolares, acesse a URL específica da sua escola.</span>
-                        )}
+                        Art. 18 da LGPD. Para exercer seus direitos, compareça à secretaria da escola.
                     </p>
 
                     {/* ─── SEÇÃO 7 ─── */}

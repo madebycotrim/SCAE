@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
@@ -18,6 +18,7 @@ import ListaAlunos from './ListaAlunos';
 import FormAlunoModal from './FormAlunoModal';
 import ImportacaoAlunosModal from './ImportacaoAlunosModal';
 import PromocaoLoteModal from './PromocaoLoteModal';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 import ImpressaoCredenciaisLote from './ImpressaoCredenciaisLote';
 
 export default function Alunos() {
@@ -32,7 +33,7 @@ export default function Alunos() {
     const turmas = dados?.turmas || [];
 
     const [searchParams, setSearchParams] = useSearchParams();
-    const termoInicial = searchParams.get('busca') || '';
+    const termoInicial = searchParams.get('busca') || searchParams.get('turma') || '';
     const statusInicial = (searchParams.get('status') as 'ativos' | 'inativos' | 'todos') || 'ativos';
 
     const [termoBusca, definirTermoBusca] = useState(termoInicial);
@@ -41,13 +42,25 @@ export default function Alunos() {
     const [paginaAtual, definirPaginaAtual] = useState(1);
     const itensPorPagina = 12;
 
-    // Sincronizar termo da URL se mudar externamente
+    // Sincronizar termo da URL se mudar externamente (ex: sidebar ou botões de filtro)
     useEffect(() => {
         const busca = searchParams.get('busca');
-        if (busca !== null) definirTermoBusca(busca);
-
+        const turma = searchParams.get('turma');
         const status = searchParams.get('status');
-        if (status) definirFiltroStatus(status as any);
+        
+        // Se não houver busca nem turma na URL, limpa o campo (reset da sidebar)
+        if (busca === null && turma === null) {
+            definirTermoBusca('');
+        } else {
+            if (busca !== null) definirTermoBusca(busca);
+            else if (turma !== null) definirTermoBusca(turma);
+        }
+
+        if (status) {
+            definirFiltroStatus(status as any);
+        } else {
+            definirFiltroStatus('ativos'); // Reset para padrão se não houver status na URL
+        }
 
         if (searchParams.get('acao') === 'novo') {
             definirAlunoEmEdicao(null);
@@ -62,6 +75,7 @@ export default function Alunos() {
     const [alunoEmEdicao, definirAlunoEmEdicao] = useState<Aluno | null>(null);
     const [alunoParaQRCode, definirAlunoParaQRCode] = useState<Aluno | null>(null);
     const [alunosSelecionados, definirAlunosSelecionados] = useState<string[]>([]);
+    const [alunoParaExcluir, definirAlunoParaExcluir] = useState<Aluno | null>(null);
 
     const alunosFiltrados = useMemo(() => {
         return alunos.filter(a => {
@@ -96,13 +110,21 @@ export default function Alunos() {
         } catch (erro: any) { toast.error(erro.message || 'Falha ao processar registro.'); }
     };
 
-    const excluirAluno = async (aluno: Aluno) => {
-        if (!window.confirm(`Tem certeza que deseja remover o registro de ${aluno.nome_completo}?`)) return;
+    const excluirAluno = (aluno: Aluno) => {
+        definirAlunoParaExcluir(aluno);
+    };
+
+    const confirmarExclusao = async () => {
+        if (!alunoParaExcluir) return;
         try {
-            await alunoServico.excluirAluno(aluno.matricula);
+            await alunoServico.excluirAluno(alunoParaExcluir.matricula);
             toast.success('Registro removido do sistema');
             recarregar();
-        } catch (erro) { toast.error('Erro na exclusão do registro.'); }
+        } catch (erro) { 
+            toast.error('Erro na exclusão do registro.'); 
+        } finally {
+            definirAlunoParaExcluir(null);
+        }
     };
 
     const promoverLote = async (novaTurmaId: string) => {
@@ -162,7 +184,7 @@ export default function Alunos() {
             carregando={carregando}
         >
             <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
-                <div className="flex flex-col gap-1.5 flex-1">
+                <div className="flex flex-col gap-1.5 flex-1 w-full">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Aluno</label>
                     <InputBusca
                         icone={Search}
@@ -173,48 +195,46 @@ export default function Alunos() {
                     />
                 </div>
 
-                <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
-                    {/* Filtro de Ano Letivo */}
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
-                            {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
-                                <button
-                                    key={ano}
-                                    onClick={() => definirFiltroAnoLetivo(ano)}
-                                    className={`px-4 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${filtroAnoLetivo === ano
-                                        ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
-                                        : 'text-slate-400 border-transparent hover:text-slate-600'
-                                        }`}
-                                >
-                                    <span className="flex items-center gap-2">
-                                        <Calendar size={12} /> {ano}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
+                {/* Filtro de Ano Letivo */}
+                <div className="flex flex-col gap-1.5 shrink-0">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
+                    <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                        {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
+                            <button
+                                key={ano}
+                                onClick={() => definirFiltroAnoLetivo(ano)}
+                                className={`px-4 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${filtroAnoLetivo === ano
+                                    ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
+                                    : 'text-slate-400 border-transparent hover:text-slate-600'
+                                    }`}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <Calendar size={12} /> {ano}
+                                </span>
+                            </button>
+                        ))}
                     </div>
+                </div>
 
-                    {/* Filtro de Status */}
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
-                            {(['ativos', 'inativos', 'todos'] as const).map((status) => (
-                                <button
-                                    key={status}
-                                    onClick={() => definirFiltroStatus(status)}
-                                    className={`px-3 h-full rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
-                                        ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
-                                        : 'text-slate-400 border-transparent hover:text-slate-600'
-                                        }`}
-                                >
-                                    {status === 'ativos' && <CheckCircle2 size={12} />}
-                                    {status === 'inativos' && <XCircle size={12} />}
-                                    {status === 'todos' && <Grid size={12} />}
-                                    {status === 'ativos' ? 'Ativos' : status === 'inativos' ? 'Inativos' : 'Todos'}
-                                </button>
-                            ))}
-                        </div>
+                {/* Filtro de Status */}
+                <div className="flex flex-col gap-1.5 shrink-0">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação</label>
+                    <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                        {(['ativos', 'inativos', 'todos'] as const).map((status) => (
+                            <button
+                                key={status}
+                                onClick={() => definirFiltroStatus(status)}
+                                className={`px-3 h-full rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
+                                    : 'text-slate-400 border-transparent hover:text-slate-600'
+                                    }`}
+                            >
+                                {status === 'ativos' && <CheckCircle2 size={12} />}
+                                {status === 'inativos' && <XCircle size={12} />}
+                                {status === 'todos' && <Grid size={12} />}
+                                {status === 'ativos' ? 'Ativos' : status === 'inativos' ? 'Inativos' : 'Todos'}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </BarraFiltro>
@@ -254,6 +274,17 @@ export default function Alunos() {
             {modalImport && <ImportacaoAlunosModal aoFechar={() => definirModalImport(false)} onImport={importarAlunos} />}
             {modalPromocao && <PromocaoLoteModal quantidade={alunosSelecionados.length} turmas={turmas} aoFechar={() => definirModalPromocao(false)} aoPromover={promoverLote} />}
             {modalQRCode && alunoParaQRCode && <CredencialModal aluno={alunoParaQRCode} aoFechar={() => definirModalQRCode(false)} />}
+
+            {alunoParaExcluir && (
+                <ModalConfirmacao
+                    titulo="Remover Aluno"
+                    mensagem={`Tem certeza que deseja remover o registro de ${alunoParaExcluir.nome_completo}? Esta ação é permanente.`}
+                    textoConfirmar="Sim, Remover"
+                    aoConfirmar={confirmarExclusao}
+                    aoCancelar={() => definirAlunoParaExcluir(null)}
+                    variante="perigoso"
+                />
+            )}
         </LayoutAdministrativo>
     );
 }

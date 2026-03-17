@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Interface representativa de um Aluno no sistema SCAE.
  * @lgpd Base legal: Execução de contrato (Art. 7º, V)
  * @lgpd Finalidade: Identificação e enturmação do aluno
@@ -8,11 +8,11 @@ export interface Aluno {
     matricula: string;
     nome_completo: string;
     turma_id: string;
+    data_nascimento?: string;
     ativo: boolean;
     criado_em: string;
     atualizado_em?: string;
     sincronizado?: number; // 0 para pendente offline, 1 para sincronizado
-    email_responsavel?: string;
 }
 
 /** Interface para Turma (Baseado no IndexedDB) */

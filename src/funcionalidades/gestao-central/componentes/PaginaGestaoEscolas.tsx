@@ -6,6 +6,7 @@ import {
 import { api } from '@/compartilhado/servicos/api';
 import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
 import { toast } from 'react-hot-toast';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 interface EscolaSistema {
     id: string;
@@ -45,6 +46,7 @@ export function PaginaGestaoEscolas() {
         config_qr_dinamico: false,
         tts_ativado: true
     });
+    const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao'} | null>(null);
 
     const carregarDados = async () => {
         try {
@@ -88,19 +90,25 @@ export function PaginaGestaoEscolas() {
         }
     };
 
-    const alternarStatus = async (escola: EscolaSistema) => {
+    const alternarStatus = (escola: EscolaSistema) => {
         const novoStatus = escola.status === 'ATIVA' ? 'SUSPENSA' : 'ATIVA';
         const acao = novoStatus === 'ATIVA' ? 'reativar' : 'suspender';
         
-        if (!window.confirm(`Deseja ${acao} o sinal da unidade ${escola.nome}?`)) return;
-
-        try {
-            await api.atualizar(`/central/escolas/${escola.id}`, { status: novoStatus });
-            toast.success(`Unidade ${escola.nome} ${novoStatus === 'ATIVA' ? 'operacional' : 'suspensa'}.`);
-            carregarDados();
-        } catch (err: any) {
-            toast.error('Falha ao comunicar mudança de status para a infraestrutura.');
-        }
+        definirConfirmacao({
+            aberto: true,
+            titulo: `${acao.charAt(0).toUpperCase() + acao.slice(1)} Unidade`,
+            mensagem: `Deseja ${acao} o sinal da unidade ${escola.nome}?`,
+            variante: novoStatus === 'SUSPENSA' ? 'perigoso' : 'padrao',
+            acao: async () => {
+                try {
+                    await api.atualizar(`/central/escolas/${escola.id}`, { status: novoStatus });
+                    toast.success(`Unidade ${escola.nome} ${novoStatus === 'ATIVA' ? 'operacional' : 'suspensa'}.`);
+                    carregarDados();
+                } catch (err: any) {
+                    toast.error('Falha ao comunicar mudança de status para a infraestrutura.');
+                }
+            }
+        });
     };
 
     const lidarComCriacao = async (e: React.FormEvent) => {
@@ -155,7 +163,7 @@ export function PaginaGestaoEscolas() {
             {/* Sistema de Telemetria Global - Estilo Centro de Comando */}
             <section className="relative">
                 <div className="absolute inset-0 bg-slate-100/30 blur-3xl rounded-2xl -z-10"></div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.03)] divide-x divide-slate-100">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 rounded-2xl overflow-hidden border border-slate-200 bg-white divide-x divide-slate-100">
                     <HealthMetric 
                         label="Fluxo / 24h" 
                         valor={saude?.totalAcessosHoje || 0} 
@@ -188,7 +196,7 @@ export function PaginaGestaoEscolas() {
             <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12">
                 <div className="space-y-6">
                     <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 bg-slate-950 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-slate-200 rotate-2 group hover:rotate-0 transition-all duration-700">
+                        <div className="w-20 h-20 bg-slate-950 rounded-2xl flex items-center justify-center text-white shadow-md rotate-2 group hover:rotate-0 transition-all duration-700">
                             <Building2 size={36} strokeWidth={2} />
                         </div>
                         <div className="space-y-1">
@@ -222,7 +230,7 @@ export function PaginaGestaoEscolas() {
                         }}
                         icone={Plus} 
                         tamanho="lg" 
-                        className="bg-black text-white hover:bg-slate-800 border-none rounded-2xl px-12 h-16 shadow-2xl shadow-slate-200 font-black uppercase tracking-[0.2em] text-[11px] whitespace-nowrap active:scale-95 transition-all w-full sm:w-auto"
+                        className="bg-black text-white hover:bg-slate-800 border-none rounded-2xl px-12 h-16 shadow-md font-black uppercase tracking-[0.2em] text-[11px] whitespace-nowrap active:scale-95 transition-all w-full sm:w-auto"
                     >
                         Nova Unidade
                     </Botao>
@@ -230,7 +238,7 @@ export function PaginaGestaoEscolas() {
             </header>
 
             {/* Registro de Ativos de Rede (Escolas) */}
-            <CartaoConteudo className="border-slate-100 shadow-[0_40px_100px_rgba(0,0,0,0.04)] rounded-2xl">
+            <CartaoConteudo className="border-slate-100 shadow-sm rounded-2xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
@@ -271,7 +279,7 @@ export function PaginaGestaoEscolas() {
                                                     target="_blank" 
                                                     rel="noreferrer"
                                                     title="Terminal Administrativo"
-                                                    className="h-14 w-14 bg-white text-slate-950 rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-slate-100 cursor-pointer active:scale-90"
+                                                    className="h-14 w-14 bg-white text-slate-950 rounded-2xl flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm border border-slate-100 cursor-pointer active:scale-90"
                                                 >
                                                     <ExternalLink size={20} strokeWidth={2.5} />
                                                 </a>
@@ -282,7 +290,7 @@ export function PaginaGestaoEscolas() {
                                                     variante="secundario" 
                                                     tamanho="sm" 
                                                     icone={Edit2} 
-                                                    className="rounded-2xl h-14 w-14 flex items-center justify-center p-0 border-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.06)]"
+                                                    className="rounded-2xl h-14 w-14 flex items-center justify-center p-0 border-slate-100 shadow-sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         abrirEdicao(escola);
@@ -293,7 +301,7 @@ export function PaginaGestaoEscolas() {
                                                     variante="secundario" 
                                                     tamanho="sm" 
                                                     icone={escola.status === 'ATIVA' ? Ban : Zap} 
-                                                    className={`${escola.status === 'ATIVA' ? 'text-rose-500' : 'text-emerald-500'} rounded-2xl h-14 w-14 flex items-center justify-center p-0 border-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.06)]`}
+                                                    className={`${escola.status === 'ATIVA' ? 'text-rose-500' : 'text-emerald-500'} rounded-2xl h-14 w-14 flex items-center justify-center p-0 border-slate-100 shadow-sm`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         alternarStatus(escola);
@@ -309,10 +317,9 @@ export function PaginaGestaoEscolas() {
                 </div>
             </CartaoConteudo>
 
-            {/* Modal Onboarding - Protocolo de Inicialização Multi-Fases */}
             {modalAberto && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-xl animate-fade-in font-sans">
-                    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden relative animate-scale-up">
+                    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-lg border border-white/20 overflow-hidden relative animate-scale-up">
                         {/* Header do Modal com Indicador de Progresso */}
                         <div className="p-10 border-b border-slate-50">
                             <div className="flex justify-between items-center mb-10">
@@ -477,7 +484,7 @@ export function PaginaGestaoEscolas() {
                                             if (fase === 1 && (!form.nome_escola || !form.id || !form.dominio_email)) return toast.error('Complete a identidade core.');
                                             definirFase(fase + 1);
                                         }}
-                                        className="px-12 h-16 bg-slate-950 text-white rounded-2xl uppercase font-black text-[11px] tracking-[0.2em] shadow-xl shadow-slate-200"
+                                        className="px-12 h-16 bg-slate-950 text-white rounded-2xl uppercase font-black text-[11px] tracking-[0.2em] shadow-md"
                                     >
                                         Próximo Passo
                                     </Botao>
@@ -487,7 +494,7 @@ export function PaginaGestaoEscolas() {
                                         type="submit"
                                         loading={criando}
                                         disabled={criando}
-                                        className="px-16 h-20 bg-black text-white rounded-2xl hover:bg-slate-800 font-black uppercase text-[12px] tracking-[0.3em] shadow-2xl shadow-slate-200 min-w-[240px] active:scale-95 transition-all text-highlight"
+                                        className="px-16 h-20 bg-black text-white rounded-2xl hover:bg-slate-800 font-black uppercase text-[12px] tracking-[0.3em] shadow-md min-w-[240px] active:scale-95 transition-all text-highlight"
                                     >
                                         {criando ? 'Protocolando...' : editandoId ? 'Atualizar Diretrizes' : 'Inicializar Unidade'}
                                     </Botao>
@@ -496,6 +503,19 @@ export function PaginaGestaoEscolas() {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {confirmacao?.aberto && (
+                <ModalConfirmacao
+                    titulo={confirmacao.titulo}
+                    mensagem={confirmacao.mensagem}
+                    aoConfirmar={() => {
+                        confirmacao.acao();
+                        definirConfirmacao(null);
+                    }}
+                    aoCancelar={() => definirConfirmacao(null)}
+                    variante={confirmacao.variante}
+                />
             )}
         </div>
     );
@@ -550,7 +570,7 @@ function SkeletonCentral() {
 
 function ErroCentral({ erro, onContexto }: any) {
     return (
-        <div className="bg-white border border-slate-200 p-20 rounded-2xl flex flex-col items-center text-center gap-10 max-w-2xl mx-auto shadow-2xl shadow-slate-200/50 my-20">
+        <div className="bg-white border border-slate-200 p-20 rounded-2xl flex flex-col items-center text-center gap-10 max-w-2xl mx-auto shadow-md my-20">
             <div className="w-24 h-24 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 border border-slate-100 shadow-inner">
                 <AlertTriangle size={44} strokeWidth={2} />
             </div>
@@ -558,7 +578,7 @@ function ErroCentral({ erro, onContexto }: any) {
                 <h3 className="text-3xl font-black text-slate-950 uppercase tracking-tighter italic">Interrupção de Sinal</h3>
                 <p className="text-slate-400 text-base font-medium leading-relaxed max-w-md mx-auto">{erro}</p>
             </div>
-            <Botao variante="primario" className="px-16 py-6 bg-black text-white rounded-2xl hover:bg-slate-800 transition-all font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl" onClick={onContexto}>Retomar Protocolo</Botao>
+            <Botao variante="primario" className="px-16 py-6 bg-black text-white rounded-2xl hover:bg-slate-800 transition-all font-black uppercase tracking-[0.3em] text-[11px] shadow-md" onClick={onContexto}>Retomar Protocolo</Botao>
         </div>
     );
 }

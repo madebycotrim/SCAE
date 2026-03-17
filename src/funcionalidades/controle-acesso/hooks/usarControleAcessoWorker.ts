@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import ControleAcessoWorker from '../servicos/controleAcesso.worker?worker';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarEscola } from '@/escola/ProvedorEscola';
@@ -30,7 +30,6 @@ export function usarControleAcessoWorker() {
     // 1. Instanciar o Worker de fundo apenas 1 vez (On Mount)
     useEffect(() => {
         if (!workerRef.current) {
-            log.info('Inicializando Thread Paralela do Worker de Controle de Acesso...');
             workerRef.current = new ControleAcessoWorker();
 
             workerRef.current.onmessage = (evento: MessageEvent) => {
@@ -38,13 +37,12 @@ export function usarControleAcessoWorker() {
                 if (type === 'SYNC_STATUS') {
                     definirStatusWorker(payload);
                 } else if (type === 'SYNC_SUCESSO') {
-                    log.info(`Background Worker Lote Concluído: ${payload.processados} enviados.`);
+                    // Sincronização concluída silenciosamente
                 }
             };
         }
 
         return () => {
-            log.info('Finalizando Thread Paralela...');
             workerRef.current?.terminate();
         };
     }, []);

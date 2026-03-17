@@ -131,7 +131,7 @@ export default function PainelRiscoAbandono() {
 
                 {/* Toolbar de Filtros */}
                 <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
-                    <div className="flex flex-col gap-1.5 flex-1">
+                    <div className="flex flex-col gap-1.5 flex-1 w-full">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Aluno</label>
                         <InputBusca
                             icone={Search}
@@ -145,32 +145,30 @@ export default function PainelRiscoAbandono() {
                         />
                     </div>
 
-                    <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação do Alerta</label>
-                            <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
-                                {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
-                                    <button
-                                        key={status}
-                                        onClick={() => {
-                                            definirFiltroStatus(status);
-                                            definirPaginaAtual(1);
-                                        }}
-                                        className={`px-5 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center border ${filtroStatus === status
-                                            ? 'bg-slate-800 text-white border-slate-700 shadow-suave'
-                                            : 'text-slate-400 hover:text-slate-800 hover:bg-white border-transparent'
-                                            }`}
-                                    >
-                                        {status === 'TODOS' ? 'Todos' : status === 'PENDENTE' ? 'Urgentes' : status === 'EM_ANALISE' ? 'Em Análise' : 'Resolvido'}
-                                    </button>
-                                ))}
-                            </div>
+                    <div className="flex flex-col gap-1.5 shrink-0">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação do Alerta</label>
+                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
+                            {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => {
+                                        definirFiltroStatus(status);
+                                        definirPaginaAtual(1);
+                                    }}
+                                    className={`px-5 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center border ${filtroStatus === status
+                                        ? 'bg-slate-800 text-white border-slate-700 shadow-suave'
+                                        : 'text-slate-400 hover:text-slate-800 hover:bg-white border-transparent'
+                                        }`}
+                                >
+                                    {status === 'TODOS' ? 'Todos' : status === 'PENDENTE' ? 'Urgentes' : status === 'EM_ANALISE' ? 'Em Análise' : 'Resolvido'}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </BarraFiltro>
 
                 {/* Tabela de Alertas SaaS Premium */}
-                <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-2xl overflow-hidden">
+                <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl overflow-hidden">
                     {carregando ? (
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse whitespace-nowrap">
@@ -318,7 +316,7 @@ export default function PainelRiscoAbandono() {
                     tamanho="lg"
                 >
                     <div className="space-y-8 pb-4">
-                        <div className="bg-slate-900 rounded-2xl p-8 border-2 border-slate-800 shadow-2xl relative overflow-hidden">
+                        <div className="bg-slate-900 rounded-2xl p-8 border-2 border-slate-800 shadow-md relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 blur-3xl rounded-full"></div>
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                                 <div>

@@ -23,11 +23,6 @@ export const PaginaConfiguracaoHorarios = lazy(() => import('@/funcionalidades/c
 export const PaginaRiscoAbandono = lazy(() => import('@/funcionalidades/risco-abandono/componentes/PainelRiscoAbandono'));
 export const PaginaCartaoDigital = lazy(() => import('@/funcionalidades/academico/componentes/CartaoDigital'));
 export const PaginaCalendario = lazy(() => import('@/funcionalidades/academico/componentes/CalendarioLetivo'));
-import PaginaLoginResponsavelComp from '@/funcionalidades/academico/componentes/TelaLoginResponsavel';
-import PaginaPainelResponsavelComp from '@/funcionalidades/academico/componentes/PainelResponsavel';
-
-export const PaginaLoginResponsavel = PaginaLoginResponsavelComp;
-export const PaginaPainelResponsavel = PaginaPainelResponsavelComp;
 export const PaginaTermosUso = lazy(() => import('@/compartilhado/paginas/TermosUso'));
 export const PaginaPoliticaPrivacidade = lazy(() => import('@/compartilhado/paginas/PoliticaPrivacidade'));
 export const PaginaInicial = lazy(() => import('@/principal/PaginaInicial'));

@@ -61,7 +61,6 @@ export default function TerminalAcesso() {
             try {
                 const key = await obterChavePublica(escola.id);
                 chavePublicaRef.current = key;
-                log.info('Segurança Institucional: ONLINE');
             } catch (e) {
                 log.error('Falha crítica de segurança: Chave pública indisponível', e);
             }
@@ -217,7 +216,7 @@ export default function TerminalAcesso() {
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-rose-600/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
 
             {/* Header High-Tech */}
-            <header className="h-[80px] border-b border-white/5 bg-slate-900/50 backdrop-blur-xl flex items-center justify-between px-8 z-20 shadow-2xl shrink-0">
+            <header className="h-[80px] border-b border-white/5 bg-slate-900/50 backdrop-blur-xl flex items-center justify-between px-8 z-20 shadow-md shrink-0">
                 <div className="flex items-center gap-6">
                     <Botao
                         variante="ghost"
@@ -230,7 +229,7 @@ export default function TerminalAcesso() {
                             <h1 className="text-lg font-black text-white uppercase tracking-tighter">
                                 Leitor de QR Code
                             </h1>
-                            <span className="px-2 py-0.5 text-white text-[8px] font-black rounded uppercase tracking-widest shadow-lg" 
+                            <span className="px-2 py-0.5 text-white text-[8px] font-black rounded uppercase tracking-widest shadow-sm" 
                                   style={{ backgroundColor: 'var(--cor-primaria, #6366f1)' }}>SISTEMA</span>
                         </div>
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-0.5">Controle de Entrada e Saída</p>
@@ -238,7 +237,7 @@ export default function TerminalAcesso() {
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className={`flex items-center gap-3 px-5 py-2 rounded-2xl border-2 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
+                    <div className={`flex items-center gap-3 px-5 py-2 rounded-2xl border-2 text-[10px] font-black uppercase tracking-widest shadow-md transition-all ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                         : tipoAcessoAtual === TIPO_ACESSO.SAIDA
                             ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
@@ -250,7 +249,7 @@ export default function TerminalAcesso() {
                         {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'INDEFINIDO'}
                     </div>
 
-                    <div className={`flex items-center gap-3 px-5 py-2 rounded-2xl border text-[10px] font-black uppercase tracking-widest shadow-xl ${online ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'}`}>
+                    <div className={`flex items-center gap-3 px-5 py-2 rounded-2xl border text-[10px] font-black uppercase tracking-widest shadow-sm ${online ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'}`}>
                         {online ? <Wifi size={14} strokeWidth={2.5} /> : <WifiOff size={14} strokeWidth={2.5} />}
                         {online ? 'Sincronizado' : 'Offline'}
                     </div>
@@ -270,7 +269,7 @@ export default function TerminalAcesso() {
             <main className="flex-1 flex flex-col lg:flex-row p-8 gap-8 max-w-[1600px] mx-auto w-full overflow-hidden relative z-10">
 
                 {/* Main Scanning Reactor */}
-                <CartaoConteudo className="flex-[5] flex flex-col items-center justify-center p-12 relative bg-slate-900/40 border-white/5 shadow-2xl overflow-hidden group">
+                <CartaoConteudo className="flex-[5] flex flex-col items-center justify-center p-12 relative bg-slate-900/40 border-white/5 shadow-md overflow-hidden group">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
 
                     <div className="text-center space-y-2 mb-12">
@@ -282,7 +281,7 @@ export default function TerminalAcesso() {
                     </div>
 
                     {/* Industrial Scanner Frame */}
-                    <div className="relative w-full max-w-lg aspect-square bg-black rounded-2xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] ring-1 ring-white/10 group-hover:ring-indigo-500/30 transition-all duration-700">
+                    <div className="relative w-full max-w-lg aspect-square bg-black rounded-2xl overflow-hidden shadow-md ring-1 ring-white/10 group-hover:ring-indigo-500/30 transition-all duration-700">
                         {/* Scanner Component */}
                         <div id="reader" className="w-full h-full bg-black scale-[1.05] grayscale contrast-125 opacity-80 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700"></div>
 
@@ -318,7 +317,7 @@ export default function TerminalAcesso() {
                 </CartaoConteudo>
 
                 {/* Operational Sidebar Dashboard */}
-                <CartaoConteudo className="flex-[3] lg:max-w-md w-full p-8 flex flex-col bg-slate-900 border-white/10 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative group">
+                <CartaoConteudo className="flex-[3] lg:max-w-md w-full p-8 flex flex-col bg-slate-900 border-white/10 shadow-md relative group">
                     <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                     <div className="flex items-center justify-between pb-6 border-b border-white/5 mb-10 z-10 relative">
@@ -334,7 +333,7 @@ export default function TerminalAcesso() {
                         {ultimoAcesso ? (
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
                                 {/* Telemetry Card */}
-                                <div className="bg-slate-800/50 rounded-2xl p-10 border border-white/5 text-center relative overflow-hidden shadow-2xl backdrop-blur-3xl group-hover:border-indigo-500/20 transition-all">
+                                <div className="bg-slate-800/50 rounded-2xl p-10 border border-white/5 text-center relative overflow-hidden shadow-md backdrop-blur-3xl group-hover:border-indigo-500/20 transition-all">
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
                                     <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tighter leading-none">
                                         {ultimoAcesso.aluno?.nome_completo || 'Unknown'}
@@ -344,7 +343,7 @@ export default function TerminalAcesso() {
                                     </p>
 
                                     {ultimoAcesso.aluno && (
-                                        <div className="inline-flex items-center gap-3 bg-indigo-600 text-white px-6 py-2.5 rounded-2xl text-[10px] font-black border border-white/10 shadow-2xl uppercase tracking-widest transform transition-transform group-hover:scale-110">
+                                        <div className="inline-flex items-center gap-3 bg-indigo-600 text-white px-6 py-2.5 rounded-2xl text-[10px] font-black border border-white/10 shadow-sm uppercase tracking-widest transform transition-transform group-hover:scale-110">
                                             <ShieldCheck size={14} strokeWidth={2.5} /> {ultimoAcesso.aluno.turma_id}
                                         </div>
                                     )}
@@ -360,7 +359,7 @@ export default function TerminalAcesso() {
                                         <Clock size={20} className="text-slate-600" strokeWidth={2} />
                                     </div>
 
-                                    <div className={`flex items-center justify-between p-6 rounded-2xl border-2 shadow-2xl transition-all ${ultimoAcesso.tipo === 'SUCESSO'
+                                    <div className={`flex items-center justify-between p-6 rounded-2xl border-2 shadow-md transition-all ${ultimoAcesso.tipo === 'SUCESSO'
                                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                                         : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
                                         }`}>

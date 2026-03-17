@@ -34,8 +34,8 @@ export const Botao: React.FC<BotaoProps> = ({
     const baseStyles = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-tight transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer";
 
     const variantes = {
-        primario: "bg-[#0F172A] text-white hover:bg-[#1E293B] border border-slate-800 shadow-[0_10px_20px_-5px_rgba(15,23,42,0.3)] shadow-indigo-500/5 focus:ring-slate-400",
-        secundario: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm focus:ring-slate-400",
+        primario: "bg-[#0F172A] text-white hover:bg-[#1E293B] border border-slate-800 shadow-sm focus:ring-slate-400",
+        secundario: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 focus:ring-slate-400",
         perigo: "bg-white text-rose-600 border border-rose-200 hover:bg-rose-50 hover:border-rose-300 focus:ring-rose-500",
         ghost: "bg-transparent text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 border-none px-2 focus:ring-slate-400 shadow-none font-black"
     };
@@ -65,13 +65,13 @@ export const Botao: React.FC<BotaoProps> = ({
 // --- CARDS E CONTAINERS ---
 
 export const CartaoConteudo: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-white rounded-2xl border border-slate-100 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden ${className}`}>
         {children}
     </div>
 );
 
 export const BarraFiltro: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-white/80 backdrop-blur-xl p-3 rounded-2xl border border-slate-200 shadow-sm mb-8 flex flex-col lg:flex-row lg:items-center gap-4 sticky top-4 z-20 ${className}`}>
+    <div className={`bg-white/80 backdrop-blur-xl p-3 rounded-2xl border border-slate-200 mb-8 flex flex-col lg:flex-row lg:items-end gap-4 sticky top-4 z-20 ${className}`}>
         {children}
     </div>
 );
@@ -104,7 +104,7 @@ export const BarraProgressoGlobal: React.FC<{ ativa: boolean }> = ({ ativa }) =>
     return (
         <div 
             className="fixed top-0 left-0 h-0.5 bg-indigo-600 z-[9999] transition-all duration-300 ease-out" 
-            style={{ width: `${progresso}%`, boxShadow: '0 0 10px rgba(79, 70, 229, 0.5)' }}
+            style={{ width: `${progresso}%` }}
         />
     );
 };

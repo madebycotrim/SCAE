@@ -12,8 +12,6 @@ export interface AmbienteSCAE {
     DB_SCAE: D1Database;
     /** Cache de alto desempenho KV */
     KV_SCAE: KVNamespace;
-    /** Segredo para assinar JWTs do portal do titular (LGPD) */
-    JWT_SECRET: string;
     /** Bypass de autenticação para desenvolvimento local (valor: '1') */
     DEV_AUTH_BYPASS?: string;
     /** Tenant padrão quando não enviado no header */
@@ -59,6 +57,7 @@ export interface AlunoDB {
     escola_id: string;
     nome_completo?: string;
     turma_id?: string;
+    data_nascimento?: string;
     ativo: number;
     sincronizado?: number;
     criado_em?: string;
@@ -125,14 +124,6 @@ export interface AlertaEvasaoDB {
     data_resolucao?: string;
 }
 
-export interface ResponsavelDB {
-    id: string;
-    escola_id: string;
-    nome_completo: string;
-    email?: string;
-    criado_em?: string;
-    atualizado_em?: string;
-}
 
 // ============================================================
 // Payloads de request (body JSON)
@@ -150,8 +141,8 @@ export interface PayloadCriacaoAluno {
     matricula: string;
     nome_completo: string;
     turma_id?: string;
+    data_nascimento?: string;
     ativo?: boolean;
-    email_responsavel?: string;
 }
 
 export interface PayloadCriacaoTurma {
@@ -175,10 +166,6 @@ export interface PayloadCriacaoUsuario {
     atualizado_em?: string;
 }
 
-export interface PayloadAutenticacaoPortal {
-    email: string;
-    aluno_matricula: string;
-}
 
 export interface PayloadAtualizacaoAlerta {
     status: 'PENDENTE' | 'EM_ANALISE' | 'RESOLVIDO';

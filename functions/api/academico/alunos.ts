@@ -1,4 +1,4 @@
-﻿import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../seguranca';
 import { esquemaAluno } from './alunos.esquemas';
@@ -9,7 +9,7 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
 
         const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT matricula, escola_id, nome_completo, turma_id, ativo, criado_em, atualizado_em FROM alunos WHERE escola_id = ?"
+            "SELECT matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo, criado_em, atualizado_em FROM alunos WHERE escola_id = ?"
         ).bind(idEscola).all();
 
         return Response.json({
@@ -43,51 +43,21 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
             throw new ErroValidacao('Dados do aluno inválidos', 'ALUNO_VALIDACAO_001', { detalhes: resultadoZod.error.format() });
         }
 
-        const { matricula, nome_completo, turma_id, ativo, email_responsavel } = resultadoZod.data;
+        const { matricula, nome_completo, turma_id, data_nascimento, ativo } = resultadoZod.data;
 
         try {
             // UPSERT: Inserir ou Atualizar Aluno
             await contexto.env.DB_SCAE.prepare(
-                `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, ativo) VALUES (?, ?, ?, ?, ?)
+                `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo) VALUES (?, ?, ?, ?, ?, ?)
                     ON CONFLICT(matricula, escola_id) DO UPDATE SET
                     nome_completo = excluded.nome_completo,
                     turma_id = excluded.turma_id,
+                    data_nascimento = excluded.data_nascimento,
                     ativo = excluded.ativo,
                     atualizado_em = CURRENT_TIMESTAMP`
-            ).bind(matricula, idEscola, nome_completo, turma_id ?? null, ativo ? 1 : 0).run();
+            ).bind(matricula, idEscola, nome_completo, turma_id ?? null, data_nascimento ?? null, ativo ? 1 : 0).run();
         } catch (dbError) {
             throw new ErroInterno(`Falha ao inserir aluno: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
-        }
-
-        // Processamento de responsável... (Mantendo lógica de negócio original)
-        if (email_responsavel && email_responsavel.trim() !== '') {
-            try {
-                const emailLimpo = email_responsavel.trim().toLowerCase();
-                const responsavelExistente = await contexto.env.DB_SCAE.prepare(
-                    "SELECT id FROM responsaveis WHERE email = ? AND escola_id = ?"
-                ).bind(emailLimpo, idEscola).first<{ id: string }>();
-
-                let responsavelId = responsavelExistente?.id;
-
-                if (!responsavelId) {
-                    responsavelId = crypto.randomUUID();
-                    await contexto.env.DB_SCAE.prepare(
-                        `INSERT INTO responsaveis (id, escola_id, email, nome_completo)
-                            VALUES (?, ?, ?, ?)`
-                    ).bind(responsavelId, idEscola, emailLimpo, 'Responsável de ' + nome_completo).run();
-                }
-
-                await contexto.env.DB_SCAE.prepare(
-                    `INSERT INTO vinculos_responsavel_aluno (responsavel_id, aluno_matricula, escola_id)
-                        SELECT ?, ?, ?
-                        WHERE NOT EXISTS (
-                            SELECT 1 FROM vinculos_responsavel_aluno
-                            WHERE responsavel_id = ? AND aluno_matricula = ? AND escola_id = ?
-                        )`
-                ).bind(responsavelId, matricula, idEscola, responsavelId, matricula, idEscola).run();
-            } catch (responsavelError) {
-                console.warn('Aviso ao processar responsável:', responsavelError);
-            }
         }
 
         return Response.json({

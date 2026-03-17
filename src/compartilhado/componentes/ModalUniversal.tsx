@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Info } from 'lucide-react';
 import { ReactNode } from 'react';
@@ -79,7 +79,7 @@ export default function ModalUniversal({
             aria-labelledby="modal-titulo"
         >
             <div className={`
-                bg-white rounded-2xl shadow-2xl w-full ${larguras[tamanho] || larguras.md} 
+                bg-white rounded-2xl shadow-md w-full ${larguras[tamanho] || larguras.md} 
                 flex flex-col max-h-[90vh] border border-slate-100 ring-1 ring-black/5 overflow-hidden
                 animate-zoom-in relative transform transition-all
             `}>
@@ -89,7 +89,7 @@ export default function ModalUniversal({
                     ${tema.bg} bg-opacity-60 backdrop-blur-sm relative z-20
                 `}>
                     <div className={`
-                        p-2.5 rounded-xl bg-white shadow-suave ring-1 ${tema.ring} shrink-0 
+                        p-2.5 rounded-xl bg-white ring-1 ${tema.ring} shrink-0 
                         ${tema.text} flex items-center justify-center
                     `}>
                         <Icone size={24} strokeWidth={2} />
@@ -110,7 +110,7 @@ export default function ModalUniversal({
                         onClick={aoFechar}
                         className="
                             group shrink-0 p-2 rounded-xl transition-all duration-200
-                            text-slate-400 hover:text-rose-500 hover:bg-white hover:shadow-suave hover:ring-1 hover:ring-rose-100
+                            text-slate-400 hover:text-rose-500 hover:bg-white hover:ring-1 hover:ring-rose-100
                         "
                         title="Fechar (ESC)"
                     >

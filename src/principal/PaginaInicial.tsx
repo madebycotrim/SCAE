@@ -41,7 +41,7 @@ export default function PaginaInicial() {
         <div className={`min-h-screen font-sans selection:bg-sky-500/30 overflow-x-hidden relative flex flex-col pt-safe-top transition-colors duration-500 ${temaEscuro ? 'bg-[#0B0F19] text-slate-100' : 'bg-[#F8FAFC] text-slate-900'}`}>
             <SEO
                 titulo="SCAE — Controle de acesso escolar inteligente"
-                descricao="O sistema que registra cada entrada e saída dos alunos, alerta sobre riscos de evasão e mantém os pais informados. Desenvolvido para escolas públicas brasileiras."
+                descricao="O sistema que registra cada entrada e saída dos alunos, alerta sobre riscos de evasão e garante a segurança escolar. Desenvolvido para escolas públicas brasileiras."
             />
 
             {/* Background — grid sutil */}
@@ -81,7 +81,7 @@ export default function PaginaInicial() {
                         </span>
                         <br />
                         <span className={`text-3xl md:text-[3.25rem] font-bold mt-4 md:mt-6 inline-block tracking-tight ${temaEscuro ? 'text-slate-300' : 'text-slate-700'}`}>
-                            Os pais também.
+                            Segurança em tempo real.
                         </span>
                     </h1>
 
@@ -142,7 +142,7 @@ export default function PaginaInicial() {
                             Como funciona na prática
                         </h2>
                         <p className={`text-lg max-w-2xl mx-auto font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                            Do portão ao celular dos pais — em segundos, sem complicação.
+                            Do portão ao painel administrativo — em segundos, sem complicação.
                         </p>
                     </div>
 
@@ -152,7 +152,7 @@ export default function PaginaInicial() {
 
                         {/* Passo 1 */}
                         <div className="relative z-10 flex flex-col items-center text-center group cursor-default">
-                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-suave transition-colors duration-300 ${temaEscuro ? 'bg-slate-800 text-white border border-slate-700 group-hover:bg-slate-700' : 'bg-slate-100 text-[#0d1f3c] border border-slate-200 group-hover:bg-[#0d1f3c] group-hover:text-white'}`}>
+                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300 ${temaEscuro ? 'bg-slate-800 text-white border border-slate-700 group-hover:bg-slate-700' : 'bg-slate-100 text-[#0d1f3c] border border-slate-200 group-hover:bg-[#0d1f3c] group-hover:text-white'}`}>
                                 <Users className="w-8 h-8" />
                             </div>
                             <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-sky-400">1.</span> O Aluno Chega</h3>
@@ -177,9 +177,9 @@ export default function PaginaInicial() {
                             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-suave transition-colors duration-300 ${temaEscuro ? 'bg-slate-800 text-white border border-slate-700 group-hover:bg-slate-700' : 'bg-slate-100 text-[#0d1f3c] border border-slate-200 group-hover:bg-[#0d1f3c] group-hover:text-white'}`}>
                                 <Smartphone className="w-8 h-8" />
                             </div>
-                            <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-sky-400">3.</span> Pais Informados</h3>
+                            <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-sky-400">3.</span> Gestão Ativa</h3>
                             <p className={`text-sm font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                                Os responsáveis acompanham no portal o histórico de entradas e saídas dos seus filhos — com horário exato.
+                                A coordenação acompanha em tempo real o histórico de entradas e saídas dos alunos — com horário exato e fotos (opcional).
                             </p>
                         </div>
                     </div>
@@ -199,7 +199,7 @@ export default function PaginaInicial() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                        <div className={`p-8 rounded-2xl border transition-all hover:shadow-media ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
+                        <div className={`p-8 rounded-2xl border transition-all ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-rose-900/30 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
                                 <AlertTriangle className="w-6 h-6" />
                             </div>
@@ -207,7 +207,7 @@ export default function PaginaInicial() {
                             <p className={`text-sm font-medium leading-relaxed ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Identifica alunos com faltas consecutivas e avisa a coordenação antes que o quadro se agrave.</p>
                         </div>
 
-                        <div className={`p-8 rounded-2xl border transition-all hover:shadow-media ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
+                        <div className={`p-8 rounded-2xl border transition-all ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>
                                 <WifiOff className="w-6 h-6" />
                             </div>
@@ -215,7 +215,7 @@ export default function PaginaInicial() {
                             <p className={`text-sm font-medium leading-relaxed ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>O terminal opera 100% sem internet. Registros sincronizam automaticamente quando a rede retorna.</p>
                         </div>
 
-                        <div className={`p-8 rounded-2xl border transition-all hover:shadow-media ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
+                        <div className={`p-8 rounded-2xl border transition-all ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-sky-900/30 text-sky-400' : 'bg-sky-50 text-sky-400'}`}>
                                 <Palette className="w-6 h-6" />
                             </div>
@@ -223,7 +223,7 @@ export default function PaginaInicial() {
                             <p className={`text-sm font-medium leading-relaxed ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>URL exclusiva, cores personalizadas e marca própria — do login ao quiosque do portão.</p>
                         </div>
 
-                        <div className={`p-8 rounded-2xl border transition-all hover:shadow-media ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
+                        <div className={`p-8 rounded-2xl border transition-all ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-slate-800 text-[#0d1f3c]' : 'bg-slate-100 text-[#0d1f3c]'}`}>
                                 <ShieldCheck className="w-6 h-6" />
                             </div>
@@ -274,8 +274,8 @@ export default function PaginaInicial() {
                                 r: 'Sim. Cumprimos rigorosamente a LGPD, coletando o mínimo necessário (sem biometria) e mantendo logs imutáveis no Brasil.'
                             },
                             {
-                                p: 'Como os pais acessam?',
-                                r: 'Os responsáveis acessam o portal pelo celular via conta Google. A vinculação é feita pelo e-mail cadastrado na matrícula do aluno.'
+                                p: 'Como a gestão acessa?',
+                                r: 'A equipe pedagógica e de portaria acessa o painel pelo computador ou celular via conta Google institucional (@Seduc/@SEEDF).'
                             }
                         ].map((faq, index) => (
                             <details key={index} className={`group rounded-2xl border transition-all ${temaEscuro ? 'bg-slate-800/40 border-slate-700/50 hover:border-slate-600' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
@@ -302,7 +302,7 @@ export default function PaginaInicial() {
                     </h2>
                     <button
                         onClick={() => definirModalContatoAberto(true)}
-                        className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-base transition-all bg-transparent text-white border-2 border-white/20 hover:border-white/40 hover:bg-white/10 active:scale-95 shadow-suave"
+                        className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-base transition-all bg-transparent text-white border-2 border-white/20 hover:border-white/40 hover:bg-white/10 active:scale-95"
                     >
                         Fale conosco
                     </button>

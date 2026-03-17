@@ -24,7 +24,6 @@ export const servicoSincronizacao = {
      */
     iniciarSincronizacaoAutomatica: () => {
         window.addEventListener('online', () => {
-            log.info('Conexão restaurada. Sincronizando pendências...');
             servicoSincronizacao.sincronizarTudo();
         });
 
@@ -75,7 +74,6 @@ export const servicoSincronizacao = {
 
         try {
             servicoSincronizacao._sincronizando = true;
-            log.info('Iniciando ciclo de sincronização...');
 
             await servicoSincronizacao.sincronizarRegistrosPendentes();
             await servicoSincronizacao.processarPendencias();

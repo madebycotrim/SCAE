@@ -1,4 +1,4 @@
-﻿/**
+/**
  * registrarLocal.ts - Utilitário de log padronizado para o sistema.
  * Segue as regras do Agents.md e PrintLog para mascaramento de PII.
  * Agora com interceptador global para permitir logs EXCLUSIVAMENTE para a conta do desenvolvedor.
@@ -55,8 +55,12 @@ export function mascararDadoPessoal(valor: string, tipo: 'email' | 'cartao' | 't
 
 export function criarRegistrador(modulo: string) {
     const formatarMensagem = (nivel: NivelLog, msg: string, contexto?: unknown) => {
-        // Barragem robusta dupla, impedindo impressões customizadas tbm.
+        // Barragem robusta dupla
         if (!usuarioDevAutorizado()) return;
+
+        // Silencia logs informativos a menos que exista uma flag de debug no localStorage
+        const debugAtivo = localStorage.getItem('SCAE_DEBUG') === 'true';
+        if ((nivel === 'info' || nivel === 'trace') && !debugAtivo) return;
 
         const timestamp = new Date().toISOString();
         const prefixo = `[${timestamp}] [${nivel.toUpperCase()}] [${modulo}]`;

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useQuery } from '@tanstack/react-query';
 import { usarEscola } from '@/escola/ProvedorEscola';
-import { Loader2, QrCode, Download, User, Calendar, CreditCard, WifiOff } from 'lucide-react';
+import { Loader2, QrCode, Download, User, Calendar, CreditCard, WifiOff, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
@@ -97,7 +97,7 @@ export default function CartaoDigital() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="w-full max-w-md bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-2xl"
+                        className="w-full max-w-md bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-md"
                     >
                         <div className="flex justify-center mb-6">
                             <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20">
@@ -147,7 +147,7 @@ export default function CartaoDigital() {
                             <button 
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2"
+                                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-2xl shadow-sm shadow-indigo-600/10 transition-all flex items-center justify-center gap-2"
                             >
                                 {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'GERAR CARTÃO'}
                             </button>
@@ -162,7 +162,7 @@ export default function CartaoDigital() {
                         {/* Cartão Digital Estilo Premium */}
                         <div 
                             ref={cartaoRef}
-                            className="w-full bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden border border-white/10"
+                            className="w-full bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-2xl p-6 shadow-md relative overflow-hidden border border-white/10"
                         >
                             {/* Círculos de fundo */}
                             <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
@@ -179,7 +179,7 @@ export default function CartaoDigital() {
                             </div>
 
                             <div className="flex flex-col items-center gap-6 relative">
-                                <div className="bg-white p-4 rounded-2xl shadow-xl border-4 border-white/20">
+                                <div className="bg-white p-4 rounded-2xl shadow-sm border-4 border-white/20">
                                     <QRCodeCanvas 
                                         id="qr-aluno"
                                         value={cartao?.dados?.qrPayload} 
@@ -231,21 +231,47 @@ export default function CartaoDigital() {
                             )}
                         </div>
 
+                        {/* Seção de Protocolo (Novo design premium) */}
+                        <div className="w-full bg-slate-800/50 border border-slate-700/50 rounded-3xl p-5 backdrop-blur-sm animate-in fade-in zoom-in duration-700">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                                        <ShieldCheck size={18} className="text-indigo-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[10px] font-black text-white uppercase tracking-widest leading-none">Protocolo de Validação</h4>
+                                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-1">Status: Proteção Ativa</p>
+                                    </div>
+                                </div>
+                                <div className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg">
+                                    <span className="text-[8px] font-black text-indigo-300 uppercase tracking-widest">
+                                        {cartao?.dados?.qrDinamico ? 'Funcionamento Dinâmico' : 'Funcionamento Offline'}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <p className="text-[10px] text-slate-400 font-bold leading-relaxed uppercase tracking-tight">
+                                {cartao?.dados?.qrDinamico 
+                                    ? 'Este código expira automaticamente para sua segurança. Evite tirar prints para garantir o acesso.'
+                                    : 'O código permanece o mesmo. Ideal para locais onde o aluno possui pouco sinal de internet.'}
+                            </p>
+                        </div>
+
                         {/* Ações */}
                         <div className="grid grid-cols-2 gap-4 w-full">
                             <button 
                                 onClick={handleDownload}
-                                className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-3"
+                                className="bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest py-4 rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-3 group"
                             >
-                                <Download className="w-5 h-5 text-indigo-400" />
-                                Salvar
+                                <Download className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                                Salvar ID
                             </button>
                             <button 
                                 onClick={() => setMostrarCartao(false)}
-                                className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-3"
+                                className="bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest py-4 rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-3 group"
                             >
-                                <QrCode className="w-5 h-5 text-indigo-400" />
-                                Novo
+                                <QrCode className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                                Novo Acesso
                             </button>
                         </div>
 

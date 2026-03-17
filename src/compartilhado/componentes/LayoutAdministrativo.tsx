@@ -115,32 +115,28 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             ]
         },
         {
-            titulo: 'Pedagógico',
+            titulo: 'Acadêmico',
             itens: [
                 { icone: Users, texto: 'Alunos', rota: '/alunos' },
                 { icone: Layers, texto: 'Turmas', rota: '/turmas' },
             ]
         },
         {
-            titulo: 'Controle',
+            titulo: 'Operação',
             itens: [
-                { icone: Clock, texto: 'Acessos', rota: '/configuracao-horarios' },
+                { icone: Clock, texto: 'Horários', rota: '/configuracao-horarios' },
                 { icone: AlertTriangle, texto: 'Risco de Abandono', rota: '/risco-abandono' },
                 { icone: FileText, texto: 'Relatórios', rota: '/relatorios' },
             ]
+        },
+        {
+            titulo: 'Sistema',
+            itens: [
+                ...(podeVerLogs ? [{ icone: ShieldCheck, texto: 'Logs', rota: '/logs' }] : []),
+                ...((ehAdmin || ehCentral) ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
+            ]
         }
-    ];
-
-    // Itens de administração por permissão
-    const itensMenuLogs = podeVerLogs
-        ? [{ icone: FileText, texto: 'Logs de Auditoria', rota: '/logs' }]
-        : [];
-
-    const itensMenuAdmin = (ehAdmin || ehCentral)
-        ? [{ icone: Shield, texto: 'Usuários do Sistema', rota: '/usuarios' }]
-        : [];
-
-    const itensMenuAdministracao = [...itensMenuLogs, ...itensMenuAdmin];
+    ].filter(g => g.itens.length > 0);
 
 
     const aoSair = async () => {
@@ -172,7 +168,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     if (usuario && usuario.ativo === false) {
         return (
             <div className="fixed inset-0 z-[9999] bg-slate-900 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-slate-100">
+                <div className="bg-white rounded-2xl shadow-md max-w-md w-full p-8 text-center border border-slate-100">
                     <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-rose-50/50">
                         <Lock size={40} className="text-rose-500" />
                     </div>
@@ -195,7 +191,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     if (usuario?.pendente) {
         return (
             <div className="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-slate-100">
+                <div className="bg-white rounded-2xl shadow-md max-w-md w-full p-8 text-center border border-slate-100">
                     <div className="w-20 h-20 bg-escola-claro rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-escola">
                         <Crown size={40} className="text-escola" />
                     </div>
@@ -334,51 +330,8 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         </div>
                     </div>
 
-                    {/* Seção Administrativa */}
-                    {itensMenuAdministracao.length > 0 && (
-                        <div>
-                            {!sidebarMinimizado && (
-                                <div className="mt-6 mb-2">
-                                    <p className="pl-3 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-3">
-                                        Administração
-                                    </p>
-                                </div>
-                            )}
+                    {/* Seção Administrativa removida a pedido do usuário */}
 
-                            <div className="space-y-0.5">
-                                {itensMenuAdministracao.map((item) => {
-                                    const Icone = item.icone;
-                                    const ativo = localizacao.pathname.startsWith(`${prefixoAdmin}${item.rota}`);
-
-                                    return (
-                                        <button
-                                            key={item.rota}
-                                            onClick={() => navegar(`${prefixoAdmin}${item.rota}`)}
-                                            className={`
-                                                w-full flex items-center transition-all duration-150 group
-                                                ${sidebarMinimizado ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'}
-                                                ${ativo
-                                                    ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-2xl'
-                                                    : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-2xl'
-                                                }
-                                            `}
-                                            title={sidebarMinimizado ? item.texto : ""}
-                                        >
-                                            <Icone
-                                                size={16}
-                                                className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
-                                            />
-                                            {!sidebarMinimizado && (
-                                                <span className="text-sm">
-                                                    {item.texto}
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
                 </nav>
 
                 {/* Seção de Notificações na Sidebar */}
@@ -425,7 +378,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     {notificacoesAberta && (
                         <div className={`
                             mt-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200
-                            ${sidebarMinimizado ? 'fixed left-20 ml-2 w-80 shadow-2xl z-[60]' : 'w-full'}
+                            ${sidebarMinimizado ? 'fixed left-20 ml-2 w-80 shadow-md z-[60]' : 'w-full'}
                         `}>
                             <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
                                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Recentes</span>
@@ -600,7 +553,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                         className="fixed inset-0 z-[45]"
                                         onClick={() => definirMostrarResultados(false)}
                                     />
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-md border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
                                         <div className="p-2 border-b border-slate-50 bg-slate-50/50">
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 py-1">Funcionalidades Sugeridas</p>
                                         </div>
