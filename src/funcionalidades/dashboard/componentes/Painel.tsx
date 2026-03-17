@@ -69,7 +69,7 @@ interface PropsCardEstatistica {
 
 const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }: PropsCardEstatistica) => {
     const corAcento = {
-        indigo: 'border-l-slate-400',
+        indigo: 'border-l-slate-400 ',
         amber: 'border-l-amber-500',
         rose: 'border-l-rose-500',
         emerald: 'border-l-emerald-500'
@@ -132,13 +132,13 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
                     definirRegistros(prev => {
                         const idsExistentes = new Set(prev.map(r => r.id));
                         const realmenteNovos = novos.filter((n: any) => !idsExistentes.has(n.id));
-                        
+
                         if (realmenteNovos.length === 0) return prev;
 
                         const listaCombinada = [...realmenteNovos, ...prev].slice(0, 30);
                         const maisNovo = listaCombinada[0]?.timestamp;
                         if (maisNovo) definirUltimaAtualizacao(maisNovo);
-                        
+
                         return listaCombinada;
                     });
                 }
@@ -148,7 +148,7 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
                 definirConectado(false);
             } finally {
                 if (montado) {
-                    timer = setTimeout(() => buscarNovos(), 4000); 
+                    timer = setTimeout(() => buscarNovos(), 4000);
                 }
             }
         };
@@ -158,7 +158,7 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
             montado = false;
             clearTimeout(timer);
         };
-    }, [ultimaAtualizacao, dashboardServico]); 
+    }, [ultimaAtualizacao, dashboardServico]);
 
     return (
         <CartaoConteudo className="h-full flex flex-col bg-white border border-slate-200 shadow-suave rounded-2xl overflow-hidden group">
@@ -181,7 +181,7 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-1 min-h-[350px]">
                 <AnimatePresence initial={false}>
                     {registros.length === 0 ? (
-                        <motion.div 
+                        <motion.div
                             key="empty"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -357,7 +357,7 @@ export default function Painel() {
             acoes={null}
         >
             <div className="space-y-8 pb-12">
-                
+
                 {/* --- LINHA DE KPIs ESSENCIAIS --- */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <CardEstatistica
@@ -395,7 +395,7 @@ export default function Painel() {
 
                 {/* --- ÁREA CENTRAL: ANÁLISE E TEMPO REAL --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    
+
                     {/* Gráfico de Frequência */}
                     <div className="lg:col-span-2">
                         <CartaoConteudo className="p-8 flex flex-col bg-white border border-slate-200 shadow-suave rounded-2xl overflow-hidden group min-h-[480px]">
@@ -411,7 +411,7 @@ export default function Painel() {
                                     <span className="text-[11px] font-black text-slate-600 uppercase">Média: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)} alunos/dia</span>
                                 </div>
                             </div>
-                            
+
                             <div className="flex-1 w-full relative min-h-[300px]">
                                 <Line data={dataLine} options={{
                                     maintainAspectRatio: false,

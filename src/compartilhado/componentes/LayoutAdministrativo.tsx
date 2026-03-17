@@ -4,7 +4,7 @@ import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
-import { usarNotificacoes } from '@/compartilhado/contextos/ContextoNotificacoes';
+import { usarNotificacoes, Notificacao } from '@/compartilhado/contextos/ContextoNotificacoes';
 import { usarBuscaGlobal } from '@/compartilhado/hooks/usarBuscaGlobal';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarInstalacaoPWA } from '@/compartilhado/hooks/usarInstalacaoPWA';
@@ -435,6 +435,100 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                     </div>
                                 </>
                             )}
+                        </div>
+
+                        {/* Notificações Premium */}
+                        <div className="relative">
+                            <button
+                                onClick={() => definirNotificacoesAberta(!notificacoesAberta)}
+                                className={`
+                                    relative p-2 rounded-2xl transition-all duration-200
+                                    ${notificacoesAberta ? 'bg-slate-100 text-slate-900 shadow-inner' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}
+                                `}
+                            >
+                                <Bell size={18} strokeWidth={2.5} />
+                                {naoLidas > 0 && (
+                                    <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white animate-fade-in shadow-sm">
+                                        {naoLidas > 9 ? '9+' : naoLidas}
+                                    </span>
+                                )}
+                            </button>
+
+                            <AnimatePresence>
+                                {notificacoesAberta && (
+                                    <>
+                                        <div className="fixed inset-0 z-[45]" onClick={() => definirNotificacoesAberta(false)} />
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            className="absolute top-full right-0 mt-3 w-80 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 z-[50] overflow-hidden origin-top-right"
+                                        >
+                                            <div className="px-5 py-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                                                <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Notificações</h4>
+                                                {naoLidas > 0 && (
+                                                    <button
+                                                        onClick={() => marcarTodasComoLidas()}
+                                                        className="text-[9px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-tighter"
+                                                    >
+                                                        Marcar como lidas
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="max-h-[380px] overflow-y-auto p-2 custom-scrollbar flex flex-col gap-1">
+                                                {notificacoes.length === 0 ? (
+                                                    <div className="py-12 text-center">
+                                                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                                            <Bell size={20} className="text-slate-300" />
+                                                        </div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nada por aqui</p>
+                                                    </div>
+                                                ) : (
+                                                    notificacoes.map((n: Notificacao) => (
+                                                        <div
+                                                            key={n.id}
+                                                            onClick={() => marcarComoLida(n.id)}
+                                                            className={`
+                                                                relative p-3 rounded-2xl transition-all group/notif cursor-pointer
+                                                                ${n.lida ? 'opacity-60 hover:opacity-100' : 'bg-slate-50/50 hover:bg-white border border-transparent hover:border-slate-100 hover:shadow-sm'}
+                                                            `}
+                                                        >
+                                                            {!n.lida && (
+                                                                <div className="absolute left-2 top-4 w-1 h-1 bg-indigo-600 rounded-full" />
+                                                            )}
+                                                            <div className="pl-3">
+                                                                <div className="flex justify-between items-start mb-0.5">
+                                                                    <p className="text-[11px] font-black text-slate-800 uppercase tracking-tight line-clamp-1">{n.titulo}</p>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            removerNotificacao(n.id);
+                                                                        }}
+                                                                        className="opacity-0 group-hover/notif:opacity-100 p-1 hover:bg-slate-100 rounded-md transition-all"
+                                                                    >
+                                                                        <X size={10} className="text-slate-400" />
+                                                                    </button>
+                                                                </div>
+                                                                <p className="text-[9px] font-bold text-slate-400 line-clamp-2 leading-relaxed mb-1 uppercase tracking-tighter">{n.mensagem}</p>
+                                                                <p className="text-[8px] font-black text-slate-300 uppercase">{new Date(n.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+
+                                            {notificacoes.length > 0 && (
+                                                <div className="p-3 bg-slate-50/50 border-t border-slate-50">
+                                                    <button className="w-full py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-colors">
+                                                        Ver Histórico Completo
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    </>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                         {acoes && (

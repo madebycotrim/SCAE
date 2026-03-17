@@ -76,7 +76,43 @@ function Layout({ children }: { children: ReactNode }) {
             <main className="flex-grow bg-gray-100">
                 {children}
             </main>
-            <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
+            <Toaster 
+                position="top-right" 
+                containerStyle={{ zIndex: 99999 }} 
+                toastOptions={{
+                    className: 'premium-toast',
+                    style: {
+                        background: '#ffffff',
+                        color: '#0f172a',
+                        borderRadius: '1rem',
+                        border: '1px solid #f1f5f9',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02)',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        padding: '12px 16px',
+                    },
+                    success: {
+                        iconTheme: {
+                            primary: '#10b981',
+                            secondary: '#ffffff',
+                        },
+                        style: {
+                            borderLeft: '4px solid #10b981',
+                        }
+                    },
+                    error: {
+                        iconTheme: {
+                            primary: '#f43f5e',
+                            secondary: '#ffffff',
+                        },
+                        style: {
+                            borderLeft: '4px solid #f43f5e',
+                        }
+                    },
+                }}
+            />
         </div>
     );
 }

@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+﻿import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
-import { dispararToast } from '@/compartilhado/componentes/NotificacaoPremium';
+import toast from 'react-hot-toast';
 
 const log = criarRegistrador('Notificacoes');
 
@@ -9,7 +9,7 @@ export interface Notificacao {
     id: string;
     titulo: string;
     mensagem: string;
-    tipo: 'info' | 'success' | 'warning' | 'error';
+    tipo: string;
     link: string | null;
     lida: boolean;
     timestamp: string;
@@ -64,11 +64,11 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
         // Suporta string simples ou objeto
         const conteudo = typeof dados === 'string' ? { titulo: 'Novo Aviso', mensagem: dados } : dados;
 
-        const nova: Notificacao = {
+        const nova = {
             id: crypto.randomUUID(),
             titulo: conteudo.titulo || 'Notificação',
             mensagem: conteudo.mensagem || '',
-            tipo: (conteudo.tipo as 'info' | 'success' | 'warning' | 'error') || 'info',
+            tipo: conteudo.tipo || 'info', // info, success, warning, error
             link: conteudo.link || null,
             lida: false,
             timestamp: new Date().toISOString()
@@ -81,9 +81,16 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
             return novaLista;
         });
 
-        // Feedback Visual Imediato via Toast Premium
-        dispararToast(nova.titulo, nova.mensagem, nova.tipo);
-        
+        // Feedback Visual Imediato via Toast
+        if (nova.tipo === 'error') {
+            toast.error(nova.titulo);
+        } else if (nova.tipo === 'success') {
+            toast.success(nova.titulo);
+        } else if (nova.tipo === 'warning') {
+            toast(nova.titulo, { icon: '??' });
+        } else {
+            toast(nova.titulo, { icon: '??' });
+        }
     }, []);
 
     const marcarComoLida = (id: string) => {
