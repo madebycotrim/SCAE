@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarEscola } from '@/escola/ProvedorEscola';
@@ -23,7 +23,12 @@ export default function TelaAcesso() {
         definirErro('');
 
         try {
-            const params = (dominioEmail && tipo !== 'admin') ? { hd: dominioEmail } : {};
+            const params: Record<string, string> = {};
+            if (dominioEmail && tipo !== 'admin') {
+                const dominioLimpo = dominioEmail.replace('@', '');
+                params.hd = dominioLimpo;
+                params.login_hint = `@${dominioLimpo}`; // Tenta pré-preencher o campo de email no Google
+            }
             const resultado = await entrar(params) as { user: { email: string } };
             const usuario = resultado.user;
             const email = usuario.email;
