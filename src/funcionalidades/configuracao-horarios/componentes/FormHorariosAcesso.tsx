@@ -23,7 +23,11 @@ import {
     WifiOff,
     Check,
     X,
-    Lock
+    Lock,
+    Sun,
+    CloudSun,
+    Moon,
+    Timer
 } from 'lucide-react';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
 
@@ -46,6 +50,25 @@ export default function FormHorariosAcesso() {
             definirJanelas(regras);
         }
     }, [regras]);
+
+    const obterTurnoConfig = (hora: string) => {
+        if (!hora) return { label: 'Turno Indefinido', icone: Clock, cor: 'indigo', css: 'text-slate-400 bg-slate-50 border-slate-200' };
+        const h = parseInt(hora.split(':')[0], 10);
+        if (h >= 5 && h < 12) return { label: 'Turno Matutino', icone: Sun, cor: 'amber', css: 'text-amber-600 bg-amber-50 border-amber-100' };
+        if (h >= 12 && h < 18) return { label: 'Turno Vespertino', icone: CloudSun, cor: 'orange', css: 'text-orange-600 bg-orange-50 border-orange-100' };
+        return { label: 'Turno Noturno', icone: Moon, cor: 'indigo', css: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
+    };
+
+    const calcularDuracao = (inicio: string, fim: string) => {
+        if (!inicio || !fim) return '';
+        const [h1, m1] = inicio.split(':').map(Number);
+        const [h2, m2] = fim.split(':').map(Number);
+        let totalMinutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (totalMinutos < 0) return '';
+        const h = Math.floor(totalMinutos / 60);
+        const m = totalMinutos % 60;
+        return h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ''}` : `${m}m`;
+    };
 
     const adicionarJanela = () => {
         definirJanelas([
@@ -71,6 +94,12 @@ export default function FormHorariosAcesso() {
     const atualizarJanela = (indice: number, campo: string, valor: string) => {
         const novasJanelas = [...janelas];
         novasJanelas[indice] = { ...novasJanelas[indice], [campo]: valor };
+        
+        // Se mudou a hora, recalcula o título inteligente
+        if (campo === 'horaInicio') {
+            novasJanelas[indice].descricao = obterTurnoConfig(valor).label;
+        }
+        
         definirJanelas(novasJanelas);
     };
 
@@ -329,160 +358,116 @@ export default function FormHorariosAcesso() {
                             </CartaoConteudo>
                         )}
 
-                        <div className="grid grid-cols-1 gap-6">
+                        <div className="relative pl-8 space-y-12 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200/60">
                             {janelas.map((janela, indice) => {
                                 const isEntrada = janela.tipoAcesso === 'ENTRADA';
-                                const corBgCard = isEntrada ? 'bg-[#FFB800]' : 'bg-indigo-600';
-                                const corTextoCard = isEntrada ? 'text-amber-950' : 'text-white';
+                                const turno = obterTurnoConfig(janela.horaInicio);
+                                const duracao = calcularDuracao(janela.horaInicio, janela.horaFim);
 
                                 return (
-                                    <div
-                                        key={indice}
-                                        className="relative bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row overflow-hidden group/card"
-                                    >
-                                        {/* LADO ESQUERDO (Status visual) */}
-                                        <div className={`w-full md:w-[300px] shrink-0 flex flex-col justify-center items-center py-10 relative overflow-hidden transition-all duration-500 ${
-                                            isEntrada 
-                                            ? 'bg-gradient-to-br from-[#FFB800] to-[#FF9500] text-amber-950' 
-                                            : 'bg-gradient-to-br from-indigo-600 to-indigo-800 text-white'
-                                        }`}>
+                                    <div key={indice} className="relative group/item">
+                                        {/* Marcador da Timeline */}
+                                        <div className={`absolute -left-[31px] top-6 w-5 h-5 rounded-full border-4 border-white shadow-md z-10 transition-all duration-500 group-hover/item:scale-125 ${
+                                            isEntrada ? 'bg-amber-500' : 'bg-indigo-600'
+                                        }`}></div>
 
-                                            {/* Efeitos de Profundidade */}
-                                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-700"></div>
-                                            <div className="absolute -top-20 -left-20 w-40 h-40 bg-white/20 blur-3xl rounded-full"></div>
-
-                                            {/* Watermark Arrow */}
-                                            <div className={`absolute -left-6 top-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-700 group-hover/card:scale-110 ${
-                                                isEntrada ? 'opacity-[0.12] mix-blend-overlay' : 'opacity-[0.06]'
-                                            }`}>
-                                                {isEntrada ? <ArrowRight size={240} strokeWidth={2.5} /> : <ArrowLeft size={240} strokeWidth={2.5} />}
-                                            </div>
-
-                                            <div className="relative z-10 flex flex-col items-center">
-                                                {/* Ícone no top */}
-                                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-5 backdrop-blur-md shadow-xl transition-transform duration-500 group-hover/card:scale-105 ${
-                                                    isEntrada
-                                                    ? 'bg-white/90 text-amber-600 border border-white'
-                                                    : 'bg-white/20 text-white border border-white/30'
-                                                }`}>
-                                                    {isEntrada ? <LogIn size={30} strokeWidth={2.5} /> : <LogOut size={30} strokeWidth={2.5} />}
-                                                </div>
-
-                                                <span className={`text-[12px] font-[1000] tracking-[0.3em] uppercase mb-3 ${
-                                                    isEntrada ? 'text-amber-900/60' : 'text-white/60'
-                                                }`}>
-                                                    {isEntrada ? 'Sinal de Entrada' : 'Sinal de Saída'}
-                                                </span>
-
-                                                <div className="flex items-center gap-4 font-[1000] text-[28px] tracking-tighter">
-                                                    <span className="drop-shadow-sm">{janela.horaInicio || '--:--'}</span>
-                                                    <div className={`w-8 h-1 rounded-full ${isEntrada ? 'bg-amber-900/20' : 'bg-white/30'}`}></div>
-                                                    <span className="drop-shadow-sm">{janela.horaFim || '--:--'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* LADO DIREITO (Configurações) */}
-                                        <div className="flex-1 p-8 md:p-10 flex flex-col justify-center bg-white relative">
-
-                                            {/* Header Interno do Lado Direito */}
-                                            <div className="flex justify-between items-center mb-8">
-                                                <div>
-                                                    <h5 className="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-1">
-                                                        Parametrização do Sistema
-                                                    </h5>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">ID da Janela: #{(indice + 1).toString().padStart(2, '0')}</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => removerJanela(indice)}
-                                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all active:scale-95 absolute top-6 right-6 md:static"
-                                                    title="Remover horário"
-                                                >
-                                                    <Trash2 size={20} strokeWidth={2} />
-                                                </button>
-                                            </div>
-
-                                            {/* Inputs do Formulário */}
-                                            <div className="flex flex-col lg:flex-row gap-5 items-end">
-
-                                                {/* Identificação */}
-                                                <div className="flex-1 min-w-[200px] w-full">
-                                                    <label className="block text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-2.5 ml-1">
-                                                        TÍTULO DO HORÁRIO
-                                                    </label>
-                                                        <input
-                                                            type="text"
-                                                            value={janela.descricao || ''}
-                                                            onChange={(e) => atualizarJanela(indice, 'descricao', e.target.value)}
-                                                            placeholder="Ex: Turno Matutino"
-                                                            className="w-full px-5 h-14 bg-slate-50 border border-slate-200 rounded-2xl text-[13px] font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all placeholder:text-slate-300/80 shadow-inner"
-                                                        />
-                                                </div>
-
-                                                {/* Sentido */}
-                                                <div className="w-full lg:w-auto shrink-0">
-                                                    <label className="block text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-2.5 ml-1">
-                                                        SENTIDO
-                                                    </label>
-                                                    <div className="flex flex-row items-center bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/60 w-[160px] h-14">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => atualizarJanela(indice, 'tipoAcesso', 'ENTRADA')}
-                                                            className={`flex-1 flex justify-center items-center h-full text-[10px] font-black rounded-xl transition-all ${janela.tipoAcesso === 'ENTRADA'
-                                                                ? 'bg-white text-indigo-600 shadow-media border border-indigo-100'
-                                                                : 'text-slate-400 hover:text-slate-600'
-                                                                }`}
-                                                        >
-                                                            ENTRADA
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => atualizarJanela(indice, 'tipoAcesso', 'SAIDA')}
-                                                            className={`flex-1 flex justify-center items-center h-full text-[10px] font-black rounded-xl transition-all ${janela.tipoAcesso === 'SAIDA'
-                                                                ? 'bg-white text-indigo-600 shadow-media border border-indigo-100'
-                                                                : 'text-slate-400 hover:text-slate-600'
-                                                                }`}
-                                                        >
-                                                            SAÍDA
-                                                        </button>
+                                        <div className="bg-white rounded-3xl border border-slate-200/60 shadow-suave hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden">
+                                            {/* Header do Card */}
+                                            <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover/item:rotate-12 ${turno.css}`}>
+                                                        <turno.icone size={18} strokeWidth={2.5} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest leading-none mb-1">
+                                                            {turno.label}
+                                                        </h4>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Janela #{indice + 1}</span>
+                                                            {duracao && (
+                                                                <span className="flex items-center gap-1 text-[9px] font-black text-indigo-500/60 uppercase bg-indigo-50 px-2 py-0.5 rounded-full">
+                                                                    <Timer size={10} /> {duracao}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Abre às e Fecha às */}
-                                                <div className="w-full lg:w-auto shrink-0 flex items-center justify-between gap-3">
-                                                    <div className="w-[100px]">
-                                                        <label className="block text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-2.5 ml-1">
-                                                            ABRE ÀS
-                                                        </label>
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-dashed ${
+                                                        isEntrada ? 'text-amber-600 border-amber-200 bg-amber-50/30' : 'text-indigo-600 border-indigo-200 bg-indigo-50/30'
+                                                    }`}>
+                                                        Fluxo de {isEntrada ? 'Entrada' : 'Saída'}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removerJanela(indice)}
+                                                        className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Corpo do Card */}
+                                            <div className="p-6 lg:p-10 flex flex-col md:flex-row items-center gap-8 lg:gap-12">
+                                                
+                                                {/* Seção das Horas */}
+                                                <div className="flex items-center gap-4 bg-slate-50/80 p-2 rounded-[2.5rem] border border-slate-100">
+                                                    <div className="flex flex-col items-center">
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Início</label>
                                                         <input
                                                             type="time"
                                                             value={janela.horaInicio}
                                                             onChange={(e) => atualizarJanela(indice, 'horaInicio', e.target.value)}
-                                                            className={`w-full h-14 bg-slate-50 border rounded-2xl text-[16px] font-black outline-none transition-all text-center ${janela.horaInicio >= janela.horaFim
-                                                                ? 'border-rose-400 text-rose-600 bg-rose-50 focus:ring-4 focus:ring-rose-100'
-                                                                : 'border-slate-200 text-slate-800 focus:bg-white focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600'
-                                                                }`}
+                                                            className="w-24 h-16 bg-white border border-slate-200 rounded-3xl text-xl font-black text-center text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm"
                                                         />
                                                     </div>
-
-                                                    <div className="w-4 h-px bg-slate-200 shrink-0 mt-[28px]"></div>
-
-                                                    <div className="w-[110px]">
-                                                        <label className="block text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-2.5 ml-1">
-                                                            FECHA ÀS
-                                                        </label>
+                                                    <div className="w-6 h-1 bg-slate-200 rounded-full mt-6"></div>
+                                                    <div className="flex flex-col items-center">
+                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Fim</label>
                                                         <input
                                                             type="time"
                                                             value={janela.horaFim}
                                                             onChange={(e) => atualizarJanela(indice, 'horaFim', e.target.value)}
-                                                            className={`w-full h-14 bg-slate-50 border rounded-2xl text-[16px] font-black outline-none transition-all text-center ${janela.horaInicio >= janela.horaFim
-                                                                ? 'border-rose-400 text-rose-600 bg-rose-50 focus:ring-4 focus:ring-rose-100'
-                                                                : 'border-slate-200 text-slate-800 focus:bg-white focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600'
-                                                                }`}
+                                                            className="w-24 h-16 bg-white border border-slate-200 rounded-3xl text-xl font-black text-center text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm"
                                                         />
                                                     </div>
                                                 </div>
 
+                                                {/* Seção do Sentido */}
+                                                <div className="flex-1 w-full space-y-3">
+                                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Configurar Sentido do Fluxo</label>
+                                                    <div className="flex items-center bg-slate-100/50 p-2 rounded-[2.5rem] border border-slate-200/40 h-20">
+                                                        <button
+                                                            onClick={() => atualizarJanela(indice, 'tipoAcesso', 'ENTRADA')}
+                                                            className={`flex-1 flex flex-col justify-center items-center h-full rounded-3xl transition-all gap-1 ${
+                                                                isEntrada ? 'bg-white text-amber-600 shadow-xl shadow-amber-500/10 border border-amber-100' : 'text-slate-400 hover:text-slate-600'
+                                                            }`}
+                                                        >
+                                                            <LogIn size={16} strokeWidth={isEntrada ? 3 : 2} />
+                                                            <span className="text-[10px] font-[1000] tracking-widest">ENTRADA</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => atualizarJanela(indice, 'tipoAcesso', 'SAIDA')}
+                                                            className={`flex-1 flex flex-col justify-center items-center h-full rounded-3xl transition-all gap-1 ${
+                                                                !isEntrada ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-500/10 border border-indigo-100' : 'text-slate-400 hover:text-slate-600'
+                                                            }`}
+                                                        >
+                                                            <LogOut size={16} strokeWidth={!isEntrada ? 3 : 2} />
+                                                            <span className="text-[10px] font-[1000] tracking-widest uppercase">Saída</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Visual Summary (Right side on desktop) */}
+                                                <div className="hidden xl:flex flex-col items-center justify-center border-l border-slate-100 pl-12 py-2">
+                                                    <div className={`text-3xl font-black tracking-tighter flex items-baseline gap-1 ${isEntrada ? 'text-amber-500' : 'text-indigo-600'}`}>
+                                                        {janela.horaInicio}
+                                                        <span className="text-xs text-slate-300">até</span>
+                                                        {janela.horaFim}
+                                                    </div>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">Status Portaria</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

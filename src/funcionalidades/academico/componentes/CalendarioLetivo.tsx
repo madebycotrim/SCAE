@@ -123,9 +123,9 @@ export default function CalendarioLetivo() {
                             <button 
                                 type="submit"
                                 disabled={mutationAdicionar.isPending}
-                                className="w-full py-4 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg active:scale-95"
+                                className="w-full py-4 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
                             >
-                                {mutationAdicionar.isPending ? 'Salvando...' : 'Adicionar ao Calendário'}
+                                {mutationAdicionar.isPending ? 'Sincronizando...' : 'Adicionar ao Calendário'}
                             </button>
                         </form>
 
@@ -165,10 +165,12 @@ export default function CalendarioLetivo() {
                         {isLoading ? (
                             <div className="p-12 text-center text-slate-400">Carregando calendário...</div>
                         ) : !Array.isArray(dias) || dias.length === 0 ? (
-                            <div className="p-20 text-center flex flex-col items-center">
-                                <CalendarIcon size={48} className="text-slate-200 mb-4" />
-                                <p className="text-slate-400 font-bold">Nenhum feriado ou recesso cadastrado ainda.</p>
-                                <p className="text-[11px] text-slate-300 mt-1 uppercase tracking-widest">O motor usará apenas os dias úteis padrão.</p>
+                            <div className="p-24 text-center flex flex-col items-center justify-center animate-fade-in">
+                                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-5 border border-slate-100 shadow-sm">
+                                    <CalendarIcon size={32} className="text-slate-200" />
+                                </div>
+                                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2">Sem registros ativos</h3>
+                                <p className="text-[9px] font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest leading-relaxed">Nenhum feriado ou recesso cadastrado ainda. O motor usará apenas os dias úteis padrão.</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-slate-100">

@@ -36,10 +36,22 @@ export default function CartaoDigital() {
     useEffect(() => {
         const cache = localStorage.getItem(`scae_cartao_${slugEscola}`);
         if (cache && !mostrarCartao) {
-            // Se já temos cache, poderíamos pular o login? 
-            // Melhor não por segurança, mas o dado está pronto para quando ele logar offline.
+            // No modo offline, deixamos o cache aparecer mas avisamos
         }
     }, [slugEscola]);
+
+    // Lógica de atualização dinâmica (Auto-refresh do QR)
+    useEffect(() => {
+        let intervalo: any;
+        
+        if (mostrarCartao && cartao?.dados?.qrDinamico && navigator.onLine) {
+            intervalo = setInterval(() => {
+                refetch();
+            }, 15000); // 15 segundos conforme a regra de ouro
+        }
+
+        return () => clearInterval(intervalo);
+    }, [mostrarCartao, cartao?.dados?.qrDinamico, refetch]);
 
     const handleAcessar = (e: React.FormEvent) => {
         e.preventDefault();
@@ -187,6 +199,13 @@ export default function CartaoDigital() {
                                     <p className="text-indigo-300 text-xs mt-1">
                                         Matrícula: {cartao?.dados?.matricula}
                                     </p>
+                                    
+                                    {cartao?.dados?.qrDinamico && (
+                                        <div className="mt-3 flex items-center justify-center gap-1.5">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                                            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Código Dinâmico Ativo</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

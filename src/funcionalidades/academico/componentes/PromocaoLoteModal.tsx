@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { SelectComBusca } from '@/compartilhado/componentes/SelectComBusca';
 import { CheckCircle, Users, ArrowRight, GraduationCap } from 'lucide-react';
@@ -35,9 +35,9 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
         >
             <div className="space-y-8 pb-4">
                 {/* Banner de Resumo Sóbrio V2 */}
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 relative overflow-hidden">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
                     <div className="flex items-center gap-5 relative z-10">
-                        <div className="w-12 h-12 bg-slate-800 text-slate-400 border border-slate-700 rounded-lg flex items-center justify-center shadow-suave">
+                        <div className="w-12 h-12 bg-slate-800 text-slate-400 border border-slate-700 rounded-xl flex items-center justify-center shadow-suave">
                             <Users size={24} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -64,11 +64,11 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
                         value={novaTurma}
                         onChange={(valor) => definirNovaTurma(valor as string)}
                         placeholder="Selecione a turma..."
-                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all shadow-suave"
+                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all shadow-suave"
                     />
-
-                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
-                        <div className="p-1.5 bg-slate-100 rounded text-slate-400 shrink-0">
+ 
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-3">
+                        <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 shrink-0">
                             <ArrowRight size={12} />
                         </div>
                         <p className="text-[9px] font-bold text-slate-500 leading-normal uppercase tracking-tight">

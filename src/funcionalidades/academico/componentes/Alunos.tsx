@@ -161,7 +161,7 @@ export default function Alunos() {
             acoes={AcoesHeader}
             carregando={carregando}
         >
-            <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-xl">
+            <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
                 <div className="flex flex-col gap-1.5 flex-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Aluno</label>
                     <InputBusca
@@ -169,7 +169,7 @@ export default function Alunos() {
                         placeholder="Nome, matrícula ou turma..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-8 rounded-lg"
+                        className="w-full h-8 rounded-xl"
                     />
                 </div>
 
@@ -177,12 +177,12 @@ export default function Alunos() {
                     {/* Filtro de Ano Letivo */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-8">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
                             {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                                 <button
                                     key={ano}
                                     onClick={() => definirFiltroAnoLetivo(ano)}
-                                    className={`px-4 h-full rounded-md text-[9px] font-black uppercase tracking-widest transition-all border ${filtroAnoLetivo === ano
+                                    className={`px-4 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${filtroAnoLetivo === ano
                                         ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
                                         : 'text-slate-400 border-transparent hover:text-slate-600'
                                         }`}
@@ -198,12 +198,12 @@ export default function Alunos() {
                     {/* Filtro de Status */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-lg border border-slate-200 h-8">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
                             {(['ativos', 'inativos', 'todos'] as const).map((status) => (
                                 <button
                                     key={status}
                                     onClick={() => definirFiltroStatus(status)}
-                                    className={`px-3 h-full rounded-md text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
+                                    className={`px-3 h-full rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
                                         ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                         : 'text-slate-400 border-transparent hover:text-slate-600'
                                         }`}

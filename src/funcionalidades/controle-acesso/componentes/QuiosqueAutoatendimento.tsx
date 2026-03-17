@@ -90,6 +90,16 @@ export default function QuiosqueAutoatendimento() {
             const [matricula, timestampEmissao, assinatura] = partesQR;
             const payloadAssinado = `${matricula}|${timestampEmissao}`;
 
+            // Validação Temporal (Anti-Print / Anti-Foto)
+            const agora = ajustarTimestampLocal(Date.now());
+            const emissaoMs = parseInt(timestampEmissao) * 1000;
+            const idadeSegundos = Math.floor((agora - emissaoMs) / 1000);
+
+            if (escola.qrDinamico && idadeSegundos > 25) { // 15s + 10s de tolerância
+                lancarErroValidacao("QR Expirado. Use o app original.", retomarCamera);
+                return;
+            }
+
             const pk = await obterChavePublica(escola.id);
             const chaveValida = await verificarAssinaturaECDSA(payloadAssinado, assinatura, pk);
 

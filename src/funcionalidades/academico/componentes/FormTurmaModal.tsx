@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { BookOpen, Users, GraduationCap, ChevronRight, CheckCircle, MapPin, Calendar, Clock, Hash, ArrowLeft } from 'lucide-react';
 import { Botao } from '@/compartilhado/componentes/UI';
@@ -83,7 +83,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                             type="button"
                                             disabled={!!turma}
                                             onClick={() => definirSerieTurma(s)}
-                                            className={`h-11 rounded-lg text-xs font-black transition-all border ${serieTurma === s
+                                            className={`h-11 rounded-xl text-[11px] font-black transition-all border uppercase tracking-wider ${serieTurma === s
                                                 ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
                                                 : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:bg-slate-50'
                                                 }`}
@@ -106,7 +106,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                             type="button"
                                             disabled={!!turma}
                                             onClick={() => definirLetraTurma(l)}
-                                            className={`w-10 h-10 rounded-lg text-base font-black transition-all border ${letraTurma === l
+                                            className={`w-10 h-10 rounded-xl text-base font-black transition-all border ${letraTurma === l
                                                 ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
                                                 : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 hover:text-slate-800 disabled:opacity-50'
                                                 }`}
@@ -128,7 +128,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                             key={t}
                                             type="button"
                                             onClick={() => definirTurno(t)}
-                                            className={`h-9 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${turno === t
+                                            className={`h-9 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${turno === t
                                                 ? 'bg-slate-900 border-slate-900 text-white shadow-suave'
                                                 : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 hover:bg-slate-50'
                                                 }`}
@@ -151,7 +151,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                         type="number"
                                         value={anoLetivo}
                                         onChange={(e) => definirAnoLetivo(e.target.value)}
-                                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all disabled:bg-slate-100 disabled:text-slate-500"
+                                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all disabled:bg-slate-100 disabled:text-slate-500"
                                         disabled={!!turma}
                                     />
                                 </div>
@@ -184,7 +184,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                         value={professorRegente}
                                         onChange={(e) => definirProfessorRegente(e.target.value)}
                                         placeholder="Nome do docente responsável"
-                                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all"
+                                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all"
                                     />
                                 </div>
 
@@ -198,7 +198,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                         value={sala}
                                         onChange={(e) => definirSala(e.target.value)}
                                         placeholder="Ex: Bloco B - Sala 12"
-                                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all"
+                                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all"
                                     />
                                 </div>
                             </div>

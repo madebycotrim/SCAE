@@ -70,30 +70,30 @@ export default function Turmas() {
     // Mapeamento de Cores e Ãcones por Turno
     const CONFIG_TURNO = {
         'Matutino': {
-            bg: 'bg-slate-50',
-            text: 'text-slate-600',
-            border: 'border-slate-200',
+            bg: 'bg-amber-50',
+            text: 'text-amber-700',
+            border: 'border-amber-200',
             indicator: 'bg-amber-400',
             icone: Sun
         },
         'Vespertino': {
-            bg: 'bg-slate-50',
-            text: 'text-slate-600',
-            border: 'border-slate-200',
+            bg: 'bg-sky-50',
+            text: 'text-sky-700',
+            border: 'border-sky-200',
             indicator: 'bg-sky-400',
             icone: CloudSun
         },
         'Noturno': {
             bg: 'bg-slate-50',
-            text: 'text-slate-600',
+            text: 'text-slate-700',
             border: 'border-slate-200',
             indicator: 'bg-slate-600',
             icone: Moon
         },
         'Integral': {
-            bg: 'bg-slate-50',
-            text: 'text-slate-600',
-            border: 'border-slate-200',
+            bg: 'bg-emerald-50',
+            text: 'text-emerald-700',
+            border: 'border-emerald-200',
             indicator: 'bg-emerald-500',
             icone: Zap
         }
@@ -195,7 +195,7 @@ export default function Turmas() {
             acoes={AcoesHeader}
             carregando={carregando}
         >
-            <BarraFiltro className="p-3">
+            <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
                 <div className="flex flex-col gap-1.5 flex-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Turma</label>
                     <InputBusca
@@ -203,7 +203,7 @@ export default function Turmas() {
                         placeholder="Nome, professor ou turno..."
                         value={termoBusca}
                         onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-8 rounded-2xl"
+                        className="w-full h-8 rounded-xl"
                     />
                 </div>
 
@@ -211,12 +211,12 @@ export default function Turmas() {
                     {/* Filtro de Ano */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-200 h-8">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
                             {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
                                 <button
                                     key={ano}
                                     onClick={() => definirFiltroAnoLetivo(ano)}
-                                    className={`px-4 h-full rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
+                                    className={`px-4 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${filtroAnoLetivo === ano
                                         ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
                                         : 'text-slate-400 border-transparent hover:text-slate-600'
                                         }`}
@@ -230,14 +230,14 @@ export default function Turmas() {
                     {/* Filtro de Turno */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Turno</label>
-                        <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-200 h-8">
+                        <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
                             {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
                                 const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIG_TURNO[filtro as keyof typeof CONFIG_TURNO]?.icone || Clock);
                                 return (
                                     <button
                                         key={filtro}
                                         onClick={() => definirFiltroTurno(filtro)}
-                                        className={`px-3 h-full rounded-2xl text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
+                                        className={`px-3 h-full rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroTurno === filtro
                                             ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
                                             : 'text-slate-400 border-transparent hover:text-slate-600'
                                             }`}
@@ -254,21 +254,21 @@ export default function Turmas() {
 
             {/* Listagem em Tabela SaaS */}
             <CartaoConteudo className="mt-8">
-                <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse whitespace-nowrap">
-                        <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-200">
-                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turma</th>
-                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Regente</th>
-                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Sala</th>
-                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turno</th>
-                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupação</th>
-                                <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {carregando ? (
-                                Array.from({ length: 6 }).map((_, i) => (
+                {carregando ? (
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-200">
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turma</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Regente</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Sala</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turno</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupação</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {Array.from({ length: 6 }).map((_, i) => (
                                     <tr key={i} className="animate-fade-in">
                                         <td className="py-5 px-8"><Esqueleto className="w-24 h-4" /></td>
                                         <td className="py-5 px-8"><Esqueleto className="w-32 h-4" /></td>
@@ -277,18 +277,33 @@ export default function Turmas() {
                                         <td className="py-5 px-8"><Esqueleto className="w-28 h-4 rounded-full" /></td>
                                         <td className="py-5 px-8 text-right"><Esqueleto className="w-24 h-8 ml-auto" /></td>
                                     </tr>
-                                ))
-                            ) : turmasFiltradas.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="py-24 text-center">
-                                        <div className="flex flex-col items-center gap-4 opacity-50 grayscale">
-                                            <BookOpen size={48} className="text-slate-400" />
-                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhuma turma encontrada</p>
-                                        </div>
-                                    </td>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : turmasFiltradas.length === 0 ? (
+                    <div className="py-24 text-center flex flex-col items-center justify-center animate-fade-in">
+                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-5 border border-slate-100 shadow-sm">
+                            <BookOpen size={32} className="text-slate-200" />
+                        </div>
+                        <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2">Turmas não identificadas</h3>
+                        <p className="text-[9px] font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest text-center leading-relaxed">Nenhuma unidade escolar corresponde aos filtros aplicados.</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-200">
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turma</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Regente</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Sala</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Turno</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupação</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
                                 </tr>
-                            ) : (
-                                turmasFiltradas.map((turma) => {
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {turmasFiltradas.map((turma) => {
                                     const lotacao = turma.lotacao_maxima || 40;
                                     const totalAlunos = turma.totalAlunos || 0;
                                     const ocupacao = (totalAlunos / lotacao) * 100;
@@ -358,11 +373,11 @@ export default function Turmas() {
                                             </td>
                                         </tr>
                                     );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </CartaoConteudo>
 
             {modalAberto && (

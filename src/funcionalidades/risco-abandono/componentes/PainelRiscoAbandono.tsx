@@ -130,9 +130,9 @@ export default function PainelRiscoAbandono() {
                 </div>
 
                 {/* Toolbar de Filtros */}
-                <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
-                    <div className="flex flex-col gap-2.5 flex-1">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Buscar Aluno</label>
+                <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
+                    <div className="flex flex-col gap-1.5 flex-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Buscar Aluno</label>
                         <InputBusca
                             icone={Search}
                             placeholder="Pesquisar por nome ou matrícula..."
@@ -141,14 +141,14 @@ export default function PainelRiscoAbandono() {
                                 definirPesquisa(e.target.value);
                                 definirPaginaAtual(1);
                             }}
-                            className="w-full h-8 rounded-2xl"
+                            className="w-full h-8 rounded-xl"
                         />
                     </div>
 
                     <div className="flex flex-wrap md:flex-nowrap gap-6 items-end">
-                        <div className="flex flex-col gap-2.5">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Situação do Alerta</label>
-                            <div className="flex items-center bg-white p-1 rounded-2xl border-2 border-slate-200 h-8 shadow-suave">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação do Alerta</label>
+                            <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 h-8">
                                 {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
                                     <button
                                         key={status}
@@ -156,9 +156,9 @@ export default function PainelRiscoAbandono() {
                                             definirFiltroStatus(status);
                                             definirPaginaAtual(1);
                                         }}
-                                        className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center border-2 ${filtroStatus === status
-                                            ? 'bg-slate-800 text-white border-2 border-slate-700 shadow-suave'
-                                            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-2 border-transparent'
+                                        className={`px-5 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center border ${filtroStatus === status
+                                            ? 'bg-slate-800 text-white border-slate-700 shadow-suave'
+                                            : 'text-slate-400 hover:text-slate-800 hover:bg-white border-transparent'
                                             }`}
                                     >
                                         {status === 'TODOS' ? 'Todos' : status === 'PENDENTE' ? 'Urgentes' : status === 'EM_ANALISE' ? 'Em Análise' : 'Resolvido'}
@@ -171,36 +171,51 @@ export default function PainelRiscoAbandono() {
 
                 {/* Tabela de Alertas SaaS Premium */}
                 <CartaoConteudo className="bg-white border-slate-200/60 shadow-2xl rounded-2xl overflow-hidden">
-                    <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse whitespace-nowrap">
-                            <thead>
-                                <tr className="bg-slate-50/80 border-b border-slate-200">
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Estudante</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Turma</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Motivo do Alerta</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Data do Alerta</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Situação</th>
-                                    <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {carregando ? (
-                                    [...Array(6)].map((_, i) => (
+                    {carregando ? (
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr className="bg-slate-50/80 border-b border-slate-200">
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Estudante</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Turma</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Motivo do Alerta</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Data do Alerta</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Situação</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {[...Array(6)].map((_, i) => (
                                         <tr key={i} className="animate-pulse">
                                             <td colSpan={6} className="py-8 px-8 h-18 bg-slate-50/30"></td>
                                         </tr>
-                                    ))
-                                ) : paginados.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="py-24 text-center">
-                                            <div className="flex flex-col items-center justify-center gap-4 opacity-40 grayscale">
-                                                <AlertCircle size={48} className="text-slate-400" />
-                                                <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhum aluno com faltas excessivas no momento</p>
-                                            </div>
-                                        </td>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : paginados.length === 0 ? (
+                        <div className="py-24 text-center flex flex-col items-center justify-center animate-fade-in px-8">
+                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-5 border border-slate-100 shadow-sm">
+                                <AlertCircle size={32} className="text-slate-200" />
+                            </div>
+                            <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2 leading-none">Alertas não identificados</h3>
+                            <p className="text-[9px] font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest text-center leading-relaxed">Nenhum aluno com critério de risco de abandono corresponde aos filtros.</p>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr className="bg-slate-50/80 border-b border-slate-200">
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Estudante</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Turma</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Motivo do Alerta</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Data do Alerta</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Situação</th>
+                                        <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th>
                                     </tr>
-                                ) : (
-                                    paginados.map((alerta) => (
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {paginados.map((alerta) => (
                                         <tr key={alerta.id} className="hover:bg-indigo-50/20 transition-colors group">
                                             <td className="py-6 px-8">
                                                 <div className="flex flex-col gap-0.5">
@@ -253,11 +268,11 @@ export default function PainelRiscoAbandono() {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </CartaoConteudo>
 
                 {/* Paginação Premium */}

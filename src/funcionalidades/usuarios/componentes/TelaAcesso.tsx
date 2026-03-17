@@ -17,6 +17,19 @@ export default function TelaAcesso() {
 
     const [erro, definirErro] = useState('');
     const [carregando, definirCarregando] = useState(false);
+    const [cliquesAdmin, definirCliquesAdmin] = useState(0);
+
+    const lidarComCliqueAdmin = () => {
+        const novoTotal = cliquesAdmin + 1;
+        if (novoTotal >= 3) {
+            definirCliquesAdmin(0);
+            handleGoogleLogin('admin');
+        } else {
+            definirCliquesAdmin(novoTotal);
+            // Resetar cliques após 2 segundos de inatividade
+            setTimeout(() => definirCliquesAdmin(0), 2000);
+        }
+    };
 
     const handleGoogleLogin = async (tipo: 'admin' | 'user') => {
         definirCarregando(true);
@@ -216,14 +229,13 @@ export default function TelaAcesso() {
                 </div>
 
                 {/* Assinatura — canto inferior direito */}
-                <div className="absolute bottom-3 right-5 z-20">
-                    <button
-                        onClick={() => handleGoogleLogin('admin')}
-                        className="text-[9px] font-medium text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-[0.2em] px-3 py-1.5 rounded-full hover:bg-slate-100 opacity-40 hover:opacity-100"
-                        title="Acesso Administrativo"
+                <div className="absolute bottom-4 right-6 z-20">
+                    <span
+                        onClick={lidarComCliqueAdmin}
+                        className="text-[10px] font-bold text-slate-300 transition-opacity uppercase tracking-[0.3em] opacity-30 cursor-default select-none"
                     >
                         madebycotrim
-                    </button>
+                    </span>
                 </div>
             </div>
         </div>

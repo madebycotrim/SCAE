@@ -32,12 +32,12 @@ export default function ListaAlunos({
 }: ListaAlunosProps) {
     if (alunos.length === 0) {
         return (
-            <div className="bg-white rounded-2xl border border-slate-200 p-20 text-center animate-fade-in shadow-suave">
-                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-5 mx-auto border border-slate-100">
-                    <Users size={32} className="text-slate-300" />
+            <div className="bg-white rounded-2xl border border-slate-200 p-24 text-center animate-fade-in shadow-suave flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-5 border border-slate-100 shadow-sm">
+                    <Users size={32} className="text-slate-200" />
                 </div>
-                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2 text-center ml-2">Dados não identificados</h3>
-                <p className="text-[9px] font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest text-center">Nenhum registro de discente corresponde aos filtros.</p>
+                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2">Dados não identificados</h3>
+                <p className="text-[9px] font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest leading-relaxed">Nenhum registro de discente corresponde aos critérios de filtragem definidos.</p>
             </div>
         );
     }
@@ -166,7 +166,7 @@ export default function ListaAlunos({
                 totalPaginas > 1 && (
                     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-suave mt-8">
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-2xl">
+                            <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl">
                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
                                 <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
                             </div>

@@ -38,36 +38,49 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     const configsEscola = await ServicoCache.buscarConfiguracoes(idEscola, contexto.env);
     const expiraEm = configsEscola?.qrDinamico ? '24h' : '365d';
 
-    // 4. Gerar QR Payload Assinado
+    // 4. Gerar QR Payload Assinado (Formato: matricula|timestamp|assinatura)
     let qrPayload = '';
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const payloadParaAssinar = `${aluno.matricula}|${timestamp}`;
     
     try {
-        const payload = {
-            m: aluno.matricula,
-            e: idEscola,
-            v: 1
-        };
-
         if (aluno.chave_privada_ecdsa) {
-            const privateKey = await importPKCS8(aluno.chave_privada_ecdsa, 'ES256');
-            qrPayload = await new SignJWT(payload)
-                .setProtectedHeader({ alg: 'ES256' })
-                .setIssuedAt()
-                .setExpirationTime(expiraEm)
-                .sign(privateKey);
+            const encoder = new TextEncoder();
+            const data = encoder.encode(payloadParaAssinar);
+            
+            const rawSignature = await crypto.subtle.sign(
+                { name: 'ECDSA', hash: { name: 'SHA-256' } },
+                await crypto.subtle.importKey(
+                    'pkcs8',
+                    new Uint8Array(atob(aluno.chave_privada_ecdsa.replace(/-+BEGIN PRIVATE KEY-+\s?|-+END PRIVATE KEY-+\s?|\s/g, '')).split('').map(c => c.charCodeAt(0))),
+                    { name: 'ECDSA', namedCurve: 'P-256' },
+                    false,
+                    ['sign']
+                ),
+                data
+            );
+            
+            const assinaturaB64 = btoa(String.fromCharCode(...new Uint8Array(rawSignature)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+                
+            qrPayload = `${payloadParaAssinar}|${assinaturaB64}`;
         } else {
-            const secret = new TextEncoder().encode(contexto.env.JWT_SECRET);
-            qrPayload = await new SignJWT(payload)
-                .setProtectedHeader({ alg: 'HS256' })
-                .setIssuedAt()
-                .setExpirationTime(expiraEm)
-                .sign(secret);
+            const encoder = new TextEncoder();
+            const keyData = encoder.encode(contexto.env.JWT_SECRET || 'secret-key-scae');
+            const key = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+            const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payloadParaAssinar));
+            const assinaturaB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+            
+            qrPayload = `${payloadParaAssinar}|${assinaturaB64}`;
         }
     } catch (erro) {
         console.error('Erro ao assinar QR:', erro);
-        // Se falhar a assinatura robusta, retornamos o ID puro (menos seguro, mas evita bloqueio total no piloto)
-        // Em produção real, lançaríamos ErroInterno
-        qrPayload = `SCAE:${aluno.matricula}:${idEscola}`;
+        qrPayload = `${aluno.matricula}|${timestamp}|ASSINATURA_FALHOU`;
     }
 
     return Response.json({
@@ -75,7 +88,8 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
             matricula: aluno.matricula,
             nome_completo: aluno.nome_completo,
             turma_id: aluno.turma_id,
-            qrPayload
+            qrPayload,
+            qrDinamico: configsEscola?.qrDinamico || false
         },
         mensagem: 'Cartão digital gerado com sucesso'
     });

@@ -234,7 +234,7 @@ export default function Relatorios() {
                                                 <Calendar size={14} className="text-slate-400" />
                                                 Ano Letivo
                                             </div>
-                                            <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-100 h-12">
+                                            <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-100 h-10">
                                                 {[anoAtual - 1, anoAtual, anoAtual + 1].map((ano) => (
                                                     <button
                                                         key={ano}
@@ -242,8 +242,8 @@ export default function Relatorios() {
                                                             const periodo = calcularPeriodo(ano, filtros.semestre);
                                                             definirFiltros({ ...filtros, anoLetivo: ano, ...periodo });
                                                         }}
-                                                        className={`flex-1 h-full rounded-xl text-[11px] font-bold transition-all ${filtros.anoLetivo === ano
-                                                            ? 'bg-white text-slate-900 shadow-media border border-slate-100'
+                                                        className={`flex-1 h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filtros.anoLetivo === ano
+                                                            ? 'bg-white text-slate-900 shadow-media border border-slate-200'
                                                             : 'text-slate-400 hover:text-slate-600'}`}
                                                     >
                                                         {ano}
@@ -258,7 +258,7 @@ export default function Relatorios() {
                                                 <Clock size={14} className="text-slate-400" />
                                                 Período
                                             </div>
-                                            <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-100 h-12">
+                                            <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-100 h-10">
                                                 {([1, 2] as const).map((sem) => (
                                                     <button
                                                         key={sem}
@@ -266,8 +266,8 @@ export default function Relatorios() {
                                                             const periodo = calcularPeriodo(filtros.anoLetivo, sem);
                                                             definirFiltros({ ...filtros, semestre: sem, ...periodo });
                                                         }}
-                                                        className={`flex-1 h-full rounded-xl text-[11px] font-bold transition-all ${filtros.semestre === sem
-                                                            ? 'bg-white text-slate-900 shadow-media border border-slate-100'
+                                                        className={`flex-1 h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filtros.semestre === sem
+                                                            ? 'bg-white text-slate-900 shadow-media border border-slate-200'
                                                             : 'text-slate-400 hover:text-slate-600'}`}
                                                     >
                                                         {sem}º semestre

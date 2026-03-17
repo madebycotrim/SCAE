@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { FileSpreadsheet, Clipboard, Upload, CheckCircle, XCircle, Info, ChevronRight, AlertCircle } from 'lucide-react';
 import { read, utils } from 'xlsx';
@@ -77,17 +77,17 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
             {!resultado ? (
                 <div className="space-y-8 pb-4">
                     {/* Seletor de Método (Tabs Premium V2) */}
-                    <div className="flex p-1 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex p-1 bg-slate-50 rounded-xl border border-slate-200">
                         <button
                             onClick={() => definirAbaAtiva('arquivo')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'arquivo' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'arquivo' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <FileSpreadsheet size={14} />
                             Planilha (XLSX/CSV)
                         </button>
                         <button
                             onClick={() => definirAbaAtiva('colar')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'colar' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'colar' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <Clipboard size={14} />
                             Input Direto
@@ -97,7 +97,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                     <div className="animate-fade-in min-h-[220px]">
                         {abaAtiva === 'arquivo' ? (
                             <div className="space-y-6">
-                                <div className="relative group overflow-hidden border-2 border-dashed border-slate-200 rounded-xl p-10 text-center hover:border-slate-400 hover:bg-slate-50 transition-all cursor-pointer bg-white">
+                                <div className="relative group overflow-hidden border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center hover:border-slate-400 hover:bg-slate-50 transition-all cursor-pointer bg-white">
                                     <input
                                         type="file"
                                         accept=".xlsx, .xls, .csv"
@@ -106,7 +106,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                         disabled={importando}
                                     />
                                     <div className="flex flex-col items-center">
-                                        <div className="w-14 h-14 bg-slate-50 text-slate-400 border border-slate-200 rounded-lg flex items-center justify-center mb-4 transition-transform shadow-suave">
+                                        <div className="w-14 h-14 bg-slate-50 text-slate-400 border border-slate-200 rounded-xl flex items-center justify-center mb-4 transition-transform shadow-suave">
                                             <Upload size={24} />
                                         </div>
                                         <h4 className="font-black text-slate-800 text-xs uppercase tracking-tight">Selecione ou arraste a planilha</h4>
@@ -114,8 +114,8 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                     </div>
                                 </div>
 
-                                <div className="bg-slate-900 rounded-xl p-4 border border-slate-800 flex items-start gap-4">
-                                    <div className="p-2 bg-slate-800 rounded-lg text-slate-400 shrink-0">
+                                <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 flex items-start gap-4">
+                                    <div className="p-2 bg-slate-800 rounded-xl text-slate-400 shrink-0">
                                         <Info size={16} />
                                     </div>
                                     <div>
@@ -138,7 +138,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                         value={textoColado}
                                         onChange={(e) => definirTextoColado(e.target.value)}
                                     />
-                                    <div className="absolute right-4 bottom-4 px-2 py-1 bg-white border border-slate-200 rounded text-[9px] font-black text-slate-500 pointer-events-none uppercase tracking-widest shadow-suave">
+                                    <div className="absolute right-4 bottom-4 px-2 py-1 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-500 pointer-events-none uppercase tracking-widest shadow-suave">
                                         {textoColado.length > 0 ? `${textoColado.trim().split('\n').length} Linhas` : 'Vazio'}
                                     </div>
                                 </div>
