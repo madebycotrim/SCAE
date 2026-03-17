@@ -130,7 +130,7 @@ export default function Turmas() {
             }
 
             // Salva a nova versão (ou insere a renomeada)
-            await turmaServico.salvarTurma(novaTurma, !!turmaEmEdicao);
+            await turmaServico.salvarTurma(novaTurma, !!turmaEmEdicao, turmaEmEdicao || undefined);
 
             toast.success(turmaEmEdicao ? 'Configurações de turma atualizadas' : 'Turma criada com sucesso');
             definirModalAberto(false);

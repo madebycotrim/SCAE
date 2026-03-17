@@ -4,11 +4,9 @@ import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
 import { api } from '@/compartilhado/servicos/api';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
+import { Botao, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 import {
     Activity,
-    Search,
-    Download,
     ChevronLeft,
     ChevronRight,
     Eye,
@@ -22,8 +20,10 @@ import {
     Fingerprint
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import { mascararEmail } from '@/compartilhado/utils/formatar';
+import { usarTermoBusca } from '@/compartilhado/contextos/ContextoBuscaGlobal';
 
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
@@ -34,16 +34,20 @@ export default function RegistroAuditoria() {
         ['logs-auditoria-online'],
         async () => {
             const logs = await api.obter<any[]>('/seguranca/auditoria');
-            return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            return logs.sort((a, b) => {
+                const dataA = new Date(a.criado_em || a.criado_at || a.created_at || a.data_criacao || a.timestamp).getTime();
+                const dataB = new Date(b.criado_em || b.criado_at || b.created_at || b.data_criacao || b.timestamp).getTime();
+                return dataB - dataA;
+            });
         }
     );
 
     const logs = logsBrutos || [];
-    const [busca, definirBusca] = useState('');
+    const { termo: busca } = usarTermoBusca();
     const [pagina, definirPagina] = useState(1);
     const [logSelecionado, definirLogSelecionado] = useState(null);
     const [mapaUsuarios, definirMapaUsuarios] = useState<Record<string, string>>({});
-    const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao'} | null>(null);
+    const [confirmacao, definirConfirmacao] = useState<{ aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao' } | null>(null);
 
     const LOGS_PER_PAGE = 15;
     const EH_ADMIN_SUPREMO = ehAdmin;
@@ -51,6 +55,11 @@ export default function RegistroAuditoria() {
     useEffect(() => {
         carregarUsuarios();
     }, []);
+
+    // Resetar página ao buscar
+    useEffect(() => {
+        definirPagina(1);
+    }, [busca]);
 
     const carregarUsuarios = async () => {
         try {
@@ -90,9 +99,11 @@ export default function RegistroAuditoria() {
     };
 
     const logsFiltrados = logs.filter((l: any) =>
+        !busca.trim() ||
         l.acao?.toLowerCase().includes(busca.toLowerCase()) ||
         l.usuario_email?.toLowerCase().includes(busca.toLowerCase()) ||
-        l.entidade_tipo?.toLowerCase().includes(busca.toLowerCase())
+        l.entidade_tipo?.toLowerCase().includes(busca.toLowerCase()) ||
+        (mapaUsuarios[l.usuario_email] || '').toLowerCase().includes(busca.toLowerCase())
     );
 
     const totalPaginas = Math.ceil(logsFiltrados.length / LOGS_PER_PAGE) || 1;
@@ -101,14 +112,13 @@ export default function RegistroAuditoria() {
     const StatusBadge = ({ action }: { action: string }) => {
         const act = action?.toUpperCase() || '';
 
-        let colorClasses = 'bg-slate-50 text-slate-700 border-slate-200/60';
-        if (act.includes('SUCESSO') || act.includes('CRIAR') || act.includes('LOGIN')) colorClasses = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) colorClasses = 'bg-rose-50 text-rose-700 border-rose-200';
-        if (act.includes('ATUALIZAR') || act.includes('EDITAR')) colorClasses = 'bg-amber-50 text-amber-700 border-amber-200';
-        if (act.includes('LOGOUT')) colorClasses = 'bg-slate-50 text-slate-500 border-slate-200/60';
+        let colorClasses = 'text-slate-500 bg-slate-400/10';
+        if (act.includes('SUCESSO') || act.includes('CRIAR') || act.includes('LOGIN')) colorClasses = 'text-emerald-600 bg-emerald-500/10';
+        if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) colorClasses = 'text-rose-600 bg-rose-500/10';
+        if (act.includes('ATUALIZAR') || act.includes('EDITAR')) colorClasses = 'text-amber-600 bg-amber-500/10';
 
         return (
-            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all hover:shadow-suave ${colorClasses}`}>
+            <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${colorClasses}`}>
                 {action}
             </span>
         );
@@ -132,36 +142,18 @@ export default function RegistroAuditoria() {
             acoes={<Botao variante="secundario" tamanho="sm" icone={RefreshCw} loading={carregando} onClick={carregarLogs}>Sincronizar</Botao>}
             carregando={carregando}
         >
-            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave">
-                <InputBusca
-                    icone={Search}
-                    placeholder="Buscar por ação ou funcionário..."
-                    value={busca}
-                    onChange={(e) => { definirBusca(e.target.value); definirPagina(1); }}
-                    className="md:max-w-md"
-                />
 
-                <Botao
-                    variante="ghost"
-                    tamanho="sm"
-                    icone={Download}
-                    className="hidden md:flex ml-auto font-black text-[10px] tracking-widest text-slate-500"
-                >
-                    BAIXAR RELATÓRIO (CSV)
-                </Botao>
-            </BarraFiltro>
-
-            <CartaoConteudo className="flex flex-col h-[calc(100vh-320px)] overflow-hidden bg-white border-slate-200 shadow-xl rounded-2xl">
+            <CartaoConteudo className="flex flex-col h-[calc(100vh-165px)] overflow-hidden bg-white border-slate-100 shadow-[0_15px_60px_rgba(0,0,0,0.03)] rounded-2xl">
                 {/* Table Area */}
                 <div className="flex-1 overflow-auto relative custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
-                        <thead className="bg-slate-50/90 backdrop-blur-md sticky top-0 z-10 border-b border-slate-200">
+                        <thead className="bg-slate-50/80 sticky top-0 z-10 border-b border-slate-200 shadow-sm">
                             <tr>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">O que foi feito</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Quem fez</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Onde mudou</th>
-                                <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Data e Hora</th>
-                                <th className="px-8 py-4 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Ações</th>
+                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[180px] text-center">Ação</th>
+                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-left">Responsável</th>
+                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center w-[140px]">Contexto</th>
+                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center w-[200px]">Data e Hora</th>
+                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center w-[100px]">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -192,74 +184,85 @@ export default function RegistroAuditoria() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : logsPaginados.map((log) => (
-                                <tr key={log.id} className="hover:bg-slate-50 transition-all group">
-                                    <td className="px-8 py-4">
-                                        <StatusBadge action={log.acao} />
-                                    </td>
-                                    <td className="px-8 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-suave">
-                                                <User size={14} />
+                            ) : (
+                                logsPaginados.map((log: any) => (
+                                    <tr key={log.id} className="hover:bg-slate-50/40 transition-all group/row border-b border-slate-50 last:border-0">
+                                        <td className="px-8 py-5 align-middle text-center">
+                                            <div className="flex items-center justify-center">
+                                                <StatusBadge action={log.acao} />
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-700 transition-colors tracking-tight uppercase">
-                                                    {mapaUsuarios[log.usuario_email] || log.usuario_email.split('@')[0]}
-                                                </span>
-                                                <span className="text-[10px] font-bold text-slate-400 tracking-wider">
-                                                    {mascararEmail(log.usuario_email)}
-                                                </span>
+                                        </td>
+                                        <td className="px-8 py-5 align-middle">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 shadow-inner">
+                                                    <User size={16} strokeWidth={2.5} />
+                                                </div>
+                                                <div className="flex flex-col text-left truncate">
+                                                    <span className="text-[13px] font-bold text-slate-700 leading-tight">
+                                                        {mapaUsuarios[log.usuario_email] || log.usuario_email.split('@')[0]}
+                                                    </span>
+                                                    <span className="text-[11px] text-slate-400 font-medium">
+                                                        {mascararEmail(log.usuario_email)}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-4 text-center">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-200/60 transition-all group-hover:bg-white group-hover:text-slate-800">
-                                            {log.entidade_tipo}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-4">
-                                        <div className="flex items-center gap-2.5 text-xs font-mono font-black text-slate-400 group-hover:text-slate-600 transition-colors">
-                                            <Clock size={12} className="text-slate-300" />
-                                            {log.timestamp ? format(new Date(log.timestamp), "dd/MM/yyyy HH:mm:ss") : '-'}
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-4 text-right">
-                                        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                                            <Botao
-                                                variante="ghost"
-                                                tamanho="sm"
-                                                icone={Eye}
-                                                onClick={() => definirLogSelecionado(log)}
-                                                title="Ver Detalhes"
-                                                className="hover:text-indigo-600"
-                                            />
-
-                                            {EH_ADMIN_SUPREMO && (
+                                        </td>
+                                        <td className="px-8 py-5 align-middle text-center">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                                                {log.entidade_tipo}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5 align-middle text-center">
+                                            { (log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp) ? (
+                                                <div className="flex flex-col gap-0.5 leading-none text-center">
+                                                    <span className="text-[13px] text-slate-600 font-bold whitespace-nowrap">
+                                                        {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "dd/MM/yyyy", { locale: ptBR })}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-400 font-mono tracking-wider">
+                                                        {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "HH:mm:ss")}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-[11px] text-slate-300 uppercase font-black tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg">Sem Data</span>
+                                            )}
+                                        </td>
+                                        <td className="px-8 py-5 align-middle text-center">
+                                            <div className="flex justify-center gap-1.5 transition-all" onClick={(e) => e.stopPropagation()}>
                                                 <Botao
                                                     variante="ghost"
                                                     tamanho="sm"
-                                                    icone={Trash2}
-                                                    onClick={() => excluirLog(log.id)}
-                                                    title="Remover Registro"
-                                                    className="hover:text-rose-600"
+                                                    icone={Eye}
+                                                    onClick={() => definirLogSelecionado(log)}
+                                                    className="text-slate-400 hover:text-indigo-600 hover:bg-white shadow-sm rounded-lg w-9 h-9 p-0 border border-slate-200 transition-all"
                                                 />
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+
+                                                {EH_ADMIN_SUPREMO && (
+                                                    <Botao
+                                                        variante="ghost"
+                                                        tamanho="sm"
+                                                        icone={Trash2}
+                                                        onClick={() => excluirLog(log.id)}
+                                                        className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 shadow-sm rounded-lg w-9 h-9 p-0 border border-slate-200 transition-all"
+                                                    />
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
 
                 {/* Footer Pagination Premium */}
-                <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-3 py-1.5 rounded-2xl shadow-suave">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
-                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{pagina} de {totalPaginas}</span>
+                <div className="px-10 py-8 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
+                    <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-3 bg-white border border-slate-100 px-5 py-2.5 rounded-2xl shadow-sm">
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] leading-none">Página</span>
+                            <span className="text-[12px] font-black text-indigo-600 uppercase tracking-widest leading-none">{pagina} <span className="text-slate-200 mx-2">/</span> {totalPaginas}</span>
                         </div>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Encontrado: {logsFiltrados.length} entradas</span>
+                        <div className="h-4 w-px bg-slate-200"></div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fluxo: {logsFiltrados.length} registros</span>
                     </div>
 
                     <div className="flex gap-3">
@@ -267,19 +270,17 @@ export default function RegistroAuditoria() {
                             variante="secundario"
                             disabled={pagina === 1}
                             onClick={() => definirPagina(p => p - 1)}
-                            className="bg-white hover:shadow-media transition-shadow"
-                            tamanho="sm"
+                            className="bg-white border-slate-100 hover:border-indigo-100 hover:text-indigo-600 shadow-sm w-11 h-11 p-0 flex items-center justify-center rounded-2xl transition-all"
                         >
-                            <ChevronLeft size={16} />
+                            <ChevronLeft size={20} strokeWidth={3} />
                         </Botao>
                         <Botao
                             variante="secundario"
                             disabled={pagina === totalPaginas}
                             onClick={() => definirPagina(p => p + 1)}
-                            className="bg-white hover:shadow-media transition-shadow"
-                            tamanho="sm"
+                            className="bg-white border-slate-100 hover:border-indigo-100 hover:text-indigo-600 shadow-sm w-11 h-11 p-0 flex items-center justify-center rounded-2xl transition-all"
                         >
-                            <ChevronRight size={16} />
+                            <ChevronRight size={20} strokeWidth={3} />
                         </Botao>
                     </div>
                 </div>
@@ -293,52 +294,128 @@ export default function RegistroAuditoria() {
                     aoFechar={() => definirLogSelecionado(null)}
                     tamanho="lg"
                 >
-                    <div className="space-y-8 pb-4">
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl">
-                                <p className="text-[9px] text-indigo-400 uppercase font-black tracking-[0.2em] mb-2">Código de Identificação</p>
-                                <p className="font-mono text-[10px] text-slate-400 font-bold truncate leading-relaxed" title={logSelecionado.id}>
-                                    {logSelecionado.id}
-                                </p>
+                    <div className="space-y-6 pb-6 pt-2">
+                        {/* Header do Modal */}
+                        <div className="flex items-center justify-between p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-200 text-slate-400">
+                                    <Fingerprint size={28} strokeWidth={1.5} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ID do Rastro</span>
+                                    <span className="font-mono text-xs text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                                        {logSelecionado.id}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl">
-                                <p className="text-[9px] text-emerald-400 uppercase font-black tracking-[0.2em] mb-2">Data e Hora do Registro</p>
-                                <p className="font-mono text-xs text-slate-400 font-bold leading-relaxed">
-                                    {logSelecionado.timestamp ? format(new Date(logSelecionado.timestamp), "dd/MM/yyyy HH:mm:ss") : '-'}
-                                </p>
+                            <div className="flex flex-col items-end">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Registro Temporal</span>
+                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                                    <Clock size={14} className="text-indigo-500" />
+                                    <span className="text-xs font-bold text-slate-700">
+                                        {format(new Date(logSelecionado.criado_em || logSelecionado.criado_at || logSelecionado.created_at || logSelecionado.data_criacao || logSelecionado.timestamp), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <div className="flex items-center justify-between mb-4 px-2">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-indigo-500/10 rounded-2xl text-indigo-400 border border-indigo-500/20">
-                                        <Code size={18} strokeWidth={2.5} />
+                        {/* Comparação de Dados */}
+                        {(() => {
+                            let antStr = "// Nenhum dado anterior";
+                            let novStr = "// Sem alterações";
+
+                            try {
+                                const brutoAnt = logSelecionado.dados_anteriores || logSelecionado.dado_anterior || logSelecionado.anterior || logSelecionado.estado_anterior;
+                                let dadosAnt = brutoAnt && typeof brutoAnt === 'string' ? JSON.parse(brutoAnt) : brutoAnt;
+
+                                const brutoNov = logSelecionado.dados_novos || logSelecionado.dado_novo || logSelecionado.novo || logSelecionado.estado_novo;
+                                let dadosNov = brutoNov && typeof brutoNov === 'string' ? JSON.parse(brutoNov) : brutoNov;
+
+                                if (dadosAnt || dadosNov) {
+                                    const objAnt = typeof dadosAnt === 'object' && dadosAnt !== null ? dadosAnt : {};
+                                    const objNov = typeof dadosNov === 'object' && dadosNov !== null ? dadosNov : {};
+
+                                    const chavesTotais = new Set([...Object.keys(objAnt), ...Object.keys(objNov)]);
+                                    const diffAnterior: Record<string, any> = {};
+                                    const diffNovo: Record<string, any> = {};
+
+                                    const chavesIgnoradas = ['atualizado_em', 'sincronizado', 'criado_em', 'via', 'escola_id'];
+
+                                    chavesTotais.forEach(chave => {
+                                        if (chavesIgnoradas.includes(chave)) return;
+
+                                        const valAnt = objAnt[chave];
+                                        const valNov = objNov[chave];
+
+                                        if (JSON.stringify(valAnt) !== JSON.stringify(valNov)) {
+                                            if (valAnt !== undefined) diffAnterior[chave] = valAnt;
+                                            if (valNov !== undefined) diffNovo[chave] = valNov;
+                                        }
+                                    });
+
+                                    antStr = Object.keys(diffAnterior).length > 0 ? JSON.stringify(diffAnterior, null, 2) : "// Nenhuma propriedade alterada";
+                                    novStr = Object.keys(diffNovo).length > 0 ? JSON.stringify(diffNovo, null, 2) : "// Nenhuma propriedade alterada";
+                                }
+                            } catch (e) {
+                                antStr = String(logSelecionado.dados_anteriores || logSelecionado.dado_anterior || "// Dados corrompidos");
+                                novStr = String(logSelecionado.dados_novos || logSelecionado.dado_novo || "// Sem dados novos");
+                            }
+
+                            return (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Estado Anterior <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span></span>
+                                        <div className="bg-slate-900 rounded-xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
+                                            <pre className="text-[11px] font-mono text-rose-300/80 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar flex-1">
+                                                {antStr}
+                                            </pre>
+                                        </div>
                                     </div>
-                                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Dados Internos da Ação</span>
-                                </div>
-                                <span className="text-[8px] font-black bg-slate-900 text-indigo-300 px-3 py-1 rounded-full border border-slate-700 uppercase tracking-[0.2em] shadow-lg">
-                                    Dados Protegidos
-                                </span>
-                            </div>
-                            <div className="bg-slate-950 rounded-2xl p-8 overflow-x-auto border border-slate-900 shadow-2xl max-h-[400px] overflow-y-auto custom-scrollbar group relative">
-                                <div className="absolute top-6 right-6 opacity-20 group-hover:opacity-100 transition-opacity">
-                                    <Fingerprint className="text-indigo-500" size={40} strokeWidth={1} />
-                                </div>
-                                <pre className="text-[11px] font-mono text-indigo-300/90 leading-relaxed whitespace-pre-wrap selection:bg-indigo-500 selection:text-white">
-                                    {JSON.stringify(logSelecionado, null, 2)}
-                                </pre>
-                            </div>
-                        </div>
 
-                        <Botao
-                            variante="secundario"
-                            fullWidth
-                            tamanho="lg"
-                            onClick={() => definirLogSelecionado(null)}
-                        >
-                            Fechar Detalhes
-                        </Botao>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Estado Novo <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span></span>
+                                        <div className="bg-slate-900 rounded-xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
+                                            <pre className="text-[11px] font-mono text-emerald-300/80 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar flex-1">
+                                                {novStr}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+
+                        {/* Ações e Rastro Completo (Fallback) */}
+                        <div className="pt-4 border-t border-slate-100 flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <details className="group">
+                                    <summary className="flex items-center gap-2 text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] cursor-pointer hover:text-slate-500 transition-colors list-none mt-3">
+                                        <div className="w-1.5 h-1.5 bg-slate-200 rounded-full group-open:bg-indigo-400 group-open:animate-pulse"></div>
+                                        Ver Objeto de Rastro Completo
+                                    </summary>
+                                    <div className="mt-4 bg-slate-950 rounded-xl p-6 border border-slate-900 shadow-2xl relative overflow-hidden">
+                                        <div className="absolute top-4 right-4 opacity-5 pointer-events-none">
+                                            <Fingerprint className="text-white" size={64} />
+                                        </div>
+                                        <pre className="text-[10px] font-mono text-indigo-300/60 leading-relaxed whitespace-pre-wrap selection:bg-indigo-500 selection:text-white overflow-auto max-h-[400px] custom-scrollbar">
+                                            {JSON.stringify(logSelecionado, (key, value) => 
+                                                ['dados_anteriores', 'dados_novos', 'dado_anterior', 'dado_novo', 'anterior', 'novo', 'estado_anterior', 'estado_novo'].includes(key) 
+                                                ? undefined 
+                                                : value, 2)}
+                                        </pre>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <Botao
+                                variante="secundario"
+                                icone={ChevronLeft}
+                                onClick={() => definirLogSelecionado(null)}
+                                className="shrink-0 font-bold text-[11px] uppercase tracking-widest bg-slate-100 hover:bg-slate-200 text-slate-600 border-none px-6 py-3"
+                            >
+                                Fechar Detalhes
+                            </Botao>
+                        </div>
                     </div>
                 </ModalUniversal>
             )}

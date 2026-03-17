@@ -94,6 +94,11 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        '@tenant': path.resolve(__dirname, './src/tenant'),
+        '@funcionalidades': path.resolve(__dirname, './src/funcionalidades'),
+        '@compartilhado': path.resolve(__dirname, './src/compartilhado'),
+        '@configuracoes': path.resolve(__dirname, './src/configuracoes'),
+        '@principal': path.resolve(__dirname, './src/principal'),
       }
     },
     server: {

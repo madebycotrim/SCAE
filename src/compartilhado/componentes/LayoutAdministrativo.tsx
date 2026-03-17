@@ -4,7 +4,7 @@ import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
-import { usarNotificacoes, Notificacao } from '@/compartilhado/contextos/ContextoNotificacoes';
+import { usarNotificacoes, type Notificacao } from '@compartilhado/contextos/ContextoNotificacoes';
 import { usarBuscaGlobal } from '@/compartilhado/hooks/usarBuscaGlobal';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarInstalacaoPWA } from '@/compartilhado/hooks/usarInstalacaoPWA';
@@ -232,6 +232,11 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     return (
         <div className="flex h-screen bg-gray-50 font-sans overflow-hidden selection:bg-blue-100 selection:text-blue-900">
             <BarraProgressoGlobal ativa={!!carregando} />
+            
+            {/* Link de Pulo para Acessibilidade (WCAG 2.4.1) */}
+            <a href="#conteudo-principal" className="pular-conteudo">
+                Pular para o conteúdo principal
+            </a>
             {/* Sobreposição Mobile */}
             {sidebarAberto && (
                 <div
@@ -240,8 +245,10 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 />
             )}
 
-            {/* Barra Lateral */}
+            {/* Barra Lateral (Acessibilidade: role navigation) */}
             <aside
+                role="navigation"
+                aria-label="Menu Principal"
                 className={`
                     fixed lg:static inset-y-0 left-0 z-50
                     border-r border-slate-800/40
@@ -273,6 +280,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                     <button
                         onClick={() => definirSidebarMinimizado(!sidebarMinimizado)}
+                        aria-label={sidebarMinimizado ? "Expandir menu" : "Recolher menu"}
                         className={`
                             absolute -right-3 top-1/2 -translate-y-1/2 
                             w-6 h-6 bg-slate-950 border border-slate-800 rounded-full 
@@ -280,7 +288,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             z-50 hidden lg:flex transition-colors
                         `}
                     >
-                        {sidebarMinimizado ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+                        {sidebarMinimizado ? <ChevronRight size={12} aria-hidden="true" /> : <ChevronLeft size={12} aria-hidden="true" />}
                     </button>
                 </div>
 
@@ -289,7 +297,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     flex-1 overflow-y-auto overflow-x-hidden py-4 z-10
                     scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent
                     ${sidebarMinimizado ? 'px-3' : 'px-4'}
-                `}>
+                `} aria-label="Atalhos do sistema">
                     <div className="mb-4">
                         <div className="space-y-4">
                             {gruposMenu.map((grupo, idx) => (
@@ -370,15 +378,17 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             {/* Area de Conteúdo */}
             <div className="flex-1 flex flex-col min-w-0 relative">
                 <header
+                    role="banner"
                     className="bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-8"
                     style={{ height: '64px' }}
                 >
                     <div className="flex items-center gap-5">
                         <button
                             onClick={() => definirSidebarAberto(!sidebarAberto)}
+                            aria-label="Abrir menu de navegação"
                             className="lg:hidden p-2 -ml-1 text-slate-400 hover:bg-slate-50 rounded-2xl transition-colors"
                         >
-                            <Menu size={18} />
+                            <Menu size={18} aria-hidden="true" />
                         </button>
                         <div className="flex flex-col justify-center">
                             <h1 className="text-lg font-black text-slate-900 leading-none tracking-tight uppercase">{titulo}</h1>
@@ -389,7 +399,8 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     <div className="flex items-center gap-5">
                         {/* Busca */}
                         <div className="hidden md:flex items-center relative group h-8">
-                            <Search className="absolute left-3 w-3.5 h-3.5 text-slate-400 group-focus-within:text-slate-900 transition-colors pointer-events-none" />
+                            <label htmlFor="input-busca-global" className="sr-only">Pesquisar no sistema</label>
+                            <Search className="absolute left-3 w-3.5 h-3.5 text-slate-400 group-focus-within:text-slate-900 transition-colors pointer-events-none" aria-hidden="true" />
                             <input
                                 id="input-busca-global"
                                 type="text"
@@ -401,9 +412,10 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                 }}
                                 onFocus={() => definirMostrarResultados(true)}
                                 className="pl-9 pr-12 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 focus:ring-4 focus:ring-slate-900/5 rounded-2xl text-[11px] font-bold w-64 focus:w-80 h-full outline-none transition-all duration-300"
+                                aria-autocomplete="list"
                             />
 
-                            {mostrarResultados && resultados.length > 0 && (
+                            {mostrarResultados && resultados.length > 0 && !localizacao.pathname.includes('/logs') && (
                                 <>
                                     <div className="fixed inset-0 z-[45]" onClick={() => definirMostrarResultados(false)} />
                                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-md border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
@@ -441,15 +453,17 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         <div className="relative">
                             <button
                                 onClick={() => definirNotificacoesAberta(!notificacoesAberta)}
+                                aria-label={`Notificações ${naoLidas > 0 ? `(${naoLidas} não lidas)` : ''}`}
                                 className={`
                                     relative p-2 rounded-2xl transition-all duration-200
                                     ${notificacoesAberta ? 'bg-slate-100 text-slate-900 shadow-inner' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}
                                 `}
                             >
-                                <Bell size={18} strokeWidth={2.5} />
+                                <Bell size={18} strokeWidth={2.5} aria-hidden="true" />
                                 {naoLidas > 0 && (
                                     <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white animate-fade-in shadow-sm">
-                                        {naoLidas > 9 ? '9+' : naoLidas}
+                                        <span className="sr-only">{naoLidas} não lidas</span>
+                                        <span aria-hidden="true">{naoLidas > 9 ? '9+' : naoLidas}</span>
                                     </span>
                                 )}
                             </button>
@@ -540,8 +554,11 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
                 </header>
 
-                {/* Conteúdo */}
+                {/* Conteúdo (Acessibilidade: main landmark) */}
                 <main 
+                    id="conteudo-principal"
+                    role="main"
+                    tabIndex={-1}
                     ref={mainRef}
                     onScroll={lidarComScroll}
                     className="flex-1 overflow-y-auto p-8 md:p-10 lg:p-12 scroll-smooth z-10 custom-scrollbar bg-slate-50/30"

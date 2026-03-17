@@ -35,7 +35,7 @@ export const alunoServico = {
     /**
      * Salva ou atualiza um aluno diretamente no servidor.
      */
-    async salvarAluno(aluno: Aluno, ehEdicao: boolean): Promise<void> {
+    async salvarAluno(aluno: Aluno, ehEdicao: boolean, alunoAnterior?: Aluno): Promise<void> {
         if (!navigator.onLine) {
             throw new Error('A gestão de alunos requer conexão ativa com o servidor.');
         }
@@ -49,10 +49,14 @@ export const alunoServico = {
         try {
             await api.enviar('/academico/alunos', alunoFinal);
             
-            await Registrador.registrar(ehEdicao ? 'EDITAR_ALUNO' : 'CRIAR_ALUNO', 'aluno', aluno.matricula, {
-                nome: aluno.nome_completo,
-                via: 'online_admin'
-            });
+            // Auditoria completa: Novo vs Anterior
+            await Registrador.registrar(
+                ehEdicao ? 'EDITAR_ALUNO' : 'CRIAR_ALUNO', 
+                'aluno', 
+                aluno.matricula, 
+                { ...alunoFinal, via: 'online_admin' }, 
+                ehEdicao ? { ...alunoAnterior } : undefined
+            );
             
             log.info('Aluno processado online com sucesso');
         } catch (erro) {

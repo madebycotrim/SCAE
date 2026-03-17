@@ -104,32 +104,61 @@ body {
   /* Gray 900 - Alto contraste para leitura */
 }
 
-/* Remove default browser focus outlines (black borders on click) */
+/* ═══════════════════════════════════════════
+   Acessibilidade (WCAG 2.1 / e-MAG)
+   ═══════════════════════════════════════════ */
+
+/* Indicador de Foco Visível — Essencial para navegação por teclado */
+*:focus-visible {
+  outline: 2px solid var(--cor-primaria) !important;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--cor-primaria) 20%, transparent);
+  transition: outline-offset 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Esconde o foco padrão apenas para cliques (preserva para teclado) */
+*:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+/* Conteúdo exclusivo para leitores de tela (e-MAG) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Link de Pulo (Skip Link) — WCAG 2.4.1 */
+.pular-conteudo {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--cor-primaria);
+  color: white;
+  padding: 12px 24px;
+  z-index: 9999;
+  border-radius: 0 0 12px 12px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: top 0.3s ease;
+}
+
+.pular-conteudo:focus {
+  top: 0;
+}
+
+/* Remove tap highlight no mobile */
 *,
 *::before,
 *::after {
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-*:focus,
-*:active,
-*:focus-visible,
-*:focus-within {
-  outline: none !important;
-  outline: 0 !important;
-}
-
-button::-moz-focus-inner,
-input::-moz-focus-inner {
-  border: 0 !important;
-}
-
-::-moz-focus-inner {
-  border: 0 !important;
-}
-
-::-moz-focus-inner {
-  border: 0 !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Polished Custom Scrollbar */

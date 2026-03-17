@@ -25,7 +25,7 @@ export const turmaServico = {
     /**
      * Salva ou atualiza uma turma diretamente no servidor.
      */
-    async salvarTurma(turma: any, ehEdicao: boolean): Promise<void> {
+    async salvarTurma(turma: any, ehEdicao: boolean, turmaAnterior?: any): Promise<void> {
         if (!navigator.onLine) {
             throw new Error('A gestão de turmas requer conexão ativa com o servidor.');
         }
@@ -39,10 +39,13 @@ export const turmaServico = {
         try {
             await api.enviar('/academico/turmas', turmaFinal);
             
-            await Registrador.registrar(ehEdicao ? 'TURMA_EDITAR' : 'TURMA_CRIAR', 'turma', turma.id, {
-                ano_letivo: turma.ano_letivo,
-                via: 'online_admin'
-            });
+            await Registrador.registrar(
+                ehEdicao ? 'TURMA_EDITAR' : 'TURMA_CRIAR', 
+                'turma', 
+                turma.id, 
+                { ...turmaFinal, via: 'online_admin' },
+                ehEdicao ? { ...turmaAnterior } : undefined
+            );
             
             log.info('Turma processada online com sucesso');
         } catch (erro) {

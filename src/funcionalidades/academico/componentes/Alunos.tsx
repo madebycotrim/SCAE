@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { alunoServico } from '../servicos/aluno.servico';
 import { Aluno } from '../tipos/academico';
 
-import { usarNotificacoes } from '@/compartilhado/contextos/ContextoNotificacoes';
+import { usarNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
 import { usarEscola } from '@/escola/ProvedorEscola';
 
 import CredencialModal from './CredencialModal';
@@ -103,7 +103,11 @@ export default function Alunos() {
 
     const salvarAluno = async (dadosForm: any) => {
         try {
-            await alunoServico.salvarAluno({ ...dadosForm, criado_em: alunoEmEdicao?.criado_em || new Date().toISOString() }, !!alunoEmEdicao);
+            await alunoServico.salvarAluno(
+                { ...dadosForm, criado_em: alunoEmEdicao?.criado_em || new Date().toISOString() }, 
+                !!alunoEmEdicao,
+                alunoEmEdicao || undefined
+            );
             toast.success(alunoEmEdicao ? 'Registro de aluno atualizado' : 'Novo aluno matriculado com sucesso');
             definirModalForm(false);
             recarregar();

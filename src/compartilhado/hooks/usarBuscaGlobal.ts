@@ -14,6 +14,7 @@ import {
     FolderPlus,
     LucideIcon
 } from 'lucide-react';
+import { usarTermoBusca } from '@/compartilhado/contextos/ContextoBuscaGlobal';
 
 export interface ResultadoBusca {
     id: string;
@@ -131,7 +132,7 @@ const ACOES_RAPIDAS: ResultadoBusca[] = [
 ];
 
 export function usarBuscaGlobal() {
-    const [termo, definirTermo] = useState('');
+    const { termo, definirTermo } = usarTermoBusca();
 
     const resultados = useMemo(() => {
         if (!termo.trim()) return [];

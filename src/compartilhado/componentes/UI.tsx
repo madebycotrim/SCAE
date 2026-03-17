@@ -52,11 +52,12 @@ export const Botao: React.FC<BotaoProps> = ({
         <button
             className={`${baseStyles} ${variantes[variante]} ${tamanhos[tamanho]} ${widthStyle} ${className}`}
             disabled={disabled || estaCarregando}
+            aria-busy={estaCarregando}
             {...props}
         >
             {estaCarregando ? (
-                <Loader2 className="animate-spin" size={tamanho === 'sm' ? 14 : 18} />
-            ) : Icone && <Icone size={tamanho === 'sm' ? 14 : 18} />}
+                <Loader2 className="animate-spin" size={tamanho === 'sm' ? 14 : 18} aria-hidden="true" />
+            ) : Icone && <Icone size={tamanho === 'sm' ? 14 : 18} aria-hidden="true" />}
             {children}
         </button>
     );
@@ -79,7 +80,14 @@ export const BarraFiltro: React.FC<{ children: React.ReactNode; className?: stri
 // --- CARREGAMENTO INTELIGENTE (SKELETONS) ---
 
 export const Esqueleto: React.FC<{ className?: string }> = ({ className = '' }) => (
-    <div className={`animate-pulse bg-slate-100 rounded-2xl ${className} relative overflow-hidden after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent`}></div>
+    <div 
+        role="status" 
+        aria-label="Carregando conteúdo"
+        aria-live="polite"
+        className={`animate-pulse bg-slate-100 rounded-2xl ${className} relative overflow-hidden after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent`}
+    >
+        <span className="sr-only">Carregando...</span>
+    </div>
 );
 
 export const BarraProgressoGlobal: React.FC<{ ativa: boolean }> = ({ ativa }) => {
@@ -103,6 +111,11 @@ export const BarraProgressoGlobal: React.FC<{ ativa: boolean }> = ({ ativa }) =>
 
     return (
         <div 
+            role="progressbar"
+            aria-valuenow={progresso}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Carregando página"
             className="fixed top-0 left-0 h-0.5 bg-indigo-600 z-[9999] transition-all duration-300 ease-out" 
             style={{ width: `${progresso}%` }}
         />
@@ -117,7 +130,7 @@ interface InputBuscaProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const InputBusca: React.FC<InputBuscaProps> = ({ icone: Icone, className = '', ...props }) => (
     <div className="relative flex-1 group">
-        {Icone && <Icone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={16} />}
+        {Icone && <Icone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={16} aria-hidden="true" />}
         <input
             className={`w-full ${Icone ? 'pl-11' : 'pl-5'} pr-5 h-11 bg-slate-50 border border-slate-100 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 rounded-2xl text-xs font-bold outline-none transition-all placeholder:text-slate-400 text-slate-900 ${className}`}
             {...props}

@@ -77,6 +77,7 @@ export default function ModalUniversal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-titulo"
+            aria-describedby={subtitulo ? "modal-subtitulo" : undefined}
         >
             <div className={`
                 bg-white rounded-2xl shadow-md w-full ${larguras[tamanho] || larguras.md} 
@@ -92,15 +93,15 @@ export default function ModalUniversal({
                         p-2.5 rounded-2xl bg-white ring-1 ${tema.ring} shrink-0 
                         ${tema.text} flex items-center justify-center
                     `}>
-                        <Icone size={24} strokeWidth={2} />
+                        <Icone size={24} strokeWidth={2} aria-hidden="true" />
                     </div>
 
                     <div className="flex-1 pt-0.5 min-w-0">
-                        <h2 className="text-lg font-bold text-slate-800 leading-tight tracking-tight truncate">
+                        <h2 id="modal-titulo" className="text-lg font-bold text-slate-800 leading-tight tracking-tight truncate">
                             {titulo}
                         </h2>
                         {subtitulo && (
-                            <p className="text-sm text-slate-400 mt-0.5 leading-relaxed font-medium truncate">
+                            <p id="modal-subtitulo" className="text-sm text-slate-400 mt-0.5 leading-relaxed font-medium truncate">
                                 {subtitulo}
                             </p>
                         )}
@@ -108,13 +109,14 @@ export default function ModalUniversal({
 
                     <button
                         onClick={aoFechar}
+                        aria-label="Fechar diálogo"
                         className="
                             group shrink-0 p-2 rounded-2xl transition-all duration-200
                             text-slate-400 hover:text-rose-500 hover:bg-white hover:ring-1 hover:ring-rose-100
                         "
                         title="Fechar (ESC)"
                     >
-                        <X size={20} strokeWidth={2.5} />
+                        <X size={20} strokeWidth={2.5} aria-hidden="true" />
                     </button>
                 </div>
 

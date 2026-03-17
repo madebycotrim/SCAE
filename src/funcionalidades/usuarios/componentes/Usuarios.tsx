@@ -49,7 +49,7 @@ export default function Usuarios() {
 
     const salvarUsuario = async (dados: any) => {
         try {
-            await usuarioServico.salvarUsuario(dados, !!usuarioEmEdicao);
+            await usuarioServico.salvarUsuario(dados, !!usuarioEmEdicao, usuarioEmEdicao || undefined);
 
             toast.success(usuarioEmEdicao ? 'Usuário atualizado!' : 'Usuário convidado com sucesso!');
             definirModalAberto(false);

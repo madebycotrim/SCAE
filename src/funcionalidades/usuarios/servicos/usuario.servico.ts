@@ -26,7 +26,7 @@ export const usuarioServico = {
     /**
      * Salva ou convida um usuário diretamente no servidor.
      */
-    async salvarUsuario(dados: any, ehEdicao: boolean): Promise<void> {
+    async salvarUsuario(dados: any, ehEdicao: boolean, usuarioAnterior?: any): Promise<void> {
         const usuarioNovo = {
             ...dados,
             atualizado_em: new Date().toISOString(),
@@ -42,10 +42,13 @@ export const usuarioServico = {
             await api.enviar('/seguranca/usuarios', usuarioNovo);
             
             // Auditoria
-            await Registrador.registrar(ehEdicao ? 'USUARIO_EDITAR' : 'USUARIO_CONVIDAR', 'usuario', usuarioNovo.email, {
-                papel: usuarioNovo.papel,
-                via: 'online_admin'
-            });
+            await Registrador.registrar(
+                ehEdicao ? 'USUARIO_EDITAR' : 'USUARIO_CONVIDAR', 
+                'usuario', 
+                usuarioNovo.email, 
+                { ...usuarioNovo, via: 'online_admin' },
+                ehEdicao ? { ...usuarioAnterior } : undefined
+            );
             
             log.info('Usuário processado online com sucesso');
         } catch (erro) {
