@@ -409,64 +409,71 @@ export default function FormHorariosAcesso() {
                                             </div>
 
                                             {/* Corpo do Card */}
-                                            <div className="p-6 lg:p-10 flex flex-col md:flex-row items-center gap-8 lg:gap-12">
-                                                
-                                                {/* Seção das Horas */}
-                                                <div className="flex items-center gap-4 bg-slate-50/80 p-2 rounded-[2.5rem] border border-slate-100">
-                                                    <div className="flex flex-col items-center">
-                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Início</label>
-                                                        <input
-                                                            type="time"
-                                                            value={janela.horaInicio}
-                                                            onChange={(e) => atualizarJanela(indice, 'horaInicio', e.target.value)}
-                                                            className="w-24 h-16 bg-white border border-slate-200 rounded-3xl text-xl font-black text-center text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm"
-                                                        />
+                                            <div className="p-6 lg:p-10">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-end">
+                                                    
+                                                    {/* Seção das Horas */}
+                                                    <div className="flex flex-col space-y-2">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Janela de Horário</label>
+                                                        <div className="flex items-center justify-between gap-4 bg-slate-100/50 p-2 rounded-2xl border border-slate-200/40 h-20">
+                                                            <div className="flex-1 flex flex-col items-center">
+                                                                <label className="text-[9px] font-[1000] text-slate-400 uppercase tracking-tighter mb-1 opacity-60">Início</label>
+                                                                <input
+                                                                    type="time"
+                                                                    value={janela.horaInicio}
+                                                                    onChange={(e) => atualizarJanela(indice, 'horaInicio', e.target.value)}
+                                                                    className="w-full h-11 bg-white border border-slate-200 rounded-xl text-lg font-black text-center p-0 text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm [&::-webkit-datetime-edit]:flex [&::-webkit-datetime-edit]:justify-center [&::-webkit-datetime-edit-fields-wrapper]:flex [&::-webkit-datetime-edit-fields-wrapper]:justify-center [&::-webkit-calendar-picker-indicator]:hidden"
+                                                                />
+                                                            </div>
+                                                            <div className="w-4 h-0.5 bg-slate-300/50 rounded-full mt-4"></div>
+                                                            <div className="flex-1 flex flex-col items-center">
+                                                                <label className="text-[9px] font-[1000] text-slate-400 uppercase tracking-tighter mb-1 opacity-60">Fim</label>
+                                                                <input
+                                                                    type="time"
+                                                                    value={janela.horaFim}
+                                                                    onChange={(e) => atualizarJanela(indice, 'horaFim', e.target.value)}
+                                                                    className="w-full h-11 bg-white border border-slate-200 rounded-xl text-lg font-black text-center p-0 text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm [&::-webkit-datetime-edit]:flex [&::-webkit-datetime-edit]:justify-center [&::-webkit-datetime-edit-fields-wrapper]:flex [&::-webkit-datetime-edit-fields-wrapper]:justify-center [&::-webkit-calendar-picker-indicator]:hidden"
+                                                                />
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="w-6 h-1 bg-slate-200 rounded-full mt-6"></div>
-                                                    <div className="flex flex-col items-center">
-                                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Fim</label>
-                                                        <input
-                                                            type="time"
-                                                            value={janela.horaFim}
-                                                            onChange={(e) => atualizarJanela(indice, 'horaFim', e.target.value)}
-                                                            className="w-24 h-16 bg-white border border-slate-200 rounded-3xl text-xl font-black text-center text-slate-800 focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-sm"
-                                                        />
-                                                    </div>
-                                                </div>
 
-                                                {/* Seção do Sentido */}
-                                                <div className="flex-1 w-full space-y-3">
-                                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Configurar Sentido do Fluxo</label>
-                                                    <div className="flex items-center bg-slate-100/50 p-2 rounded-[2.5rem] border border-slate-200/40 h-20">
-                                                        <button
-                                                            onClick={() => atualizarJanela(indice, 'tipoAcesso', 'ENTRADA')}
-                                                            className={`flex-1 flex flex-col justify-center items-center h-full rounded-3xl transition-all gap-1 ${
-                                                                isEntrada ? 'bg-white text-amber-600 shadow-xl shadow-amber-500/10 border border-amber-100' : 'text-slate-400 hover:text-slate-600'
-                                                            }`}
-                                                        >
-                                                            <LogIn size={16} strokeWidth={isEntrada ? 3 : 2} />
-                                                            <span className="text-[10px] font-[1000] tracking-widest">ENTRADA</span>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => atualizarJanela(indice, 'tipoAcesso', 'SAIDA')}
-                                                            className={`flex-1 flex flex-col justify-center items-center h-full rounded-3xl transition-all gap-1 ${
-                                                                !isEntrada ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-500/10 border border-indigo-100' : 'text-slate-400 hover:text-slate-600'
-                                                            }`}
-                                                        >
-                                                            <LogOut size={16} strokeWidth={!isEntrada ? 3 : 2} />
-                                                            <span className="text-[10px] font-[1000] tracking-widest uppercase">Saída</span>
-                                                        </button>
+                                                    {/* Seção do Sentido */}
+                                                    <div className="flex flex-col space-y-2">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sentido do Fluxo</label>
+                                                        <div className="flex items-center bg-slate-100/50 p-2 rounded-2xl border border-slate-200/40 h-20 w-full">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => atualizarJanela(indice, 'tipoAcesso', 'ENTRADA')}
+                                                                className={`flex-1 flex flex-col justify-center items-center h-full rounded-xl transition-all gap-1 ${
+                                                                    isEntrada ? 'bg-white text-amber-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
+                                                                }`}
+                                                            >
+                                                                <LogIn size={16} strokeWidth={3} />
+                                                                <span className="text-[10px] font-[1000] tracking-widest">ENTRADA</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => atualizarJanela(indice, 'tipoAcesso', 'SAIDA')}
+                                                                className={`flex-1 flex flex-col justify-center items-center h-full rounded-xl transition-all gap-1 ${
+                                                                    !isEntrada ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
+                                                                }`}
+                                                            >
+                                                                <LogOut size={16} strokeWidth={3} />
+                                                                <span className="text-[10px] font-[1000] tracking-widest uppercase">SAÍDA</span>
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                {/* Visual Summary (Right side on desktop) */}
-                                                <div className="hidden xl:flex flex-col items-center justify-center border-l border-slate-100 pl-12 py-2">
-                                                    <div className={`text-3xl font-black tracking-tighter flex items-baseline gap-1 ${isEntrada ? 'text-amber-500' : 'text-indigo-600'}`}>
-                                                        {janela.horaInicio}
-                                                        <span className="text-xs text-slate-300">até</span>
-                                                        {janela.horaFim}
+                                                    {/* Resumo Visual */}
+                                                    <div className="flex flex-col items-center justify-center border-l border-slate-100 pl-8 h-20">
+                                                        <div className={`text-3xl font-black tracking-tighter flex items-baseline gap-1 ${isEntrada ? 'text-amber-500' : 'text-indigo-600'}`}>
+                                                            {janela.horaInicio}
+                                                            <span className="text-xs text-slate-300 uppercase">até</span>
+                                                            {janela.horaFim}
+                                                        </div>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">Status Portaria</p>
                                                     </div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">Status Portaria</p>
                                                 </div>
                                             </div>
                                         </div>

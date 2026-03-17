@@ -6,8 +6,8 @@
  * PATCH /api/evasao/:id â†’ Atualiza o status de acompanhamento
  * POST /api/evasao/processar â†’ Roda a engine varrendo o tenant por ausências
  */
-import { gerarScaeUuid } from '../../utilitarios/uuid';
-import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../../tipos/ambiente';
+import { gerarScaeUuid } from '../../../utilitarios/uuid';
+import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../../../tipos/ambiente';
 
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     const idEscola = contexto.request.headers.get('X-Escola-ID');
@@ -133,7 +133,7 @@ async function atualizarStatusAlerta(contexto: ContextoSCAE, db: D1Database, idE
     }
 }
 
-import { obterDiasNaoLetivos } from './calendario.compartilhado';
+import { obterDiasNaoLetivos } from '../calendario.compartilhado';
 
 /**
  * Scaneia os alunos e verifica os registros para aplicar regras de evasão contínua.
