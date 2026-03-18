@@ -246,7 +246,7 @@ export default function PoliticaPrivacidade() {
                     {!emailEncarregadoDPO && daEscola && (
                         <p className="indent-[1.25cm]">
                             Para exercer seus direitos, compareça presencialmente à secretaria
-                            do <strong>{nomeEscola}</strong> com documento de identificação com foto e solicite
+                            do <strong>{nomeEscola}</strong> com documento de identificação with foto e solicite
                             a abertura de "Chamado — Direitos do Titular".
                         </p>
                     )}

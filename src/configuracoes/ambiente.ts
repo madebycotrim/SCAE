@@ -1,8 +1,8 @@
 /**
- * Vari·veis de ambiente tipadas.
- * Centraliza acesso √†s env vars da aplicaÁ„o.
+ * Vari√°veis de ambiente tipadas.
+ * Centraliza acesso √†s env vars da aplica√ß√£o.
  *
- * Nota: Config Firebase est· em compartilhado/servicos/firebase.js
+ * Nota: Config Firebase est√° em compartilhado/servicos/firebase.js
  */
 
 export const AMBIENTE = {
@@ -25,4 +25,3 @@ export const AMBIENTE = {
 } as const;
 
 export type Ambiente = typeof AMBIENTE;
-

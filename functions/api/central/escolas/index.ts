@@ -12,7 +12,11 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
                 id, 
                 nome_escola as nome, 
                 id as slug, 
-                (SELECT COUNT(*) FROM alunos WHERE escola_id = escolas.id) as totalAlunos,
+                dominio_email as dominioEmail,
+                limite_alunos as limiteAlunos,
+                limite_terminais as limiteTerminais,
+                contato_suporte as contatoSuporte,
+                (SELECT COUNT(*) FROM alunos WHERE escola_id = escolas.id AND ativo = 1) as totalAlunos,
                 status,
                 criado_em as criadoEm
             FROM escolas
@@ -41,7 +45,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
         const { nome_escola, id, dominio_email } = dados;
 
         if (!id || !nome_escola || !dominio_email) {
-            throw new ErroBase('Campos obrigatórios ausentes: ID, Nome ou Domínio.', 'VALIDACAO_FALLA', 400);
+            throw new ErroBase('Campos obrigatorios ausentes: ID, Nome ou Dominio.', 'VALIDACAO_FALHA', 400);
         }
 
         // ECDSA Generation
@@ -61,8 +65,12 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
                 id, nome_escola, dominio_email, 
                 cor_primaria, cor_secundaria, logo_url, 
                 chave_privada_ecdsa, chave_publica_ecdsa,
-                config_qr_dinamico, tts_ativado, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                config_qr_dinamico, tts_ativado, 
+                saida_obrigatoria, metodo_acesso,
+                limite_alunos, limite_terminais,
+                retencao_dados, contato_suporte,
+                status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
             id, nome_escola, dominio_email,
             dados.cor_primaria || '#030712',
@@ -71,7 +79,13 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
             arrayParaB64(privadaPKCS8 as ArrayBuffer),
             arrayParaB64(publicaSPKI as ArrayBuffer),
             dados.config_qr_dinamico ? 1 : 0,
-            dados.tts_ativado ? 1 : 0,
+            dados.tts_ativado !== false ? 1 : 0,
+            dados.saida_obrigatoria !== false ? 1 : 0,
+            dados.metodo_acesso || 'QRCODE',
+            dados.limite_alunos || 1000,
+            dados.limite_terminais || 5,
+            dados.retencao_dados || 730,
+            dados.contato_suporte || null,
             'ATIVA'
         ).run();
 

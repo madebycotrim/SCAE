@@ -5,9 +5,9 @@ import { usarConteudoLegal } from '@/funcionalidades/usuarios/hooks/usarConteudo
 import { Botao } from '@/compartilhado/componentes/UI';
 
 /**
- * P·gina p˙blica de Termos de Uso.
- * Documento formatado em ABNT, desenvolvido por estudante universit·rio ó
- * pessoa fÌsica, sem fins lucrativos.
+ * P√°gina p√∫blica de Termos de Uso.
+ * Documento formatado em ABNT, desenvolvido por estudante universit√°rio ‚Äî
+ * pessoa f√≠sica, sem fins lucrativos.
  */
 export default function TermosUso() {
     const navegar = useNavigate();
@@ -45,203 +45,203 @@ export default function TermosUso() {
             {/* Documento Formato A4 (ABNT) */}
             <div className="max-w-[210mm] mx-auto bg-white shadow-2xl mt-8 sm:mt-12 px-8 py-12 sm:px-[3cm] sm:py-[3cm] text-black">
 
-                {/* CabeÁalho do Documento */}
+                {/* Cabe√ßalho do Documento */}
                 <div className="text-center mb-12 font-bold uppercase">
                     {daEscola && <p className="text-[12pt]">{nomeEscola}</p>}
                     <p className="text-[12pt] mt-8">TERMOS DE USO</p>
-                    <p className="text-[12pt]">Sistema de Controle de Acesso Escolar ó SCAE</p>
+                    <p className="text-[12pt]">Sistema de Controle de Acesso Escolar ‚Äî SCAE</p>
                 </div>
 
                 <div className="text-[12pt] leading-[1.5] text-justify space-y-4">
 
                     <p className="indent-[1.25cm]">
-                        Este documento estabelece as condiÁıes de uso do Sistema de Controle de Acesso Escolar (SCAE)
-                        {daEscola && <>, disponibilizado ‡ instituiÁ„o <strong>{nomeEscola}</strong></>}. O acesso ou uso do
-                        sistema implica a aceitaÁ„o integral destes Termos. O SCAE È um projeto desenvolvido de forma
-                        independente por um estudante universit·rio, pessoa fÌsica, sem fins lucrativos, com o objetivo
-                        de contribuir com a seguranÁa e a organizaÁ„o do ambiente escolar.
+                        Este documento estabelece as condi√ß√µes de uso do Sistema de Controle de Acesso Escolar (SCAE)
+                        {daEscola && <>, disponibilizado √† institui√ß√£o <strong>{nomeEscola}</strong></>}. O acesso ou uso do
+                        sistema implica a aceita√ß√£o integral destes Termos. O SCAE √© um projeto desenvolvido de forma
+                        independente por um estudante universit√°rio, pessoa f√≠sica, sem fins lucrativos, com o objetivo
+                        de contribuir com a seguran√ßa e a organiza√ß√£o do ambiente escolar.
                     </p>
 
-                    {/* --- SE«√O 1 --- */}
+                    {/* --- SE√á√ÉO 1 --- */}
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">1. DA NATUREZA DO SISTEMA</h2>
                     <p className="indent-[1.25cm]">
-                        O SCAE È uma plataforma SaaS (Software as a Service ó software entregue como serviÁo via
-                        internet, sem instalaÁ„o local) para gest„o de controle de acesso, registro de frequÍncia
-                        e seguranÁa escolar.
+                        O SCAE √© uma plataforma SaaS (Software as a Service ‚Äî software entregue como servi√ßo via
+                        internet, sem instala√ß√£o local) para gest√£o de controle de acesso, registro de frequ√™ncia
+                        e seguran√ßa escolar.
                     </p>
                     <p className="indent-[1.25cm]">
-                        O uso do sistema È concedido em car·ter {caraterUso}, de forma n„o exclusiva e intransferÌvel,
-                        limitado ‡s finalidades previstas neste instrumento.
+                        O uso do sistema √© concedido em car√°ter {caraterUso}, de forma n√£o exclusiva e intransfer√≠vel,
+                        limitado √†s finalidades previstas neste instrumento.
                     </p>
 
-                    {/* --- SE«√O 2 --- */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">2. DEVERES DO USU¡RIO ADMINISTRATIVO</h2>
+                    {/* --- SE√á√ÉO 2 --- */}
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">2. DEVERES DO USU√ÅRIO ADMINISTRATIVO</h2>
                     <p className="indent-[1.25cm]">
-                        O acesso aos mÛdulos administrativos È restrito aos profissionais autorizados
-                        pelo <strong>{nomeEscola}</strong>. Ao utilizar o sistema, o usu·rio se compromete a:
+                        O acesso aos m√≥dulos administrativos √© restrito aos profissionais autorizados
+                        pelo <strong>{nomeEscola}</strong>. Ao utilizar o sistema, o usu√°rio se compromete a:
                     </p>
                     <ul className="list-disc pl-[2.5cm]">
-                        <li className="mb-2">Fornecer informaÁıes verdadeiras e mantÍ-las atualizadas.</li>
-                        <li className="mb-2">Manter a confidencialidade de suas credenciais de acesso, sendo integralmente respons·vel por qualquer uso indevido decorrente do n„o cumprimento desta obrigaÁ„o.</li>
+                        <li className="mb-2">Fornecer informa√ß√µes verdadeiras e mant√™-las atualizadas.</li>
+                        <li className="mb-2">Manter a confidencialidade de suas credenciais de acesso, sendo integralmente respons√°vel por qualquer uso indevido decorrente do n√£o cumprimento desta obriga√ß√£o.</li>
                         <li className="mb-2">Utilizar exclusivamente o e-mail institucional validado para login.</li>
                         <li className="mb-2">
                             Comunicar imediatamente ao administrador do sistema qualquer suspeita de acesso
                             indevido ou comprometimento de suas credenciais de acesso.
                         </li>
                         <li className="mb-2">
-                            Em caso de desligamento ou encerramento do vÌnculo com a instituiÁ„o, a escola È
-                            respons·vel por revogar o acesso do usu·rio no painel administrativo, evitando
+                            Em caso de desligamento ou encerramento do v√≠nculo com a institui√ß√£o, a escola √©
+                            respons√°vel por revogar o acesso do usu√°rio no painel administrativo, evitando
                             acessos indevidos por credenciais de ex-colaboradores.
                         </li>
                     </ul>
 
-                    {/* --- SE«√O 3 --- */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">3. PROIBI«’ES E SAN«’ES</h2>
+                    {/* --- SE√á√ÉO 3 --- */}
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">3. PROIBI√á√ïES E SAN√á√ïES</h2>
                     <p className="indent-[1.25cm]">
-                        ViolaÁıes a estes Termos podem resultar em suspens„o imediata do acesso, sem prejuÌzo
-                        de sanÁıes administrativas, civis e criminais cabÌveis. … expressamente proibido:
+                        Viola√ß√µes a estes Termos podem resultar em suspens√£o imediata do acesso, sem preju√≠zo
+                        de san√ß√µes administrativas, civis e criminais cab√≠veis. √â expressamente proibido:
                     </p>
                     <ul className="list-disc pl-[2.5cm]">
-                        <li className="mb-2">Realizar engenharia reversa, descompilar ou modificar o cÛdigo-fonte do sistema.</li>
-                        <li className="mb-2">Comprometer a seguranÁa do sistema ou realizar bypass (contorno) de autenticaÁ„o.</li>
-                        <li className="mb-2">Acessar dados de alunos ou funcion·rios sem amparo legal (violaÁ„o do princÌpio de finalidade da LGPD).</li>
-                        <li className="mb-2">Compartilhar credenciais de acesso com terceiros n„o autorizados.</li>
+                        <li className="mb-2">Realizar engenharia reversa, descompilar ou modificar o c√≥digo-fonte do sistema.</li>
+                        <li className="mb-2">Comprometer a seguran√ßa do sistema ou realizar bypass (contorno) de autentica√ß√£o.</li>
+                        <li className="mb-2">Acessar dados de alunos ou funcion√°rios sem amparo legal (viola√ß√£o do princ√≠pio de finalidade da LGPD).</li>
+                        <li className="mb-2">Compartilhar credenciais de acesso com terceiros n√£o autorizados.</li>
                     </ul>
 
-                    {/* --- SE«√O 4 --- */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. RESTRI«’ES DE DOMÕNIO E AUTENTICA«√O</h2>
+                    {/* --- SE√á√ÉO 4 --- */}
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. RESTRI√á√ïES DE DOM√çNIO E AUTENTICA√á√ÉO</h2>
                     <p className="indent-[1.25cm]">
                         O acesso administrativo exige e-mail institucional previamente configurado pela escola,
-                        com autenticaÁ„o via Google OAuth (serviÁo de login seguro fornecido pelo Google).
+                        com autentica√ß√£o via Google OAuth (servi√ßo de login seguro fornecido pelo Google).
                     </p>
                     <p className="indent-[1.25cm]">
-                        Tentativas de acesso com e-mails fora do domÌnio autorizado s„o bloqueadas
-                        automaticamente pelo sistema, sem intervenÁ„o manual.
+                        Tentativas de acesso com e-mails fora do dom√≠nio autorizado s√£o bloqueadas
+                        automaticamente pelo sistema, sem interven√ß√£o manual.
                     </p>
 
-                    {/* --- SE«√O 5 --- */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">5. DISPONIBILIDADE E MODIFICA«’ES</h2>
+                    {/* --- SE√á√ÉO 5 --- */}
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">5. DISPONIBILIDADE E MODIFICA√á√ïES</h2>
                     <p className="indent-[1.25cm]">
                         O <strong>{nomeFornecedor}</strong> reserva-se o direito de modificar, suspender ou
-                        descontinuar o serviÁo para realizaÁ„o de melhorias tÈcnicas ou de seguranÁa.
+                        descontinuar o servi√ßo para realiza√ß√£o de melhorias t√©cnicas ou de seguran√ßa.
                     </p>
                     <p className="indent-[1.25cm]">
                         A disponibilidade do sistema depende de infraestrutura de terceiros (Cloudflare e Google).
-                        Por essa raz„o, n„o h· garantia de disponibilidade ininterrupta, sendo que eventuais
-                        indisponibilidades por falha desses provedores est„o fora do controle do desenvolvedor.
+                        Por essa raz√£o, n√£o h√° garantia de disponibilidade ininterrupta, sendo que eventuais
+                        indisponibilidades por falha desses provedores est√£o fora do controle do desenvolvedor.
                     </p>
                     <p className="indent-[1.25cm]">
-                        Sempre que possÌvel, modificaÁıes relevantes ser„o comunicadas previamente ‡ escola
-                        com antecedÍncia razo·vel.
+                        Sempre que poss√≠vel, modifica√ß√µes relevantes ser√£o comunicadas previamente √† escola
+                        com anteced√™ncia razo√°vel.
                     </p>
 
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">5.1. ATUALIZA«√O DESTES TERMOS</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">5.1. ATUALIZA√á√ÉO DESTES TERMOS</h2>
                     <p className="indent-[1.25cm]">
                         O <strong>{nomeFornecedor}</strong> pode atualizar estes Termos de Uso a qualquer momento.
-                        AlteraÁıes relevantes ser„o comunicadas com antecedÍncia mÌnima de 15 (quinze) dias corridos,
-                        por meio de notificaÁ„o no painel administrativo do sistema e/ou por e-mail institucional
+                        Altera√ß√µes relevantes ser√£o comunicadas com anteced√™ncia m√≠nima de 15 (quinze) dias corridos,
+                        por meio de notifica√ß√£o no painel administrativo do sistema e/ou por e-mail institucional
                         cadastrado.
                     </p>
                     <p className="indent-[1.25cm]">
-                        O uso continuado do sistema apÛs esse prazo implica a aceitaÁ„o t·cita das novas condiÁıes.
-                        Caso a escola n„o concorde com as alteraÁıes, poder· solicitar o encerramento do acesso
+                        O uso continuado do sistema ap√≥s esse prazo implica a aceita√ß√£o t√°cita das novas condi√ß√µes.
+                        Caso a escola n√£o concorde com as altera√ß√µes, poder√° solicitar o encerramento do acesso
                         ao desenvolvedor.
                     </p>
 
-                    {/* --- SE«√O 6 --- */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">6. LIMITA«√O DE RESPONSABILIDADE</h2>
+                    {/* --- SE√á√ÉO 6 --- */}
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">6. LIMITA√á√ÉO DE RESPONSABILIDADE</h2>
                     <p className="indent-[1.25cm]">
-                        Os dados s„o armazenados em nuvem (Cloudflare e Google Firebase). N„o h· servidores
+                        Os dados s√£o armazenados em nuvem (Cloudflare e Google Firebase). N√£o h√° servidores
                         locais instalados na escola para o armazenamento definitivo dos dados.
                     </p>
                     <p className="indent-[1.25cm]">
-                        Por ser um projeto independente desenvolvido por pessoa fÌsica sem fins lucrativos,
+                        Por ser um projeto independente desenvolvido por pessoa f√≠sica sem fins lucrativos,
                         a responsabilidade do <strong>{nomeFornecedor}</strong> limita-se aos danos diretamente
-                        causados por falha comprovada do sistema. Em nenhuma hipÛtese haver· responsabilidade
-                        por danos indiretos, lucros cessantes ou prejuÌzos decorrentes de:
+                        causados por falha comprovada do sistema. Em nenhuma hip√≥tese haver√° responsabilidade
+                        por danos indiretos, lucros cessantes ou preju√≠zos decorrentes de:
                     </p>
                     <ul className="list-disc pl-[2.5cm]">
                         <li className="mb-2">Indisponibilidade de infraestrutura de terceiros (Cloudflare, Google).</li>
                         <li className="mb-2">Falhas de conectividade da rede local da escola.</li>
-                        <li className="mb-2">Uso inadequado do sistema por parte dos usu·rios.</li>
-                        <li className="mb-2">Quaisquer prejuÌzos decorrentes de eventos fora do controle do desenvolvedor.</li>
+                        <li className="mb-2">Uso inadequado do sistema por parte dos usu√°rios.</li>
+                        <li className="mb-2">Quaisquer preju√≠zos decorrentes de eventos fora do controle do desenvolvedor.</li>
                     </ul>
                     <p className="indent-[1.25cm]">
-                        Esta limitaÁ„o n„o exclui responsabilidade por dolo, nos termos do Art. 393 do CÛdigo
-                        Civil Brasileiro (Lei n∫ 10.406/2002), nem afasta direitos eventualmente garantidos pelo
-                        CÛdigo de Defesa do Consumidor (Lei n∫ 8.078/1990), quando aplic·vel ‡ relaÁ„o entre
+                        Esta limita√ß√£o n√£o exclui responsabilidade por dolo, nos termos do Art. 393 do C√≥digo
+                        Civil Brasileiro (Lei n¬∫ 10.406/2002), nem afasta direitos eventualmente garantidos pelo
+                        C√≥digo de Defesa do Consumidor (Lei n¬∫ 8.078/1990), quando aplic√°vel √† rela√ß√£o entre
                         as partes.
                     </p>
                     <p className="indent-[1.25cm]">
-                        O <strong>{nomeFornecedor}</strong> age de boa-fÈ e com total transparÍncia,
-                        comprometendo-se a comunicar prontamente qualquer limitaÁ„o tÈcnica que possa
+                        O <strong>{nomeFornecedor}</strong> age de boa-f√© e com total transpar√™ncia,
+                        comprometendo-se a comunicar prontamente qualquer limita√ß√£o t√©cnica que possa
                         impactar o funcionamento do sistema.
                     </p>
 
-                    {/* --- SE«√O 7 --- */}
+                    {/* --- SE√á√ÉO 7 --- */}
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">7. PROPRIEDADE INTELECTUAL</h2>
                     <p className="indent-[1.25cm]">
                         Os direitos de propriedade intelectual do SCAE pertencem ao seu desenvolvedor,
-                        <strong> {nomeFornecedor}</strong>, pessoa fÌsica, autor independente do sistema,
-                        nos termos da Lei n∫ 9.610/1998 (Lei de Direitos Autorais).
+                        <strong> {nomeFornecedor}</strong>, pessoa f√≠sica, autor independente do sistema,
+                        nos termos da Lei n¬∫ 9.610/1998 (Lei de Direitos Autorais).
                     </p>
                     <p className="indent-[1.25cm]">
-                        O uso da plataforma È concedido exclusivamente nos termos deste instrumento.
-                        Nenhum direito alÈm dos aqui previstos È transferido pelo simples uso do sistema.
+                        O uso da plataforma √© concedido exclusivamente nos termos deste instrumento.
+                        Nenhum direito al√©m dos aqui previstos √© transferido pelo simples uso do sistema.
                     </p>
 
-                    {/* --- SE«√O 8 --- */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">8. PRIVACIDADE E PROTE«√O DE DADOS</h2>
+                    {/* --- SE√á√ÉO 8 --- */}
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">8. PRIVACIDADE E PROTE√á√ÉO DE DADOS</h2>
                     <p className="indent-[1.25cm]">
-                        O tratamento de dados realizado por este sistema segue a PolÌtica de Privacidade do SCAE,
-                        em conformidade com a Lei n∫ 13.709/2018 (LGPD).
+                        O tratamento de dados realizado por este sistema segue a Pol√≠tica de Privacidade do SCAE,
+                        em conformidade com a Lei n¬∫ 13.709/2018 (LGPD).
                     </p>
                     <p className="indent-[1.25cm]">
-                        O sistema N√O coleta, em hipÛtese alguma: fotografia ou imagem do aluno; n˙mero de
-                        telefone; CPF; biometria de qualquer tipo; localizaÁ„o GPS; dados de sa˙de; nem dados
-                        banc·rios ou financeiros de alunos, respons·veis ou colaboradores.
+                        O sistema N√ÉO coleta, em hip√≥tese alguma: fotografia ou imagem do aluno; n√∫mero de
+                        telefone; CPF; biometria de qualquer tipo; localiza√ß√£o GPS; dados de sa√∫de; nem dados
+                        banc√°rios ou financeiros de alunos, respons√°veis ou colaboradores.
                     </p>
                     <p className="indent-[1.25cm]">
-                        Dados de alunos menores de idade s„o tratados com base no Art. 14 da LGPD, sempre no
-                        melhor interesse dos estudantes e com finalidade exclusiva de seguranÁa escolar.
+                        Dados de alunos menores de idade s√£o tratados com base no Art. 14 da LGPD, sempre no
+                        melhor interesse dos estudantes e com finalidade exclusiva de seguran√ßa escolar.
                     </p>
                     <p className="indent-[1.25cm]">
-                        Acesse a PolÌtica de Privacidade completa:{' '}
+                        Acesse a Pol√≠tica de Privacidade completa:{' '}
                         <span
                             className="text-blue-600 underline cursor-pointer ml-1 font-bold"
                             onClick={() => navegar(slugEscola ? `/${slugEscola}/politica-de-privacidade` : '/politica-de-privacidade')}
                         >
-                            PolÌtica de Privacidade
+                            Pol√≠tica de Privacidade
                         </span>.
                     </p>
 
-                    {/* --- SE«√O 9 (NOVA) --- */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">9. VIG NCIA E RESCIS√O</h2>
+                    {/* --- SE√á√ÉO 9 --- */}
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">9. VIG√äNCIA E RESCIS√ÉO</h2>
                     <p className="indent-[1.25cm]">
                         Estes Termos entram em vigor no momento do primeiro acesso ao sistema e permanecem
-                        v·lidos durante todo o perÌodo de uso, atÈ o encerramento da relaÁ„o de uso entre
-                        a instituiÁ„o de ensino e o desenvolvedor <strong>{nomeFornecedor}</strong>.
+                        v√°lidos durante todo o per√≠odo de uso, at√© o encerramento da rela√ß√£o de uso entre
+                        a institui√ß√£o de ensino e o desenvolvedor <strong>{nomeFornecedor}</strong>.
                     </p>
                     <p className="indent-[1.25cm]">
-                        O encerramento dessa relaÁ„o implica a revogaÁ„o autom·tica de todos os acessos
-                        vinculados ‡ instituiÁ„o, sem necessidade de notificaÁ„o individual, respeitados
-                        os prazos de retenÁ„o de dados previstos na PolÌtica de Privacidade.
+                        O encerramento dessa rela√ß√£o implica a revoga√ß√£o autom√°tica de todos os acessos
+                        vinculados √† institui√ß√£o, sem necessidade de notifica√ß√£o individual, respeitados
+                        os prazos de reten√ß√£o de dados previstos na Pol√≠tica de Privacidade.
                     </p>
 
-                    {/* --- SE«√O 10 --- */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">10. FORO E LEGISLA«√O APLIC¡VEL</h2>
+                    {/* --- SE√á√ÉO 10 --- */}
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">10. FORO E LEGISLA√á√ÉO APLIC√ÅVEL</h2>
                     <p className="indent-[1.25cm]">
-                        Estes Termos s„o regidos pelas leis da Rep˙blica Federativa do Brasil.
+                        Estes Termos s√£o regidos pelas leis da Rep√∫blica Federativa do Brasil.
                     </p>
                     <p className="indent-[1.25cm]">
-                        Fica eleito o foro de <strong>{foro}</strong> para dirimir quaisquer litÌgios
-                        decorrentes deste instrumento, com ren˙ncia a qualquer outro foro, por mais
+                        Fica eleito o foro de <strong>{foro}</strong> para dirimir quaisquer lit√≠gios
+                        decorrentes deste instrumento, com ren√∫ncia a qualquer outro foro, por mais
                         privilegiado que seja.
                     </p>
 
-                    {/* RodapÈ */}
+                    {/* Rodap√© */}
                     <div className="mt-16 text-center border-t border-slate-200 pt-8">
-                        <p className="text-slate-500">⁄ltima revis„o: {dataUltimaRevisao}.</p>
+                        <p className="text-slate-500">√öltima revis√£o: {dataUltimaRevisao}.</p>
                     </div>
 
                 </div>

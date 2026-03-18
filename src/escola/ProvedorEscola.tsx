@@ -19,7 +19,7 @@ export interface PerfilEscola {
     emailDPO?: string;
     qrDinamico: boolean;
     saidaObrigatoria: boolean;
-    metodoAcesso: 'QRCODE' | 'BIOMETRIA';
+    metodoAcesso: 'QRCODE' | 'FACIAL' | 'DIGITAL';
 }
 
 const EscolaContext = createContext<PerfilEscola | null>(null);

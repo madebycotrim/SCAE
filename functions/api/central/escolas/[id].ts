@@ -4,7 +4,7 @@ import { verificarPermissao } from '../../_seguranca';
 
 /**
  * GET /api/central/escolas/[id]
- * Recupera todos os dados de uma unidade para edição.
+ * Recupera todos os dados de uma unidade para edicao.
  */
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -16,7 +16,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         `).bind(id).first();
 
         if (!escola) {
-            throw new ErroNaoEncontrado('Unidade não encontrada na infraestrutura.');
+            throw new ErroNaoEncontrado('Unidade nao encontrada na infraestrutura.');
         }
 
         return new Response(JSON.stringify({ dados: escola }), {
@@ -39,9 +39,9 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
         const { id } = contexto.params;
         const dados = await contexto.request.json() as any;
 
-        // Montar query dinâmica baseada nos campos enviados
-        const campos = [];
-        const valores = [];
+        // Montar query dinamica baseada nos campos enviados
+        const campos: string[] = [];
+        const valores: any[] = [];
 
         if (dados.nome_escola) { campos.push('nome_escola = ?'); valores.push(dados.nome_escola); }
         if (dados.dominio_email) { campos.push('dominio_email = ?'); valores.push(dados.dominio_email); }
@@ -50,6 +50,12 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
         if (dados.logo_url !== undefined) { campos.push('logo_url = ?'); valores.push(dados.logo_url); }
         if (dados.config_qr_dinamico !== undefined) { campos.push('config_qr_dinamico = ?'); valores.push(dados.config_qr_dinamico ? 1 : 0); }
         if (dados.tts_ativado !== undefined) { campos.push('tts_ativado = ?'); valores.push(dados.tts_ativado ? 1 : 0); }
+        if (dados.saida_obrigatoria !== undefined) { campos.push('saida_obrigatoria = ?'); valores.push(dados.saida_obrigatoria ? 1 : 0); }
+        if (dados.metodo_acesso !== undefined) { campos.push('metodo_acesso = ?'); valores.push(dados.metodo_acesso); }
+        if (dados.limite_alunos !== undefined) { campos.push('limite_alunos = ?'); valores.push(dados.limite_alunos); }
+        if (dados.limite_terminais !== undefined) { campos.push('limite_terminais = ?'); valores.push(dados.limite_terminais); }
+        if (dados.retencao_dados !== undefined) { campos.push('retencao_dados = ?'); valores.push(dados.retencao_dados); }
+        if (dados.contato_suporte !== undefined) { campos.push('contato_suporte = ?'); valores.push(dados.contato_suporte); }
         if (dados.status) { campos.push('status = ?'); valores.push(dados.status); }
 
         if (campos.length === 0) {

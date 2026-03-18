@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
     Building2, Search, Edit2, Ban, Eye, AlertTriangle, Plus, 
-    ExternalLink, Activity, Server, ShieldAlert, X, Loader2, Zap,
-    Trash2
+    ExternalLink, Activity, Server, ShieldAlert, X, Loader2, Fingerprint, Zap,
+    Trash2, QrCode
 } from 'lucide-react';
 import { api } from '@/compartilhado/servicos/api';
 import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
@@ -17,23 +17,15 @@ interface EscolaSistema {
     totalAlunos: number;
     limiteAlunos: number;
     limiteTerminais: number;
-    retençaoDados: number;
     contatoSuporte: string;
     status: 'ATIVA' | 'SUSPENSA' | 'PENDENTE';
     criadoEm: string;
 }
 
-interface DadosSaude {
-    totalAcessosHoje: number;
-    alertasPendentes: number;
-    statusDB: string;
-    corDoDia: string;
-}
 
 export function PaginaGestaoEscolas() {
     const [busca, definirBusca] = useState('');
     const [escolas, definirEscolas] = useState<EscolaSistema[]>([]);
-    const [saude, definirSaude] = useState<DadosSaude | null>(null);
     const [carregando, definirCarregando] = useState(true);
     const [erro, definirErro] = useState<string | null>(null);
 
@@ -52,26 +44,29 @@ export function PaginaGestaoEscolas() {
         config_qr_dinamico: false,
         tts_ativado: true,
         saida_obrigatoria: true,
-        metodo_acesso: 'QRCODE' as 'QRCODE' | 'BIOMETRIA',
+        metodo_acesso: 'QRCODE' as 'QRCODE' | 'FACIAL' | 'DIGITAL',
         limite_alunos: 1000,
         limite_terminais: 5,
-        retençao_dados: 730,
+        retencao_dados: 730,
         contato_suporte: ''
     });
     const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao'} | null>(null);
 
+    const formPadrao = {
+        nome_escola: '', id: '', dominio_email: '', 
+        cor_primaria: '#030712', cor_secundaria: '#ffffff', 
+        logo_url: '', config_qr_dinamico: false, tts_ativado: true,
+        saida_obrigatoria: true, metodo_acesso: 'QRCODE' as 'QRCODE' | 'FACIAL' | 'DIGITAL',
+        limite_alunos: 1000, limite_terminais: 5, retencao_dados: 730, contato_suporte: ''
+    };
+
     const carregarDados = async () => {
         try {
-            // Só ativa o estado carregando total se não houver dados (evita flicker no save/edit)
             if (escolas.length === 0) {
                 definirCarregando(true);
             }
-            const [respEscolas, respSaude] = await Promise.all([
-                api.obter<EscolaSistema[]>('/central/escolas'),
-                api.obter<DadosSaude>('/central/saude')
-            ]);
-            definirEscolas(respEscolas);
-            definirSaude(respSaude);
+            const dadosEscolas = await api.obter<EscolaSistema[]>('/central/escolas');
+            definirEscolas(dadosEscolas);
         } catch (err: any) {
             console.error('Erro na central:', err);
             definirErro(err.message || 'Falha na conexão com a infraestrutura.');
@@ -88,19 +83,19 @@ export function PaginaGestaoEscolas() {
         try {
             const dadosCompletos = await api.obter<any>(`/central/escolas/${escola.id}`);
             definirForm({
-                nome_escola: dadosCompletos.nome || escola.nome,
-                id: dadosCompletos.slug || escola.slug,
+                nome_escola: dadosCompletos.nome_escola || escola.nome,
+                id: dadosCompletos.id || escola.slug,
                 dominio_email: dadosCompletos.dominio_email || '',
                 cor_primaria: dadosCompletos.cor_primaria || '#030712',
                 cor_secundaria: dadosCompletos.cor_secundaria || '#ffffff',
                 logo_url: dadosCompletos.logo_url || '',
-                config_qr_dinamico: dadosCompletos.config_qr_dinamico ?? false,
-                tts_ativado: dadosCompletos.tts_ativado ?? true,
-                saida_obrigatoria: dadosCompletos.saida_obrigatoria ?? true,
+                config_qr_dinamico: !!dadosCompletos.config_qr_dinamico,
+                tts_ativado: dadosCompletos.tts_ativado !== 0,
+                saida_obrigatoria: dadosCompletos.saida_obrigatoria !== 0,
                 metodo_acesso: dadosCompletos.metodo_acesso || 'QRCODE',
                 limite_alunos: dadosCompletos.limite_alunos || 1000,
                 limite_terminais: dadosCompletos.limite_terminais || 5,
-                retençao_dados: dadosCompletos.retençao_dados || 730,
+                retencao_dados: dadosCompletos.retencao_dados || 730,
                 contato_suporte: dadosCompletos.contato_suporte || ''
             });
             definirEditandoId(escola.id);
@@ -153,7 +148,7 @@ export function PaginaGestaoEscolas() {
     const lidarComCriacao = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // 🛡️ Prevenção de submissão precoce (Bug relatado: cadastra sozinho ao dar Enter ou double click)
+        // Prevenção de submissão precoce
         if (fase < 3) {
             if (fase === 1 && (!form.nome_escola || !form.id || !form.dominio_email)) {
                 return toast.error('Complete a identidade core antes de avançar.');
@@ -176,13 +171,7 @@ export function PaginaGestaoEscolas() {
             definirModalAberto(false);
             definirEditandoId(null);
             definirFase(1);
-            definirForm({ 
-                nome_escola: '', id: '', dominio_email: '', 
-                cor_primaria: '#030712', cor_secundaria: '#ffffff', 
-                logo_url: '', config_qr_dinamico: false, tts_ativado: true,
-                saida_obrigatoria: true, metodo_acesso: 'QRCODE',
-                limite_alunos: 1000, limite_terminais: 5, retençao_dados: 730, contato_suporte: ''
-            });
+            definirForm({ ...formPadrao });
             carregarDados();
         } catch (err: any) {
             toast.error(err.message || 'Erro no processamento do protocolo.');
@@ -202,38 +191,6 @@ export function PaginaGestaoEscolas() {
     if (erro) return <ErroCentral erro={erro} onContexto={carregarDados} />;
     return (
         <div className="space-y-16 animate-fade-in font-sans selection:bg-slate-950 selection:text-white">
-            {/* Sistema de Telemetria Global - Estilo Centro de Comando */}
-            <section className="relative">
-                <div className="absolute inset-0 bg-slate-100/30 blur-3xl rounded-2xl -z-10"></div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 rounded-2xl overflow-hidden border border-slate-200 bg-white divide-x divide-slate-100">
-                    <HealthMetric 
-                        label="Fluxo / 24h" 
-                        valor={saude?.totalAcessosHoje || 0} 
-                        sub="Sinais de Presença" 
-                        icone={Activity} 
-                    />
-                    <HealthMetric 
-                        label="Incidentes" 
-                        valor={saude?.alertasPendentes || 0} 
-                        sub="Nós Críticos" 
-                        icone={ShieldAlert} 
-                    />
-                    <HealthMetric 
-                        label="Status Infra" 
-                        valor={saude?.statusDB || 'ESTÁVEL'} 
-                        sub="Conectividade D1" 
-                        icone={Server} 
-                    />
-                    <HealthMetric 
-                        label="Espectro Autenticacao" 
-                        valor={saude?.corDoDia || '#000'} 
-                        sub="Código de Cor" 
-                        icone={Zap} 
-                        customColor={saude?.corDoDia}
-                    />
-                </div>
-            </section>
-
             {/* Cabeçalho Principal - Central Intelligence */}
             <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12">
                 <div className="space-y-6">
@@ -262,13 +219,7 @@ export function PaginaGestaoEscolas() {
                     <Botao 
                         onClick={() => {
                             definirEditandoId(null);
-                            definirForm({ 
-                                nome_escola: '', id: '', dominio_email: '', 
-                                cor_primaria: '#030712', cor_secundaria: '#ffffff', 
-                                logo_url: '', config_qr_dinamico: false, tts_ativado: true,
-                                saida_obrigatoria: true, metodo_acesso: 'QRCODE',
-                                limite_alunos: 1000, limite_terminais: 5, retençao_dados: 730, contato_suporte: ''
-                            });
+                            definirForm({ ...formPadrao });
                             definirFase(1);
                             definirModalAberto(true);
                         }}
@@ -503,22 +454,30 @@ export function PaginaGestaoEscolas() {
                                                     <h4 className="text-sm font-black text-slate-950 uppercase tracking-tight italic">Método de Autenticação Primário</h4>
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tecnologia padrão para identificação dos alunos.</p>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-3 gap-4">
                                                     <button
                                                         type="button"
                                                         onClick={() => definirForm({...form, metodo_acesso: 'QRCODE'})}
                                                         className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'QRCODE' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
                                                     >
-                                                        <Search size={20} className={form.metodo_acesso === 'QRCODE' ? 'text-blue-400' : 'text-slate-200'} />
+                                                        <QrCode size={20} className={form.metodo_acesso === 'QRCODE' ? 'text-blue-400' : 'text-slate-200'} />
                                                         <span className="text-[10px] font-black uppercase tracking-widest">QR Code</span>
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        onClick={() => definirForm({...form, metodo_acesso: 'BIOMETRIA'})}
-                                                        className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'BIOMETRIA' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
+                                                        onClick={() => definirForm({...form, metodo_acesso: 'FACIAL'})}
+                                                        className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'FACIAL' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
                                                     >
-                                                        <Zap size={20} className={form.metodo_acesso === 'BIOMETRIA' ? 'text-blue-400' : 'text-slate-200'} />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest">Biometria</span>
+                                                        <Eye size={20} className={form.metodo_acesso === 'FACIAL' ? 'text-blue-400' : 'text-slate-200'} />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">Facial</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => definirForm({...form, metodo_acesso: 'DIGITAL'})}
+                                                        className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'DIGITAL' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
+                                                    >
+                                                        <Fingerprint size={20} className={form.metodo_acesso === 'DIGITAL' ? 'text-blue-400' : 'text-slate-200'} />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">Digital</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -533,14 +492,14 @@ export function PaginaGestaoEscolas() {
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Capacidade de Alunos</label>
                                                 <input type="number" placeholder="Ex: 500" value={form.limite_alunos}
-                                                    onChange={(e) => definirForm({...form, limite_alunos: parseInt(e.target.value)})}
+                                                    onChange={(e) => definirForm({...form, limite_alunos: parseInt(e.target.value) || 0})}
                                                     className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
                                                 />
                                             </div>
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Máximo de Terminais (Tablets)</label>
                                                 <input type="number" placeholder="Ex: 5" value={form.limite_terminais}
-                                                    onChange={(e) => definirForm({...form, limite_terminais: parseInt(e.target.value)})}
+                                                    onChange={(e) => definirForm({...form, limite_terminais: parseInt(e.target.value) || 0})}
                                                     className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
                                                 />
                                             </div>
@@ -549,8 +508,8 @@ export function PaginaGestaoEscolas() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div className="space-y-3">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Retenção de Logs (Dias)</label>
-                                                <select value={form.retençao_dados}
-                                                    onChange={(e) => definirForm({...form, retençao_dados: parseInt(e.target.value)})}
+                                                <select value={form.retencao_dados}
+                                                    onChange={(e) => definirForm({...form, retencao_dados: parseInt(e.target.value)})}
                                                     className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all appearance-none"
                                                 >
                                                     <option value={180}>180 Dias (Mínimo Marco Civil)</option>
@@ -669,25 +628,6 @@ export function PaginaGestaoEscolas() {
     );
 }
 
-function HealthMetric({ label, valor, sub, icone: Icone, customColor }: any) {
-    return (
-        <div className="p-10 flex flex-col gap-6 group hover:bg-slate-50 transition-all duration-700 cursor-default">
-            <div className="flex items-center justify-between">
-                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}
-                     style={{ backgroundColor: customColor ? `${customColor}10` : '#f8fafc', color: customColor || '#64748b' }}>
-                    <Icone size={18} strokeWidth={2.5} />
-                </div>
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-slate-950 transition-colors"></div>
-            </div>
-            <div className="space-y-2">
-                <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] leading-none">{label}</p>
-                <h4 className="text-3xl font-black text-slate-950 uppercase italic tracking-tighter leading-none">{valor}</h4>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] opacity-40 leading-none">{sub}</p>
-            </div>
-        </div>
-    );
-}
-
 function BadgeStatus({ status }: { status: 'ATIVA' | 'SUSPENSA' | 'PENDENTE' }) {
     if (status === 'ATIVA') {
         return (
@@ -734,7 +674,7 @@ function ErroCentral({ erro, onContexto }: any) {
 function VazioCentral() {
     return (
         <tr>
-            <td colSpan={4} className="py-40 text-center">
+            <td colSpan={5} className="py-40 text-center">
                 <div className="flex flex-col items-center gap-8 grayscale opacity-10">
                     <Search size={80} strokeWidth={1} className="text-slate-900" />
                     <p className="text-[12px] font-black text-slate-900 uppercase tracking-[0.6em]">Nenhuma Operação Encontrada</p>

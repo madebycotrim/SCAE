@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS vinculos_responsavel_aluno;
 DROP TABLE IF EXISTS alertas_evasao;
 DROP TABLE IF EXISTS alertas_risco;
 DROP TABLE IF EXISTS registros_acesso;
+DROP TABLE IF EXISTS descritores_faciais;
 DROP TABLE IF EXISTS alunos;
 DROP TABLE IF EXISTS responsaveis;
 DROP TABLE IF EXISTS turmas;
@@ -29,11 +30,12 @@ CREATE TABLE escolas (
     config_qr_dinamico BOOLEAN DEFAULT 0, -- 0 = Fixo (1 ano), 1 = Dinâmico (24h)
     tts_ativado BOOLEAN DEFAULT 1,
     saida_obrigatoria BOOLEAN DEFAULT 1,  -- 0 = Saída livre, 1 = Obrigatória
-    metodo_acesso TEXT DEFAULT 'QRCODE', -- 'QRCODE' | 'BIOMETRIA'
+    metodo_acesso TEXT DEFAULT 'QRCODE', -- 'QRCODE' | 'FACIAL' | 'DIGITAL'
     limite_alunos INTEGER DEFAULT 1000,
     limite_terminais INTEGER DEFAULT 5,
-    retençao_dados INTEGER DEFAULT 730,  -- Dias de retenção de logs (LGPD)
+    retencao_dados INTEGER DEFAULT 730,  -- Dias de retencao de logs (LGPD)
     contato_suporte TEXT,              -- E-mail/WhatsApp de TI
+    status TEXT DEFAULT 'ATIVA' CHECK(status IN ('ATIVA', 'SUSPENSA', 'PENDENTE')),
     janelas TEXT DEFAULT '[]',         -- Configuração de horários JSON
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -99,6 +101,23 @@ CREATE TABLE alunos (
 );
 CREATE INDEX idx_alunos_turma ON alunos(turma_id, escola_id);
 CREATE INDEX idx_alunos_ativo ON alunos(ativo, escola_id);
+
+-- ====================================
+-- DESCRITORES FACIAIS (Reconhecimento)
+-- LGPD Art. 11 — Dado biometrico sensivel
+-- Armazena apenas vetores numericos 128d, NUNCA fotos
+-- ====================================
+CREATE TABLE descritores_faciais (
+    aluno_matricula TEXT NOT NULL,
+    escola_id TEXT NOT NULL,
+    descritores TEXT NOT NULL,          -- JSON: number[][] (vetores 128d serializados)
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME,
+
+    PRIMARY KEY (aluno_matricula, escola_id),
+    FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id) ON DELETE CASCADE
+);
+CREATE INDEX idx_descritores_escola ON descritores_faciais(escola_id);
 
 -- ====================================
 -- RESPONSÁVEIS
