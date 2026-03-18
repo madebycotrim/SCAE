@@ -119,7 +119,8 @@ export default function QuiosqueAutoatendimento() {
                 return;
             }
 
-            const tipoMovimentacao: 'ENTRADA' | 'SAIDA' = (tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO) ? 'ENTRADA' : tipoAcessoAtual as 'ENTRADA' | 'SAIDA';
+            const movimentoBase: 'ENTRADA' | 'SAIDA' = (tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO) ? 'ENTRADA' : tipoAcessoAtual as 'ENTRADA' | 'SAIDA';
+            const tipoMovimentacao = !escola.saidaObrigatoria ? 'ENTRADA' : movimentoBase;
             const momentoLeituraLocal = Date.now();
             const timestampAjustado = ajustarTimestampLocal(momentoLeituraLocal);
 
@@ -189,7 +190,9 @@ export default function QuiosqueAutoatendimento() {
                             {escola.nomeEscola}
                         </h1>
                         <div className="flex items-center gap-3">
-                             <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest hidden sm:inline">SCAE OS Framework</span>
+                             <span className="text-[9px] font-bold text-blue-500/50 uppercase tracking-widest hidden sm:inline">
+                                {escola.metodoAcesso === 'BIOMETRIA' ? 'IDENTIFICAÇÃO BIOMÉTRICA ATIVA' : 'SCAE PRO FRAMEWORK'}
+                             </span>
                         </div>
                     </div>
                 </div>
@@ -347,7 +350,11 @@ export default function QuiosqueAutoatendimento() {
                                     </div>
                                     <div>
                                         <p className="text-xs font-black uppercase tracking-[0.6em] text-slate-500 mb-2 leading-none">Sincronizado</p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase max-w-[200px] mx-auto">Aproxime o cartão para iniciar a identificação</p>
+                                         <p className="text-[10px] font-bold text-slate-400 uppercase max-w-[200px] mx-auto">
+                                            {escola.metodoAcesso === 'BIOMETRIA' 
+                                                ? 'Utilize o terminal biométrico para identificação' 
+                                                : 'Aproxime o cartão para iniciar a identificação'}
+                                         </p>
                                     </div>
                                 </div>
                             )}

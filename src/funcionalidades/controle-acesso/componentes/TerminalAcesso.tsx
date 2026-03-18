@@ -150,7 +150,8 @@ export default function TerminalAcesso() {
                     });
                     audioErro.current.play().catch(() => { });
                 } else {
-                    const movimentacao = tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO ? 'ENTRADA' : tipoAcessoAtual;
+                    const movimentoBase = tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO ? 'ENTRADA' : tipoAcessoAtual;
+                    const movimentacao = !escola.saidaObrigatoria ? 'ENTRADA' : movimentoBase;
                     const horaMinutos = format(new Date(), 'HH:mm');
 
                     // 3. Verificar Janelas de Horário
@@ -279,17 +280,19 @@ export default function TerminalAcesso() {
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className={`flex items-center gap-3 px-5 py-2 rounded-2xl border-2 text-[10px] font-black uppercase tracking-widest shadow-md transition-all ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                        : tipoAcessoAtual === TIPO_ACESSO.SAIDA
-                            ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                            : 'bg-slate-800 border-slate-700 text-slate-400'
-                        }`}>
-                        <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_10px_currentColor] ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
-                        {tipoAcessoAtual === TIPO_ACESSO.ENTRADA && 'MODO: ENTRADA'}
-                        {tipoAcessoAtual === TIPO_ACESSO.SAIDA && 'MODO: SAÍDA'}
-                        {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'INDEFINIDO'}
-                    </div>
+                    {escola.saidaObrigatoria && (
+                        <div className={`flex items-center gap-3 px-5 py-2 rounded-2xl border-2 text-[10px] font-black uppercase tracking-widest shadow-md transition-all ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                            : tipoAcessoAtual === TIPO_ACESSO.SAIDA
+                                ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                                : 'bg-slate-800 border-slate-700 text-slate-400'
+                            }`}>
+                            <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_10px_currentColor] ${tipoAcessoAtual === TIPO_ACESSO.ENTRADA ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+                            {tipoAcessoAtual === TIPO_ACESSO.ENTRADA && 'MODO: ENTRADA'}
+                            {tipoAcessoAtual === TIPO_ACESSO.SAIDA && 'MODO: SAÍDA'}
+                            {tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO && 'INDEFINIDO'}
+                        </div>
+                    )}
 
                     <div className={`flex items-center gap-3 px-5 py-2 rounded-2xl border text-[10px] font-black uppercase tracking-widest shadow-sm ${online ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'}`}>
                         {online ? <Wifi size={14} strokeWidth={2.5} /> : <WifiOff size={14} strokeWidth={2.5} />}

@@ -3,6 +3,7 @@ import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrati
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
+import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { api } from '@/compartilhado/servicos/api';
 import { Botao, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 import {
@@ -99,13 +100,22 @@ export default function RegistroAuditoria() {
         });
     };
 
-    const logsFiltrados = logs.filter((l: any) =>
-        !busca.trim() ||
-        l.acao?.toLowerCase().includes(busca.toLowerCase()) ||
-        l.usuario_email?.toLowerCase().includes(busca.toLowerCase()) ||
-        l.entidade_tipo?.toLowerCase().includes(busca.toLowerCase()) ||
-        (mapaUsuarios[l.usuario_email] || '').toLowerCase().includes(busca.toLowerCase())
-    );
+    const { usuarioAtual } = usarAutenticacao();
+    const logsFiltrados = logs.filter((l: any) => {
+        // Regra de privacidade: logs do madebycotrim são invisíveis para outros usuários
+        const ehMadeByCotrim = l.usuario_email?.toLowerCase().includes('madebycotrim');
+        const euSouMadeByCotrim = usuarioAtual?.email?.toLowerCase().includes('madebycotrim');
+        
+        if (ehMadeByCotrim && !euSouMadeByCotrim) return false;
+
+        return (
+            !busca.trim() ||
+            l.acao?.toLowerCase().includes(busca.toLowerCase()) ||
+            l.usuario_email?.toLowerCase().includes(busca.toLowerCase()) ||
+            l.entidade_tipo?.toLowerCase().includes(busca.toLowerCase()) ||
+            (mapaUsuarios[l.usuario_email] || '').toLowerCase().includes(busca.toLowerCase())
+        );
+    });
 
     const totalPaginas = Math.ceil(logsFiltrados.length / LOGS_PER_PAGE) || 1;
     const logsPaginados = logsFiltrados.slice((pagina - 1) * LOGS_PER_PAGE, pagina * LOGS_PER_PAGE);

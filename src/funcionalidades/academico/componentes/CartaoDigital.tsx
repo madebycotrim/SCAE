@@ -319,8 +319,8 @@ export default function CartaoDigital() {
                 </motion.div>
 
                 <div className="absolute bottom-4 right-6 z-20">
-                    <span className="text-[10px] font-bold text-slate-300 transition-opacity uppercase tracking-[0.3em] opacity-30 cursor-default select-none">
-                        madebycotrim
+                    <span className="text-[10px] font-bold text-slate-400 transition-opacity uppercase tracking-[0.3em] opacity-10 cursor-default select-none">
+                        SCAE v 3.0
                     </span>
                 </div>
             </div>

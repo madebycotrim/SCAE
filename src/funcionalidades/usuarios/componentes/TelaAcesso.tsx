@@ -4,6 +4,7 @@ import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutentica
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { ShieldCheck, Lock, QrCode, ScanLine, Fingerprint, Check, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { api } from '@/compartilhado/servicos/api';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
@@ -46,14 +47,40 @@ export default function TelaAcesso() {
             const usuario = resultado.user;
             const email = usuario.email;
 
+            // 1. Regra de ROOT (Sempre permite se for o desenvolvedor)
+            const ehMadeByCotrim = email.trim().toLowerCase() === 'madebycotrim@gmail.com';
+
             if (tipo === 'admin') {
-                if (email.trim().toLowerCase() !== 'madebycotrim@gmail.com') {
+                if (!ehMadeByCotrim) {
                     await sair();
-                    throw new Error('ACESSO NEGADO: Este botão é de uso exclusivo do administrador do sistema (madebycotrim).');
+                    throw new Error('ACESSO NEGADO: Este botão é de uso exclusivo da manutenção central do sistema.');
                 }
             } else if (dominioEmail && !email.endsWith(dominioEmail)) {
                 await sair();
                 throw new Error(`ACESSO NEGADO: Apenas emails institucionais (@${dominioEmail}) são permitidos para esta escola.`);
+            }
+
+            // 2. VERIFICAÇÃO DE VÍNCULO (Obrigatório se não for ROOT)
+            if (!ehMadeByCotrim) {
+                try {
+                    // Tenta buscar o perfil do usuário para esta escola específica
+                    // A api.ts já injeta o X-Escola-ID automaticamente
+                    const perfil = await api.obter<any>('/seguranca/perfil');
+                    
+                    if (!perfil) {
+                        await sair();
+                        throw new Error('ACESSO NEGADO: Seu e-mail é institucional, mas você ainda não foi cadastrado na equipe desta escola.');
+                    }
+
+                    if (!perfil.ativo) {
+                        await sair();
+                        throw new Error('ACESSO NEGADO: Seu acesso está temporariamente bloqueado. Procure a direção.');
+                    }
+                } catch (errPerfil) {
+                    await sair();
+                    log.error('Erro ao validar vínculo no login', errPerfil);
+                    throw new Error('ACESSO NEGADO: Não foi possível validar seu vínculo com esta escola. Você está cadastrado?');
+                }
             }
 
             toast.success('Login realizado com sucesso!');
@@ -237,13 +264,12 @@ export default function TelaAcesso() {
                     </div>
                 </div>
 
-                {/* Assinatura — canto inferior direito */}
                 <div className="absolute bottom-4 right-6 z-20">
                     <span
                         onClick={lidarComCliqueAdmin}
-                        className="text-[10px] font-bold text-slate-300 transition-opacity uppercase tracking-[0.3em] opacity-30 cursor-default select-none"
+                        className="text-[10px] font-bold text-slate-400 transition-opacity uppercase tracking-[0.3em] opacity-10 cursor-default select-none hover:opacity-20"
                     >
-                        madebycotrim
+                        SCAE v 3.0
                     </span>
                 </div>
             </div>

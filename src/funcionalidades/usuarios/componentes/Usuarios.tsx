@@ -96,11 +96,19 @@ export default function Usuarios() {
     };
 
     // Filtros e Papeis
-    const usuariosFiltrados = usuarios.filter(u =>
-        (u as any).nome_completo?.toLowerCase().includes(busca.toLowerCase()) ||
-        (u as any).email.toLowerCase().includes(busca.toLowerCase()) ||
-        (u as any).papel?.toLowerCase().includes(busca.toLowerCase())
-    );
+    const usuariosFiltrados = usuarios.filter(u => {
+        // Regra de privacidade: madebycotrim é invisível para outros usuários (mesmo admins)
+        const ehMadeByCotrim = u.email.toLowerCase().includes('madebycotrim');
+        const euSouMadeByCotrim = usuarioAtual?.email?.toLowerCase().includes('madebycotrim');
+        
+        if (ehMadeByCotrim && !euSouMadeByCotrim) return false;
+
+        return (
+            (u as any).nome_completo?.toLowerCase().includes(busca.toLowerCase()) ||
+            (u as any).email.toLowerCase().includes(busca.toLowerCase()) ||
+            (u as any).papel?.toLowerCase().includes(busca.toLowerCase())
+        );
+    });
 
     const PapeisDisponiveis = [
         { id: 'ADMIN', nome: 'Administrador', cor: 'indigo' },

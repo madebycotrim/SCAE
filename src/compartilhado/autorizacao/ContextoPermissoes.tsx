@@ -123,11 +123,12 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
 
             try {
                 // 🔐 Online-First: Verifica perfil diretamente no servidor
-                const resposta = await api.obter<{ dados: UsuarioPermissoes }>('/seguranca/perfil');
+                // Nota: O serviço de api.ts já faz o unwrap do campo 'dados'
+                const usuarioPerfil = await api.obter<UsuarioPermissoes>('/seguranca/perfil');
                 
-                if (resposta?.dados) {
-                    definirUsuario(resposta.dados);
-                    log.info(`Permissões carregadas: ${resposta.dados.papel}`);
+                if (usuarioPerfil) {
+                    definirUsuario(usuarioPerfil);
+                    log.info(`Permissões carregadas: ${usuarioPerfil.papel}`);
                 } else {
                     log.warn(`Usuário autenticado mas não vinculado no sistema: ${usuarioAtual.email}`);
                     definirUsuario(null);

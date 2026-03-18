@@ -26,7 +26,7 @@ export default function LoginCentral() {
         definirErro('');
 
         try {
-            await entrar({ login_hint: 'madebycotrim@gmail.com' });
+            await entrar();
         } catch (err: any) {
             definirLoading(false);
             definirErro('Erro ao entrar com Google. Tente novamente.');
@@ -98,7 +98,7 @@ export default function LoginCentral() {
 
                 {/* Créditos de Rodapé */}
                 <div className="mt-12 text-center opacity-30 group hover:opacity-100 transition-opacity duration-1000">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">© 2026 COTRIM ENTERPRISE • PROTOCOLO ZERO</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">© 2026 SCAE CENTRAL • PROTOCOLO ZERO</p>
                 </div>
             </div>
         </div>

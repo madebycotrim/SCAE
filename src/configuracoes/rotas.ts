@@ -64,12 +64,6 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
         papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'VISUALIZACAO'],
     },
     {
-        caminho: '/leitor',
-        componente: PaginaTerminalAcesso,
-        protegida: true,
-        papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO'],
-    },
-    {
         caminho: '/relatorios',
         componente: PaginaRelatorios,
         protegida: true,

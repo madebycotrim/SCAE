@@ -61,18 +61,6 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
                 // Atualiza token se necessário
                 const token = await usuario.getIdToken();
                 (usuario as unknown as Record<string, unknown>).token = token;
-
-                // 🔄 Auto-Sync ao Login - Aguarda escola estar pronta
-                const tentarSync = async () => {
-                    const idEscola = sessionStorage.getItem('escola_id');
-                    if (!idEscola) {
-                        // Escola ainda não carregou, tenta em 500ms
-                        setTimeout(tentarSync, 500);
-                        return;
-                    }
-                    servicoSincronizacao.sincronizarTudo().catch(e => log.warn('Erro na auto-sync', e));
-                };
-                tentarSync();
             }
             definirUsuarioAtual(usuario);
             definirCarregando(false);

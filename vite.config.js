@@ -102,6 +102,9 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      },
       proxy: {
         '/api': {
           target: env.VITE_PROXY_TARGET || 'http://localhost:8788',

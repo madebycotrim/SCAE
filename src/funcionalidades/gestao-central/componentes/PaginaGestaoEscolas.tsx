@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
     Building2, Search, Edit2, Ban, Eye, AlertTriangle, Plus, 
-    ExternalLink, Activity, Server, ShieldAlert, X, Loader2, Zap 
+    ExternalLink, Activity, Server, ShieldAlert, X, Loader2, Zap,
+    Trash2
 } from 'lucide-react';
 import { api } from '@/compartilhado/servicos/api';
 import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
@@ -12,7 +13,12 @@ interface EscolaSistema {
     id: string;
     nome: string;
     slug: string;
+    dominioEmail: string;
     totalAlunos: number;
+    limiteAlunos: number;
+    limiteTerminais: number;
+    retençaoDados: number;
+    contatoSuporte: string;
     status: 'ATIVA' | 'SUSPENSA' | 'PENDENTE';
     criadoEm: string;
 }
@@ -44,7 +50,13 @@ export function PaginaGestaoEscolas() {
         cor_secundaria: '#ffffff',
         logo_url: '',
         config_qr_dinamico: false,
-        tts_ativado: true
+        tts_ativado: true,
+        saida_obrigatoria: true,
+        metodo_acesso: 'QRCODE' as 'QRCODE' | 'BIOMETRIA',
+        limite_alunos: 1000,
+        limite_terminais: 5,
+        retençao_dados: 730,
+        contato_suporte: ''
     });
     const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao'} | null>(null);
 
@@ -83,7 +95,13 @@ export function PaginaGestaoEscolas() {
                 cor_secundaria: dadosCompletos.cor_secundaria || '#ffffff',
                 logo_url: dadosCompletos.logo_url || '',
                 config_qr_dinamico: dadosCompletos.config_qr_dinamico ?? false,
-                tts_ativado: dadosCompletos.tts_ativado ?? true
+                tts_ativado: dadosCompletos.tts_ativado ?? true,
+                saida_obrigatoria: dadosCompletos.saida_obrigatoria ?? true,
+                metodo_acesso: dadosCompletos.metodo_acesso || 'QRCODE',
+                limite_alunos: dadosCompletos.limite_alunos || 1000,
+                limite_terminais: dadosCompletos.limite_terminais || 5,
+                retençao_dados: dadosCompletos.retençao_dados || 730,
+                contato_suporte: dadosCompletos.contato_suporte || ''
             });
             definirEditandoId(escola.id);
             definirFase(1);
@@ -109,6 +127,24 @@ export function PaginaGestaoEscolas() {
                     carregarDados();
                 } catch (err: any) {
                     toast.error('Falha ao comunicar mudança de status para a infraestrutura.');
+                }
+            }
+        });
+    };
+
+    const lidarComExclusao = async (id: string, nome: string) => {
+        definirConfirmacao({
+            aberto: true,
+            titulo: 'EXCLUSÃO ATÔMICA DA UNIDADE',
+            mensagem: `ATENÇÃO: Você está prestes a apagar a escola "${nome}" e TODOS OS DADOS VINCULADOS (alunos, registros, usuários, turmas). Esta ação é irreversível e limpa completamente o tenant do banco de dados D1. Deseja prosseguir?`,
+            variante: 'perigoso',
+            acao: async () => {
+                try {
+                    await api.remover(`/central/escolas/${id}`);
+                    toast.success('Unidade e todos os seus dados foram expurgados!');
+                    carregarDados();
+                } catch (err: any) {
+                    toast.error(err.mensagem || 'Falha no expurgo da unidade.');
                 }
             }
         });
@@ -143,7 +179,9 @@ export function PaginaGestaoEscolas() {
             definirForm({ 
                 nome_escola: '', id: '', dominio_email: '', 
                 cor_primaria: '#030712', cor_secundaria: '#ffffff', 
-                logo_url: '', config_qr_dinamico: false, tts_ativado: true 
+                logo_url: '', config_qr_dinamico: false, tts_ativado: true,
+                saida_obrigatoria: true, metodo_acesso: 'QRCODE',
+                limite_alunos: 1000, limite_terminais: 5, retençao_dados: 730, contato_suporte: ''
             });
             carregarDados();
         } catch (err: any) {
@@ -227,7 +265,9 @@ export function PaginaGestaoEscolas() {
                             definirForm({ 
                                 nome_escola: '', id: '', dominio_email: '', 
                                 cor_primaria: '#030712', cor_secundaria: '#ffffff', 
-                                logo_url: '', config_qr_dinamico: false, tts_ativado: true 
+                                logo_url: '', config_qr_dinamico: false, tts_ativado: true,
+                                saida_obrigatoria: true, metodo_acesso: 'QRCODE',
+                                limite_alunos: 1000, limite_terminais: 5, retençao_dados: 730, contato_suporte: ''
                             });
                             definirFase(1);
                             definirModalAberto(true);
@@ -247,10 +287,11 @@ export function PaginaGestaoEscolas() {
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Identidade do Ativo</th>
-                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-center">Modo de Operação</th>
-                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Índice de Ciclo de Vida</th>
-                                <th className="py-10 px-12 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-right">Diretrizes</th>
+                                <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Identidade de Rede</th>
+                                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Domínio Adm</th>
+                                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Cota / Capacidade</th>
+                                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Status Infra</th>
+                                <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Ações de Comando</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -265,21 +306,37 @@ export function PaginaGestaoEscolas() {
                                                 <span className="text-[11px] font-mono font-bold text-slate-300 group-hover:text-slate-500 uppercase tracking-widest transition-colors leading-none">{escola.slug}</span>
                                             </div>
                                         </td>
-                                        <td className="py-12 px-12 text-center">
-                                            <BadgeStatus status={escola.status} />
+                                        <td className="px-6 py-8">
+                                            <span className="text-[11px] font-mono font-bold text-slate-300 group-hover:text-slate-500 uppercase tracking-widest transition-colors leading-none">{escola.dominioEmail}</span>
                                         </td>
-                                        <td className="py-12 px-12">
-                                            <div className="inline-flex flex-col gap-1 bg-slate-50/50 px-4 py-2 rounded-2xl border border-slate-100 group-hover:bg-white transition-colors">
-                                                <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] leading-none">Ativação</span>
-                                                <span className="text-[10px] font-mono font-black text-slate-900">
-                                                    {new Date(escola.criadoEm).toLocaleDateString('pt-BR')}
-                                                </span>
+                                        <td className="px-6 py-8">
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                                                    <span>Ocupação</span>
+                                                    <span>{escola.totalAlunos || 0} / {escola.limiteAlunos || 1000}</span>
+                                                </div>
+                                                <div className="w-40 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-slate-900 transition-all duration-1000" 
+                                                        style={{ width: `${Math.min(((escola.totalAlunos || 0) / (escola.limiteAlunos || 1000)) * 100, 100)}%` }}
+                                                    />
+                                                </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-8">
+                                            <BadgeStatus status={escola.status} />
                                         </td>
                                         <td className="py-12 px-12 text-right">
                                             <div className="flex items-center justify-end gap-5 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0 relative z-20">
+                                                <button 
+                                                    onClick={() => lidarComExclusao(escola.id, escola.nome)}
+                                                    className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                    title="Expurgar Unidade"
+                                                >
+                                                    <Trash2 size={20} />
+                                                </button>
                                                 <a 
-                                                    href={`/${escola.slug}/admin`} 
+                                                    href={`/${escola.slug}/admin/painel`}
                                                     target="_blank" 
                                                     rel="noreferrer"
                                                     title="Terminal Administrativo"
@@ -330,7 +387,7 @@ export function PaginaGestaoEscolas() {
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] leading-none">Fase de Onboarding 0{fase}</p>
                                     <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic leading-none text-highlight">
-                                        {fase === 1 ? 'Identidade Core' : fase === 2 ? 'Visual & Branding' : 'Configurações'}
+                                        {fase === 1 ? 'Fundamento Estrutural' : fase === 2 ? 'Design & Estética' : fase === 3 ? 'Fluxo Operacional' : 'Governança & Segurança'}
                                     </h3>
                                 </div>
                                 <button onClick={() => { definirModalAberto(false); definirFase(1); }} className="p-3 hover:bg-slate-50 rounded-full transition-colors group">
@@ -339,7 +396,7 @@ export function PaginaGestaoEscolas() {
                             </div>
 
                             <div className="flex gap-2">
-                                {[1, 2, 3].map(step => (
+                                {[1, 2, 3, 4].map(step => (
                                     <div 
                                         key={step} 
                                         className={`h-1.5 rounded-full transition-all duration-500 ${fase >= step ? 'flex-[2] bg-slate-950 shadow-sm' : 'flex-1 bg-slate-100'}`}
@@ -421,10 +478,97 @@ export function PaginaGestaoEscolas() {
                                     </div>
                                 )}
 
-                                {/* FASE 3: Configurações */}
+                                {/* FASE 3: Fluxo Operacional */}
                                 {fase === 3 && (
                                     <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
-                                        <div className="bg-slate-50/50 p-8 rounded-2xl border border-slate-100 grid grid-cols-1 gap-6">
+                                        <div className="bg-slate-50/50 p-8 rounded-2xl border border-slate-100 space-y-8">
+                                            <div className="flex items-center justify-between group">
+                                                <div className="space-y-1">
+                                                    <h4 className="text-sm font-black text-slate-950 uppercase tracking-tight italic">Registrar Saída</h4>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Desativar para evitar congestionamento no portão.</p>
+                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => definirForm({...form, saida_obrigatoria: !form.saida_obrigatoria})}
+                                                    className={`w-14 h-8 rounded-full transition-all flex items-center px-1 ${form.saida_obrigatoria ? 'bg-slate-950' : 'bg-slate-200'}`}
+                                                >
+                                                    <div className={`w-6 h-6 rounded-full bg-white shadow-sm transition-transform ${form.saida_obrigatoria ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                </button>
+                                            </div>
+
+                                            <div className="w-full h-px bg-slate-100" />
+
+                                            <div className="space-y-4">
+                                                <div className="space-y-1">
+                                                    <h4 className="text-sm font-black text-slate-950 uppercase tracking-tight italic">Método de Autenticação Primário</h4>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tecnologia padrão para identificação dos alunos.</p>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => definirForm({...form, metodo_acesso: 'QRCODE'})}
+                                                        className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'QRCODE' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
+                                                    >
+                                                        <Search size={20} className={form.metodo_acesso === 'QRCODE' ? 'text-blue-400' : 'text-slate-200'} />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">QR Code</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => definirForm({...form, metodo_acesso: 'BIOMETRIA'})}
+                                                        className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'BIOMETRIA' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
+                                                    >
+                                                        <Zap size={20} className={form.metodo_acesso === 'BIOMETRIA' ? 'text-blue-400' : 'text-slate-200'} />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">Biometria</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* FASE 4: Governança & Segurança */}
+                                {fase === 4 && (
+                                    <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Capacidade de Alunos</label>
+                                                <input type="number" placeholder="Ex: 500" value={form.limite_alunos}
+                                                    onChange={(e) => definirForm({...form, limite_alunos: parseInt(e.target.value)})}
+                                                    className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Máximo de Terminais (Tablets)</label>
+                                                <input type="number" placeholder="Ex: 5" value={form.limite_terminais}
+                                                    onChange={(e) => definirForm({...form, limite_terminais: parseInt(e.target.value)})}
+                                                    className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Retenção de Logs (Dias)</label>
+                                                <select value={form.retençao_dados}
+                                                    onChange={(e) => definirForm({...form, retençao_dados: parseInt(e.target.value)})}
+                                                    className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all appearance-none"
+                                                >
+                                                    <option value={180}>180 Dias (Mínimo Marco Civil)</option>
+                                                    <option value={365}>365 Dias (1 Ano Letivo)</option>
+                                                    <option value={730}>730 Dias (2 Anos - Padrão SCAE)</option>
+                                                    <option value={1825}>1825 Dias (5 Anos - Auditoria Pública)</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Suporte Técnico da Unidade</label>
+                                                <input type="text" placeholder="E-mail ou WhatsApp de TI" value={form.contato_suporte}
+                                                    onChange={(e) => definirForm({...form, contato_suporte: e.target.value})}
+                                                    className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition-all"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-50/50 p-8 rounded-2xl border border-slate-100 space-y-6">
                                             <div className="flex items-center justify-between group">
                                                 <div className="space-y-1">
                                                     <h4 className="text-sm font-black text-slate-950 uppercase tracking-tight italic">Síntese de Voz (TTS)</h4>
@@ -459,7 +603,7 @@ export function PaginaGestaoEscolas() {
                                         <div className="p-6 bg-slate-950 rounded-2xl text-white flex items-center gap-4">
                                             <ShieldAlert className="text-slate-500" size={24} />
                                             <p className="text-[9px] font-black uppercase tracking-[0.2em] leading-relaxed opacity-80">
-                                                A ativação final gerará as chaves ECDSA P-256 mestras. Este processo é irreversível e cria um novo tenant isolado na infraestrutura.
+                                                A ativação final gerará as chaves ECDSA P-256 mestras de segurança. Este processo é irreversível e cria um novo tenant isolado na infraestrutura.
                                             </p>
                                         </div>
                                     </div>
@@ -480,7 +624,7 @@ export function PaginaGestaoEscolas() {
                                     </Botao>
                                 ) : <div key="vazio-voltar" />}
 
-                                {fase < 3 ? (
+                                {fase < 4 ? (
                                     <Botao 
                                         key="btn-proximo"
                                         type="button"

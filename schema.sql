@@ -1,11 +1,22 @@
--- schema.sql
--- SCAE: Multi-Tenant + LGPD compliance
--- Alinhado com bancoLocal.tipos.ts e sincronizacao.ts (v2026-03)
+PRAGMA foreign_keys = OFF;
+
+-- Reset de Tabelas (Ordem Reversa de Dependência)
+DROP TABLE IF EXISTS vinculos_responsavel_aluno;
+DROP TABLE IF EXISTS alertas_evasao;
+DROP TABLE IF EXISTS alertas_risco;
+DROP TABLE IF EXISTS registros_acesso;
+DROP TABLE IF EXISTS alunos;
+DROP TABLE IF EXISTS responsaveis;
+DROP TABLE IF EXISTS turmas;
+DROP TABLE IF EXISTS usuarios;
+DROP TABLE IF EXISTS logs_auditoria;
+DROP TABLE IF EXISTS fila_pendencias;
+DROP TABLE IF EXISTS calendario_letivo;
+DROP TABLE IF EXISTS escolas;
 
 -- ====================================
 -- ESCOLAS (Antigos Tenants)
 -- ====================================
-DROP TABLE IF EXISTS escolas;
 CREATE TABLE escolas (
     id TEXT PRIMARY KEY,               -- Slug da escola (ex: cem03-taguatinga)
     nome_escola TEXT NOT NULL,
@@ -17,15 +28,19 @@ CREATE TABLE escolas (
     chave_privada_ecdsa TEXT,          -- Chave privada para assinar QR Codes
     config_qr_dinamico BOOLEAN DEFAULT 0, -- 0 = Fixo (1 ano), 1 = Dinâmico (24h)
     tts_ativado BOOLEAN DEFAULT 1,
+    saida_obrigatoria BOOLEAN DEFAULT 1,  -- 0 = Saída livre, 1 = Obrigatória
+    metodo_acesso TEXT DEFAULT 'QRCODE', -- 'QRCODE' | 'BIOMETRIA'
+    limite_alunos INTEGER DEFAULT 1000,
+    limite_terminais INTEGER DEFAULT 5,
+    retençao_dados INTEGER DEFAULT 730,  -- Dias de retenção de logs (LGPD)
+    contato_suporte TEXT,              -- E-mail/WhatsApp de TI
     janelas TEXT DEFAULT '[]',         -- Configuração de horários JSON
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ====================================
 -- USUÁRIOS (Admin/Controle de Acesso/Coordenação)
--- Alinhado com: UsuarioLocal + PapelUsuario
 -- ====================================
-DROP TABLE IF EXISTS usuarios;
 CREATE TABLE usuarios (
     email TEXT NOT NULL,
     escola_id TEXT NOT NULL,
@@ -40,14 +55,12 @@ CREATE TABLE usuarios (
     atualizado_em DATETIME,
 
     PRIMARY KEY (email, escola_id),
-    FOREIGN KEY (escola_id) REFERENCES escolas(id)
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE
 );
 
 -- ====================================
 -- TURMAS
--- Alinhado com: TurmaLocal
 -- ====================================
-DROP TABLE IF EXISTS turmas;
 CREATE TABLE turmas (
     id TEXT NOT NULL,                  -- Ex: "1A-Matutino-2026" (gerado pelo app)
     escola_id TEXT NOT NULL,
@@ -62,14 +75,12 @@ CREATE TABLE turmas (
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id, escola_id),
-    FOREIGN KEY (escola_id) REFERENCES escolas(id)
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE
 );
 
 -- ====================================
 -- ALUNOS
--- Alinhado com: AlunoLocal + LGPD
 -- ====================================
-DROP TABLE IF EXISTS alunos;
 CREATE TABLE alunos (
     matricula TEXT NOT NULL,           -- Código SIGE
     escola_id TEXT NOT NULL,
@@ -83,8 +94,8 @@ CREATE TABLE alunos (
     atualizado_em DATETIME,
     
     PRIMARY KEY (matricula, escola_id),
-    FOREIGN KEY (escola_id) REFERENCES escolas(id),
-    FOREIGN KEY (turma_id, escola_id) REFERENCES turmas(id, escola_id)
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE,
+    FOREIGN KEY (turma_id, escola_id) REFERENCES turmas(id, escola_id) ON DELETE CASCADE
 );
 CREATE INDEX idx_alunos_turma ON alunos(turma_id, escola_id);
 CREATE INDEX idx_alunos_ativo ON alunos(ativo, escola_id);
@@ -92,7 +103,6 @@ CREATE INDEX idx_alunos_ativo ON alunos(ativo, escola_id);
 -- ====================================
 -- RESPONSÁVEIS
 -- ====================================
-DROP TABLE IF EXISTS responsaveis;
 CREATE TABLE responsaveis (
     id TEXT NOT NULL,                  -- UUID
     escola_id TEXT NOT NULL,
@@ -104,13 +114,12 @@ CREATE TABLE responsaveis (
     atualizado_em DATETIME,
     
     PRIMARY KEY (id, escola_id),
-    FOREIGN KEY (escola_id) REFERENCES escolas(id)
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE
 );
 
 -- ====================================
 -- VÍNCULOS RESPONSAVEL <-> ALUNO
 -- ====================================
-DROP TABLE IF EXISTS vinculos_responsavel_aluno;
 CREATE TABLE vinculos_responsavel_aluno (
     responsavel_id TEXT NOT NULL,
     aluno_matricula TEXT NOT NULL,
@@ -118,15 +127,13 @@ CREATE TABLE vinculos_responsavel_aluno (
     data_vinculo DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (responsavel_id, aluno_matricula, escola_id),
-    FOREIGN KEY (responsavel_id, escola_id) REFERENCES responsaveis(id, escola_id),
-    FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id)
+    FOREIGN KEY (responsavel_id, escola_id) REFERENCES responsaveis(id, escola_id) ON DELETE CASCADE,
+    FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id) ON DELETE CASCADE
 );
 
 -- ====================================
 -- REGISTROS DE ACESSO (CONTROLE DE ACESSO)
--- Alinhado com: RegistroAcessoLocal + filaOffline.service.ts
 -- ====================================
-DROP TABLE IF EXISTS registros_acesso;
 CREATE TABLE registros_acesso (
     id TEXT NOT NULL,                  -- UUID gerado no tablet
     escola_id TEXT NOT NULL,
@@ -149,7 +156,6 @@ CREATE INDEX idx_registros_acesso_sync ON registros_acesso(sincronizado);
 -- ====================================
 -- ALERTAS DE RISCO (Antiga Evasão)
 -- ====================================
-DROP TABLE IF EXISTS alertas_risco;
 CREATE TABLE alertas_risco (
     id TEXT NOT NULL,                  -- UUID
     escola_id TEXT NOT NULL,
@@ -169,7 +175,6 @@ CREATE INDEX idx_alertas_risco_status ON alertas_risco(status, escola_id);
 -- ====================================
 -- LOGS DE AUDITORIA
 -- ====================================
-DROP TABLE IF EXISTS logs_auditoria;
 CREATE TABLE logs_auditoria (
     id TEXT NOT NULL PRIMARY KEY,      -- UUID (chave simples — logs são globais)
     escola_id TEXT,                    
@@ -192,7 +197,6 @@ CREATE INDEX idx_logs_sync ON logs_auditoria(sincronizado);
 -- ====================================
 -- FILA DE PENDÊNCIAS (OFFLINE)
 -- ====================================
-DROP TABLE IF EXISTS fila_pendencias;
 CREATE TABLE fila_pendencias (
     id TEXT PRIMARY KEY,
     escola_id TEXT,                    
@@ -208,7 +212,6 @@ CREATE INDEX idx_fila_timestamp ON fila_pendencias(timestamp);
 -- ====================================
 -- CALENDÁRIO LETIVO (Dias Não Letivos)
 -- ====================================
-DROP TABLE IF EXISTS calendario_letivo;
 CREATE TABLE calendario_letivo (
     data DATE NOT NULL,
     escola_id TEXT NOT NULL,
@@ -216,13 +219,12 @@ CREATE TABLE calendario_letivo (
     tipo TEXT DEFAULT 'FERIADO', -- FERIADO, RECESSO, CONSELHO, OUTROS
     
     PRIMARY KEY (data, escola_id),
-    FOREIGN KEY (escola_id) REFERENCES escolas(id)
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE
 );
 
 -- ====================================
 -- ALERTAS DE EVASÃO (Art 70 ECA)
 -- ====================================
-DROP TABLE IF EXISTS alertas_evasao;
 CREATE TABLE alertas_evasao (
     id TEXT PRIMARY KEY,              -- UUID do alerta
     escola_id TEXT NOT NULL,
@@ -232,9 +234,11 @@ CREATE TABLE alertas_evasao (
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     data_resolucao DATETIME,          -- Quando foi resolvido
     
-    FOREIGN KEY (escola_id) REFERENCES escolas(id),
-    FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id)
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE,
+    FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id) ON DELETE CASCADE
 );
 CREATE INDEX idx_alertas_evasao_escola ON alertas_evasao(escola_id);
 CREATE INDEX idx_alertas_evasao_aluno ON alertas_evasao(aluno_matricula, escola_id);
 CREATE INDEX idx_alertas_evasao_status ON alertas_evasao(status);
+
+PRAGMA foreign_keys = ON;

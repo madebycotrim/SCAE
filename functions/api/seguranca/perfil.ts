@@ -6,21 +6,21 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         const usuarioBD = contexto.data.usuarioScae;
         const dadosToken = contexto.data.user;
 
-        if (!usuarioBD && !['madebycotrim@gmail.com'].includes(dadosToken?.email || '')) {
-            throw new ErroNaoEncontrado('Usuário não localizado no sistema.');
-        }
-
-        // Se for o admin raiz e não estiver no BD, retorna um perfil sintético
-        if (!usuarioBD && dadosToken?.email === 'madebycotrim@gmail.com') {
+        // 🛡️ BYPASS ADMIN GLOBAL: Se for o desenvolvedor raiz, sempre retorna perfil full
+        if (dadosToken?.email === 'madebycotrim@gmail.com') {
             return Response.json({
                 dados: {
                     email: dadosToken.email,
-                    nome_completo: 'Administrador Principal',
+                    nome_completo: 'Administrador Principal (Root)',
                     papel: 'CENTRAL',
                     ativo: true,
                     pendente: false
                 }
             });
+        }
+
+        if (!usuarioBD) {
+            throw new ErroNaoEncontrado('Usuário não localizado no sistema.');
         }
 
         return Response.json({

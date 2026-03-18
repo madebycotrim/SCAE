@@ -83,7 +83,7 @@ const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendenci
     };
 
     return (
-        <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border border-slate-200 border-l-4 ${corAcento[cor]} rounded-2xl`}>
+        <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border border-slate-200 border-l-[6px] ${corAcento[cor]} rounded-none shadow-media-suave`}>
             <div className="flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 bg-white ${corIcone[cor]} z-10 transition-transform group-hover:scale-105`}>
                     <Icone size={18} strokeWidth={2} />

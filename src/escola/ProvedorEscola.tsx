@@ -18,6 +18,8 @@ export interface PerfilEscola {
     nomeDPO?: string;
     emailDPO?: string;
     qrDinamico: boolean;
+    saidaObrigatoria: boolean;
+    metodoAcesso: 'QRCODE' | 'BIOMETRIA';
 }
 
 const EscolaContext = createContext<PerfilEscola | null>(null);
@@ -41,7 +43,18 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                 const resposta = await fetch(`${apiUrl}/publico/detalhes?slug=${slug}`);
                 if (!resposta.ok) throw new Error('Escola não encontrada');
                 const { dados } = await resposta.json();
-                const data: PerfilEscola = dados;
+                const data: PerfilEscola = {
+                    id: dados.id,
+                    nomeEscola: dados.nome_escola || dados.nomeEscola,
+                    dominioEmail: dados.dominio_email || dados.dominioEmail,
+                    corPrimaria: dados.cor_primaria || dados.corPrimaria,
+                    corSecundaria: dados.cor_secundaria || dados.corSecundaria,
+                    ttsAtivado: dados.tts_ativado ?? dados.ttsAtivado,
+                    qrDinamico: dados.config_qr_dinamico ?? dados.qrDinamico,
+                    saidaObrigatoria: dados.saida_obrigatoria ?? true,
+                    metodoAcesso: dados.metodo_acesso || 'QRCODE',
+                    logoUrl: dados.logo_url || dados.logoUrl,
+                };
 
                 // Aplica identidade visual da escola via CSS variables
                 document.documentElement.style.setProperty('--cor-primaria', data.corPrimaria);

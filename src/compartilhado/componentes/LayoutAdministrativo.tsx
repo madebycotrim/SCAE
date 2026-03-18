@@ -139,7 +139,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 ...(pode('visualizar', 'configuracao-horarios') ? [{ icone: Clock, texto: 'Horários', rota: '/configuracao-horarios' }] : []),
                 ...(pode('visualizar', 'risco_abandono') ? [{ icone: AlertTriangle, texto: 'Risco de Abandono', rota: '/risco-abandono' }] : []),
                 ...(pode('visualizar', 'relatorios') ? [{ icone: FileText, texto: 'Relatórios', rota: '/relatorios' }] : []),
-                ...(pode('acessar', 'terminal_acesso') ? [{ icone: Radar, texto: 'Leitor', rota: '/leitor' }] : []),
             ]
         },
                 { titulo: 'Sistema', itens: [
