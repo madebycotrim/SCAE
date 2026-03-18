@@ -19,7 +19,7 @@ export interface PerfilEscola {
     emailDPO?: string;
     qrDinamico: boolean;
     saidaObrigatoria: boolean;
-    metodoAcesso: 'QRCODE' | 'FACIAL' | 'DIGITAL';
+    metodosAcesso: string[];  // ['QRCODE', 'FACIAL', 'DIGITAL']
 }
 
 const EscolaContext = createContext<PerfilEscola | null>(null);
@@ -52,7 +52,7 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                     ttsAtivado: dados.tts_ativado ?? dados.ttsAtivado,
                     qrDinamico: dados.config_qr_dinamico ?? dados.qrDinamico,
                     saidaObrigatoria: dados.saida_obrigatoria ?? true,
-                    metodoAcesso: dados.metodo_acesso || 'QRCODE',
+                    metodosAcesso: (dados.metodo_acesso || 'QRCODE').split(',').filter(Boolean),
                     logoUrl: dados.logo_url || dados.logoUrl,
                 };
 

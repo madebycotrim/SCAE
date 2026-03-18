@@ -13,6 +13,7 @@
  * - usarLeitorDigital   (metodoAcesso === 'DIGITAL')
  */
 import { useState, useCallback, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { ptBR } from 'date-fns/locale';
 import { format } from 'date-fns';
 import type { DadosAluno } from '../servicos/cacheMemoria';
@@ -48,6 +49,7 @@ interface FeedbackAcesso {
 
 export default function QuiosqueAutoatendimento() {
     const escola = usarEscola();
+    const { metodoParam } = useParams<{ metodoParam?: string }>();
     const { usuarioAtual } = usarAutenticacao();
     const tipoAcessoAtual = usarTipoAcesso();
     const confFila = usarModoFila();
@@ -57,6 +59,10 @@ export default function QuiosqueAutoatendimento() {
     const [ultimoAcesso, definirUltimoAcesso] = useState<FeedbackAcesso | null>(null);
     const [statusLeitura, definirStatusLeitura] = useState<'AGUARDANDO' | 'SUCESSO' | 'ERRO'>('AGUARDANDO');
     const [dataHora, definirDataHora] = useState(new Date());
+
+    // Define qual método está ativo no tablet local
+    const metodoAtivo = (metodoParam?.toUpperCase() || escola.metodosAcesso[0] || 'QRCODE') as 'QRCODE' | 'FACIAL' | 'DIGITAL';
+    const metodoPermitido = escola.metodosAcesso.includes(metodoAtivo) ? metodoAtivo : (escola.metodosAcesso[0] as 'QRCODE' | 'FACIAL' | 'DIGITAL' || 'QRCODE');
 
     // Relogio em tempo real
     useEffect(() => {
@@ -85,7 +91,7 @@ export default function QuiosqueAutoatendimento() {
         }
 
         // Pausar reconhecimento facial durante feedback
-        if (escola.metodoAcesso === 'FACIAL' && pausarFacial) pausarFacial();
+        if (metodoPermitido === 'FACIAL' && pausarFacial) pausarFacial();
 
         const movimentoBase: 'ENTRADA' | 'SAIDA' = (tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO)
             ? 'ENTRADA'
@@ -126,7 +132,7 @@ export default function QuiosqueAutoatendimento() {
 
         setTimeout(() => {
             definirStatusLeitura('AGUARDANDO');
-            if (escola.metodoAcesso === 'FACIAL' && retomarFacial) retomarFacial();
+            if (metodoPermitido === 'FACIAL' && retomarFacial) retomarFacial();
         }, confFila.duracaoFeedbackMs);
 
     }, [tipoAcessoAtual, confFila, escola, acionarWorker]);
@@ -157,13 +163,13 @@ export default function QuiosqueAutoatendimento() {
     // FILHOS — apenas o do metodo ativo roda
     // ========================================================
     const qr = usarLeitorQRCode({
-        elementoId: escola.metodoAcesso === 'QRCODE' ? ELEMENTO_CAMERA_ID : '__desativado_qr__',
+        elementoId: metodoPermitido === 'QRCODE' ? ELEMENTO_CAMERA_ID : '__desativado_qr__',
         aoIdentificar: aoIdentificarQR,
         aoErro: aoErroDeteccao
     });
 
     const facial = usarLeitorFacial({
-        elementoId: escola.metodoAcesso === 'FACIAL' ? ELEMENTO_CAMERA_ID : '__desativado_facial__',
+        elementoId: metodoPermitido === 'FACIAL' ? ELEMENTO_CAMERA_ID : '__desativado_facial__',
         escolaId: escola.id,
         cooldownMs: confFila.duracaoFeedbackMs + 2000,
         aoIdentificar: aoIdentificarFacial
@@ -172,30 +178,30 @@ export default function QuiosqueAutoatendimento() {
     const retomarFacial = facial.retomar;
 
     const digital = usarLeitorDigital({
-        elementoId: escola.metodoAcesso === 'DIGITAL' ? ELEMENTO_CAMERA_ID : '__desativado_digital__',
+        elementoId: metodoPermitido === 'DIGITAL' ? ELEMENTO_CAMERA_ID : '__desativado_digital__',
         escolaId: escola.id,
         aoIdentificar: aoIdentificarDigital
     });
 
     // Status unificado da camera
-    const statusCamera = escola.metodoAcesso === 'QRCODE'
+    const statusCamera = metodoPermitido === 'QRCODE'
         ? qr.statusCamera
-        : escola.metodoAcesso === 'FACIAL'
+        : metodoPermitido === 'FACIAL'
         ? facial.statusCamera
         : digital.statusCamera;
 
     const corDoDia = '#3b82f6';
 
     // Icone e label do modo atual
-    const iconeMetodo = escola.metodoAcesso === 'FACIAL' ? Eye : escola.metodoAcesso === 'DIGITAL' ? Fingerprint : QrCode;
-    const labelMetodo = escola.metodoAcesso === 'FACIAL'
+    const iconeMetodo = metodoPermitido === 'FACIAL' ? Eye : metodoPermitido === 'DIGITAL' ? Fingerprint : QrCode;
+    const labelMetodo = metodoPermitido === 'FACIAL'
         ? 'RECONHECIMENTO FACIAL ATIVO'
-        : escola.metodoAcesso === 'DIGITAL'
+        : metodoPermitido === 'DIGITAL'
         ? 'IDENTIFICACAO DIGITAL ATIVA'
         : 'SCAE PRO FRAMEWORK';
-    const mensagemAguardando = escola.metodoAcesso === 'FACIAL'
+    const mensagemAguardando = metodoPermitido === 'FACIAL'
         ? 'Olhe para a camera para identificacao'
-        : escola.metodoAcesso === 'DIGITAL'
+        : metodoPermitido === 'DIGITAL'
         ? 'Apoie o dedo no leitor para identificacao'
         : 'Aproxime o cartao para iniciar a identificacao';
 
@@ -268,7 +274,7 @@ export default function QuiosqueAutoatendimento() {
                                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-20">
                                         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                            {escola.metodoAcesso === 'FACIAL' ? 'Carregando IA Facial...' : 'Iniciando Camera...'}
+                                            {metodoPermitido === 'FACIAL' ? 'Carregando IA Facial...' : 'Iniciando Camera...'}
                                         </p>
                                     </div>
                                 )}
@@ -303,7 +309,7 @@ export default function QuiosqueAutoatendimento() {
                                 {/* HUD — varia por modo */}
                                 {statusCamera === 'ATIVO' && (
                                     <div className="absolute inset-8 pointer-events-none z-10 animate-in fade-in duration-1000">
-                                        {escola.metodoAcesso === 'FACIAL' ? (
+                                        {metodoPermitido === 'FACIAL' ? (
                                             /* Moldura circular para facial */
                                             <>
                                                 <div className="absolute inset-4 border-2 border-dashed border-blue-400/40 rounded-full"></div>
@@ -326,12 +332,12 @@ export default function QuiosqueAutoatendimento() {
                                 )}
 
                                 {/* Linha de Scan (apenas QR) */}
-                                {statusLeitura === 'AGUARDANDO' && statusCamera === 'ATIVO' && escola.metodoAcesso === 'QRCODE' && (
+                                {statusLeitura === 'AGUARDANDO' && statusCamera === 'ATIVO' && metodoPermitido === 'QRCODE' && (
                                     <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-[scan_3s_ease-in-out_infinite] z-20"></div>
                                 )}
 
                                 {/* Badge de alunos cadastrados (apenas Facial) */}
-                                {statusCamera === 'ATIVO' && escola.metodoAcesso === 'FACIAL' && facial.totalCadastrados > 0 && (
+                                {statusCamera === 'ATIVO' && metodoPermitido === 'FACIAL' && facial.totalCadastrados > 0 && (
                                     <div className="absolute bottom-6 inset-x-0 text-center z-20">
                                         <span className="bg-black/50 text-white text-[8px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full backdrop-blur-sm">
                                             {facial.totalCadastrados} rostos cadastrados
@@ -410,9 +416,9 @@ export default function QuiosqueAutoatendimento() {
                             ) : (
                                 <div className="text-center space-y-8 opacity-20">
                                     <div className="w-40 h-40 border-4 border-dashed border-slate-200 rounded-[50px] mx-auto flex items-center justify-center">
-                                        {escola.metodoAcesso === 'FACIAL'
+                                        {metodoPermitido === 'FACIAL'
                                             ? <Eye size={80} strokeWidth={1} className="text-slate-300" />
-                                            : escola.metodoAcesso === 'DIGITAL'
+                                            : metodoPermitido === 'DIGITAL'
                                             ? <Fingerprint size={80} strokeWidth={1} className="text-slate-300" />
                                             : <QrCode size={80} strokeWidth={1} className="text-slate-300" />
                                         }

@@ -279,7 +279,7 @@ export default function Alunos() {
                 aoExcluir={excluirAluno}
                 aoMudarPagina={definirPaginaAtual}
                 obterCorAvatar={obterCorAvatar}
-                aoCadastrarFacial={escola.metodoAcesso === 'FACIAL' ? (a) => definirAlunoParaFacial(a) : undefined}
+                aoCadastrarFacial={escola.metodosAcesso.includes('FACIAL') ? (a) => definirAlunoParaFacial(a) : undefined}
                 carregando={carregandoInicial}
             />
 

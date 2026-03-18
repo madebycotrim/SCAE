@@ -180,7 +180,7 @@ function App() {
                         <Route path="login" element={<PaginaLogin />} />
 
                         {/* ═══ SUPERFÍCIE 1: Quiosque (sem layout admin) ═══ */}
-                        <Route path="quiosque" element={<GuardaQuiosque />}>
+                        <Route path="quiosque/:metodoParam?" element={<GuardaQuiosque />}>
                             <Route index element={<PaginaQuiosqueAutoatendimento />} />
                         </Route>
 

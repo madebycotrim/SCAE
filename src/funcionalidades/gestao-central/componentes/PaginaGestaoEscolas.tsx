@@ -44,7 +44,7 @@ export function PaginaGestaoEscolas() {
         config_qr_dinamico: false,
         tts_ativado: true,
         saida_obrigatoria: true,
-        metodo_acesso: 'QRCODE' as 'QRCODE' | 'FACIAL' | 'DIGITAL',
+        metodo_acesso: 'QRCODE',
         limite_alunos: 1000,
         limite_terminais: 5,
         retencao_dados: 730,
@@ -56,7 +56,7 @@ export function PaginaGestaoEscolas() {
         nome_escola: '', id: '', dominio_email: '', 
         cor_primaria: '#030712', cor_secundaria: '#ffffff', 
         logo_url: '', config_qr_dinamico: false, tts_ativado: true,
-        saida_obrigatoria: true, metodo_acesso: 'QRCODE' as 'QRCODE' | 'FACIAL' | 'DIGITAL',
+        saida_obrigatoria: true, metodo_acesso: 'QRCODE',
         limite_alunos: 1000, limite_terminais: 5, retencao_dados: 730, contato_suporte: ''
     };
 
@@ -451,34 +451,36 @@ export function PaginaGestaoEscolas() {
 
                                             <div className="space-y-4">
                                                 <div className="space-y-1">
-                                                    <h4 className="text-sm font-black text-slate-950 uppercase tracking-tight italic">Método de Autenticação Primário</h4>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tecnologia padrão para identificação dos alunos.</p>
+                                                    <h4 className="text-sm font-black text-slate-950 uppercase tracking-tight italic">Métodos de Identificação</h4>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Selecione um ou mais. Cada método gera uma rota própria no quiosque.</p>
                                                 </div>
                                                 <div className="grid grid-cols-3 gap-4">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => definirForm({...form, metodo_acesso: 'QRCODE'})}
-                                                        className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'QRCODE' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
-                                                    >
-                                                        <QrCode size={20} className={form.metodo_acesso === 'QRCODE' ? 'text-blue-400' : 'text-slate-200'} />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest">QR Code</span>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => definirForm({...form, metodo_acesso: 'FACIAL'})}
-                                                        className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'FACIAL' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
-                                                    >
-                                                        <Eye size={20} className={form.metodo_acesso === 'FACIAL' ? 'text-blue-400' : 'text-slate-200'} />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest">Facial</span>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => definirForm({...form, metodo_acesso: 'DIGITAL'})}
-                                                        className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${form.metodo_acesso === 'DIGITAL' ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
-                                                    >
-                                                        <Fingerprint size={20} className={form.metodo_acesso === 'DIGITAL' ? 'text-blue-400' : 'text-slate-200'} />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest">Digital</span>
-                                                    </button>
+                                                    {(['QRCODE', 'FACIAL', 'DIGITAL'] as const).map((metodo) => {
+                                                        const metodos = form.metodo_acesso.split(',').filter(Boolean);
+                                                        const ativo = metodos.includes(metodo);
+                                                        const alternar = () => {
+                                                            const novos = ativo
+                                                                ? metodos.filter(m => m !== metodo)
+                                                                : [...metodos, metodo];
+                                                            if (novos.length === 0) return;
+                                                            definirForm({...form, metodo_acesso: novos.join(',')});
+                                                        };
+                                                        const iconeEl = metodo === 'QRCODE' ? <QrCode size={20} className={ativo ? 'text-blue-400' : 'text-slate-200'} />
+                                                            : metodo === 'FACIAL' ? <Eye size={20} className={ativo ? 'text-blue-400' : 'text-slate-200'} />
+                                                            : <Fingerprint size={20} className={ativo ? 'text-blue-400' : 'text-slate-200'} />;
+                                                        const label = metodo === 'QRCODE' ? 'QR Code' : metodo === 'FACIAL' ? 'Facial' : 'Digital';
+                                                        return (
+                                                            <button
+                                                                key={metodo}
+                                                                type="button"
+                                                                onClick={alternar}
+                                                                className={`py-8 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${ativo ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'}`}
+                                                            >
+                                                                {iconeEl}
+                                                                <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+                                                            </button>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         </div>
