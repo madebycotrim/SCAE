@@ -31,7 +31,7 @@ import {
     RefreshCw,
     Cloud
 } from 'lucide-react';
-import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
 
 export default function FormHorariosAcesso() {
     const { id: idEscola } = usarEscola();

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
-import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { usarPermissoes } from '../autorizacao/ContextoPermissoes';
 import { usarNotificacoes, type Notificacao } from '@compartilhado/contextos/ContextoNotificacoes';
 import { usarBuscaGlobal } from '@/compartilhado/hooks/usarBuscaGlobal';
 import { usarEscola } from '@/escola/ProvedorEscola';
@@ -34,7 +34,8 @@ import {
     XCircle,
     Smartphone,
     Download,
-    Calendar
+    Calendar,
+    Radar
 } from 'lucide-react';
 import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
@@ -128,25 +129,23 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         {
             titulo: 'Acadêmico',
             itens: [
-                { icone: Users, texto: 'Alunos', rota: '/alunos' },
-                { icone: Layers, texto: 'Turmas', rota: '/turmas' },
+                ...(pode('visualizar', 'alunos') ? [{ icone: Users, texto: 'Alunos', rota: '/alunos' }] : []),
+                ...(pode('visualizar', 'turmas') ? [{ icone: Layers, texto: 'Turmas', rota: '/turmas' }] : []),
             ]
         },
         {
             titulo: 'Operação',
             itens: [
-                { icone: Clock, texto: 'Horários', rota: '/configuracao-horarios' },
-                { icone: AlertTriangle, texto: 'Risco de Abandono', rota: '/risco-abandono' },
-                { icone: FileText, texto: 'Relatórios', rota: '/relatorios' },
+                ...(pode('visualizar', 'configuracao-horarios') ? [{ icone: Clock, texto: 'Horários', rota: '/configuracao-horarios' }] : []),
+                ...(pode('visualizar', 'risco_abandono') ? [{ icone: AlertTriangle, texto: 'Risco de Abandono', rota: '/risco-abandono' }] : []),
+                ...(pode('visualizar', 'relatorios') ? [{ icone: FileText, texto: 'Relatórios', rota: '/relatorios' }] : []),
+                ...(pode('acessar', 'terminal_acesso') ? [{ icone: Radar, texto: 'Leitor', rota: '/leitor' }] : []),
             ]
         },
-        {
-            titulo: 'Sistema',
-            itens: [
-                ...(podeVerLogs ? [{ icone: ShieldCheck, texto: 'Logs', rota: '/logs' }] : []),
-                ...((ehAdmin || ehCentral) ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
-            ]
-        }
+                { titulo: 'Sistema', itens: [
+                    ...(pode('visualizar', 'auditoria') ? [{ icone: ShieldCheck, texto: 'Logs', rota: '/logs' }] : []),
+                    ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
+                ]}
     ].filter(g => g.itens.length > 0);
 
 

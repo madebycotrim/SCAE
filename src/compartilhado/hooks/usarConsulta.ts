@@ -9,8 +9,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 export function usarConsulta<T = any>(
     chaves: unknown[],
     buscar: () => Promise<T>,
-    opcoes?: { staleTime?: number; refetchInterval?: number }
+    opcoes?: { staleTime?: number; refetchInterval?: number; enabled?: boolean }
 ) {
+    const enabled = opcoes?.enabled !== false; // Default true
     const [dados, definirDados] = useState<T | null>(null);
     const [carregando, definirCarregando] = useState(false);
     const [erro, definirErro] = useState<Error | null>(null);
@@ -48,13 +49,16 @@ export function usarConsulta<T = any>(
     useEffect(() => {
         montado.current = true;
         
-        // Chamada inicial: sempre exibe loading se for a primeira vez
-        carregar(true);
-
         let intervalo: ReturnType<typeof setInterval> | undefined;
-        if (opcoes?.refetchInterval) {
-            // Refetch em background para não atrapalhar o usuário
-            intervalo = setInterval(() => carregar(false), opcoes.refetchInterval);
+
+        if (enabled) {
+            // Chamada inicial: sempre exibe loading se for a primeira vez
+            carregar(true);
+
+            if (opcoes?.refetchInterval) {
+                // Refetch em background para não atrapalhar o usuário
+                intervalo = setInterval(() => carregar(false), opcoes.refetchInterval);
+            }
         }
 
         return () => {
@@ -62,7 +66,7 @@ export function usarConsulta<T = any>(
             if (intervalo) clearInterval(intervalo);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [...chaves, opcoes?.refetchInterval]);
+    }, [...chaves, opcoes?.refetchInterval, enabled]);
 
     return {
         dados,

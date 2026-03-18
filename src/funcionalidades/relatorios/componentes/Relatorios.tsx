@@ -4,7 +4,7 @@ import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrati
 import { api } from '@/compartilhado/servicos/api';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
-import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
 
 import {
     Download,

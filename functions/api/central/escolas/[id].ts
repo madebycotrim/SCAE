@@ -1,6 +1,6 @@
 import type { ContextoSCAE } from '../../../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroNaoEncontrado } from '../../erros';
-import { verificarPermissao } from '../../seguranca';
+import { verificarPermissao } from '../../_seguranca';
 
 /**
  * GET /api/central/escolas/[id]

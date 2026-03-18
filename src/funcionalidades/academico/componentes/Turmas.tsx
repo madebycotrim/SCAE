@@ -26,7 +26,7 @@ import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 
 const log = criarRegistrador('Turmas');
-import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
 import { usarEscola } from '@/escola/ProvedorEscola';
 

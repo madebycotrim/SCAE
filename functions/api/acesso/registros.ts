@@ -1,6 +1,6 @@
 import type { ContextoSCAE, PayloadRegistroAcesso, ResultadoSincronizacao } from '../../tipos/ambiente';
 import { ErroValidacao, ErroInterno, ErroBase } from '../erros';
-import { verificarPermissao, extrairEscolaId } from '../seguranca';
+import { verificarPermissao, extrairEscolaId } from '../_seguranca';
 import { FabricaFCM } from '../utilitarios/fcm';
 
 async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Response> {

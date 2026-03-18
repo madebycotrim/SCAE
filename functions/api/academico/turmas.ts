@@ -1,6 +1,6 @@
 import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
-import { verificarPermissao, extrairEscolaId } from '../seguranca';
+import { verificarPermissao, extrairEscolaId } from '../_seguranca';
 import { esquemaTurma } from './turmas.esquemas';
 
 async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {

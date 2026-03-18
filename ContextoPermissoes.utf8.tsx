@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { api } from '@/compartilhado/servicos/api';
+import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 
 const EMAIL_RAIZ = 'madebycotrim@gmail.com';
 const log = criarRegistrador('Permissoes');
@@ -39,7 +40,7 @@ interface PermissoesContextType {
 
 const ContextoPermissoes = createContext<PermissoesContextType | undefined>(undefined);
 
-// 🛡️ Matriz de Permissões (Strict)
+// Matriz de Permissões por Papel
 const MATRIZ_PERMISSOES: Record<string, Record<string, Record<string, boolean>>> = {
     CENTRAL: {
         dashboard: { visualizar: true },
@@ -65,12 +66,12 @@ const MATRIZ_PERMISSOES: Record<string, Record<string, Record<string, boolean>>>
 
     COORDENACAO: {
         dashboard: { visualizar: true },
-        alunos: { visualizar: true, criar: true, editar: true, deletar: false },
-        turmas: { visualizar: true, criar: true, editar: true, deletar: false },
+        alunos: { visualizar: true, criar: false, editar: false, deletar: false },
+        turmas: { visualizar: true, criar: false, editar: false, deletar: false },
         terminal_acesso: { acessar: true },
         relatorios: { visualizar: true, exportar: true },
         risco_abandono: { visualizar: true },
-        usuarios: { visualizar: false, criar: false, editar: false, desativar: false }, // Escondido!
+        usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
         auditoria: { visualizar: true, exportar: false }
     },
 
@@ -81,7 +82,7 @@ const MATRIZ_PERMISSOES: Record<string, Record<string, Record<string, boolean>>>
         terminal_acesso: { acessar: true },
         relatorios: { visualizar: true, exportar: true },
         risco_abandono: { visualizar: false },
-        usuarios: { visualizar: false, criar: false, editar: false, desativar: false }, // Escondido!
+        usuarios: { visualizar: false, criar: false, editar: false, desativar: false },
         auditoria: { visualizar: false, exportar: false }
     },
 
@@ -122,24 +123,80 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
             }
 
             try {
-                // 🔐 Online-First: Verifica perfil diretamente no servidor
-                const resposta = await api.obter<{ dados: UsuarioPermissoes }>('/seguranca/perfil');
-                
-                if (resposta?.dados) {
-                    definirUsuario(resposta.dados);
-                    log.info(`Permissões carregadas: ${resposta.dados.papel}`);
+                // Buscar usuário do banco local
+                const banco = await bancoLocal.iniciarBanco();
+                const usuarioBD = await banco.get('usuarios', usuarioAtual.email);
+
+                if (usuarioBD) {
+                    definirUsuario(usuarioBD);
                 } else {
-                    log.warn(`Usuário autenticado mas não vinculado no sistema: ${usuarioAtual.email}`);
-                    definirUsuario(null);
+                    // Usuário não cadastrado - APENAS EMAIL_RAIZ é CENTRAL
+                    if (usuarioAtual.email === EMAIL_RAIZ) {
+                        log.info(`Admin principal (CENTRAL) detectado: ${log.mascarar(usuarioAtual.email, 'email')}`);
+                        const adminUser = {
+                            email: usuarioAtual.email,
+                            nome_completo: usuarioAtual.displayName || 'Administrador Principal',
+                            papel: 'CENTRAL',
+                            ativo: true
+                        };
+                        definirUsuario(adminUser);
+
+                        // Salvar no banco
+                        try {
+                            await banco.put('usuarios', {
+                                ...adminUser,
+                                criado_por: 'system',
+                                criado_em: new Date().toISOString(),
+                                atualizado_em: new Date().toISOString()
+                            });
+
+                            // Tentar sincronizar com API imediatamente
+                            if (navigator.onLine) {
+                                try {
+                                    await api.enviar('/seguranca/usuarios', adminUser);
+                                    log.info('Admin sincronizado com sucesso.');
+                                } catch (e) {
+                                    log.warn('Falha ao sincronizar admin (será tentado depois)', e);
+                                }
+                            }
+                        } catch (e) {
+                            log.error('Erro ao salvar admin', e);
+                        }
+                    } else {
+                        // Cadastro Automático com permissão mínima (VISUALIZAÇÃO)
+                        log.info(`Novo usuário detectado, registrando com VISUALIZAÇÃO: ${usuarioAtual.email}`);
+
+                        const novoUsuario = {
+                            email: usuarioAtual.email,
+                            nome_completo: usuarioAtual.displayName || usuarioAtual.email,
+                            papel: 'VISUALIZACAO',
+                            ativo: true,
+                            pendente: true, // Novo usuário começa pendente
+                            criado_por: 'system_auto',
+                            criado_em: new Date().toISOString(),
+                            atualizado_em: new Date().toISOString()
+                        };
+
+                        definirUsuario(novoUsuario);
+
+                        // Salvar no banco local para que o Admin possa ver e editar
+                        try {
+                            await banco.put('usuarios', novoUsuario);
+
+                            // Tentar sincronizar com API se online
+                            if (navigator.onLine) {
+                                // Import dinâmico ou usar a api se já importada (vou adicionar o import no topo)
+                                await api.enviar('/usuarios', novoUsuario);
+                            }
+                        } catch (e) {
+                            log.error('Erro ao registrar novo usuário automaticamente', e);
+                        }
+                    }
                 }
-            } catch (erro: any) {
-                if (erro?.status === 401 || erro?.status === 403) {
-                    log.error('Acesso negado: Usuário não vinculado ou bloqueado pelo sistema.');
-                    definirUsuario(null);
-                } else {
-                    log.error('Erro ao carregar perfil de segurança', erro);
-                    definirUsuario(null);
-                }
+            } catch (erro) {
+                log.error('Erro ao carregar permissões do usuário', erro);
+                // Fallback seguro: sem permissões
+                definirUsuario(null);
             } finally {
                 definirCarregando(false);
             }
@@ -150,10 +207,15 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
 
     /**
      * Verifica se o usuário possui uma permissão específica
+     * @param {string} acao - Ação a verificar (ex: 'editar')
+     * @param {string} recurso - Recurso (ex: 'alunos')
+     * @returns {boolean}
      */
     const pode = (acao: string, recurso: string): boolean => {
-        // BYPASS: EMAIL_RAIZ tem acesso total sempre se autenticado
-        if (usuarioAtual?.email === EMAIL_RAIZ) return true;
+        // BYPASS: EMAIL_RAIZ tem acesso total sempre
+        if (usuarioAtual?.email === EMAIL_RAIZ) {
+            return true;
+        }
 
         if (!usuario || !usuario.ativo) return false;
 
@@ -163,22 +225,43 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
         return permissoesRecurso[acao] === true;
     };
 
+    /**
+     * Verifica se o usuário tem papel específico
+     * @param {string} papel - Papel a verificar
+     * @returns {boolean}
+     */
+    const temPapel = (papel: string): boolean => {
+        return usuario?.papel === papel;
+    };
+
+    /**
+     * Verifica se o usuário tem pelo menos um dos papéis fornecidos
+     * @param {string[]} papeis - Array de papéis
+     * @returns {boolean}
+     */
+    const temAlgumPapel = (papeis: string[]): boolean => {
+        if (!usuario) return false;
+        return papeis.includes(usuario.papel);
+    };
+
     const value = {
         usuario,
         papel: usuario?.papel,
         carregando,
         pode,
-        podeAcessar: pode,
-        temPapel: (papel: string) => usuario?.papel === papel,
-        temAlgumPapel: (papeis: string[]) => !!usuario && papeis.includes(usuario.papel),
+        podeAcessar: pode, // Alias para compatibilidade
+        temPapel,
+        temAlgumPapel,
 
-        ehCentral: usuario?.papel === 'CENTRAL' || usuarioAtual?.email === EMAIL_RAIZ,
+        // Atalhos úteis
+        ehCentral: usuario?.papel === 'CENTRAL',
         ehAdmin: usuario?.papel === 'ADMIN',
         ehCoordenacao: usuario?.papel === 'COORDENACAO',
         ehSecretaria: usuario?.papel === 'SECRETARIA',
         ehPorteiro: usuario?.papel === 'PORTEIRO',
         ehVisualizacao: usuario?.papel === 'VISUALIZACAO',
 
+        // Permissões compostas comuns
         podeGerenciarAlunos: pode('editar', 'alunos') || pode('criar', 'alunos'),
         podeGerenciarTurmas: pode('editar', 'turmas') || pode('criar', 'turmas'),
         podeVerRelatorios: pode('visualizar', 'relatorios'),
@@ -192,9 +275,14 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
     );
 }
 
+// Hook para usar permissões
 export function usarPermissoes() {
     const contexto = useContext(ContextoPermissoes);
-    if (!contexto) throw new Error('usarPermissoes deve ser usado dentro de ProvedorPermissoes');
+
+    if (!contexto) {
+        throw new Error('usarPermissoes deve ser usado dentro de ProvedorPermissoes');
+    }
+
     return contexto;
 }
 

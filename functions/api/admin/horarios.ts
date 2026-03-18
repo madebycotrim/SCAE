@@ -1,6 +1,6 @@
 import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroValidacao, ErroNaoEncontrado } from '../erros';
-import { verificarPermissao, extrairEscolaId } from '../seguranca';
+import { verificarPermissao, extrairEscolaId } from '../_seguranca';
 
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     const escolaId = extrairEscolaId(contexto.request);

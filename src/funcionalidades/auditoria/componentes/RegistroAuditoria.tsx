@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
-import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
 import { api } from '@/compartilhado/servicos/api';
 import { Botao, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 import {
@@ -46,6 +46,7 @@ export default function RegistroAuditoria() {
     const { termo: busca } = usarTermoBusca();
     const [pagina, definirPagina] = useState(1);
     const [logSelecionado, definirLogSelecionado] = useState(null);
+    const [mostrarRastroCompleto, definirMostrarRastroCompleto] = useState(false);
     const [mapaUsuarios, definirMapaUsuarios] = useState<Record<string, string>>({});
     const [confirmacao, definirConfirmacao] = useState<{ aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao' } | null>(null);
 
@@ -232,7 +233,7 @@ export default function RegistroAuditoria() {
                                                     variante="ghost"
                                                     tamanho="sm"
                                                     icone={Eye}
-                                                    onClick={() => definirLogSelecionado(log)}
+                                                    onClick={() => { definirLogSelecionado(log); definirMostrarRastroCompleto(false); }}
                                                     className="text-slate-400 hover:text-indigo-600 hover:bg-white shadow-sm rounded-lg w-9 h-9 p-0 border border-slate-200 transition-all"
                                                 />
 
@@ -331,7 +332,11 @@ export default function RegistroAuditoria() {
                                 const brutoNov = logSelecionado.dados_novos || logSelecionado.dado_novo || logSelecionado.novo || logSelecionado.estado_novo;
                                 let dadosNov = brutoNov && typeof brutoNov === 'string' ? JSON.parse(brutoNov) : brutoNov;
 
-                                if (dadosAnt || dadosNov) {
+                                if (mostrarRastroCompleto) {
+                                    // Mostra tudo que tem dentro das caixas sem realizar Diff
+                                    antStr = dadosAnt && Object.keys(dadosAnt).length > 0 ? JSON.stringify(dadosAnt, null, 2) : String(dadosAnt || "// Nenhum dado anterior");
+                                    novStr = dadosNov && Object.keys(dadosNov).length > 0 ? JSON.stringify(dadosNov, null, 2) : String(dadosNov || "// Sem dados novos");
+                                } else if (dadosAnt || dadosNov) {
                                     const objAnt = typeof dadosAnt === 'object' && dadosAnt !== null ? dadosAnt : {};
                                     const objNov = typeof dadosNov === 'object' && dadosNov !== null ? dadosNov : {};
 
@@ -364,7 +369,9 @@ export default function RegistroAuditoria() {
                             return (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Estado Anterior <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span></span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">
+                                            Estado Anterior {!mostrarRastroCompleto && <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span>}
+                                        </span>
                                         <div className="bg-slate-900 rounded-xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
                                             <pre className="text-[11px] font-mono text-rose-300/80 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar flex-1">
                                                 {antStr}
@@ -373,7 +380,9 @@ export default function RegistroAuditoria() {
                                     </div>
 
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Estado Novo <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span></span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">
+                                            Estado Novo {!mostrarRastroCompleto && <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span>}
+                                        </span>
                                         <div className="bg-slate-900 rounded-xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
                                             <pre className="text-[11px] font-mono text-emerald-300/80 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar flex-1">
                                                 {novStr}
@@ -386,31 +395,22 @@ export default function RegistroAuditoria() {
 
 
                         {/* Ações e Rastro Completo (Fallback) */}
-                        <div className="pt-4 border-t border-slate-100 flex items-start justify-between gap-4">
+                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
                             <div className="flex-1">
-                                <details className="group">
-                                    <summary className="flex items-center gap-2 text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] cursor-pointer hover:text-slate-500 transition-colors list-none mt-3">
-                                        <div className="w-1.5 h-1.5 bg-slate-200 rounded-full group-open:bg-indigo-400 group-open:animate-pulse"></div>
-                                        Ver Objeto de Rastro Completo
-                                    </summary>
-                                    <div className="mt-4 bg-slate-950 rounded-xl p-6 border border-slate-900 shadow-2xl relative overflow-hidden">
-                                        <div className="absolute top-4 right-4 opacity-5 pointer-events-none">
-                                            <Fingerprint className="text-white" size={64} />
-                                        </div>
-                                        <pre className="text-[10px] font-mono text-indigo-300/60 leading-relaxed whitespace-pre-wrap selection:bg-indigo-500 selection:text-white overflow-auto max-h-[400px] custom-scrollbar">
-                                            {JSON.stringify(logSelecionado, (key, value) => 
-                                                ['dados_anteriores', 'dados_novos', 'dado_anterior', 'dado_novo', 'anterior', 'novo', 'estado_anterior', 'estado_novo'].includes(key) 
-                                                ? undefined 
-                                                : value, 2)}
-                                        </pre>
-                                    </div>
-                                </details>
+                                <button
+                                    onClick={() => definirMostrarRastroCompleto(!mostrarRastroCompleto)}
+                                    className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] cursor-pointer hover:opacity-80 transition-opacity list-none"
+                                    style={{ color: mostrarRastroCompleto ? '#818cf8' : '#cbd5e1' }}
+                                >
+                                    <div className={`w-1.5 h-1.5 rounded-full ${mostrarRastroCompleto ? 'bg-indigo-400 animate-pulse' : 'bg-slate-200'}`}></div>
+                                    {mostrarRastroCompleto ? 'VER APENAS O QUE MUDOU' : 'VER OBJETO DE RASTRO COMPLETO'}
+                                </button>
                             </div>
 
                             <Botao
                                 variante="secundario"
                                 icone={ChevronLeft}
-                                onClick={() => definirLogSelecionado(null)}
+                                onClick={() => { definirLogSelecionado(null); definirMostrarRastroCompleto(false); }}
                                 className="shrink-0 font-bold text-[11px] uppercase tracking-widest bg-slate-100 hover:bg-slate-200 text-slate-600 border-none px-6 py-3"
                             >
                                 Fechar Detalhes

@@ -1,11 +1,13 @@
 /**
- * GuardaRota ó Componente que protege rotas verificando autenticaÁ„o + papel + escola.
+ * GuardaRota ‚Äî Componente que protege rotas verificando autentica√ß√£o + papel + escola.
  * Redireciona para login relativo ao slug da escola.
  */
 import { ReactNode } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from './ContextoPermissoes';
+import { ShieldAlert, UserX, LogOut } from 'lucide-react';
+import { Botao } from '../componentes/UI';
 
 export interface GuardaRotaProps {
     children: ReactNode;
@@ -14,20 +16,23 @@ export interface GuardaRotaProps {
 }
 
 export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = false }: GuardaRotaProps) {
-    const { usuarioAtual } = usarAutenticacao();
+    const { usuarioAtual, sair: firebaseSair } = usarAutenticacao();
     const { usuario, carregando } = usarPermissoes();
     const { slugEscola } = useParams();
 
-    // Carregando estado de auth/permissıes
+    // 1. Carregando estado de auth/permiss√µes
     if (carregando) {
         return (
             <div className="flex items-center justify-center h-screen bg-slate-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Validando Acesso Seguran√ßa</span>
+                </div>
             </div>
         );
     }
 
-    // N„o autenticado ? redirecionar para login da escola ou da Gest„o Central
+    // 2. N√£o autenticado (Firebase) ? redirecionar para login
     if (!usuarioAtual) {
         if (desabilitarEscolaCheck || (!slugEscola && papeis?.includes('CENTRAL'))) {
             return <Navigate to="/central/login" replace />;
@@ -35,47 +40,89 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
         return <Navigate to={`/${slugEscola}/login`} replace />;
     }
 
-    // RestriÁ„o Absoluta e Hardcoded para o Root/Dono
-    if (papeis?.includes('CENTRAL') && usuarioAtual.email !== 'madebycotrim@gmail.com') {
+    const ehRootAcc = usuarioAtual.email === 'madebycotrim@gmail.com';
+
+    // 3. Autenticado mas N√ÉO VINCULADO (SCAE) e N√ÉO √© ROOT
+    if (!usuario && !ehRootAcc) {
         return (
-            <div className="flex items-center justify-center h-screen bg-slate-950">
-                <div className="text-center max-w-md p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
-                    <div className="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-500/30">
-                        <span className="text-2xl">???</span>
+            <div className="flex items-center justify-center h-screen bg-white">
+                <div className="text-center max-w-md p-10 border border-slate-100 rounded-[2.5rem] shadow-media-suave bg-white">
+                    <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-8 text-rose-500 shadow-inner">
+                        <UserX size={36} strokeWidth={2.5} />
                     </div>
-                    <h2 className="text-xl font-bold text-white mb-2">Acesso Classificado Root</h2>
-                    <p className="text-slate-400 mb-6">Apenas a conta madebycotrim@gmail.com possui permiss„o para enxergar o MÛdulo Central.</p>
-                    <a href="/" className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-2xl font-bold hover:bg-[#0a1628] transition-colors border border-transparent shadow-suave">
-                        Sair desta ·rea
-                    </a>
+                    <h2 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-tight">E-mail n√£o autorizado</h2>
+                    <p className="text-slate-500 text-sm mb-10 leading-relaxed font-medium">
+                        O email <span className="text-slate-900 font-bold">{usuarioAtual.email}</span> n√£o foi localizado no cadastro desta unidade escolar.<br/>
+                        <span className="text-xs mt-4 block text-slate-400 italic">Dica: Entre em contato com a secretaria ou dire√ß√£o para liberar seu acesso.</span>
+                    </p>
+                    <div className="flex flex-col gap-3">
+                        <Botao 
+                            variante="secundario" 
+                            icone={LogOut} 
+                            onClick={() => firebaseSair()}
+                            className="font-black text-[11px] uppercase tracking-widest px-8 w-full h-12"
+                        >
+                            Tentar outra conta
+                        </Botao>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // Se papÈis foram definidos, verificar se o usu·rio tem permiss„o
-    if (papeis && papeis.length > 0) {
-        let temPermissao = false;
+    // 4. Se for Inativo
+    if (usuario && !usuario.ativo && !ehRootAcc) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-slate-50">
+                <div className="text-center max-w-sm p-10 bg-white border border-slate-200 rounded-[2.5rem] shadow-suave">
+                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
+                        <ShieldAlert size={36} />
+                    </div>
+                    <h2 className="text-xl font-black text-slate-800 mb-3 uppercase tracking-tight">Acesso Bloqueado</h2>
+                    <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+                        Sua permiss√£o de acesso foi desativada por um administrador da escola.
+                    </p>
+                    <Botao variante="secundario" onClick={() => firebaseSair()} className="w-full">Voltar ao In√≠cio</Botao>
+                </div>
+            </div>
+        );
+    }
 
-        if (usuarioAtual.email === 'madebycotrim@gmail.com') {
-            // Bypass global para o root account
-            temPermissao = true;
-        } else if (usuario) {
-            temPermissao = papeis.includes(usuario.papel);
-        }
+    // 5. Root Bypass
+    if (ehRootAcc) return children;
 
-        if (!temPermissao) {
+    // 6. Restri√ß√£o Root para M√≥dulo Central (Hardcoded)
+    if (papeis?.includes('CENTRAL') && !ehRootAcc) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-slate-950">
+                <div className="text-center max-w-md p-10 bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl">
+                    <h2 className="text-xl font-black text-white mb-4 uppercase">√Årea Restrita Root</h2>
+                    <p className="text-slate-400 mb-10 text-sm leading-relaxed">Apenas o desenvolvedor principal possui permiss√£o para enxergar o M√≥dulo Central Global.</p>
+                    <Botao variante="primario" onClick={() => window.location.href = '/'}>Sair desta √°rea</Botao>
+                </div>
+            </div>
+        );
+    }
+
+    // 7. Verifica√ß√£o de Pap√©is (RBAC)
+    if (papeis && papeis.length > 0 && usuario) {
+        const temPermissaoSet = papeis.includes(usuario.papel);
+        if (!temPermissaoSet) {
             return (
                 <div className="flex items-center justify-center h-screen bg-slate-50">
-                    <div className="text-center max-w-md p-8">
-                        <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-2xl">??</span>
+                    <div className="text-center max-w-md p-10 bg-white border border-slate-200 rounded-[2.5rem] shadow-suave">
+                        <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6 text-rose-500">
+                            <ShieldAlert size={36} />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-800 mb-2">Acesso Restrito</h2>
-                        <p className="text-slate-500 mb-6">VocÍ n„o tem permiss„o para acessar esta p·gina.</p>
-                        <a href={desabilitarEscolaCheck ? '/central/login' : `/${slugEscola}/admin/painel`} className="inline-block px-6 py-3 bg-[#0d1f3c] text-white rounded-2xl font-bold hover:bg-[#0a1628] transition-colors shadow-suave">
-                            {desabilitarEscolaCheck ? 'Voltar para Login Central' : 'Voltar ao Painel'}
-                        </a>
+                        <h2 className="text-xl font-black text-slate-800 mb-3 uppercase tracking-tight">Permiss√£o Insuficiente</h2>
+                        <p className="text-slate-500 text-sm mb-10 leading-relaxed font-medium">Seu cargo atual ({usuario.papel}) n√£o possui n√≠vel de acesso para esta funcionalidade.</p>
+                        <Botao 
+                            variante="primario" 
+                            onClick={() => window.location.href = `/${slugEscola}/admin/painel`}
+                            className="w-full h-12 font-black uppercase tracking-widest text-[11px]"
+                        >
+                            Voltar ao Painel
+                        </Botao>
                     </div>
                 </div>
             );
@@ -84,5 +131,3 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
 
     return children;
 }
-
-

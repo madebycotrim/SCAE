@@ -1,6 +1,6 @@
 import type { ContextoSCAE } from '../../../tipos/ambiente';
 import { ErroBase, ErroInterno } from '../../erros';
-import { verificarPermissao } from '../../seguranca';
+import { verificarPermissao } from '../../_seguranca';
 import { ServicoCache } from '../../utilitarios/cache';
 
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {

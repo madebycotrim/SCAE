@@ -1,44 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { Botao, BarraFiltro, InputBusca, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
-import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import {
-    Users,
     Search,
     Plus,
     Shield,
-    UserCheck,
     UserX,
     Edit2,
-    Trash2,
-    Lock,
-    RefreshCw,
     Mail,
     ShieldCheck,
-    ShieldAlert,
-    UserCircle2
+    UserCircle2,
+    Lock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
-import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
-import { Registrador } from '@/compartilhado/servicos/auditoria';
+import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
 import type { UsuarioLocal } from '@/compartilhado/types/bancoLocal.tipos';
-import { api } from '@/compartilhado/servicos/api';
 import { usuarioServico } from '../servicos/usuario.servico';
-
-const log = criarRegistrador('Usuarios');
-
 import FormUsuarioModal from './FormUsuarioModal';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
+const log = criarRegistrador('Usuarios');
+
 export default function Usuarios() {
     const { usuarioAtual } = usarAutenticacao();
-    const { ehCentral } = usarPermissoes();
+    const { ehCentral, pode } = usarPermissoes();
+
     const { dados: usuariosBrutos, carregando, carregandoInicial, recarregar: carregarUsuarios } = usarConsulta(
         ['usuarios-online'],
-        () => usuarioServico.carregarOnline()
+        () => usuarioServico.carregarOnline(),
+        { enabled: pode('visualizar', 'usuarios') }
     );
 
     const usuarios = usuariosBrutos || [];
@@ -47,10 +40,13 @@ export default function Usuarios() {
     const [usuarioEmEdicao, definirUsuarioEmEdicao] = useState<UsuarioLocal | null>(null);
     const [usuarioParaExcluir, definirUsuarioParaExcluir] = useState<UsuarioLocal | null>(null);
 
+    const canAdd = pode('criar', 'usuarios');
+    const canEdit = pode('editar', 'usuarios');
+    const canDeleteOrToggle = pode('deletar', 'usuarios') || pode('desativar', 'usuarios');
+
     const salvarUsuario = async (dados: any) => {
         try {
             await usuarioServico.salvarUsuario(dados, !!usuarioEmEdicao, usuarioEmEdicao || undefined);
-
             toast.success(usuarioEmEdicao ? 'Usuário atualizado!' : 'Usuário convidado com sucesso!');
             definirModalAberto(false);
             carregarUsuarios();
@@ -99,6 +95,7 @@ export default function Usuarios() {
         definirModalAberto(true);
     };
 
+    // Filtros e Papeis
     const usuariosFiltrados = usuarios.filter(u =>
         (u as any).nome_completo?.toLowerCase().includes(busca.toLowerCase()) ||
         (u as any).email.toLowerCase().includes(busca.toLowerCase()) ||
@@ -113,13 +110,11 @@ export default function Usuarios() {
         { id: 'VISUALIZACAO', nome: 'Visitante', cor: 'slate' }
     ];
 
-    const AcoesHeader = (
-        <Botao
-            variante="primario"
-            tamanho="sm"
-            icone={Plus}
-            onClick={novoUsuario}
-        >
+    // --- Renderização de Segurança ---
+    if (!pode('visualizar', 'usuarios')) return null;
+
+    const AcoesHeader = canAdd && (
+        <Botao variante="primario" tamanho="sm" icone={Plus} onClick={novoUsuario}>
             Novo Acesso
         </Botao>
     );
@@ -132,7 +127,7 @@ export default function Usuarios() {
             carregando={carregando}
         >
             <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
-                <div className="flex flex-col gap-2 flex-1 w-full">
+                <div className="flex flex-col gap-2 flex-1 w-full text-left">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Funcionário</label>
                     <InputBusca
                         icone={Search}
@@ -158,9 +153,9 @@ export default function Usuarios() {
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-200">
                                 <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Funcionário</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Permissão de Acesso</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Permissão</th>
                                 <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Situação</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th>
+                                { (canEdit || canDeleteOrToggle) && <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th> }
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -183,24 +178,24 @@ export default function Usuarios() {
                                 ))
                             ) : usuariosFiltrados.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="py-24 text-center">
+                                    <td colSpan={5} className="py-24 text-center">
                                         <div className="flex flex-col items-center justify-center gap-4 opacity-40 grayscale">
                                             <UserCircle2 size={48} className="text-slate-400" />
-                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Nenhuma pessoa encontrada</p>
+                                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Ninguém encontrado</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
                                 usuariosFiltrados.map((u: any) => {
                                     const papelInfo = PapeisDisponiveis.find(p => p.id === u.papel);
-                                    const papelNome = papelInfo?.nome || u.papel || 'Visitante';
+                                    const papelNome = papelInfo?.nome || u.papel || 'Portaria';
                                     const papelCor = papelInfo?.cor || 'slate';
 
                                     return (
-                                        <tr key={u.email} className={`hover:bg-slate-50 transition-all group ${!u.ativo ? 'opacity-70 grayscale' : ''}`}>
+                                        <tr key={u.email} className={`hover:bg-slate-50/50 transition-all group ${!u.ativo ? 'opacity-70 grayscale' : ''}`}>
                                             <td className="py-5 px-8">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-suave transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border-indigo-100 shadow-indigo-100/50' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-suave transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
                                                         {u.papel === 'ADMIN' ? <ShieldCheck size={20} strokeWidth={2.5} /> : <UserCircle2 size={20} />}
                                                     </div>
                                                     <div>
@@ -215,7 +210,7 @@ export default function Usuarios() {
                                                 </div>
                                             </td>
                                             <td className="py-5 px-8 text-center">
-                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave transition-all hover:shadow-media hover:-translate-y-0.5 ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
                                                     papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                                         papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                                             papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
@@ -229,22 +224,24 @@ export default function Usuarios() {
                                             </td>
                                             <td className="py-5 px-8 text-right">
                                                 <div className="flex items-center justify-end gap-3">
-                                                    <Botao
-                                                        variante="ghost"
-                                                        tamanho="sm"
-                                                        icone={Edit2}
-                                                        onClick={() => abrirEdicao(u)}
-                                                        className="hover:text-indigo-600 font-black text-[10px] tracking-widest"
-                                                    >
-                                                        EDITAR
-                                                    </Botao>
+                                                    {canEdit && (
+                                                        <Botao
+                                                            variante="ghost"
+                                                            tamanho="sm"
+                                                            icone={Edit2}
+                                                            onClick={() => abrirEdicao(u)}
+                                                            className="hover:text-indigo-600 font-black text-[10px] tracking-widest"
+                                                        >
+                                                            EDITAR
+                                                        </Botao>
+                                                    )}
 
-                                                    {u.email !== usuarioAtual?.email && (
+                                                    {canDeleteOrToggle && u.email !== usuarioAtual?.email && (
                                                         <Botao
                                                             tamanho="sm"
                                                             variante={ehCentral ? 'perigo' : u.ativo ? 'secundario' : 'primario'}
                                                             onClick={() => ehCentral ? excluirUsuario(u) : toggleStatus(u)}
-                                                            className={!ehCentral && u.ativo ? 'text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 font-black text-[10px] tracking-widest' : 'font-black text-[10px] tracking-widest'}
+                                                            className="font-black text-[10px] tracking-widest"
                                                         >
                                                             {ehCentral ? 'EXCLUIR' : u.ativo ? 'BLOQUEAR' : 'LIBERAR'}
                                                         </Botao>
@@ -285,22 +282,21 @@ export default function Usuarios() {
 function BadgeStatus({ ativo, pendente }: { ativo: boolean, pendente?: boolean }) {
     if (pendente) {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 shadow-suave transition-all hover:scale-110">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200">
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> Aguardando
             </span>
         );
     }
     if (ativo) {
         return (
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-suave transition-all hover:scale-110">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div> Ativo
             </span>
         );
     }
     return (
-        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200 shadow-suave transition-all hover:scale-110">
-            <div className="w-1.5 h-1.5 rounded-full bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)]"></div> Bloqueado
+        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 border border-rose-200">
+            <div className="w-1.5 h-1.5 rounded-full bg-rose-600"></div> Bloqueado
         </span>
     );
 }
-

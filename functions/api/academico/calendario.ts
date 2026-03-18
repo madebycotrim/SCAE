@@ -1,5 +1,5 @@
 import { ContextoSCAE } from '../../tipos/ambiente';
-import { extrairEscolaId, verificarPermissao } from '../seguranca';
+import { extrairEscolaId, verificarPermissao } from '../_seguranca';
 import { CALENDARIO_SEEDF_2026, obterDiasNaoLetivos } from './calendario.compartilhado';
 
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
