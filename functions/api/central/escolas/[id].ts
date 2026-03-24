@@ -14,13 +14,13 @@ const esquemaUpdateEscola = z.object({
     config_qr_dinamico: z.boolean().optional(),
     tts_ativado: z.boolean().optional(),
     saida_obrigatoria: z.boolean().optional(),
-    metodo_acesso: z.enum(['QRCODE', 'FACIAL', 'DIGITAL']).optional(),
+    metodo_acesso: z.string().optional(),
     limite_alunos: z.number().int().positive().optional(),
     limite_terminais: z.number().int().positive().optional(),
     retencao_dados: z.number().int().positive().optional(),
     contato_suporte: z.string().nullable().optional(),
     status: z.enum(['ATIVA', 'SUSPENSA', 'PENDENTE']).optional(),
-}).strict(); // Rejeita campos extras
+}).strip(); // Silently remove unrecognized fields (e.g. 'id' sent by frontend)
 
 /**
  * GET /api/central/escolas/[id]

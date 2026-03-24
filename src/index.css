@@ -116,6 +116,12 @@ body {
   transition: outline-offset 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Inputs dentro de containers com borda própria não precisam do focus-visible global */
+input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Esconde o foco padrão apenas para cliques (preserva para teclado) */
 *:focus:not(:focus-visible) {
   outline: none !important;
