@@ -17,7 +17,7 @@ export interface GuardaRotaProps {
 
 export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = false }: GuardaRotaProps) {
     const { usuarioAtual, sair: firebaseSair } = usarAutenticacao();
-    const { usuario, carregando } = usarPermissoes();
+    const { usuario, carregando, ehCentral } = usarPermissoes();
     const { slugEscola } = useParams();
 
     // 1. Carregando estado de auth/permissões
@@ -40,7 +40,7 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
         return <Navigate to={`/${slugEscola}/login`} replace />;
     }
 
-    const ehRootAcc = usuarioAtual.email === 'madebycotrim@gmail.com';
+    const ehRootAcc = ehCentral;
 
     // 3. Autenticado mas NÃO VINCULADO (SCAE) e NÃO é ROOT
     if (!usuario && !ehRootAcc) {

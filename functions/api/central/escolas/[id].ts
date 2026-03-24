@@ -1,10 +1,30 @@
 import type { ContextoSCAE } from '../../../tipos/ambiente';
-import { ErroBase, ErroInterno, ErroNaoEncontrado } from '../../erros';
+import { ErroBase, ErroInterno, ErroNaoEncontrado, ErroValidacao } from '../../erros';
 import { verificarPermissao } from '../../_seguranca';
+import { ServicoCache } from '../../utilitarios/cache';
+import { z } from 'zod';
+
+/** Schema Zod para atualização parcial de escola */
+const esquemaUpdateEscola = z.object({
+    nome_escola: z.string().min(3).max(200).optional(),
+    dominio_email: z.string().min(1).optional(),
+    cor_primaria: z.string().optional(),
+    cor_secundaria: z.string().optional(),
+    logo_url: z.string().nullable().optional(),
+    config_qr_dinamico: z.boolean().optional(),
+    tts_ativado: z.boolean().optional(),
+    saida_obrigatoria: z.boolean().optional(),
+    metodo_acesso: z.enum(['QRCODE', 'FACIAL', 'DIGITAL']).optional(),
+    limite_alunos: z.number().int().positive().optional(),
+    limite_terminais: z.number().int().positive().optional(),
+    retencao_dados: z.number().int().positive().optional(),
+    contato_suporte: z.string().nullable().optional(),
+    status: z.enum(['ATIVA', 'SUSPENSA', 'PENDENTE']).optional(),
+}).strict(); // Rejeita campos extras
 
 /**
  * GET /api/central/escolas/[id]
- * Recupera todos os dados de uma unidade para edicao.
+ * Recupera todos os dados de uma unidade para edição (excluindo chave privada).
  */
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -20,12 +40,12 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         `).bind(id).first();
 
         if (!escola) {
-            throw new ErroNaoEncontrado('Unidade nao encontrada na infraestrutura.');
+            throw new ErroNaoEncontrado('Unidade não encontrada na infraestrutura.');
         }
 
-        return new Response(JSON.stringify({ dados: escola }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
+        return Response.json({
+            dados: escola,
+            mensagem: 'Escola carregada com sucesso'
         });
 
     } catch (erro) {
@@ -35,22 +55,39 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
 
 /**
  * PATCH /api/central/escolas/[id]
- * Atualiza diretrizes ou status da unidade.
+ * Atualiza diretrizes ou status da unidade com validação Zod.
  */
 export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> {
     try {
         verificarPermissao(contexto, ['CENTRAL']);
         const { id } = contexto.params;
-        const dados = await contexto.request.json() as any;
 
-        // Montar query dinamica baseada nos campos enviados
+        let corpo: unknown;
+        try {
+            corpo = await contexto.request.json();
+        } catch {
+            throw new ErroValidacao('JSON inválido no corpo da requisição', 'JSON_PARSE_ERROR');
+        }
+
+        const resultadoZod = esquemaUpdateEscola.safeParse(corpo);
+        if (!resultadoZod.success) {
+            throw new ErroValidacao(
+                'Dados de atualização inválidos',
+                'ESCOLA_VALIDACAO_001',
+                { detalhes: resultadoZod.error.format() }
+            );
+        }
+
+        const dados = resultadoZod.data;
+
+        // Montar query dinâmica baseada nos campos validados
         const campos: string[] = [];
-        const valores: any[] = [];
+        const valores: (string | number | null)[] = [];
 
-        if (dados.nome_escola) { campos.push('nome_escola = ?'); valores.push(dados.nome_escola); }
-        if (dados.dominio_email) { campos.push('dominio_email = ?'); valores.push(dados.dominio_email); }
-        if (dados.cor_primaria) { campos.push('cor_primaria = ?'); valores.push(dados.cor_primaria); }
-        if (dados.cor_secundaria) { campos.push('cor_secundaria = ?'); valores.push(dados.cor_secundaria); }
+        if (dados.nome_escola !== undefined) { campos.push('nome_escola = ?'); valores.push(dados.nome_escola); }
+        if (dados.dominio_email !== undefined) { campos.push('dominio_email = ?'); valores.push(dados.dominio_email); }
+        if (dados.cor_primaria !== undefined) { campos.push('cor_primaria = ?'); valores.push(dados.cor_primaria); }
+        if (dados.cor_secundaria !== undefined) { campos.push('cor_secundaria = ?'); valores.push(dados.cor_secundaria); }
         if (dados.logo_url !== undefined) { campos.push('logo_url = ?'); valores.push(dados.logo_url); }
         if (dados.config_qr_dinamico !== undefined) { campos.push('config_qr_dinamico = ?'); valores.push(dados.config_qr_dinamico ? 1 : 0); }
         if (dados.tts_ativado !== undefined) { campos.push('tts_ativado = ?'); valores.push(dados.tts_ativado ? 1 : 0); }
@@ -60,21 +97,28 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
         if (dados.limite_terminais !== undefined) { campos.push('limite_terminais = ?'); valores.push(dados.limite_terminais); }
         if (dados.retencao_dados !== undefined) { campos.push('retencao_dados = ?'); valores.push(dados.retencao_dados); }
         if (dados.contato_suporte !== undefined) { campos.push('contato_suporte = ?'); valores.push(dados.contato_suporte); }
-        if (dados.status) { campos.push('status = ?'); valores.push(dados.status); }
+        if (dados.status !== undefined) { campos.push('status = ?'); valores.push(dados.status); }
 
         if (campos.length === 0) {
-            throw new ErroBase('Nenhum dado para atualizar.', 'SEM_DADOS', 400);
+            throw new ErroValidacao('Nenhum dado para atualizar.', 'SEM_DADOS');
         }
 
-        valores.push(id); // Para o WHERE
+        valores.push(id as string);
 
-        await contexto.env.DB_SCAE.prepare(`
+        const resultado = await contexto.env.DB_SCAE.prepare(`
             UPDATE escolas SET ${campos.join(', ')} WHERE id = ?
         `).bind(...valores).run();
 
-        return new Response(JSON.stringify({ mensagem: 'Diretrizes atualizadas com sucesso.' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
+        if (resultado.meta.changes === 0) {
+            throw new ErroNaoEncontrado('Escola não encontrada para atualizar.');
+        }
+
+        // Invalida cache da escola
+        await ServicoCache.limparCacheEscola(id as string, contexto.env);
+
+        return Response.json({
+            dados: { id },
+            mensagem: 'Diretrizes atualizadas com sucesso.'
         });
 
     } catch (erro) {
@@ -91,11 +135,17 @@ export async function onRequestDelete(contexto: ContextoSCAE): Promise<Response>
         verificarPermissao(contexto, ['CENTRAL']);
         const { id } = contexto.params;
 
-        await contexto.env.DB_SCAE.prepare(`DELETE FROM escolas WHERE id = ?`).bind(id).run();
+        const resultado = await contexto.env.DB_SCAE.prepare(
+            `DELETE FROM escolas WHERE id = ?`
+        ).bind(id).run();
 
-        return new Response(JSON.stringify({ mensagem: 'Unidade removida definitivamente.' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
+        if (resultado.meta.changes === 0) {
+            throw new ErroNaoEncontrado('Escola não encontrada para remoção.');
+        }
+
+        return Response.json({
+            dados: { id },
+            mensagem: 'Unidade removida definitivamente.'
         });
 
     } catch (erro) {
@@ -103,17 +153,10 @@ export async function onRequestDelete(contexto: ContextoSCAE): Promise<Response>
     }
 }
 
-function tratarErro(erro: any) {
-    console.error('[API Central/Escolas/[id]] Erro:', erro);
+function tratarErro(erro: unknown): Response {
     if (erro instanceof ErroBase) {
-        return new Response(JSON.stringify(erro.toJSON()), { 
-            status: erro.status,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
     }
     const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro interno no detalhe da escola');
-    return new Response(JSON.stringify(erroInterno.toJSON()), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' }
-    });
+    return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
 }

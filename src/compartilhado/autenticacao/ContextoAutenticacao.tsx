@@ -58,9 +58,9 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
 
         const cancelarInscricao = onAuthStateChanged(autenticacao, async (usuario) => {
             if (usuario) {
-                // Atualiza token se necessário
+                // Atualiza token — preservar referência do objeto User sem mutação via cast
                 const token = await usuario.getIdToken();
-                (usuario as unknown as Record<string, unknown>).token = token;
+                Object.defineProperty(usuario, 'token', { value: token, writable: true, configurable: true });
             }
             definirUsuarioAtual(usuario);
             definirCarregando(false);

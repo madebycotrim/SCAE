@@ -96,7 +96,15 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         contexto.data.user = dadosToken as DadosTokenFirebase;
         contexto.data.usuarioScae = usuarioScae as UsuarioDB | null;
 
-        return await proximo();
+        const resposta = await proximo();
+
+        // Adicionar headers de segurança em todas as respostas
+        resposta.headers.set('X-Content-Type-Options', 'nosniff');
+        resposta.headers.set('X-Frame-Options', 'DENY');
+        resposta.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        resposta.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+        return resposta;
 
     } catch (erro) {
         if (erro instanceof ErroBase) {

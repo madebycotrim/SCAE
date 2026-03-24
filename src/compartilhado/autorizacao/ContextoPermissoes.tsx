@@ -133,12 +133,13 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
                     log.warn(`Usuário autenticado mas não vinculado no sistema: ${usuarioAtual.email}`);
                     definirUsuario(null);
                 }
-            } catch (erro: any) {
-                if (erro?.status === 401 || erro?.status === 403) {
+            } catch (erro: unknown) {
+                const erroApi = erro as { status?: number; message?: string };
+                if (erroApi?.status === 401 || erroApi?.status === 403) {
                     log.error('Acesso negado: Usuário não vinculado ou bloqueado pelo sistema.');
                     definirUsuario(null);
                 } else {
-                    log.error('Erro ao carregar perfil de segurança', erro);
+                    log.error('Erro ao carregar perfil de segurança', erro instanceof Error ? erro.message : String(erro));
                     definirUsuario(null);
                 }
             } finally {
