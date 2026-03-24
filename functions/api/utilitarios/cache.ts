@@ -6,6 +6,22 @@
 
 import type { AmbienteSCAE } from '../../tipos/ambiente';
 
+export interface ConfiguracoesEscola {
+    id: string;
+    nomeEscola: string;
+    corPrimaria: string;
+    corSecundaria: string;
+    logoUrl: string | null;
+    ttsAtivado: boolean;
+    dominioEmail: string | null;
+    qrDinamico: boolean;
+}
+
+export interface FeatureFlags {
+    evasao_ativa: boolean;
+    manutencao_portaria: boolean;
+}
+
 export class ServicoCache {
     private static PREFIXO_SLUG = 'slug:';
     private static PREFIXO_CONFIG = 'config:';
@@ -41,10 +57,10 @@ export class ServicoCache {
      * 2. Branding e Identidade Visual (UI Instantânea)
      * Cores, logos e nomes para o frontend não "piscar" com cores erradas.
      */
-    static async buscarConfiguracoes(escolaId: string, env: AmbienteSCAE): Promise<any | null> {
+    static async buscarConfiguracoes(escolaId: string, env: AmbienteSCAE): Promise<ConfiguracoesEscola | null> {
         const chave = `${this.PREFIXO_CONFIG}${escolaId}`;
         
-        const configs = await env.KV_SCAE.get(chave, 'json');
+        const configs = await env.KV_SCAE.get(chave, 'json') as ConfiguracoesEscola | null;
         if (configs) return configs;
 
         const escola = await env.DB_SCAE.prepare(
@@ -128,13 +144,13 @@ export class ServicoCache {
      * 5. Controle de Funcionalidades (Feature Flags)
      * Ativa/Desativa módulos (ex: Evasão) instantaneamente.
      */
-    static async buscarFeatureFlags(escolaId: string, env: AmbienteSCAE): Promise<any> {
+    static async buscarFeatureFlags(escolaId: string, env: AmbienteSCAE): Promise<FeatureFlags> {
         const chave = `${this.PREFIXO_FEATURES}${escolaId}`;
         
-        const flags = await env.KV_SCAE.get(chave, 'json');
+        const flags = await env.KV_SCAE.get(chave, 'json') as FeatureFlags | null;
         if (flags) return flags;
 
-        const defaultFlags = { evasao_ativa: true, manutencao_portaria: false };
+        const defaultFlags: FeatureFlags = { evasao_ativa: true, manutencao_portaria: false };
         await env.KV_SCAE.put(chave, JSON.stringify(defaultFlags), { expirationTtl: 3600 });
         return defaultFlags;
     }

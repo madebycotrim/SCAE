@@ -12,7 +12,11 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         const { id } = contexto.params;
 
         const escola = await contexto.env.DB_SCAE.prepare(`
-            SELECT * FROM escolas WHERE id = ?
+            SELECT id, nome_escola, dominio_email, cor_primaria, cor_secundaria, logo_url,
+                   chave_publica_ecdsa, config_qr_dinamico, tts_ativado, saida_obrigatoria,
+                   metodo_acesso, limite_alunos, limite_terminais, retencao_dados,
+                   contato_suporte, status, janelas, criado_em
+            FROM escolas WHERE id = ?
         `).bind(id).first();
 
         if (!escola) {

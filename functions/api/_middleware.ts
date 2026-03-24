@@ -1,9 +1,15 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import type { ContextoSCAE, DadosTokenFirebase } from '../tipos/ambiente';
+import type { ContextoSCAE, DadosTokenFirebase, UsuarioDB } from '../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroNaoAutenticado, ErroPermissao } from './erros';
 import { ServicoCache } from './utilitarios/cache';
+import { EMAIL_ROOT } from './_seguranca';
 
 const ID_PROJETO_FIREBASE = 'scae-b7f8c';
+
+// Cached at module level — reused across requests within the same Worker instance
+const CONJUNTO_CHAVES_JSON = createRemoteJWKSet(
+    new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
+);
 
 async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
     const { request: requisicao, next: proximo } = contexto;
@@ -37,7 +43,6 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         }
 
         const token = cabecalhoAutenticacao.split(' ')[1];
-        const CONJUNTO_CHAVES_JSON = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 
         const { payload: dadosToken } = await jwtVerify(token, CONJUNTO_CHAVES_JSON, {
             issuer: `https://securetoken.google.com/${ID_PROJETO_FIREBASE}`,
@@ -45,7 +50,7 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         });
 
         const email = (dadosToken.email as string) || '';
-        const eAdminGlobal = ['madebycotrim@gmail.com'].includes(email);
+        const eAdminGlobal = [EMAIL_ROOT].includes(email);
         const idEscola = requisicao.headers.get('X-Escola-ID');
 
         if (eAdminGlobal && !idEscola) {
@@ -89,7 +94,7 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         }
 
         contexto.data.user = dadosToken as DadosTokenFirebase;
-        contexto.data.usuarioScae = usuarioScae as any;
+        contexto.data.usuarioScae = usuarioScae as UsuarioDB | null;
 
         return await proximo();
 

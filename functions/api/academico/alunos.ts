@@ -8,12 +8,31 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
 
-        const { results } = await contexto.env.DB_SCAE.prepare(
-            "SELECT matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo, criado_em, atualizado_em FROM alunos WHERE escola_id = ?"
-        ).bind(idEscola).all();
+        const { searchParams } = new URL(contexto.request.url);
+        const pagina = Math.max(1, parseInt(searchParams.get('pagina') || '1', 10) || 1);
+        const porPagina = Math.min(200, Math.max(1, parseInt(searchParams.get('limite') || '50', 10) || 50));
+        const offset = (pagina - 1) * porPagina;
+
+        // Buscar total + dados em batch (1 round-trip ao D1)
+        const [countResult, dataResult] = await contexto.env.DB_SCAE.batch([
+            contexto.env.DB_SCAE.prepare(
+                "SELECT COUNT(*) as total FROM alunos WHERE escola_id = ?"
+            ).bind(idEscola),
+            contexto.env.DB_SCAE.prepare(
+                "SELECT matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo, criado_em, atualizado_em FROM alunos WHERE escola_id = ? ORDER BY nome_completo ASC LIMIT ? OFFSET ?"
+            ).bind(idEscola, porPagina, offset)
+        ]);
+
+        const total = (countResult.results[0] as { total: number })?.total || 0;
 
         return Response.json({
-            dados: results,
+            dados: dataResult.results,
+            meta: {
+                total,
+                pagina,
+                porPagina,
+                totalPaginas: Math.ceil(total / porPagina)
+            },
             mensagem: 'Lista de alunos carregada com sucesso'
         });
     } catch (erro) {
@@ -33,7 +52,7 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
         let corpo;
         try {
             corpo = await contexto.request.json();
-        } catch (parseError) {
+        } catch {
             throw new ErroValidacao('JSON inválido no corpo da requisição', 'JSON_PARSE_ERROR');
         }
 

@@ -4,6 +4,9 @@
 import { ErroPermissao, ErroValidacao } from './erros';
 import type { ContextoSCAE } from '../tipos/ambiente';
 
+/** Email root do sistema — centralizado para evitar hardcode espalhado */
+export const EMAIL_ROOT = 'madebycotrim@gmail.com';
+
 /**
  * Verifica se o usuário autenticado possui o papel necessário.
  * @param contexto - Contexto da requisição
@@ -12,7 +15,7 @@ import type { ContextoSCAE } from '../tipos/ambiente';
  */
 export function verificarPermissao(contexto: ContextoSCAE, papeisPermitidos: string[]) {
     const papelUsuario = contexto.data.usuarioScae?.papel;
-    const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
+    const eDono = contexto.data.user?.email === EMAIL_ROOT;
 
     // O desenvolvedor "dono" sempre tem acesso total
     if (eDono) return;

@@ -11,7 +11,8 @@ async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {
         try {
             const { results } = await contexto.env.DB_SCAE.prepare(
                 `SELECT 
-                    t.*,
+                    t.id, t.escola_id, t.ano_letivo, t.serie, t.letra, t.turno,
+                    t.sala, t.professor_regente, t.sincronizado, t.criado_em,
                     (SELECT COUNT(*) FROM alunos a WHERE a.turma_id = t.id AND a.escola_id = t.escola_id AND a.ativo = 1) as totalAlunos
                 FROM turmas t 
                 WHERE t.escola_id = ? 

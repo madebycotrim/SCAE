@@ -1,7 +1,6 @@
 import type { ContextoSCAE, PayloadRegistroAcesso, ResultadoSincronizacao } from '../../tipos/ambiente';
 import { ErroValidacao, ErroInterno, ErroBase } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../_seguranca';
-import { FabricaFCM } from '../utilitarios/fcm';
 
 async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -12,7 +11,7 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
         let registros: PayloadRegistroAcesso[];
         try {
             registros = await contexto.request.json();
-        } catch (parseError) {
+        } catch {
             throw new ErroValidacao('JSON inválido no corpo da requisição', 'JSON_PARSE_ERROR');
         }
 
@@ -20,32 +19,29 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
             throw new ErroValidacao('Esperado array de registros para sincronização');
         }
 
-        const resultados: ResultadoSincronizacao[] = [];
+        // Usar db.batch() para inserir todos de uma vez (1 round-trip ao D1)
+        const stmt = contexto.env.DB_SCAE.prepare(
+            `INSERT OR IGNORE INTO registros_acesso
+            (id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, timestamp_acesso, sincronizado)
+            VALUES (?, ?, ?, ?, ?, ?, 1)`
+        );
 
-        for (const registro of registros) {
-            try {
-                // IDEMPOTÊNCIA: Usar INSERT OR IGNORE.
-                const { success } = await contexto.env.DB_SCAE.prepare(
-                    `INSERT OR IGNORE INTO registros_acesso
-                    (id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, timestamp_acesso, sincronizado)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)`
-                ).bind(
-                    registro.id,
-                    idEscola,
-                    registro.aluno_matricula,
-                    registro.tipo_movimentacao,
-                    registro.metodo_validacao || 'manual',
-                    registro.timestamp,
-                    1
-                ).run();
+        const stmts = registros.map(registro => stmt.bind(
+            registro.id,
+            idEscola,
+            registro.aluno_matricula,
+            registro.tipo_movimentacao,
+            registro.metodo_validacao || 'manual',
+            registro.timestamp
+        ));
 
-                resultados.push({ id: registro.id, status: 'sincronizado' });
+        const batchResults = await contexto.env.DB_SCAE.batch(stmts);
 
-            } catch (erro) {
-                console.error(`Erro ao sincronizar registro ${registro.id}:`, erro);
-                resultados.push({ id: registro.id, status: 'erro', erro: erro instanceof Error ? erro.message : 'Erro desconhecido' });
-            }
-        }
+        const resultados: ResultadoSincronizacao[] = registros.map((registro, i) => ({
+            id: registro.id,
+            status: batchResults[i]?.success ? 'sincronizado' as const : 'erro' as const,
+            ...(batchResults[i]?.success ? {} : { erro: 'Falha na inserção em batch' })
+        }));
 
         return Response.json({
             dados: resultados,
@@ -66,45 +62,54 @@ async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> 
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
 
         const { searchParams } = new URL(contexto.request.url);
-        const limite = searchParams.get('limite') || '1000';
+        const pagina = Math.max(1, parseInt(searchParams.get('pagina') || '1', 10) || 1);
+        const porPagina = Math.min(200, Math.max(1, parseInt(searchParams.get('limite') || '50', 10) || 50));
+        const offset = (pagina - 1) * porPagina;
         const data = searchParams.get('data');
         const desde = searchParams.get('desde');
         const matricula = searchParams.get('matricula');
 
-        let query = "SELECT id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura as metodo_validacao, timestamp_acesso as timestamp, sincronizado FROM registros_acesso WHERE escola_id = ?";
+        let queryBase = "FROM registros_acesso WHERE escola_id = ?";
         const params: (string | number)[] = [idEscola];
 
         if (data) {
-            query += " AND substr(timestamp_acesso, 1, 10) = ?";
+            queryBase += " AND substr(timestamp_acesso, 1, 10) = ?";
             params.push(data);
         } else if (desde) {
-            query += " AND timestamp_acesso > ?";
+            queryBase += " AND timestamp_acesso > ?";
             params.push(desde);
         }
 
         if (matricula) {
-            query += " AND aluno_matricula = ?";
+            queryBase += " AND aluno_matricula = ?";
             params.push(matricula);
         }
 
-        query += " ORDER BY timestamp_acesso DESC LIMIT ?";
-        params.push(Number(limite));
+        // Buscar total + dados em batch (1 round-trip)
+        const [countResult, dataResult] = await contexto.env.DB_SCAE.batch([
+            contexto.env.DB_SCAE.prepare(`SELECT COUNT(*) as total ${queryBase}`).bind(...params),
+            contexto.env.DB_SCAE.prepare(
+                `SELECT id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura as metodo_validacao, timestamp_acesso as timestamp, sincronizado ${queryBase} ORDER BY timestamp_acesso DESC LIMIT ? OFFSET ?`
+            ).bind(...params, porPagina, offset)
+        ]);
 
-        try {
-            const { results } = await contexto.env.DB_SCAE.prepare(query).bind(...params).all();
+        const total = (countResult.results[0] as { total: number })?.total || 0;
 
-            return Response.json({
-                dados: results,
-                mensagem: 'Histórico de acessos carregado'
-            });
-        } catch (dbError) {
-            throw new ErroInterno(`Falha ao consultar acessos: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
-        }
+        return Response.json({
+            dados: dataResult.results,
+            meta: {
+                total,
+                pagina,
+                porPagina,
+                totalPaginas: Math.ceil(total / porPagina)
+            },
+            mensagem: 'Histórico de acessos carregado'
+        });
     } catch (erro) {
         if (erro instanceof ErroBase) {
             return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
         }
-        const erroInterno = erro instanceof ErroInterno ? erro : new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao buscar acessos');
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao buscar acessos');
         return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }

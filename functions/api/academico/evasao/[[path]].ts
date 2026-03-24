@@ -2,27 +2,21 @@
  * API Central para o Motor de Evasão Escolar.
  * Implementa a detecção de alunos ausentes consecutivamente (Art 70 ECA).
  *
- * GET /api/evasao â†’ Retorna a lista de alertas agrupadas por turma
- * PATCH /api/evasao/:id â†’ Atualiza o status de acompanhamento
- * POST /api/evasao/processar â†’ Roda a engine varrendo o tenant por ausências
+ * GET /api/evasao → Retorna a lista de alertas agrupadas por turma
+ * PATCH /api/evasao/:id → Atualiza o status de acompanhamento
+ * POST /api/evasao/processar → Roda a engine varrendo o tenant por ausências
  */
 import { gerarScaeUuid } from '../../../utilitarios/uuid';
 import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../../../tipos/ambiente';
+import { ErroBase, ErroInterno, ErroValidacao } from '../../erros';
+import { verificarPermissao, extrairEscolaId } from '../../_seguranca';
+import { obterDiasNaoLetivos } from '../calendario.compartilhado';
 
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
-    const idEscola = contexto.request.headers.get('X-Escola-ID');
-    if (!idEscola) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-
-    // RBAC: Apenas ADMIN e COORDENACAO
-    const papel = contexto.data.usuarioScae?.papel;
-    const eAutorizado = ['ADMIN', 'COORDENACAO'].includes(papel || '');
-    const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
-
-    if (!eAutorizado && !eDono) {
-        return new Response(JSON.stringify({ error: 'Acesso negado: Papel insuficiente para gerenciar evasão' }), { status: 403 });
-    }
-
     try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
+
         const { results } = await contexto.env.DB_SCAE.prepare(`
             SELECT
                 a.id,
@@ -45,62 +39,59 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
                 END,
                 a.criado_em DESC
         `).bind(idEscola).all();
-        return new Response(JSON.stringify(results), { headers: { 'Content-Type': 'application/json' } });
-    } catch (error) {
-        const mensagem = error instanceof Error ? error.message : 'Erro interno';
-        return new Response(JSON.stringify({ error: mensagem }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+        return Response.json({
+            dados: results,
+            mensagem: 'Alertas de evasão carregados'
+        });
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao buscar alertas de evasão');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
 
 export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
-    const idEscola = contexto.request.headers.get('X-Escola-ID');
-    if (!idEscola) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-
-    // RBAC: Apenas ADMIN e COORDENACAO
-    const papel = contexto.data.usuarioScae?.papel;
-    const eAutorizado = ['ADMIN', 'COORDENACAO'].includes(papel || '');
-    const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
-
-    if (!eAutorizado && !eDono) {
-        return new Response(JSON.stringify({ error: 'Acesso negado: Papel insuficiente para disparar motor de evasão' }), { status: 403 });
-    }
-
     try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
+
         const url = new URL(contexto.request.url);
         if (url.pathname.endsWith('/processar')) {
             return await processarMotorEvasao(contexto.env.DB_SCAE, idEscola);
         }
-        return new Response(JSON.stringify({ error: 'Rota POST não reconhecida' }), { status: 404 });
-    } catch (error) {
-        const mensagem = error instanceof Error ? error.message : 'Erro interno';
-        return new Response(JSON.stringify({ error: mensagem }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+        throw new ErroValidacao('Rota POST não reconhecida', 'EVASAO_ROTA_INVALIDA');
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao processar evasão');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
 
 export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> {
-    const idEscola = contexto.request.headers.get('X-Escola-ID');
-    if (!idEscola) return new Response(JSON.stringify({ error: 'Tenant ID ausente' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-
-    // RBAC: Apenas ADMIN e COORDENACAO
-    const papel = contexto.data.usuarioScae?.papel;
-    const eAutorizado = ['ADMIN', 'COORDENACAO'].includes(papel || '');
-    const eDono = contexto.data.user?.email === 'madebycotrim@gmail.com';
-
-    if (!eAutorizado && !eDono) {
-        return new Response(JSON.stringify({ error: 'Acesso negado: Papel insuficiente para atualizar alertas de evasão' }), { status: 403 });
-    }
-
     try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
+
         const url = new URL(contexto.request.url);
         const pathParts = url.pathname.split('/');
         const alertaId = pathParts[pathParts.length - 1];
         if (!alertaId || alertaId === 'evasao') {
-            return new Response(JSON.stringify({ error: 'ID do alerta ausente' }), { status: 400 });
+            throw new ErroValidacao('ID do alerta ausente', 'EVASAO_ID_AUSENTE');
         }
+
         return await atualizarStatusAlerta(contexto, contexto.env.DB_SCAE, idEscola, alertaId);
-    } catch (error) {
-        const mensagem = error instanceof Error ? error.message : 'Erro interno';
-        return new Response(JSON.stringify({ error: mensagem }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao atualizar alerta');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
 
@@ -108,125 +99,116 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
  * Atualiza o status da tratativa da coordenação com a familia do aluno em risco.
  */
 async function atualizarStatusAlerta(contexto: ContextoSCAE, db: D1Database, idEscola: string, alertaId: string): Promise<Response> {
+    let dados: PayloadAtualizacaoAlerta;
     try {
-        const dados: PayloadAtualizacaoAlerta = await contexto.request.json();
-
-        if (!dados.status || !['PENDENTE', 'EM_ANALISE', 'RESOLVIDO'].includes(dados.status)) {
-            return new Response(JSON.stringify({ error: 'Status inválido' }), { status: 400 });
-        }
-
-        const query = dados.status === 'RESOLVIDO'
-            ? `UPDATE alertas_evasao SET status = ?, data_resolucao = CURRENT_TIMESTAMP WHERE id = ? AND escola_id = ?`
-            : `UPDATE alertas_evasao SET status = ?, data_resolucao = NULL WHERE id = ? AND escola_id = ?`;
-
-        const resultado = await db.prepare(query).bind(dados.status, alertaId, idEscola).run();
-
-        if (!resultado.success) {
-            return new Response(JSON.stringify({ error: 'Falha ao atualizar alerta' }), { status: 500 });
-        }
-
-        return new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json' }
-        });
+        dados = await contexto.request.json();
     } catch {
-        return new Response(JSON.stringify({ error: 'JSON inválido' }), { status: 400 });
+        throw new ErroValidacao('JSON inválido', 'JSON_PARSE_ERROR');
     }
-}
 
-import { obterDiasNaoLetivos } from '../calendario.compartilhado';
+    if (!dados.status || !['PENDENTE', 'EM_ANALISE', 'RESOLVIDO'].includes(dados.status)) {
+        throw new ErroValidacao('Status inválido. Valores aceitos: PENDENTE, EM_ANALISE, RESOLVIDO', 'EVASAO_STATUS_INVALIDO');
+    }
+
+    const query = dados.status === 'RESOLVIDO'
+        ? `UPDATE alertas_evasao SET status = ?, data_resolucao = CURRENT_TIMESTAMP WHERE id = ? AND escola_id = ?`
+        : `UPDATE alertas_evasao SET status = ?, data_resolucao = NULL WHERE id = ? AND escola_id = ?`;
+
+    const resultado = await db.prepare(query).bind(dados.status, alertaId, idEscola).run();
+
+    if (resultado.meta.changes === 0) {
+        throw new ErroValidacao('Alerta não encontrado', 'EVASAO_NAO_ENCONTRADO');
+    }
+
+    return Response.json({
+        dados: { id: alertaId, status: dados.status },
+        mensagem: 'Status do alerta atualizado'
+    });
+}
 
 /**
  * Scaneia os alunos e verifica os registros para aplicar regras de evasão contínua.
- * Regra: Alunos ausentes por 3 dias letivos (aproximadamente simulado checando ausência de registro nas últimas 72h)
+ * OTIMIZADO: Usa query unificada em vez de N+1 queries por aluno.
  */
 async function processarMotorEvasao(db: D1Database, idEscola: string): Promise<Response> {
     try {
-        // 1. Localizar Estudantes Não Anonimizados (Ativos)
-        const alunosResp = await db.prepare(`
-            SELECT matricula, nome_completo
-            FROM alunos
-            WHERE escola_id = ? AND ativo = 1
-        `).bind(idEscola).all();
-
-        const alunosAtivos = alunosResp.results || [];
-        if (alunosAtivos.length === 0) {
-            return new Response(JSON.stringify({ success: true, gerados: 0, mensagem: 'Nenhum aluno ativo' }));
-        }
-
-        // 2. Definir o período de 3 dias LETIVOS
-        // Buscamos os dias que não são fim de semana nem feriados (manuais ou inteligentes)
+        // 1. Definir o período de 3 dias LETIVOS
         const diasNaoLetivos = await obterDiasNaoLetivos(db, idEscola);
         
-        const { results: diasCanditados } = await db.prepare(`
+        const { results: diasCandidatos } = await db.prepare(`
             WITH RECURSIVE dias(d) AS (
                 SELECT date('now')
                 UNION ALL
-                SELECT date(d, '-1 day') FROM dias WHERE d > date('now', '-30 days') -- Janela maior para segurança
+                SELECT date(d, '-1 day') FROM dias WHERE d > date('now', '-30 days')
             )
             SELECT d FROM dias
-            WHERE strftime('%w', d) NOT IN ('0', '6') -- Ignora Domingo(0) e Sábado(6)
+            WHERE strftime('%w', d) NOT IN ('0', '6')
             ORDER BY d DESC
         `).all<{ d: string }>();
 
-        // Filtra os dias letivos reais (que não estão na lista de feriados/recessos)
-        const diasLetivos = (diasCanditados || [])
+        const diasLetivos = (diasCandidatos || [])
             .filter(dia => !diasNaoLetivos.includes(dia.d))
             .slice(0, 3);
 
         if (diasLetivos.length < 3) {
-            return new Response(JSON.stringify({ 
-                success: true, 
-                gerados: 0, 
+            return Response.json({ 
+                dados: { gerados: 0 },
                 mensagem: 'Período letivo insuficiente para análise (mínimo 3 dias)' 
-            }));
+            });
         }
 
         const dataMaisAntiga = diasLetivos[diasLetivos.length - 1].d;
-        let alertasGerados = 0;
 
-        for (const aluno of alunosAtivos) {
-            // Verificar registro desde a data mais antiga do período letivo de 3 dias
-            const acessoRecente = await db.prepare(`
-                SELECT id FROM registros_acesso 
-                WHERE aluno_matricula = ? AND escola_id = ? 
-                AND timestamp_acesso >= ?
-                LIMIT 1
-            `).bind(aluno.matricula, idEscola, `${dataMaisAntiga} 00:00:00`).first();
+        // 2. Query UNIFICADA: encontrar alunos ativos SEM registro nos últimos 3 dias letivos
+        //    E que NÃO tenham alerta ativo (PENDENTE ou EM_ANALISE)
+        const { results: alunosSemAcesso } = await db.prepare(`
+            SELECT a.matricula
+            FROM alunos a
+            WHERE a.escola_id = ? 
+              AND a.ativo = 1
+              AND NOT EXISTS (
+                SELECT 1 FROM registros_acesso r
+                WHERE r.aluno_matricula = a.matricula 
+                  AND r.escola_id = a.escola_id
+                  AND r.timestamp_acesso >= ?
+              )
+              AND NOT EXISTS (
+                SELECT 1 FROM alertas_evasao e
+                WHERE e.aluno_matricula = a.matricula 
+                  AND e.escola_id = a.escola_id
+                  AND e.status IN ('PENDENTE', 'EM_ANALISE')
+              )
+        `).bind(idEscola, `${dataMaisAntiga} 00:00:00`).all<{ matricula: string }>();
 
-            if (!acessoRecente) {
-                // Aluno não registrou acesso nos últimos 3 dias LETIVOS!
+        const alunosParaAlertar = alunosSemAcesso || [];
 
-                // Verificar se JÁ EXISTE um alerta PENDENTE ou EM ANÁLISE aberto
-                const alertaAtivo = await db.prepare(`
-                    SELECT id FROM alertas_evasao 
-                    WHERE aluno_matricula = ? AND escola_id = ? AND status IN ('PENDENTE', 'EM_ANALISE')
-                    LIMIT 1
-                `).bind(aluno.matricula, idEscola).first();
-
-                if (!alertaAtivo) {
-                    // Novo caso de Risco (Evasão Detectada)
-                    const alertaId = gerarScaeUuid();
-                    await db.prepare(`
-                        INSERT INTO alertas_evasao(id, escola_id, aluno_matricula, motivo, status)
-                        VALUES (?, ?, ?, 'Sem registro de acesso nos últimos 3 dias', 'PENDENTE')
-                    `).bind(alertaId, idEscola, aluno.matricula).run();
-
-                    alertasGerados++;
-                }
-            }
+        if (alunosParaAlertar.length === 0) {
+            return Response.json({
+                dados: { gerados: 0 },
+                mensagem: 'Verificação completa. Nenhum novo alerta necessário.'
+            });
         }
 
-        return new Response(JSON.stringify({
-            success: true,
-            gerados: alertasGerados,
-            mensagem: `Verificação completa. ${alertasGerados} novos alertas emitidos.`
-        }), {
-            headers: { 'Content-Type': 'application/json' }
+        // 3. Inserir alertas em batch (1 round-trip)
+        const stmt = db.prepare(`
+            INSERT INTO alertas_evasao(id, escola_id, aluno_matricula, motivo, status)
+            VALUES (?, ?, ?, 'Sem registro de acesso nos últimos 3 dias letivos', 'PENDENTE')
+        `);
+
+        const stmts = alunosParaAlertar.map(aluno => 
+            stmt.bind(gerarScaeUuid(), idEscola, aluno.matricula)
+        );
+
+        await db.batch(stmts);
+
+        return Response.json({
+            dados: { gerados: alunosParaAlertar.length },
+            mensagem: `Verificação completa. ${alunosParaAlertar.length} novos alertas emitidos.`
         });
 
     } catch (error) {
         const mensagem = error instanceof Error ? error.message : 'Erro desconhecido';
-        console.error('Falha no motor de Evasão:', mensagem);
-        return new Response(JSON.stringify({ error: 'Erro processando Evasão' }), { status: 500 });
+        const erroInterno = new ErroInterno(`Falha no motor de evasão: ${mensagem}`);
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }

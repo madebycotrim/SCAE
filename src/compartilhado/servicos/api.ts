@@ -6,6 +6,18 @@ import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 
 const URL_BASE = import.meta.env.VITE_API_URL || '/api';
 
+/** Erro da API que preserva o status HTTP para uso em catches */
+export class ErroApi extends Error {
+    constructor(
+        mensagem: string,
+        public readonly status: number,
+        public readonly codigo?: string
+    ) {
+        super(mensagem);
+        this.name = 'ErroApi';
+    }
+}
+
 interface CabecalhosApi {
     'Content-Type': string;
     Authorization?: string;
@@ -68,7 +80,12 @@ export const api = {
         const resposta = await fetch(`${URL_BASE}${rota}`, { headers: cabecalhos });
         if (!resposta.ok) {
             const textoErro = await resposta.text();
-            throw new Error(`Erro na API: ${resposta.statusText} - ${textoErro}`);
+            let codigo: string | undefined;
+            try {
+                const parsed = JSON.parse(textoErro);
+                codigo = parsed?.erro?.codigo;
+            } catch { /* não é JSON */ }
+            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${textoErro}`, resposta.status, codigo);
         }
 
         const contentType = resposta.headers.get("content-type");
@@ -95,7 +112,12 @@ export const api = {
         });
         if (!resposta.ok) {
             const textoErro = await resposta.text();
-            throw new Error(`Erro na API: ${resposta.statusText} - ${textoErro}`);
+            let codigo: string | undefined;
+            try {
+                const parsed = JSON.parse(textoErro);
+                codigo = parsed?.erro?.codigo;
+            } catch { /* não é JSON */ }
+            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${textoErro}`, resposta.status, codigo);
         }
         const texto = await resposta.text();
         try {
@@ -116,7 +138,12 @@ export const api = {
         });
         if (!resposta.ok) {
             const textoErro = await resposta.text();
-            throw new Error(`Erro na API: ${resposta.statusText} - ${textoErro}`);
+            let codigo: string | undefined;
+            try {
+                const parsed = JSON.parse(textoErro);
+                codigo = parsed?.erro?.codigo;
+            } catch { /* não é JSON */ }
+            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${textoErro}`, resposta.status, codigo);
         }
         const texto = await resposta.text();
         try {
@@ -135,7 +162,12 @@ export const api = {
         });
         if (!resposta.ok) {
             const textoErro = await resposta.text();
-            throw new Error(`Erro na API: ${resposta.statusText} - ${textoErro}`);
+            let codigo: string | undefined;
+            try {
+                const parsed = JSON.parse(textoErro);
+                codigo = parsed?.erro?.codigo;
+            } catch { /* não é JSON */ }
+            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${textoErro}`, resposta.status, codigo);
         }
         return true;
     }

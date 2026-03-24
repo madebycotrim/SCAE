@@ -1,5 +1,6 @@
 import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroNaoEncontrado } from '../erros';
+import { EMAIL_ROOT } from '../_seguranca';
 
 export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     try {
@@ -7,7 +8,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         const dadosToken = contexto.data.user;
 
         // 🛡️ BYPASS ADMIN GLOBAL: Se for o desenvolvedor raiz, sempre retorna perfil full
-        if (dadosToken?.email === 'madebycotrim@gmail.com') {
+        if (dadosToken?.email === EMAIL_ROOT) {
             return Response.json({
                 dados: {
                     email: dadosToken.email,

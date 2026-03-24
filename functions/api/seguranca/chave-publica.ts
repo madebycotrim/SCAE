@@ -36,8 +36,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
             mensagem: 'Chave pública institucional carregada com sucesso.'
         }, {
             headers: {
-                'Cache-Control': 'public, max-age=86400', // Cache por 24h
-                'Access-Control-Allow-Origin': '*' // Quiosques podem vir de origens variadas
+                'Cache-Control': 'public, max-age=86400' // Cache por 24h
             }
         });
 
