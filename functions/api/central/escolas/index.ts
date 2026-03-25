@@ -9,6 +9,7 @@ const esquemaCriacaoEscola = z.object({
     id: z.string().min(1, 'ID é obrigatório').max(100),
     nome_escola: z.string().min(3, 'Nome muito curto').max(200, 'Nome muito longo'),
     dominio_email: z.string().min(1, 'Domínio é obrigatório'),
+    provedor_auth: z.enum(['google', 'microsoft']).default('google'),
     cor_primaria: z.string().default('#030712'),
     cor_secundaria: z.string().default('#ffffff'),
     logo_url: z.string().nullable().optional(),
@@ -45,6 +46,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
                 nome_escola as nome, 
                 id as slug, 
                 dominio_email as dominioEmail,
+                provedor_auth as provedorAuth,
                 limite_alunos as limiteAlunos,
                 limite_terminais as limiteTerminais,
                 contato_suporte as contatoSuporte,
@@ -104,7 +106,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
 
         await contexto.env.DB_SCAE.prepare(`
             INSERT INTO escolas (
-                id, nome_escola, dominio_email, 
+                id, nome_escola, dominio_email, provedor_auth,
                 cor_primaria, cor_secundaria, logo_url, 
                 chave_privada_ecdsa, chave_publica_ecdsa,
                 config_qr_dinamico, tts_ativado, 
@@ -112,9 +114,9 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
                 limite_alunos, limite_terminais,
                 retencao_dados, contato_suporte,
                 status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
-            dados.id, dados.nome_escola, dados.dominio_email,
+            dados.id, dados.nome_escola, dados.dominio_email, dados.provedor_auth,
             dados.cor_primaria,
             dados.cor_secundaria,
             dados.logo_url ?? null,

@@ -3,6 +3,7 @@ import {
     onAuthStateChanged, 
     signInWithPopup, 
     GoogleAuthProvider, 
+    OAuthProvider,
     signOut, 
     User, 
     setPersistence, 
@@ -18,7 +19,7 @@ const log = criarRegistrador('Auth');
 
 interface AuthContextType {
     usuarioAtual: (User & { token?: string }) | null;
-    entrar: (parametros?: Record<string, string>) => Promise<unknown>;
+    entrar: (parametros?: Record<string, string>, provedorNome?: 'google' | 'microsoft') => Promise<unknown>;
     sair: () => Promise<void>;
 }
 
@@ -69,8 +70,11 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
         return cancelarInscricao;
     }, []);
 
-    const entrar = (parametros = {}) => {
-        const provedor = new GoogleAuthProvider();
+    const entrar = (parametros: Record<string, string> = {}, provedorNome: 'google' | 'microsoft' = 'google') => {
+        const provedor = provedorNome === 'microsoft' 
+            ? new OAuthProvider('microsoft.com') 
+            : new GoogleAuthProvider();
+            
         // Opcional: Forçar seleção de conta e permitir restrição de domínio
         provedor.setCustomParameters({
             prompt: 'select_account',

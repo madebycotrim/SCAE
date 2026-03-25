@@ -22,6 +22,7 @@ CREATE TABLE escolas (
     id TEXT PRIMARY KEY,               -- Slug da escola (ex: cem03-taguatinga)
     nome_escola TEXT NOT NULL,
     dominio_email TEXT,                -- Para validação de login admin (ex: @edu.se.df.gov.br)
+    provedor_auth TEXT DEFAULT 'google', -- 'google' | 'microsoft'
     cor_primaria TEXT DEFAULT '#000000',
     cor_secundaria TEXT DEFAULT '#ffffff',
     logo_url TEXT,                     -- URL do logo da escola

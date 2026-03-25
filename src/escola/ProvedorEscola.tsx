@@ -16,10 +16,10 @@ export interface PerfilEscola {
     tipoEscola?: 'publica' | 'privada';
     foro?: string;
     nomeDPO?: string;
-    emailDPO?: string;
     qrDinamico: boolean;
     saidaObrigatoria: boolean;
     metodosAcesso: string[];  // ['QRCODE', 'FACIAL', 'DIGITAL']
+    provedorAuth: 'google' | 'microsoft';
 }
 
 const EscolaContext = createContext<PerfilEscola | null>(null);
@@ -54,6 +54,7 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                     saidaObrigatoria: dados.saida_obrigatoria ?? true,
                     metodosAcesso: (dados.metodo_acesso || 'QRCODE').split(',').filter(Boolean),
                     logoUrl: dados.logo_url || dados.logoUrl,
+                    provedorAuth: dados.provedorAuth || 'google',
                 };
 
                 // Aplica identidade visual da escola via CSS variables

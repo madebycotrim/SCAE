@@ -11,55 +11,23 @@ export function LayoutCentral({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-black selection:text-white flex flex-col">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col items-center">
             <Toaster 
                 position="top-right" 
                 toastOptions={{
-                    className: 'premium-toast',
                     style: {
                         background: '#ffffff',
                         color: '#0f172a',
-                        borderRadius: '1rem',
-                        border: '1px solid #f1f5f9',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02)',
-                        fontSize: '11px',
-                        fontWeight: '800',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
+                        borderRadius: '0.375rem',
+                        border: '1px solid #e2e8f0',
+                        fontSize: '13px',
                         padding: '12px 16px',
-                    },
-                    success: {
-                        iconTheme: {
-                            primary: '#10b981',
-                            secondary: '#ffffff',
-                        },
-                        style: {
-                            borderLeft: '4px solid #10b981',
-                        }
-                    },
-                    error: {
-                        iconTheme: {
-                            primary: '#f43f5e',
-                            secondary: '#ffffff',
-                        },
-                        style: {
-                            borderLeft: '4px solid #f43f5e',
-                        }
-                    },
+                        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                    }
                 }}
             />
-            
-            {/* Área de Conteúdo Principal - Sem Cabeçalho (Visual Imersivo) */}
-            <main className="flex-1 relative overflow-hidden flex flex-col">
-                {/* Decoradores de Fundo */}
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-slate-100/30 blur-[150px] rounded-full pointer-events-none -mr-96 -mt-96 opacity-50"></div>
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-slate-200/20 blur-[120px] rounded-full pointer-events-none -ml-48 -mb-48 opacity-50"></div>
-
-                <div className="flex-1 overflow-auto relative z-10 scroll-smooth custom-scrollbar">
-                    <div className="py-12 px-6 lg:px-12 max-w-[1400px] mx-auto w-full">
-                        {children}
-                    </div>
-                </div>
+            <main className="flex-1 w-full relative pt-10 pb-20">
+                {children}
             </main>
         </div>
     );

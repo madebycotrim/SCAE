@@ -116,8 +116,11 @@ body {
   transition: outline-offset 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Inputs dentro de containers com borda própria não precisam do focus-visible global */
-input:focus-visible {
+/* Inputs e botões com estilização própria não precisam do focus-visible global */
+input:focus-visible,
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }

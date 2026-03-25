@@ -8,6 +8,7 @@ import { z } from 'zod';
 const esquemaUpdateEscola = z.object({
     nome_escola: z.string().min(3).max(200).optional(),
     dominio_email: z.string().min(1).optional(),
+    provedor_auth: z.enum(['google', 'microsoft']).optional(),
     cor_primaria: z.string().optional(),
     cor_secundaria: z.string().optional(),
     logo_url: z.string().nullable().optional(),
@@ -32,7 +33,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         const { id } = contexto.params;
 
         const escola = await contexto.env.DB_SCAE.prepare(`
-            SELECT id, nome_escola, dominio_email, cor_primaria, cor_secundaria, logo_url,
+            SELECT id, nome_escola, dominio_email, provedor_auth, cor_primaria, cor_secundaria, logo_url,
                    chave_publica_ecdsa, config_qr_dinamico, tts_ativado, saida_obrigatoria,
                    metodo_acesso, limite_alunos, limite_terminais, retencao_dados,
                    contato_suporte, status, janelas, criado_em
@@ -86,6 +87,7 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
 
         if (dados.nome_escola !== undefined) { campos.push('nome_escola = ?'); valores.push(dados.nome_escola); }
         if (dados.dominio_email !== undefined) { campos.push('dominio_email = ?'); valores.push(dados.dominio_email); }
+        if (dados.provedor_auth !== undefined) { campos.push('provedor_auth = ?'); valores.push(dados.provedor_auth); }
         if (dados.cor_primaria !== undefined) { campos.push('cor_primaria = ?'); valores.push(dados.cor_primaria); }
         if (dados.cor_secundaria !== undefined) { campos.push('cor_secundaria = ?'); valores.push(dados.cor_secundaria); }
         if (dados.logo_url !== undefined) { campos.push('logo_url = ?'); valores.push(dados.logo_url); }

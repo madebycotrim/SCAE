@@ -14,6 +14,7 @@ export interface ConfiguracoesEscola {
     logoUrl: string | null;
     ttsAtivado: boolean;
     dominioEmail: string | null;
+    provedorAuth: 'google' | 'microsoft';
     qrDinamico: boolean;
 }
 
@@ -64,7 +65,7 @@ export class ServicoCache {
         if (configs) return configs;
 
         const escola = await env.DB_SCAE.prepare(
-            "SELECT nome_escola, cor_primaria, cor_secundaria, logo_url, tts_ativado, dominio_email, config_qr_dinamico FROM escolas WHERE id = ?"
+            "SELECT nome_escola, cor_primaria, cor_secundaria, logo_url, tts_ativado, dominio_email, provedor_auth, config_qr_dinamico FROM escolas WHERE id = ?"
         ).bind(escolaId).first<{ 
             nome_escola: string, 
             cor_primaria: string, 
@@ -72,6 +73,7 @@ export class ServicoCache {
             logo_url: string, 
             tts_ativado: number,
             dominio_email: string,
+            provedor_auth: 'google' | 'microsoft',
             config_qr_dinamico: number
         }>();
 
@@ -84,6 +86,7 @@ export class ServicoCache {
                 logoUrl: escola.logo_url,
                 ttsAtivado: Boolean(escola.tts_ativado),
                 dominioEmail: escola.dominio_email,
+                provedorAuth: escola.provedor_auth || 'google',
                 qrDinamico: Boolean(escola.config_qr_dinamico)
             };
             await env.KV_SCAE.put(chave, JSON.stringify(dadosCache), { expirationTtl: 86400 });
