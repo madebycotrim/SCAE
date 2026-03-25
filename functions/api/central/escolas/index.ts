@@ -16,7 +16,7 @@ const esquemaCriacaoEscola = z.object({
     config_qr_dinamico: z.boolean().default(false),
     tts_ativado: z.boolean().default(true),
     saida_obrigatoria: z.boolean().default(true),
-    metodo_acesso: z.enum(['QRCODE', 'FACIAL', 'DIGITAL']).default('QRCODE'),
+    metodo_acesso: z.string().default('QRCODE'),
     limite_alunos: z.number().int().positive().default(1000),
     limite_terminais: z.number().int().positive().default(5),
     retencao_dados: z.number().int().positive().default(730),
@@ -89,7 +89,8 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
 
         const resultadoZod = esquemaCriacaoEscola.safeParse(corpo);
         if (!resultadoZod.success) {
-            throw new ErroBase('Dados da escola inválidos', 'VALIDACAO_FALHA', 400);
+            const errs = resultadoZod.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ');
+            throw new ErroBase(`Dados da escola inválidos: ${errs}`, 'VALIDACAO_FALHA', 400);
         }
 
         const dados = resultadoZod.data;

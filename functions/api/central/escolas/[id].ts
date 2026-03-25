@@ -159,6 +159,8 @@ function tratarErro(erro: unknown): Response {
     if (erro instanceof ErroBase) {
         return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
     }
-    const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro interno no detalhe da escola');
+    const msg = erro instanceof Error ? erro.message : 'Erro desconhecido';
+    console.error('[Central/Escolas ID Error]', erro);
+    const erroInterno = new ErroInterno(msg);
     return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
 }
