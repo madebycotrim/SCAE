@@ -1,12 +1,13 @@
 import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
-import { verificarPermissao, extrairEscolaId } from '../_seguranca';
+import { verificarAcesso, extrairEscolaId } from '../_seguranca';
+import { Permissao } from '../seguranca/rbac';
 import { esquemaTurma } from './turmas.esquemas';
 
 async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
-        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO']);
+        verificarAcesso(contexto, Permissao.VER_ACADEMICO);
 
         try {
             const { results } = await contexto.env.DB_SCAE.prepare(
@@ -38,7 +39,7 @@ async function processarBuscaTurmas(contexto: ContextoSCAE): Promise<Response> {
 async function processarCriacaoTurma(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
-        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
+        verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
 
         let corpo;
         try {
@@ -92,7 +93,7 @@ async function processarCriacaoTurma(contexto: ContextoSCAE): Promise<Response> 
 async function processarRemocaoTurma(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
-        verificarPermissao(contexto, ['ADMIN']);
+        verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
 
         const url = new URL(contexto.request.url);
         const id = url.searchParams.get("id");

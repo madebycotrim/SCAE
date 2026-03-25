@@ -35,7 +35,8 @@ import {
     Smartphone,
     Download,
     Calendar,
-    Radar
+    Radar,
+    Settings
 } from 'lucide-react';
 import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
@@ -142,6 +143,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             ]
         },
                 { titulo: 'Sistema', itens: [
+                    ...(ehAdmin ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
                     ...(pode('visualizar', 'auditoria') ? [{ icone: ShieldCheck, texto: 'Logs', rota: '/logs' }] : []),
                     ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
                 ]}

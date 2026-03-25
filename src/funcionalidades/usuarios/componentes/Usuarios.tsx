@@ -21,6 +21,7 @@ import type { UsuarioLocal } from '@/compartilhado/types/bancoLocal.tipos';
 import { usuarioServico } from '../servicos/usuario.servico';
 import FormUsuarioModal from './FormUsuarioModal';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
+import type { UsuarioVisualizacao } from '../tipos/usuario.esquema';
 
 const log = criarRegistrador('Usuarios');
 
@@ -37,14 +38,14 @@ export default function Usuarios() {
     const usuarios = usuariosBrutos || [];
     const [busca, definirBusca] = useState('');
     const [modalAberto, definirModalAberto] = useState(false);
-    const [usuarioEmEdicao, definirUsuarioEmEdicao] = useState<UsuarioLocal | null>(null);
-    const [usuarioParaExcluir, definirUsuarioParaExcluir] = useState<UsuarioLocal | null>(null);
+    const [usuarioEmEdicao, definingUsuarioEmEdicao] = useState<UsuarioVisualizacao | null>(null);
+    const [usuarioParaExcluir, definirUsuarioParaExcluir] = useState<UsuarioVisualizacao | null>(null);
 
     const canAdd = pode('criar', 'usuarios');
     const canEdit = pode('editar', 'usuarios');
     const canDeleteOrToggle = pode('deletar', 'usuarios') || pode('desativar', 'usuarios');
 
-    const salvarUsuario = async (dados: any) => {
+    const salvarUsuario = async (dados: UsuarioVisualizacao) => {
         try {
             await usuarioServico.salvarUsuario(dados, !!usuarioEmEdicao, usuarioEmEdicao || undefined);
             toast.success(usuarioEmEdicao ? 'Usuário atualizado!' : 'Usuário convidado com sucesso!');
@@ -56,7 +57,7 @@ export default function Usuarios() {
         }
     };
 
-    const toggleStatus = async (user: UsuarioLocal) => {
+    const toggleStatus = async (user: UsuarioVisualizacao) => {
         try {
             await usuarioServico.toggleStatus(user);
             toast.success(!user.ativo ? 'Usuário liberado!' : 'Usuário bloqueado!');
@@ -66,7 +67,7 @@ export default function Usuarios() {
         }
     };
 
-    const excluirUsuario = (user: any) => {
+    const excluirUsuario = (user: UsuarioVisualizacao) => {
         definirUsuarioParaExcluir(user);
     };
 
@@ -85,13 +86,13 @@ export default function Usuarios() {
         }
     };
 
-    const abrirEdicao = (usuario: UsuarioLocal) => {
-        definirUsuarioEmEdicao(usuario);
+    const abrirEdicao = (usuario: UsuarioVisualizacao) => {
+        definingUsuarioEmEdicao(usuario);
         definirModalAberto(true);
     };
 
     const novoUsuario = () => {
-        definirUsuarioEmEdicao(null);
+        definingUsuarioEmEdicao(null);
         definirModalAberto(true);
     };
 
@@ -104,9 +105,9 @@ export default function Usuarios() {
         if (ehMadeByCotrim && !euSouMadeByCotrim) return false;
 
         return (
-            (u as any).nome_completo?.toLowerCase().includes(busca.toLowerCase()) ||
-            (u as any).email.toLowerCase().includes(busca.toLowerCase()) ||
-            (u as any).papel?.toLowerCase().includes(busca.toLowerCase())
+            (u.nome_completo || '').toLowerCase().includes(busca.toLowerCase()) ||
+            u.email.toLowerCase().includes(busca.toLowerCase()) ||
+            (u.papel || '').toLowerCase().includes(busca.toLowerCase())
         );
     });
 
@@ -194,7 +195,7 @@ export default function Usuarios() {
                                     </td>
                                 </tr>
                             ) : (
-                                usuariosFiltrados.map((u: any) => {
+                                usuariosFiltrados.map((u: UsuarioVisualizacao) => {
                                     const papelInfo = PapeisDisponiveis.find(p => p.id === u.papel);
                                     const papelNome = papelInfo?.nome || u.papel || 'Portaria';
                                     const papelCor = papelInfo?.cor || 'slate';

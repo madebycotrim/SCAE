@@ -114,8 +114,11 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
             });
         }
 
-        console.error('[Middleware Error]:', erro);
-        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro crítico no middleware');
+        // Logging detalhado apenas para o runtime da Cloudflare
+        console.error('[CRÍTICO/Middleware]', erro instanceof Error ? erro.stack || erro.message : erro);
+        
+        // Resposta higienizada genérica para o frontend/cliente (Security By Design)
+        const erroInterno = new ErroInterno('Falha interna no processamento de autorização.');
         return new Response(JSON.stringify(erroInterno.toJSON()), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }

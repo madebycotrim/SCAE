@@ -225,7 +225,10 @@ export function PaginaGestaoEscolas() {
                         <tr className="bg-slate-50/80 border-b border-slate-200">
                             <th className="px-6 py-3 font-medium text-slate-500">Escola</th>
                             <th className="px-6 py-3 font-medium text-slate-500">Domínio Adm</th>
+                            <th className="px-6 py-3 font-medium text-slate-500 hidden xl:table-cell">SSO Padrão</th>
                             <th className="px-6 py-3 font-medium text-slate-500">Alunos / Cota</th>
+                            <th className="px-6 py-3 font-medium text-slate-500 hidden lg:table-cell">Quiosques</th>
+                            <th className="px-6 py-3 font-medium text-slate-500 hidden xl:table-cell">Contato</th>
                             <th className="px-6 py-3 font-medium text-slate-500">Status</th>
                             <th className="px-6 py-3 font-medium text-slate-500 text-right">Ações</th>
                         </tr>
@@ -233,7 +236,7 @@ export function PaginaGestaoEscolas() {
                     <tbody className="divide-y divide-slate-100">
                         {escolasFiltradas.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="py-12 text-center text-slate-500">
+                                <td colSpan={8} className="py-12 text-center text-slate-500">
                                     Nenhuma unidade encontrada.
                                 </td>
                             </tr>
@@ -247,16 +250,27 @@ export function PaginaGestaoEscolas() {
                                     <td className="px-6 py-3">
                                         <span className="text-slate-600 font-mono text-xs">{escola.dominioEmail}</span>
                                     </td>
+                                    <td className="px-6 py-3 hidden xl:table-cell">
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] uppercase font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200">
+                                            {escola.provedorAuth === 'microsoft' ? 'Microsoft 365' : 'Google WS'}
+                                        </span>
+                                    </td>
                                     <td className="px-6 py-3">
                                         <div className="flex items-center gap-2">
                                             <span className="text-slate-700 min-w-[50px]">{escola.totalAlunos || 0} / {escola.limiteAlunos || 1000}</span>
-                                            <div className="flex-1 max-w-[80px] h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="flex-1 max-w-[80px] h-1.5 bg-slate-100 rounded-full overflow-hidden hidden sm:block">
                                                 <div 
                                                     className="h-full bg-slate-400" 
                                                     style={{ width: `${Math.min(((escola.totalAlunos || 0) / (escola.limiteAlunos || 1000)) * 100, 100)}%` }}
                                                 />
                                             </div>
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-3 hidden lg:table-cell">
+                                         <span className="text-slate-600 text-xs">{escola.limiteTerminais || 5} terminais</span>
+                                    </td>
+                                    <td className="px-6 py-3 hidden xl:table-cell">
+                                         <span className="text-slate-500 text-xs truncate max-w-[120px] block" title={escola.contatoSuporte || 'Não informado'}>{escola.contatoSuporte || '--'}</span>
                                     </td>
                                     <td className="px-6 py-3">
                                         <BadgeStatus status={escola.status} />

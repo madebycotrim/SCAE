@@ -257,73 +257,8 @@ export default function Painel() {
             alunos: []
         };
 
-        const { alunos, registros, turmas, alertas } = estatisticasRaw;
-        const hojeStr = format(new Date(), 'yyyy-MM-dd');
-
-        const registrosHoje = registros.filter(r => r.timestamp && r.timestamp.startsWith(hojeStr));
-        const entradasHojeSet = new Set(
-            registrosHoje.filter(r => r.tipo_movimentacao === 'ENTRADA').map(r => r.aluno_matricula)
-        );
-        const entradasHoje = entradasHojeSet.size;
-        const saidasHojeCount = registrosHoje.filter(r => r.tipo_movimentacao === 'SAIDA').length;
-
-        // Cálculo de Atrasos (Proxy básico baseado no horário)
-        let atrasos = 0;
-        registrosHoje.forEach(r => {
-            if (r.tipo_movimentacao === 'ENTRADA' && r.timestamp) {
-                const hora = parseInt(r.timestamp.substring(11, 13));
-                const min = parseInt(r.timestamp.substring(14, 16));
-                const minutosDia = hora * 60 + min;
-                // Atraso se entrar após 07:15 ou após 13:15
-                if ((minutosDia > 435 && minutosDia < 720) || (minutosDia > 795 && minutosDia < 1080)) {
-                    atrasos++;
-                }
-            }
-        });
-
-        // Cálculo de Permanência Média Real
-        const registrosPorAluno: Record<string, { ENTRADA?: number, SAIDA?: number }> = {};
-        registrosHoje.forEach(r => {
-            if (!registrosPorAluno[r.aluno_matricula]) registrosPorAluno[r.aluno_matricula] = {};
-            const ts = new Date(r.timestamp).getTime();
-            if (r.tipo_movimentacao === 'ENTRADA') registrosPorAluno[r.aluno_matricula].ENTRADA = ts;
-            if (r.tipo_movimentacao === 'SAIDA') registrosPorAluno[r.aluno_matricula].SAIDA = ts;
-        });
-
-        let totalMinutos = 0;
-        let contagemPares = 0;
-        Object.values(registrosPorAluno).forEach(p => {
-            if (p.ENTRADA && p.SAIDA && p.SAIDA > p.ENTRADA) {
-                totalMinutos += (p.SAIDA - p.ENTRADA) / (1000 * 60);
-                contagemPares++;
-            }
-        });
-
-        // Histórico de 7 dias
-        const historico = Array.from({ length: 7 }).map((_, i) => {
-            const d = subDays(new Date(), 6 - i);
-            const dStr = format(d, 'yyyy-MM-dd');
-            const regsDia = registros.filter(r => r.timestamp && r.timestamp.startsWith(dStr) && r.tipo_movimentacao === 'ENTRADA');
-            const total = new Set(regsDia.map(r => r.aluno_matricula)).size;
-            return { data: format(d, 'dd/MM'), total };
-        });
-
-        const mediaSemana = historico.slice(0, 6).reduce((a, b) => a + b.total, 0) / 6;
-        const tendencia = mediaSemana > 0 ? Math.round(((entradasHoje - mediaSemana) / mediaSemana) * 100) : 0;
-
-        return {
-            totalAlunos: alunos.length,
-            totalTurmas: turmas.length,
-            presentesHoje: entradasHoje,
-            atrasosHoje: atrasos,
-            saidasHoje: saidasHojeCount,
-            alunosEmRisco: alertas?.length || 0,
-            permanenciaMedia: contagemPares > 0 ? `${(totalMinutos / contagemPares / 60).toFixed(1)}h` : '---',
-            tendenciaFrequencia: tendencia,
-            historicoPresenca: historico,
-            registrosRecentes: registros.slice().sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 50),
-            alunos: alunos
-        };
+        // 🚀 Dimensão 2: Tudo processado no Worker via db.batch()!
+        return estatisticasRaw;
     }, [estatisticasRaw]);
 
     const dataLine = {

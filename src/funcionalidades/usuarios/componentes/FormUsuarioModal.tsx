@@ -4,11 +4,12 @@ import { Users, Shield, UserCheck, Plus, Lock, Mail, GraduationCap } from 'lucid
 import { Botao } from '@/compartilhado/componentes/UI';
 import { mascararDadoPessoal } from '@/compartilhado/utils/registrarLocal';
 import { usarEscola } from '@/escola/ProvedorEscola';
+import { UsuarioVisualizacao, PapelUsuario, usuarioSchema } from '../tipos/usuario.esquema';
 
 interface FormUsuarioModalProps {
-    usuario?: any | null;
+    usuario?: UsuarioVisualizacao | null;
     aoFechar: () => void;
-    aoSalvar: (dados: any) => Promise<void>;
+    aoSalvar: (dados: UsuarioVisualizacao) => Promise<void>;
 }
 
 export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUsuarioModalProps) {
@@ -32,7 +33,7 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
                 ? usuario.email.replace(dominioEmail, '')
                 : usuario.email;
             definirEmail(emailLimpo);
-            definirPapel(usuario.papel || usuario.role || 'VISUALIZACAO');
+            definirPapel(usuario.papel || 'VISUALIZACAO');
         } else {
             definirEmail('');
             definirPapel('VISUALIZACAO');
@@ -48,11 +49,19 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
                 ? `${email}${dominioEmail}` 
                 : email;
 
-            await aoSalvar({
+            const payloadBruto = {
                 email: emailFinal,
                 papel,
-                ativo: true
-            });
+                ativo: usuario ? usuario.ativo : true
+            };
+
+            // Zod Validation explícita (Dimensão 3)
+            const payloadValidado = usuarioSchema.parse(payloadBruto);
+
+            await aoSalvar(payloadValidado as UsuarioVisualizacao);
+        } catch (erro) {
+            console.error('Falha de validação Zod no formulário:', erro);
+            // Poderíamos adicionar toast() erro de UI aqui futuramente
         } finally {
             definirCarregando(false);
         }
@@ -100,7 +109,7 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
                             <button
                                 key={p.id}
                                 type="button"
-                                onClick={() => definirPapel(p.id)}
+                                onClick={() => definirPapel(p.id as PapelUsuario)}
                                 className={`flex items-start gap-4 p-4 rounded-2xl border text-left transition-all active:scale-[0.98] ${papel === p.id
                                     ? 'bg-indigo-50 border-indigo-200 shadow-suave'
                                     : 'bg-white border-slate-200/60 text-slate-600 hover:border-slate-300 hover:bg-slate-50'

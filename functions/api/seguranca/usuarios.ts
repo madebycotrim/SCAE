@@ -1,6 +1,7 @@
 import type { ContextoSCAE } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroPermissao, ErroInterno } from '../erros';
-import { verificarPermissao, extrairEscolaId } from '../_seguranca';
+import { verificarAcesso, extrairEscolaId } from '../_seguranca';
+import { Permissao } from './rbac';
 import { esquemaUsuario } from './usuarios.esquemas';
 import { z } from 'zod';
 import { ServicoCache } from '../utilitarios/cache';
@@ -8,7 +9,7 @@ import { ServicoCache } from '../utilitarios/cache';
 async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
-        verificarPermissao(contexto, ['ADMIN']);
+        verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
 
         try {
             const { results } = await contexto.env.DB_SCAE.prepare(
@@ -34,7 +35,7 @@ async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response>
 async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
-        verificarPermissao(contexto, ['ADMIN']);
+        verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
 
         let corpo;
         try {
@@ -96,7 +97,7 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
 async function processarAtualizacaoParcial(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
-        verificarPermissao(contexto, ['ADMIN']);
+        verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
 
         let corpo;
         try {
@@ -141,7 +142,7 @@ async function processarAtualizacaoParcial(contexto: ContextoSCAE): Promise<Resp
 async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
-        verificarPermissao(contexto, ['ADMIN']);
+        verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
 
         const url = new URL(contexto.request.url);
         const email = url.searchParams.get("email");

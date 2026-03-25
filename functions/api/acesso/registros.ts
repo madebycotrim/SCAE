@@ -1,12 +1,13 @@
 import type { ContextoSCAE, PayloadRegistroAcesso, ResultadoSincronizacao } from '../../tipos/ambiente';
 import { ErroValidacao, ErroInterno, ErroBase } from '../erros';
-import { verificarPermissao, extrairEscolaId } from '../_seguranca';
+import { verificarAcesso, extrairEscolaId } from '../_seguranca';
+import { Permissao } from '../seguranca/rbac';
 
 async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         // RBAC: PORTEIRO também pode sincronizar
-        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA', 'PORTEIRO']);
+        verificarAcesso(contexto, Permissao.REGISTRAR_ACESSO);
 
         let registros: PayloadRegistroAcesso[];
         try {
@@ -59,7 +60,7 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
 async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
-        verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
+        verificarAcesso(contexto, Permissao.VER_ACESSO);
 
         const { searchParams } = new URL(contexto.request.url);
         const pagina = Math.max(1, parseInt(searchParams.get('pagina') || '1', 10) || 1);

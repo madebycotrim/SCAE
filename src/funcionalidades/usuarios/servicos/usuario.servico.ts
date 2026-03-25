@@ -1,7 +1,7 @@
 import { api } from '@/compartilhado/servicos/api';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
-import type { UsuarioLocal } from '@/compartilhado/types/bancoLocal.tipos';
+import type { UsuarioVisualizacao } from '../tipos/usuario.esquema';
 
 const log = criarRegistrador('UsuarioServico');
 
@@ -16,7 +16,7 @@ export const usuarioServico = {
      */
     async carregarOnline() {
         try {
-            return await api.obter<UsuarioLocal[]>('/seguranca/usuarios');
+            return await api.obter<UsuarioVisualizacao[]>('/seguranca/usuarios');
         } catch (erro) {
             log.error('Erro ao buscar usuários online', erro);
             throw erro;
@@ -26,7 +26,7 @@ export const usuarioServico = {
     /**
      * Salva ou convida um usuário diretamente no servidor.
      */
-    async salvarUsuario(dados: any, ehEdicao: boolean, usuarioAnterior?: any): Promise<void> {
+    async salvarUsuario(dados: UsuarioVisualizacao, ehEdicao: boolean, usuarioAnterior?: UsuarioVisualizacao): Promise<void> {
         const usuarioNovo = {
             ...dados,
             atualizado_em: new Date().toISOString(),
@@ -60,7 +60,7 @@ export const usuarioServico = {
     /**
      * Altera o status (ativo/inativo) diretamente no servidor.
      */
-    async toggleStatus(user: UsuarioLocal): Promise<void> {
+    async toggleStatus(user: UsuarioVisualizacao): Promise<void> {
         const novoStatus = !user.ativo;
 
         if (!navigator.onLine) {
