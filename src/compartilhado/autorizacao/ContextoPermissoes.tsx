@@ -123,6 +123,24 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
                 return;
             }
 
+            // 🔐 Rotas da Central não têm escola — bypass direto para root
+            const ehRotaCentral = window.location.pathname.startsWith('/central');
+            if (ehRotaCentral) {
+                if (usuarioAtual.email === EMAIL_RAIZ) {
+                    definirUsuario({
+                        email: usuarioAtual.email,
+                        nome_completo: 'Administrador Principal (Root)',
+                        papel: 'CENTRAL',
+                        ativo: true,
+                        pendente: false
+                    });
+                } else {
+                    definirUsuario(null);
+                }
+                definirCarregando(false);
+                return;
+            }
+
             try {
                 // 🔐 Online-First: Verifica perfil diretamente no servidor
                 // Nota: O serviço de api.ts já faz o unwrap do campo 'dados'

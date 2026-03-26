@@ -325,7 +325,7 @@ export function PaginaGestaoEscolas() {
                             </button>
                         </div>
                         
-                        <form onSubmit={lidarComCriacao} className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                        <form id="form-escola-central" onSubmit={lidarComCriacao} className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
                             
                             {/* Sessão 1: Identidade */}
                             <section className="space-y-4">
@@ -519,7 +519,7 @@ export function PaginaGestaoEscolas() {
                             </button>
                             <button 
                                 type="submit"
-                                onClick={lidarComCriacao}
+                                form="form-escola-central"
                                 disabled={criando}
                                 className="px-6 py-2 min-w-[120px] bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50"
                             >

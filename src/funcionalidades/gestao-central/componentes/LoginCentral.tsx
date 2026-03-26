@@ -13,7 +13,7 @@ export default function LoginCentral() {
     useEffect(() => {
         if (usuarioAtual) {
             if (usuarioAtual.email === 'madebycotrim@gmail.com') {
-                navigate('/central');
+                navigate('/central/escolas', { replace: true });
             } else {
                 definirErro(`Acesso Negado. Email não autorizado: ${usuarioAtual.email}`);
                 definirLoading(false);

@@ -100,6 +100,18 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
         componente: PaginaRiscoAbandono,
         protegida: true,
         papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA'],
+    },
+    {
+        caminho: '/equipes',
+        componente: PaginaEquipes,
+        protegida: true,
+        papeis: ['ADMIN', 'COORDENACAO', 'SECRETARIA'],
+    },
+    {
+        caminho: '/calendario',
+        componente: PaginaCalendario,
+        protegida: true,
+        papeis: ['ADMIN', 'COORDENACAO'],
     }
 ];
 

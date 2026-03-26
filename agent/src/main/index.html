@@ -85,29 +85,24 @@
             
             if (!pin || pin.length < 6) return alert("PIN deve ter 6 dígitos!");
             
-            adicionarLog("SCAE Borda: Validando PIN na Cloudflare...");
+            adicionarLog("SCAE Borda: Validando PIN via Túnel Local...");
 
             try {
-                // Linkar terminal com a escola via API da Nuvem usando PIN
-                const res = await fetch('https://scae.df.gov.br/api/agente/login-pin', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pin })
-                });
-
-                const dados = await res.json();
+                // Linkar terminal com a escola via IPC (Evita erros de CORS/Rede no browser)
+                if (!window.scaeApi) return alert("API Interna indisponível.");
+                
+                const dados = await window.scaeApi.loginPin(pin);
 
                 if (!dados.ok) {
                     return alert(dados.mensagem || "PIN Inválido!");
                 }
 
-                // Salvar Configuração no Backend do Agente
-                if (window.scaeApi) {
-                    await window.scaeApi.saveConfig({
-                        escolaId: dados.escola_id,
-                        token: dados.token
-                    });
-                }
+                // Salvar Configuração no Backend do Agente (Incluindo Hardware Remoto)
+                await window.scaeApi.saveConfig({
+                    escolaId: dados.escola_id,
+                    token: dados.token,
+                    configHardware: dados.config_hardware
+                });
 
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('school-name').innerText = "Escola: " + dados.nome_escola;

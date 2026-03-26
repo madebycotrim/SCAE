@@ -7,6 +7,8 @@
 import { config } from '../infra/config';
 import { runSql, allSql } from '../infra/db';
 import { WorkerApi } from './worker-endpoint';
+import { leitoresAtivos } from './poller';
+import { DadosAluno } from '../drivers/ILeitor';
 
 /** Inicia os intervalos de sincronização */
 export function iniciarSync() {
@@ -71,7 +73,7 @@ async function sincronizarCacheAlunos() {
   const alunosServidor = await WorkerApi.buscarSincronizacaoAlunos();
   if (!alunosServidor || alunosServidor.length === 0) return;
 
-  // Atualizar cache via Upsert
+  // Atualizar cache via Upsert e injetar no Hardware
   for (const a of alunosServidor) {
     await runSql(`
       INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo, vetor_facial)
@@ -83,7 +85,24 @@ async function sincronizarCacheAlunos() {
         vetor_facial = excluded.vetor_facial,
         atualizado_em = datetime('now', 'localtime')
     `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo, a.vetor_facial]);
+
+    // Injetar nos leitores físicos se o aluno estiver ativo
+    if (a.ativo && leitoresAtivos.length > 0) {
+      const dados: DadosAluno = { matricula: a.matricula, nomeCompleto: a.nome_completo };
+      for (const leitor of leitoresAtivos) {
+        try {
+          await leitor.cadastrarAluno(dados);
+        } catch (e) {
+          console.error(`[Sync] Erro ao cadastrar aluno ${a.matricula} no leitor ${leitor.id}:`, e);
+        }
+      }
+    } else if (!a.ativo && leitoresAtivos.length > 0) {
+       // Remover do hardware se inativado na nuvem
+       for (const leitor of leitoresAtivos) {
+         try { await leitor.removerAluno(a.matricula); } catch {}
+       }
+    }
   }
 
-  console.log(`[Sync] Cache local atualizado com ${alunosServidor.length} alunos ativos.`);
+  console.log(`[Sync] Cache local sincronizado e injetado no hardware para ${alunosServidor.length} alunos.`);
 }

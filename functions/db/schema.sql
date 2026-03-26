@@ -40,6 +40,8 @@ CREATE TABLE escolas (
     retencao_dados INTEGER DEFAULT 730,  -- Dias de retencao de logs (LGPD)
     janelas TEXT DEFAULT '[]',         -- Configuração de horários JSON
     agente_pin TEXT UNIQUE,            -- PIN exclusivo para ativação de agente local (ex: '880880')
+    status TEXT DEFAULT 'ATIVA' CHECK(status IN ('ATIVA', 'SUSPENSA', 'PENDENTE')), -- Status operacional da unidade
+    contato_suporte TEXT,              -- Contato de suporte técnico da escola
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -321,5 +323,18 @@ CREATE TABLE aluno_equipe (
     FOREIGN KEY (grupo_id, escola_id) REFERENCES grupos_equipe(id, escola_id) ON DELETE CASCADE
 );
 CREATE INDEX idx_aluno_equipe_grupo ON aluno_equipe(grupo_id, escola_id);
+
+-- ====================================
+-- TERMINAIS (Configurações Remotas de Agente)
+-- ====================================
+CREATE TABLE terminais (
+    id TEXT PRIMARY KEY,               -- UUID do computador / terminal
+    escola_id TEXT NOT NULL,
+    nome_terminal TEXT,                -- Ex: "Portaria Norte"
+    config_leitores TEXT DEFAULT '[]', -- JSON: [{"id": "r1", "tipo": "ANVIZ", "ip": "1.10"}]
+    status TEXT DEFAULT 'ONLINE',
+    ultima_batida DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE
+);
 
 PRAGMA foreign_keys = ON;

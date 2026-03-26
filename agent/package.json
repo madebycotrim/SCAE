@@ -9,6 +9,7 @@
     "package": "npm run build && electron-builder"
   },
   "dependencies": {
+    "dotenv": "^17.3.1",
     "node-cron": "^3.0.3",
     "sqlite3": "^5.1.7"
   },

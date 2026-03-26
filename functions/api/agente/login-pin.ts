@@ -14,23 +14,29 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
             return Response.json({ ok: false, mensagem: 'PIN inválido. Mínimo 6 dígitos.' }, { status: 400 });
         }
 
-        // 1. Buscar escola pelo PIN exclusivo
-        const escola = await contexto.env.DB_SCAE.prepare(
-            `SELECT id, nome_escola FROM escolas WHERE agente_pin = ? LIMIT 1`
+        // 1. Buscar escola e configuração de terminais pelo PIN
+        const dados = await contexto.env.DB_SCAE.prepare(
+            `SELECT e.id, e.nome_escola, t.config_leitores 
+             FROM escolas e 
+             LEFT JOIN terminais t ON t.escola_id = e.id
+             WHERE e.agente_pin = ? LIMIT 1`
         ).bind(pin).first<any>();
 
-        if (!escola) {
+        if (!dados) {
             return Response.json({ ok: false, mensagem: 'PIN não encontrado ou expirado.' }, { status: 401 });
         }
 
-        // 2. Gerar Token de Sessão (Simulado para o Agente)
-        // Em produção aqui geraríamos um JWT assinado com a chave da escola
-        const tokenAgente = `SCAE_AUTO_${btoa(escola.id)}_${Date.now()}`;
+        // 2. Definir Configuração de Hardware Remota (Se o terminal não estiver no banco, manda padrão)
+        const configLeitores = dados.config_leitores ? JSON.parse(dados.config_leitores) : [];
+
+        // 3. Gerar Token de Sessão (Automatizado)
+        const tokenAgente = `SCAE_AUTO_${btoa(dados.id)}_${Date.now()}`;
 
         return Response.json({
             ok: true,
-            escola_id: escola.id,
-            nome_escola: escola.nome_escola,
+            escola_id: dados.id,
+            nome_escola: dados.nome_escola,
+            config_hardware: configLeitores,
             token: tokenAgente,
             mensagem: 'Terminal ativado com sucesso!'
         });

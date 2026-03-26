@@ -3,7 +3,16 @@
  * Gestão de configurações do agente local.
  */
 
+import path from 'path';
 import { TipoLeitor, LeitorConfig, LeitorTcpConfig } from '../drivers/ILeitor';
+
+// Carregar variáveis de ambiente do .env na raiz do agent/
+try {
+  const dotenv = require('dotenv');
+  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+} catch {
+  console.warn('[Config] dotenv não encontrado, usando variáveis de ambiente do sistema.');
+}
 
 export interface AgenteConfig {
   escola_id: string;
@@ -35,6 +44,6 @@ export const config: AgenteConfig = {
   ],
   intervalo_polling_ms: 1000,   // Coleta a cada 1 segundo
   intervalo_sync_ms: 5000,      // Sincroniza com a nuvem a cada 5 segundos
-  endpoint_worker: process.env.SCAE_API_URL || 'https://scae-api.se-df.workers.dev',
+  endpoint_worker: process.env.SCAE_API_URL || 'https://scae.workers.dev',
   agente_token: process.env.SCAE_AGENTE_TOKEN || 'scae_dev_token'
 };

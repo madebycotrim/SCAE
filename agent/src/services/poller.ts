@@ -10,8 +10,14 @@ import { LeitorFactory } from '../drivers/LeitorFactory';
 import { ILeitor } from '../drivers/ILeitor';
 import { NotificadorVoz } from './notificador-voz';
 
-export const leitoresAtivos: ILeitor[] = config.leitores.map(c => LeitorFactory.criarLeitor(c));
+export let leitoresAtivos: ILeitor[] = config.leitores.map(c => LeitorFactory.criarLeitor(c));
 let notificadorGlobal: NotificadorVoz | null = null;
+
+/** Reinicializa os leitores após uma mudança de config */
+export function recarregarLeitores() {
+  console.log('[Hardware] Recarregando drivers de biometria...');
+  leitoresAtivos = config.leitores.map(c => LeitorFactory.criarLeitor(c));
+}
 
 /** Inicia o loop infinito de coleta de hardware */
 export async function iniciarPolling(notificador?: NotificadorVoz | null) {
