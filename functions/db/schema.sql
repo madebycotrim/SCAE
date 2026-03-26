@@ -38,9 +38,8 @@ CREATE TABLE escolas (
     limite_alunos INTEGER DEFAULT 1000,
     limite_terminais INTEGER DEFAULT 5,
     retencao_dados INTEGER DEFAULT 730,  -- Dias de retencao de logs (LGPD)
-    contato_suporte TEXT,              -- E-mail/WhatsApp de TI
-    status TEXT DEFAULT 'ATIVA' CHECK(status IN ('ATIVA', 'SUSPENSA', 'PENDENTE')),
     janelas TEXT DEFAULT '[]',         -- Configuração de horários JSON
+    agente_pin TEXT UNIQUE,            -- PIN exclusivo para ativação de agente local (ex: '880880')
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

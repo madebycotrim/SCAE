@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>SCAE Edge Control</title>
+    <style>
+        :root { --p: #4f46e5; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --sub: #64748b; --green: #22c55e; }
+        body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system; background: var(--bg); color: var(--text); overflow: hidden; }
+        .header { background: #0f172a; color: white; padding: 1.5rem 2rem; border-bottom: 4px solid var(--p); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 1rem; font-weight: 900; letter-spacing: -0.01em; }
+        .school-info { font-size: 10px; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
+
+        .container { padding: 1rem; display: grid; gap: 1rem; height: calc(100vh - 100px); }
+        .top-row { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1rem; }
+        
+        .card { background: var(--card); border-radius: 1.25rem; padding: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-title { font-size: 9px; font-weight: 900; color: var(--sub); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+
+        .cam-box { width: 120px; height: 120px; background: #000; border-radius: 50%; overflow: hidden; border: 3px solid var(--p); margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        .status-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f1f5f9; border-radius: 12px; margin-bottom: 8px; font-size: 11px; font-weight: 800; border-left: 5px solid #cbd5e1; transition: all 0.3s; }
+        .status-item.active { border-left-color: var(--green); background: #f0fdf4; color: #15803d; }
+        .status-icon { font-size: 16px; margin-right: 8px; }
+
+        .log-box { background: #0f172a; border-radius: 1rem; padding: 1rem; color: #94a3b8; font-family: 'Consolas', monospace; font-size: 10px; height: 260px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
+        .log-entry { border-bottom: 1px solid #1e293b; padding: 6px 0; display: flex; gap: 8px; }
+        .log-time { color: var(--p); font-weight: bold; min-width: 60px; }
+
+        .auth-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .auth-card { background: white; width: 320px; padding: 2.5rem; border-radius: 2rem; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+        select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 1rem; font-size: 13px; font-weight: 800; background: #f8fafc; }
+        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; margin: 1rem 0; text-align: center; font-size: 24px; letter-spacing: 6px; }
+        button { background: var(--p); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 900; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="auth-screen" class="auth-overlay">
+        <div class="auth-card">
+            <h2 style="margin:0; font-size: 1.25rem;">🔒 Acesso Agente</h2>
+            <p style="font-size: 11px; color: var(--sub); margin: 8px 0;">DIGITE O PIN EXCLUSIVO DA UNIDADE</p>
+            
+            <input type="password" id="pin" placeholder="••••••" maxlength="6">
+            <button onclick="autenticar()">ATIVAR TERMINAL</button>
+            <p style="font-size: 9px; color: #94a3b8; margin-top: 1rem;">O PIN vincula este terminal à sua escola automaticamente.</p>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1>SCAE Edge Agent</h1>
+        <div class="school-info" id="school-name">Escola: Carregando...</div>
+    </div>
+
+    <div class="container">
+        <div class="top-row">
+            <div class="card">
+                <div class="card-title">👨‍💻 Visão Computacional</div>
+                <div class="cam-box"><video id="webcam" autoplay muted playsinline></video></div>
+                <p style="font-size: 9px; text-align:center; color: var(--sub); margin-top: 12px; font-weight: 800;" id="vision-text">AGUARDANDO ATIVAÇÃO...</p>
+            </div>
+            <div class="card">
+                <div class="card-title">📟 Status Operacional</div>
+                <div class="status-item active" id="st-facial"><span class="status-icon">👨</span> RECONHECIMENTO FACIAL: ONLINE</div>
+                <div class="status-item" id="st-biometry"><span class="status-icon">☝️</span> BIOMETRIA: OFFLINE</div>
+                <div class="status-item" id="st-sync"><span class="status-icon">📡</span> SINCRONIZAÇÃO NUVEM: OK</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">🕒 Atividade em Tempo Real</div>
+            <div id="logs" class="log-box"></div>
+        </div>
+    </div>
+
+    <script>
+        function adicionarLog(msg) {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = '<span class="log-time">' + new Date().toLocaleTimeString() + '</span> ' + msg;
+            logs.appendChild(entry);
+        }
+
+        async function autenticar() {
+            const pin = document.getElementById('pin').value;
+            
+            if (!pin || pin.length < 6) return alert("PIN deve ter 6 dígitos!");
+            
+            adicionarLog("SCAE Borda: Validando PIN na Cloudflare...");
+
+            try {
+                // Linkar terminal com a escola via API da Nuvem usando PIN
+                const res = await fetch('https://scae.df.gov.br/api/agente/login-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin })
+                });
+
+                const dados = await res.json();
+
+                if (!dados.ok) {
+                    return alert(dados.mensagem || "PIN Inválido!");
+                }
+
+                // Salvar Configuração no Backend do Agente
+                if (window.scaeApi) {
+                    await window.scaeApi.saveConfig({
+                        escolaId: dados.escola_id,
+                        token: dados.token
+                    });
+                }
+
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('school-name').innerText = "Escola: " + dados.nome_escola;
+                
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    document.getElementById('webcam').srcObject = stream;
+                    adicionarLog("SCAE Borda Ativado: " + dados.nome_escola);
+                } catch(e) { 
+                    adicionarLog("Alerta: Sem câmera instalada."); 
+                }
+
+            } catch (err) {
+                alert("Falha de rede ao tentar ativar terminal.");
+            }
+        }
+
+        // Integração Real com o Backend (Node API via Preload)
+        if (window.scaeApi) {
+            window.scaeApi.onHardwareStatus((status) => {
+                document.getElementById('st-biometry').className = status.biometria ? 'status-item active' : 'status-item';
+                document.getElementById('st-biometry').innerHTML = '<span class="status-icon">☝️</span> BIOMETRIA: ' + (status.biometria ? 'ATIVA' : 'DESLIGADA');
+                
+                document.getElementById('st-sync').className = status.sync ? 'status-item active' : 'status-item';
+                document.getElementById('school-name').innerText = "Escola: " + status.escola;
+            });
+
+            window.scaeApi.onNewLog((msg) => adicionarLog(msg));
+        }
+    </script>
+</body>
+</html>

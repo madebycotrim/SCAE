@@ -1,15 +1,16 @@
 /**
  * services/poller.ts
- * Coletor de eventos contínuo para hardware em rede (TCP/IP).
+ * Monitor de hardware - Coleta eventos de leitores (Anviz, iDFlex, USB).
+ * Versão Assíncrona (SQLite3).
  */
 
 import { config } from '../infra/config';
-import { getDb } from '../infra/db';
+import { getSql, runSql } from '../infra/db';
 import { LeitorFactory } from '../drivers/LeitorFactory';
 import { ILeitor } from '../drivers/ILeitor';
 import { NotificadorVoz } from './notificador-voz';
 
-const leitoresAtivos: ILeitor[] = config.leitores.map(c => LeitorFactory.criarLeitor(c));
+export const leitoresAtivos: ILeitor[] = config.leitores.map(c => LeitorFactory.criarLeitor(c));
 let notificadorGlobal: NotificadorVoz | null = null;
 
 /** Inicia o loop infinito de coleta de hardware */
@@ -18,80 +19,82 @@ export async function iniciarPolling(notificador?: NotificadorVoz | null) {
   console.log(`[Poller] Iniciando coleta contínua de ${leitoresAtivos.length} equipamentos...`);
   
   // Executa o primeiro ciclo imediatamente
-  executarCiclo();
+  executarCicloColeta();
   
-  // Agenda os próximos ciclos com base no intervalo de configuração
-  setInterval(executarCiclo, config.intervalo_polling_ms);
+  // Agendar próximos ciclos (Assíncronos e Seguros)
+  setInterval(async () => {
+    try {
+      await executarCicloColeta();
+    } catch (e) {
+      console.error('[Poller] Erro no ciclo:', e);
+    }
+  }, config.intervalo_polling_ms);
 }
 
-async function executarCiclo() {
-  const db = getDb();
-
+/** Varre cada equipamento, busca novos eventos e salva no SQLite local */
+async function executarCicloColeta() {
   for (const leitor of leitoresAtivos) {
     try {
-      // 1. Recuperar o último ID processado para este leitor específico
-      const registroCursor = db.prepare('SELECT ultimo_evento_id FROM cursores_leitura WHERE leitor_id = ?').get(leitor.id) as any;
-      const ultimoId = registroCursor ? registroCursor.ultimo_evento_id : '0';
+      // 1. Onde paramos a leitura neste equipamento?
+      const cursor = await getSql<{ ultimo_evento_id: string }>(
+        'SELECT ultimo_evento_id FROM cursores_leitura WHERE leitor_id = ?',
+        [leitor.id]
+      );
+      const ultimoId = cursor?.ultimo_evento_id || '0';
 
-      // 2. Buscar novos eventos no hardware (ControlID ou Anviz)
+      // 2. Busca novos eventos no hardware (TCP/USB/REST)
       const novosEventos = await leitor.buscarEventos(ultimoId);
-      
       if (novosEventos.length === 0) continue;
 
-      console.log(`[Poller][${leitor.id}] Capturadas ${novosEventos.length} novas batidas.`);
+      console.log(`[Poller] ${leitor.nome}: Coletou ${novosEventos.length} novas presenças.`);
 
-      // 3. Persistir os novos registros no SQLite local para posterior sincronização
-      const insertRegistro = db.prepare(`
-        INSERT OR IGNORE INTO registros_acesso (
-          id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, 
-          timestamp_acesso, leitor_id, id_evento_hardware
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `);
+      // 3. Persistir os novos registros no SQLite local
+      let maxId = ultimoId;
+      for (const ev of novosEventos) {
+        const idUnico = `EVT_${leitor.id}_${ev.id}`;
+        
+        await runSql(`
+          INSERT OR IGNORE INTO registros_acesso (
+            id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, 
+            timestamp_acesso, leitor_id, id_evento_hardware
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          idUnico, 
+          config.escola_id, 
+          ev.idUsuario, 
+          ev.tipo, 
+          leitor.tipo, 
+          ev.timestamp.toISOString(), 
+          leitor.id, 
+          ev.id
+        ]);
 
-      const stmtBuscaNome = db.prepare('SELECT nome_completo FROM alunos_cache WHERE matricula = ?');
+        // Feedback de Voz Contextual (Premium TTS)
+        if (notificadorGlobal) {
+          const aluno = await getSql('SELECT nome_completo FROM alunos_cache WHERE matricula = ?', [ev.idUsuario]);
+          if (aluno?.nome_completo) {
+            notificadorGlobal.anunciarAcesso(aluno.nome_completo, ev.tipo);
+          }
+        }
+        
+        // Mantém o rastro do maior ID para o próximo ciclo
+        const idNum = parseInt(ev.id, 10);
+        if (!isNaN(idNum) && idNum > parseInt(maxId, 10)) {
+          maxId = ev.id;
+        }
+      }
 
-      const upsertCursor = db.prepare(`
+      // 4. Atualizar o cursor de leitura do equipamento
+      await runSql(`
         INSERT INTO cursores_leitura (leitor_id, ultimo_evento_id)
         VALUES (?, ?)
         ON CONFLICT(leitor_id) DO UPDATE SET 
           ultimo_evento_id = excluded.ultimo_evento_id,
           atualizado_em = datetime('now', 'localtime')
-      `);
-
-      // Executa transação para garantir integridade e performance
-      db.transaction((eventos: any[]) => {
-        let maxId = ultimoId;
-        for (const ev of eventos) {
-          const idUnico = `EVT_${leitor.id}_${ev.id}`;
-          insertRegistro.run(
-            idUnico, 
-            config.escola_id, 
-            ev.idUsuario, 
-            ev.tipo, 
-            leitor.tipo, 
-            ev.timestamp.toISOString(), 
-            leitor.id, 
-            ev.id
-          );
-
-          // Feedback de Voz Contextual
-          if (notificadorGlobal) {
-            const aluno = stmtBuscaNome.get(ev.idUsuario) as any;
-            if (aluno?.nome_completo) {
-              notificadorGlobal.anunciarAcesso(aluno.nome_completo, ev.tipo);
-            }
-          }
-          
-          // Mantém o rastro do maior ID para o próximo ciclo
-          if (parseInt(ev.id, 10) > parseInt(maxId, 10)) {
-            maxId = ev.id;
-          }
-        }
-        upsertCursor.run(leitor.id, maxId);
-      })(novosEventos);
+      `, [leitor.id, maxId]);
 
     } catch (e) {
-      console.warn(`[Poller][${leitor.id}] Falha momentânea na coleta:`, (e as Error).message);
+      console.error(`[Poller] Erro na coleta do equipamento ${leitor.id}:`, e);
     }
   }
 }

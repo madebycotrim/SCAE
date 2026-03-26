@@ -1,23 +1,34 @@
 /**
  * services/sync.ts
- * Gestor de sincronização bidirecional Agente-Cloud.
+ * Orquestrador de Sincronização Bidirecional (Local <-> Cloudflare).
+ * Versão Assíncrona (SQLite3).
  */
 
-import { getDb } from '../infra/db';
-import { WorkerApi } from './worker-endpoint';
 import { config } from '../infra/config';
+import { runSql, allSql } from '../infra/db';
+import { WorkerApi } from './worker-endpoint';
 
-let syncInativo = false;
+/** Inicia os intervalos de sincronização */
+export function iniciarSync() {
+  console.log('[Sync] Iniciando orquestrador de sincronização...');
 
-/** Inicia loops de sincronização com o Worker central */
-export async function iniciarSync() {
-  console.log(`[Sync] Sincronização automática ativa a cada ${config.intervalo_sync_ms}ms.`);
-  
-  // Sincronização de saída (Registros de acesso pendentes)
-  setInterval(sincronizarRegistrosPendentes, config.intervalo_sync_ms);
+  // Sincronização de saída (Registros de acesso - a cada 5 segundos)
+  setInterval(async () => {
+    try {
+      await sincronizarRegistrosPendentes();
+    } catch (e) {
+      console.error('[Sync] Falha na sincronização de saída:', e);
+    }
+  }, config.intervalo_sync_ms);
 
   // Sincronização de entrada (Cache de Alunos - a cada 30 minutos)
-  setInterval(sincronizarCacheAlunos, 30 * 60 * 1000);
+  setInterval(async () => {
+    try {
+      await sincronizarCacheAlunos();
+    } catch (e) {
+      console.error('[Sync] Falha na atualização do cache de alunos:', e);
+    }
+  }, 30 * 60 * 1000);
 
   // Heartbeat de status (A cada 1 minuto)
   setInterval(() => WorkerApi.enviarStatus([]), 60 * 1000);
@@ -30,42 +41,39 @@ export async function iniciarSync() {
 
 /** Varre o SQLite local em busca de batidas ainda não enviadas para a nuvem */
 async function sincronizarRegistrosPendentes() {
-  if (syncInativo) return;
-  const db = getDb();
-  
-  try {
-    const pendencias = db.prepare('SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 100').all() as any[];
-    
-    if (pendencias.length === 0) return;
+  const pendentes = await allSql(`
+    SELECT * FROM registros_acesso 
+    WHERE sincronizado = 0 
+    ORDER BY timestamp_acesso ASC 
+    LIMIT 100
+  `);
 
-    console.log(`[Sync] Enviando lote de ${pendencias.length} registros para o servidor...`);
-    
-    // Tentativa de envio para a Cloudflare
-    const ok = await WorkerApi.enviarBatida(pendencias);
-    
-    if (ok) {
-      // Marcar como sincronizado individualmente para evitar conflitos de lote
-      const updateSync = db.prepare('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?');
-      db.transaction((ids: string[]) => {
-        for (const id of ids) updateSync.run(id);
-      })(pendencias.map(p => p.id));
-      
-      console.log(`[Sync] ${pendencias.length} registros confirmados na nuvem ✓`);
+  if (pendentes.length === 0) return;
+
+  console.log(`[Sync] Enviando lote de ${pendentes.length} registros para a Cloudflare...`);
+
+  // Enviar para o Worker API
+  const ok = await WorkerApi.enviarBatida(pendentes);
+
+  if (ok) {
+    // Marcar como sincronizados para não enviar novamente
+    for (const p of pendentes) {
+      await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
     }
-
-  } catch (e) {
-    console.warn('[Sync] Falha no ciclo de sincronização de saída:', (e as Error).message);
+    console.log('[Sync] Lote sincronizado com sucesso ✓');
   }
 }
 
-/** Baixa base de alunos atualizada para permitir reconhecimento biométrico offline */
+/** Baixa novos alunos e biometria da nuvem para o cache local */
 async function sincronizarCacheAlunos() {
-  try {
-    const alunosServidor = await WorkerApi.buscarSincronizacaoAlunos();
-    if (alunosServidor.length === 0) return;
+  console.log('[Sync] Atualizando cache local de alunos e biometria...');
+  
+  const alunosServidor = await WorkerApi.buscarSincronizacaoAlunos();
+  if (!alunosServidor || alunosServidor.length === 0) return;
 
-    const db = getDb();
-    const upsertAluno = db.prepare(`
+  // Atualizar cache via Upsert
+  for (const a of alunosServidor) {
+    await runSql(`
       INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo, vetor_facial)
       VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(matricula, escola_id) DO UPDATE SET
@@ -74,16 +82,8 @@ async function sincronizarCacheAlunos() {
         ativo = excluded.ativo,
         vetor_facial = excluded.vetor_facial,
         atualizado_em = datetime('now', 'localtime')
-    `);
-
-    db.transaction((alunos: any[]) => {
-      for (const a of alunos) {
-        upsertAluno.run(a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo, a.vetor_facial);
-      }
-    })(alunosServidor);
-
-    console.log(`[Sync] Cache local atualizado com ${alunosServidor.length} alunos da escola.`);
-  } catch (e) {
-    console.error('[Sync] Falha na atualização do banco de dados de alunos:', e);
+    `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo, a.vetor_facial]);
   }
+
+  console.log(`[Sync] Cache local atualizado com ${alunosServidor.length} alunos ativos.`);
 }
