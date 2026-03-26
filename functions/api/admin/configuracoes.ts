@@ -9,11 +9,13 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
 
         const escola = await contexto.env.DB_SCAE.prepare(`
-            SELECT config_qr_dinamico, tts_ativado, cor_primaria, cor_secundaria, logo_url 
+            SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url 
             FROM escolas WHERE id = ?
         `).bind(escolaId).first<{
             config_qr_dinamico: number;
             tts_ativado: number;
+            saida_obrigatoria: number;
+            metodo_acesso: string;
             cor_primaria: string;
             cor_secundaria: string;
             logo_url: string;
@@ -27,6 +29,8 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
             dados: {
                 qrDinamico: Boolean(escola.config_qr_dinamico),
                 ttsAtivado: Boolean(escola.tts_ativado),
+                saidaObrigatoria: Boolean(escola.saida_obrigatoria),
+                metodoAcesso: escola.metodo_acesso || 'QRCODE',
                 corPrimaria: escola.cor_primaria,
                 corSecundaria: escola.cor_secundaria,
                 logoUrl: escola.logo_url
@@ -66,6 +70,19 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
         if (corpo.ttsAtivado !== undefined) {
             queryParts.push("tts_ativado = ?");
             binds.push(corpo.ttsAtivado ? 1 : 0);
+        }
+
+        if (corpo.saidaObrigatoria !== undefined) {
+            queryParts.push("saida_obrigatoria = ?");
+            binds.push(corpo.saidaObrigatoria ? 1 : 0);
+        }
+
+        if (corpo.metodoAcesso !== undefined) {
+            const modos_permitidos = ['QRCODE', 'FACIAL', 'DIGITAL'];
+            if (typeof corpo.metodoAcesso === 'string' && modos_permitidos.includes(corpo.metodoAcesso)) {
+                queryParts.push("metodo_acesso = ?");
+                binds.push(corpo.metodoAcesso);
+            }
         }
 
         if (queryParts.length === 0) {

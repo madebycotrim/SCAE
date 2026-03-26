@@ -143,7 +143,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             ]
         },
                 { titulo: 'Sistema', itens: [
-                    ...(ehAdmin ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
+                    ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
                     ...(pode('visualizar', 'auditoria') ? [{ icone: ShieldCheck, texto: 'Logs', rota: '/logs' }] : []),
                     ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
                 ]}
