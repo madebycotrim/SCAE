@@ -1,6 +1,9 @@
 PRAGMA foreign_keys = OFF;
 
 -- Reset de Tabelas (Ordem Reversa de Dependência)
+DROP TABLE IF EXISTS aluno_equipe;
+DROP TABLE IF EXISTS grupos_equipe;
+DROP TABLE IF EXISTS equipes;
 DROP TABLE IF EXISTS vinculos_responsavel_aluno;
 DROP TABLE IF EXISTS alertas_evasao;
 DROP TABLE IF EXISTS alertas_risco;
@@ -160,6 +163,8 @@ CREATE TABLE registros_acesso (
     aluno_matricula TEXT NOT NULL,
     tipo_movimentacao TEXT NOT NULL CHECK(tipo_movimentacao IN ('ENTRADA', 'SAIDA')),
     metodo_leitura TEXT DEFAULT 'qr_carteirinha', 
+    id_evento_hardware TEXT,           -- Cursor incremental do hardware
+    leitor_id TEXT,                    -- Qual equipamento/portaria
     timestamp_acesso DATETIME NOT NULL, 
     timestamp DATETIME,                
     sincronizado INTEGER DEFAULT 1,
@@ -172,6 +177,7 @@ CREATE INDEX idx_registros_acesso_aluno ON registros_acesso(aluno_matricula, esc
 CREATE INDEX idx_registros_acesso_data ON registros_acesso(timestamp_acesso DESC, escola_id);
 CREATE INDEX idx_registros_acesso_tipo ON registros_acesso(tipo_movimentacao, escola_id);
 CREATE INDEX idx_registros_acesso_sync ON registros_acesso(sincronizado);
+CREATE INDEX idx_registros_acesso_leitor ON registros_acesso(leitor_id, escola_id);
 
 -- ====================================
 -- ALERTAS DE RISCO (Antiga Evasão)
@@ -260,5 +266,61 @@ CREATE TABLE alertas_evasao (
 CREATE INDEX idx_alertas_evasao_escola ON alertas_evasao(escola_id);
 CREATE INDEX idx_alertas_evasao_aluno ON alertas_evasao(aluno_matricula, escola_id);
 CREATE INDEX idx_alertas_evasao_status ON alertas_evasao(status);
+
+-- ====================================
+-- EQUIPES (Agrupamentos de Escala/Frequência)
+-- ====================================
+CREATE TABLE equipes (
+    id TEXT NOT NULL,                   -- Slug (ex: ensino-medio)
+    escola_id TEXT NOT NULL,
+    nome_equipe TEXT NOT NULL,
+    cor TEXT DEFAULT '#4F46E5',         -- Cor para UI
+    tts_alias TEXT,                     -- Como o TTS pronuncia o nome (opcional)
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME,
+    
+    PRIMARY KEY (id, escola_id),
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_equipes_escola ON equipes(escola_id);
+
+-- ====================================
+-- GRUPOS DE EQUIPE (Subdivisões de Escala)
+-- ====================================
+CREATE TABLE grupos_equipe (
+    id TEXT NOT NULL,                   -- UUID
+    escola_id TEXT NOT NULL,
+    equipe_id TEXT NOT NULL,
+    nome_grupo TEXT NOT NULL,
+    
+    -- Configuração de Escala
+    escala_tipo TEXT NOT NULL CHECK(escala_tipo IN ('FIXA', 'ALTERNADA')),
+    escala_dias TEXT NOT NULL,          -- JSON: [1,2,3,4,5] (dias da semana) ou datas específicas
+    
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME,
+
+    PRIMARY KEY (id, escola_id),
+    FOREIGN KEY (equipe_id, escola_id) REFERENCES equipes(id, escola_id) ON DELETE CASCADE
+);
+CREATE INDEX idx_grupos_equipe ON grupos_equipe(equipe_id, escola_id);
+
+-- ====================================
+-- VÍNCULO ALUNO <-> EQUIPE/GRUPO
+-- ====================================
+CREATE TABLE aluno_equipe (
+    aluno_matricula TEXT NOT NULL,
+    escola_id TEXT NOT NULL,
+    equipe_id TEXT NOT NULL,
+    grupo_id TEXT NOT NULL,
+    
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (aluno_matricula, escola_id),
+    FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id) ON DELETE CASCADE,
+    FOREIGN KEY (equipe_id, escola_id) REFERENCES equipes(id, escola_id) ON DELETE CASCADE,
+    FOREIGN KEY (grupo_id, escola_id) REFERENCES grupos_equipe(id, escola_id) ON DELETE CASCADE
+);
+CREATE INDEX idx_aluno_equipe_grupo ON aluno_equipe(grupo_id, escola_id);
 
 PRAGMA foreign_keys = ON;

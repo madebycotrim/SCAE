@@ -12,6 +12,7 @@ import { lazy } from 'react';
 // --- Lazy loading de todas as páginas ---
 export const PaginaLogin = lazy(() => import('@/funcionalidades/usuarios/componentes/TelaAcesso'));
 export const PaginaPainel = lazy(() => import('@/funcionalidades/dashboard/componentes/Painel'));
+export const PaginaEquipes = lazy(() => import('@/funcionalidades/academico/componentes/Equipes'));
 export const PaginaAlunos = lazy(() => import('@/funcionalidades/academico/componentes/Alunos'));
 export const PaginaTurmas = lazy(() => import('@/funcionalidades/academico/componentes/Turmas'));
 export const PaginaTerminalAcesso = lazy(() => import('@/funcionalidades/controle-acesso/componentes/TerminalAcesso'));

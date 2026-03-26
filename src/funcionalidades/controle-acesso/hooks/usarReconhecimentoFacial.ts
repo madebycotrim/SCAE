@@ -10,6 +10,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     carregarModelosFaciais,
     reconhecerRosto,
+    extrairDescritor,
     carregarDescritoresEmMassa,
     modelosProntos,
     totalAlunosCadastrados
@@ -172,7 +173,26 @@ export function usarReconhecimentoFacial(
             if (!ativoRef.current || !videoRef.current) return;
 
             try {
-                const resultado = await reconhecerRosto(videoRef.current);
+                let resultado = await reconhecerRosto(videoRef.current);
+
+                // 🔥 FALLBACK HÍBRIDO (Nuvem): Se o reconhecimento local falhar (cache incompleto), 
+                // enviamos o descritor para a Cloudflare comparar com a base global.
+                if (!resultado) {
+                    const descritor = await extrairDescritor(videoRef.current);
+                    if (descritor) {
+                        try {
+                            const resNuvem = await api.enviar<any>('/acesso/facial-comparar', {
+                                vetor_facial: Array.from(descritor)
+                            });
+                            if (resNuvem && resNuvem.ok) {
+                                resultado = { matricula: resNuvem.matricula, distancia: parseFloat(resNuvem.distancia) };
+                                console.log('[Facial] Reconhecido via Nuvem (Fallback) ✓');
+                            }
+                        } catch (e) {
+                            // Silencioso: Fallback falhou ou aluno não identificado na base global também.
+                        }
+                    }
+                }
 
                 if (resultado) {
                     const agora = Date.now();

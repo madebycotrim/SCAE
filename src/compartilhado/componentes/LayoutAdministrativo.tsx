@@ -17,6 +17,7 @@ import {
     Menu,
     Shield,
     Layers,
+    Hexagon,
     Crown,
     RefreshCw,
     Search,
@@ -130,8 +131,8 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         {
             titulo: 'Acadêmico',
             itens: [
-                ...(pode('visualizar', 'alunos') ? [{ icone: Users, texto: 'Alunos', rota: '/alunos' }] : []),
                 ...(pode('visualizar', 'turmas') ? [{ icone: Layers, texto: 'Turmas', rota: '/turmas' }] : []),
+                ...(pode('visualizar', 'academico') ? [{ icone: Hexagon, texto: 'Equipes', rota: '/equipes' }] : []),
             ]
         },
         {
