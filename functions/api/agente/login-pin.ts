@@ -15,7 +15,7 @@ export async function onRequestPost(contexto: ContextoCatraki): Promise<Response
         }
 
         // 1. Buscar escola e configuração de terminais pelo PIN
-        const dados = await contexto.env.DB_CATRAKI.prepare(
+        const dados = await contexto.env.DB_SCAE.prepare(
             `SELECT e.id, e.nome_escola, t.config_leitores 
              FROM escolas e 
              LEFT JOIN terminais t ON t.escola_id = e.id

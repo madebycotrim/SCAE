@@ -12,7 +12,7 @@ async function processarBuscaUsuarios(contexto: ContextoCatraki): Promise<Respon
         verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
 
         try {
-            const { results } = await contexto.env.DB_CATRAKI.prepare(
+            const { results } = await contexto.env.DB_SCAE.prepare(
                 "SELECT email, escola_id, nome_completo, papel, ativo, criado_por, pendente, criado_em, atualizado_em FROM usuarios WHERE escola_id = ?"
             ).bind(idEscola).all();
 

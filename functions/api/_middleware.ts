@@ -4,7 +4,7 @@ import { ErroBase, ErroInterno, ErroNaoAutenticado, ErroPermissao } from './erro
 import { ServicoCache } from './utilitarios/cache';
 import { EMAIL_ROOT } from './_seguranca';
 
-const ID_PROJETO_FIREBASE = 'catraki-b7f8c';
+const ID_PROJETO_FIREBASE = 'scae-b7f8c';
 
 // Cached at module level — reused across requests within the same Worker instance
 const CONJUNTO_CHAVES_JSON = createRemoteJWKSet(
@@ -31,11 +31,11 @@ async function processarRequisicao(contexto: ContextoCatraki): Promise<Response>
 
         const cabecalhoAutenticacao = requisicao.headers.get('Authorization');
 
-        // DEV BYPASS
+        // DEV BYPASS: Se estiver local, bypass estiver ligado E NÃO houver token OU o token for "bypass-token"
         const ehAmbienteLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
         const bypassHabilitado = contexto.env?.DEV_AUTH_BYPASS === '1';
 
-        if (ehAmbienteLocal && bypassHabilitado && !cabecalhoAutenticacao) {
+        if (ehAmbienteLocal && bypassHabilitado && (!cabecalhoAutenticacao || cabecalhoAutenticacao === 'Bearer bypass-token')) {
             return proximo();
         }
 
@@ -45,17 +45,29 @@ async function processarRequisicao(contexto: ContextoCatraki): Promise<Response>
 
         const token = cabecalhoAutenticacao.split(' ')[1];
 
-        const { payload: dadosToken } = await jwtVerify(token, CONJUNTO_CHAVES_JSON, {
-            issuer: `https://securetoken.google.com/${ID_PROJETO_FIREBASE}`,
-            audience: ID_PROJETO_FIREBASE,
-        });
+        let dadosToken;
+        try {
+            const validacao = await jwtVerify(token, CONJUNTO_CHAVES_JSON, {
+                issuer: `https://securetoken.google.com/${ID_PROJETO_FIREBASE}`,
+                audience: ID_PROJETO_FIREBASE,
+            });
+            dadosToken = validacao.payload as DadosTokenFirebase;
+        } catch (erroToken) {
+            console.error('[Middleware] Erro na validação do JWT:', erroToken);
+            throw new ErroNaoAutenticado('Sessão expirada ou token inválido. Por favor, faça login novamente.');
+        }
 
         const email = (dadosToken.email as string) || '';
         const eAdminGlobal = [EMAIL_ROOT].includes(email);
-        const idEscola = requisicao.headers.get('X-Escola-ID');
+        const idEscolaHeader = requisicao.headers.get('X-Escola-ID');
+        
+        // Se o header for 'undefined' ou 'null' (strings), tratamos como ausente
+        const idEscola = (idEscolaHeader === 'undefined' || idEscolaHeader === 'null' || !idEscolaHeader) ? null : idEscolaHeader;
 
+        // Se for Admin Global e estiver na rota de escolas (ou qualquer rota sem escola definida), permitimos passar
         if (eAdminGlobal && !idEscola) {
             contexto.data.user = dadosToken as DadosTokenFirebase;
+            contexto.data.usuarioCatraki = { email, escola_id: 'CENTRAL', papel: 'CENTRAL', ativo: 1 };
             return proximo();
         }
 
@@ -78,15 +90,15 @@ async function processarRequisicao(contexto: ContextoCatraki): Promise<Response>
         }
 
         // Tentar buscar usuário no Cache (KV) para evitar 2ª query por request
-        let usuarioCatraki = await contexto.env.KV_CATRAKI.get(`user:${idEscola}:${email}`, 'json');
+        let usuarioCatraki = await contexto.env.KV_SCAE.get(`user:${idEscola}:${email}`, 'json');
 
         if (!usuarioCatraki) {
-            usuarioCatraki = await contexto.env.DB_CATRAKI.prepare(
+            usuarioCatraki = await contexto.env.DB_SCAE.prepare(
                 "SELECT * FROM usuarios WHERE email = ? AND escola_id = ? AND ativo = 1"
             ).bind(email, idEscola).first();
 
             if (usuarioCatraki) {
-                await contexto.env.KV_CATRAKI.put(`user:${idEscola}:${email}`, JSON.stringify(usuarioCatraki), { expirationTtl: 600 }); // Cache curto de 10 min
+                await contexto.env.KV_SCAE.put(`user:${idEscola}:${email}`, JSON.stringify(usuarioCatraki), { expirationTtl: 600 }); // Cache curto de 10 min
             }
         }
 
@@ -115,12 +127,22 @@ async function processarRequisicao(contexto: ContextoCatraki): Promise<Response>
             });
         }
 
-        // Logging detalhado apenas para o runtime da Cloudflare
-        console.error('[CRÍTICO/Middleware]', erro instanceof Error ? erro.stack || erro.message : erro);
+        const stack = erro instanceof Error ? erro.stack || erro.message : String(erro);
+        console.error('[CRÍTICO/Middleware]', stack);
         
-        // Resposta higienizada genérica para o frontend/cliente (Security By Design)
+        // Resposta com detalhes técnicos para depuração em ambiente de desenvolvimento
+        const ehAmbienteLocal = new URL(requisicao.url).hostname === 'localhost' || new URL(requisicao.url).hostname === '127.0.0.1';
         const erroInterno = new ErroInterno('Falha interna no processamento de autorização.');
-        return new Response(JSON.stringify(erroInterno.toJSON()), {
+        
+        const payloadErro = {
+            ...erroInterno.toJSON(),
+            debug: ehAmbienteLocal ? {
+                mensagem: erro instanceof Error ? erro.message : 'Erro desconhecido',
+                stack: ehAmbienteLocal ? stack : undefined
+            } : undefined
+        };
+
+        return new Response(JSON.stringify(payloadErro), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });

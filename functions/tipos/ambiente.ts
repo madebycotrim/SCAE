@@ -9,9 +9,9 @@
 
 export interface AmbienteCatraki {
     /** Banco D1 principal do sistema */
-    DB_CATRAKI: D1Database;
+    DB_SCAE: D1Database;
     /** Cache de alto desempenho KV */
-    KV_CATRAKI: KVNamespace;
+    KV_SCAE: KVNamespace;
     /** Bypass de autenticação para desenvolvimento local (valor: '1') */
     DEV_AUTH_BYPASS?: string;
     /** Tenant padrão quando não enviado no header */
