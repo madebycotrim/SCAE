@@ -24,7 +24,7 @@ export class FaceLeitor implements ILeitor {
   async status(): Promise<StatusLeitor> {
     return {
       online: true,
-      modelo: 'SCAE Edge Facial Processor',
+      modelo: 'Catraki Edge Facial Processor',
     };
   }
 

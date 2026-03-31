@@ -1,10 +1,10 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
 import { verificarAcesso, extrairEscolaId } from '../_seguranca';
 import { Permissao } from '../seguranca/rbac';
 import { esquemaAluno } from './alunos.esquemas';
 
-async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
+async function processarBuscaAlunos(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.VER_ACADEMICO);
@@ -15,11 +15,11 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
         const offset = (pagina - 1) * porPagina;
 
         // Buscar total + dados em batch (1 round-trip ao D1)
-        const [countResult, dataResult] = await contexto.env.DB_SCAE.batch([
-            contexto.env.DB_SCAE.prepare(
+        const [countResult, dataResult] = await contexto.env.DB_CATRAKI.batch([
+            contexto.env.DB_CATRAKI.prepare(
                 "SELECT COUNT(*) as total FROM alunos WHERE escola_id = ?"
             ).bind(idEscola),
-            contexto.env.DB_SCAE.prepare(
+            contexto.env.DB_CATRAKI.prepare(
                 "SELECT matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo, criado_em, atualizado_em FROM alunos WHERE escola_id = ? ORDER BY nome_completo ASC LIMIT ? OFFSET ?"
             ).bind(idEscola, porPagina, offset)
         ]);
@@ -45,7 +45,7 @@ async function processarBuscaAlunos(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> {
+async function processarCriacaoAluno(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
@@ -67,7 +67,7 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
 
         try {
             // UPSERT: Inserir ou Atualizar Aluno
-            await contexto.env.DB_SCAE.prepare(
+            await contexto.env.DB_CATRAKI.prepare(
                 `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo) VALUES (?, ?, ?, ?, ?, ?)
                     ON CONFLICT(matricula, escola_id) DO UPDATE SET
                     nome_completo = excluded.nome_completo,
@@ -93,7 +93,7 @@ async function processarCriacaoAluno(contexto: ContextoSCAE): Promise<Response> 
     }
 }
 
-async function processarRemocaoAluno(contexto: ContextoSCAE): Promise<Response> {
+async function processarRemocaoAluno(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
@@ -106,7 +106,7 @@ async function processarRemocaoAluno(contexto: ContextoSCAE): Promise<Response> 
         }
 
         try {
-            const resultado = await contexto.env.DB_SCAE.prepare(
+            const resultado = await contexto.env.DB_CATRAKI.prepare(
                 "DELETE FROM alunos WHERE matricula = ? AND escola_id = ?"
             ).bind(matricula, idEscola).run();
 

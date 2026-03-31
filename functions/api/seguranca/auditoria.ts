@@ -3,12 +3,12 @@
  * POST: Receber batch de logs do frontend
  * GET: Buscar logs (Smart Sync — desde timestamp)
  */
-import type { ContextoSCAE, LogAuditoriaDB, ResultadoSincronizacao } from '../../tipos/ambiente';
+import type { ContextoCatraki, LogAuditoriaDB, ResultadoSincronizacao } from '../../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroValidacao } from '../erros';
 import { verificarAcesso, extrairEscolaId } from '../_seguranca';
 import { Permissao } from './rbac';
 
-async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Response> {
+async function processarRecebimentoLogs(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         // Registros automáticos não precisam de permissão restrita, mas quem dispara pode ser porteiro ou até sistema inline
@@ -26,7 +26,7 @@ async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Respons
         }
 
         // Usar db.batch() para inserir todos de uma vez (1 round-trip ao D1)
-        const stmt = contexto.env.DB_SCAE.prepare(
+        const stmt = contexto.env.DB_CATRAKI.prepare(
             `INSERT OR IGNORE INTO logs_auditoria 
             (id, escola_id, criado_em, usuario_email, acao, entidade_tipo, entidade_id, dados_anteriores, dados_novos, ip_address, user_agent, sincronizado) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
@@ -46,7 +46,7 @@ async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Respons
             log.user_agent ?? null
         ));
 
-        const batchResults = await contexto.env.DB_SCAE.batch(stmts);
+        const batchResults = await contexto.env.DB_CATRAKI.batch(stmts);
 
         const resultados: ResultadoSincronizacao[] = logs.map((log, i) => ({
             id: log.id,
@@ -67,7 +67,7 @@ async function processarRecebimentoLogs(contexto: ContextoSCAE): Promise<Respons
     }
 }
 
-async function processarVerificacaoLogs(contexto: ContextoSCAE): Promise<Response> {
+async function processarVerificacaoLogs(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.VER_AUDITORIA);
@@ -85,7 +85,7 @@ async function processarVerificacaoLogs(contexto: ContextoSCAE): Promise<Respons
 
         query += ` ORDER BY criado_em DESC LIMIT 500`;
 
-        const { results } = await contexto.env.DB_SCAE.prepare(query).bind(...params).all();
+        const { results } = await contexto.env.DB_CATRAKI.prepare(query).bind(...params).all();
         
         return Response.json({
             dados: results,

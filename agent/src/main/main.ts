@@ -1,6 +1,6 @@
 /**
  * main/main.ts
- * Processo Principal do Electron - Agente Local SCAE v1.5
+ * Processo Principal do Electron - Agente Local Catraki v1.5
  * Hardware Real <-> Dashboard em Tempo Real
  */
 
@@ -20,7 +20,7 @@ async function createWindow() {
     height: 680,
     resizable: false,
     maximizable: false,
-    title: 'SCAE Edge Agent Control',
+    title: 'Catraki Edge Agent Control',
     icon: nativeImage.createEmpty(),
     autoHideMenuBar: true,
     webPreferences: {

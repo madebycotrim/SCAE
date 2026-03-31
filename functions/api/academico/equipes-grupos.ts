@@ -1,4 +1,4 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
 import { verificarAcesso, extrairEscolaId } from '../_seguranca';
 import { Permissao } from '../seguranca/rbac';
@@ -8,7 +8,7 @@ import { esquemaGrupoEquipe } from './equipes.esquemas';
 /**
  * GET — Lista os grupos de uma equipe.
  */
-async function listarGrupos(contexto: ContextoSCAE): Promise<Response> {
+async function listarGrupos(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.VER_ACADEMICO);
@@ -21,7 +21,7 @@ async function listarGrupos(contexto: ContextoSCAE): Promise<Response> {
         }
 
         try {
-            const { results } = await contexto.env.DB_SCAE.prepare(
+            const { results } = await contexto.env.DB_CATRAKI.prepare(
                 `SELECT 
                     g.id, g.equipe_id, g.nome_grupo, g.escala_tipo, g.escala_dias, g.criado_em,
                     (SELECT COUNT(*) FROM aluno_equipe ae WHERE ae.grupo_id = g.id AND ae.escola_id = g.escola_id) as totalAlunos
@@ -48,7 +48,7 @@ async function listarGrupos(contexto: ContextoSCAE): Promise<Response> {
 /**
  * POST — Cria ou atualiza um grupo de equipe.
  */
-async function salvarGrupo(contexto: ContextoSCAE): Promise<Response> {
+async function salvarGrupo(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
@@ -66,7 +66,7 @@ async function salvarGrupo(contexto: ContextoSCAE): Promise<Response> {
         const idGrupo = id || crypto.randomUUID();
 
         try {
-            await contexto.env.DB_SCAE.prepare(
+            await contexto.env.DB_CATRAKI.prepare(
                 `INSERT INTO grupos_equipe (id, escola_id, equipe_id, nome_grupo, escala_tipo, escala_dias, criado_em, atualizado_em) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                     ON CONFLICT(id, escola_id) DO UPDATE SET
@@ -97,7 +97,7 @@ async function salvarGrupo(contexto: ContextoSCAE): Promise<Response> {
 /**
  * DELETE — Remove um grupo de equipe.
  */
-async function removerGrupo(contexto: ContextoSCAE): Promise<Response> {
+async function removerGrupo(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
@@ -110,7 +110,7 @@ async function removerGrupo(contexto: ContextoSCAE): Promise<Response> {
         }
 
         try {
-            const resultado = await contexto.env.DB_SCAE.prepare(
+            const resultado = await contexto.env.DB_CATRAKI.prepare(
                 "DELETE FROM grupos_equipe WHERE id = ? AND escola_id = ?"
             ).bind(id, idEscola).run();
 

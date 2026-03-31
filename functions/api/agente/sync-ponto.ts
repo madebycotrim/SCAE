@@ -2,10 +2,10 @@
  * api/agente/sync-ponto.ts
  * Recebe lotes de batidas de ponto coletadas em hardware local.
  */
-import { ContextoSCAE } from '../../tipos/ambiente';
+import { ContextoCatraki } from '../../tipos/ambiente';
 import { validarAgente } from './_agente-seguranca';
 
-export async function onRequestPost({ request, env }: ContextoSCAE) {
+export async function onRequestPost({ request, env }: ContextoCatraki) {
     // 1. Validar segurança (Token + Escola ID)
     const escolaId = validarAgente(request, env);
     
@@ -17,7 +17,7 @@ export async function onRequestPost({ request, env }: ContextoSCAE) {
         return Response.json({ ok: true, processados: 0 });
     }
 
-    const { DB_SCAE: db } = env;
+    const { DB_CATRAKI: db } = env;
 
     // 3. Persistir lotes no D1
     // Usamos INSERT OR IGNORE para idempotência (evita erro se reenviar lote)

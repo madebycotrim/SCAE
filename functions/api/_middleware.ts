@@ -1,17 +1,17 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import type { ContextoSCAE, DadosTokenFirebase, UsuarioDB } from '../tipos/ambiente';
+import type { ContextoCatraki, DadosTokenFirebase, UsuarioDB } from '../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroNaoAutenticado, ErroPermissao } from './erros';
 import { ServicoCache } from './utilitarios/cache';
 import { EMAIL_ROOT } from './_seguranca';
 
-const ID_PROJETO_FIREBASE = 'scae-b7f8c';
+const ID_PROJETO_FIREBASE = 'catraki-b7f8c';
 
 // Cached at module level — reused across requests within the same Worker instance
 const CONJUNTO_CHAVES_JSON = createRemoteJWKSet(
     new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
 );
 
-async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
+async function processarRequisicao(contexto: ContextoCatraki): Promise<Response> {
     const { request: requisicao, next: proximo } = contexto;
 
     try {
@@ -23,8 +23,9 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         const url = new URL(requisicao.url);
         const rotaResponsavel = url.pathname.startsWith('/api/responsavel/');
         const ehPublicaGet = url.pathname.startsWith('/api/publico/') && requisicao.method === 'GET';
+        const ehRotaAgente = url.pathname.startsWith('/api/agente/');
 
-        if (rotaResponsavel || ehPublicaGet) {
+        if (rotaResponsavel || ehPublicaGet || ehRotaAgente) {
             return proximo();
         }
 
@@ -77,24 +78,24 @@ async function processarRequisicao(contexto: ContextoSCAE): Promise<Response> {
         }
 
         // Tentar buscar usuário no Cache (KV) para evitar 2ª query por request
-        let usuarioScae = await contexto.env.KV_SCAE.get(`user:${idEscola}:${email}`, 'json');
+        let usuarioCatraki = await contexto.env.KV_CATRAKI.get(`user:${idEscola}:${email}`, 'json');
 
-        if (!usuarioScae) {
-            usuarioScae = await contexto.env.DB_SCAE.prepare(
+        if (!usuarioCatraki) {
+            usuarioCatraki = await contexto.env.DB_CATRAKI.prepare(
                 "SELECT * FROM usuarios WHERE email = ? AND escola_id = ? AND ativo = 1"
             ).bind(email, idEscola).first();
 
-            if (usuarioScae) {
-                await contexto.env.KV_SCAE.put(`user:${idEscola}:${email}`, JSON.stringify(usuarioScae), { expirationTtl: 600 }); // Cache curto de 10 min
+            if (usuarioCatraki) {
+                await contexto.env.KV_CATRAKI.put(`user:${idEscola}:${email}`, JSON.stringify(usuarioCatraki), { expirationTtl: 600 }); // Cache curto de 10 min
             }
         }
 
-        if (!usuarioScae && !eAdminGlobal) {
+        if (!usuarioCatraki && !eAdminGlobal) {
             throw new ErroPermissao('Usuário não vinculado ou inativo.', 'AUTH_USER_RESTRICTED');
         }
 
         contexto.data.user = dadosToken as DadosTokenFirebase;
-        contexto.data.usuarioScae = usuarioScae as UsuarioDB | null;
+        contexto.data.usuarioCatraki = usuarioCatraki as UsuarioDB | null;
 
         const resposta = await proximo();
 

@@ -1,16 +1,16 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 
 /**
  * Endpoint de migração incremental para garantir que a tabela escolas
  * tenha todas as colunas necessárias.
  * Acesse GET /api/central/migrar para executar.
  */
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     const resultados: string[] = [];
 
     // Migração 1: Coluna status
     try {
-        await contexto.env.DB_SCAE.prepare(`
+        await contexto.env.DB_CATRAKI.prepare(`
             ALTER TABLE escolas ADD COLUMN status TEXT DEFAULT 'ATIVA'
         `).run();
         resultados.push('Coluna [status] criada com sucesso.');
@@ -20,7 +20,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
 
     // Migração 2: Coluna contato_suporte
     try {
-        await contexto.env.DB_SCAE.prepare(`
+        await contexto.env.DB_CATRAKI.prepare(`
             ALTER TABLE escolas ADD COLUMN contato_suporte TEXT
         `).run();
         resultados.push('Coluna [contato_suporte] criada com sucesso.');

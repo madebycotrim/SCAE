@@ -1,9 +1,9 @@
-import type { ContextoSCAE, PayloadRegistroAcesso, ResultadoSincronizacao } from '../../tipos/ambiente';
+import type { ContextoCatraki, PayloadRegistroAcesso, ResultadoSincronizacao } from '../../tipos/ambiente';
 import { ErroValidacao, ErroInterno, ErroBase } from '../erros';
 import { verificarAcesso, extrairEscolaId } from '../_seguranca';
 import { Permissao } from '../seguranca/rbac';
 
-async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Response> {
+async function processarSincronizacaoAcessos(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         // RBAC: PORTEIRO também pode sincronizar
@@ -21,7 +21,7 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
         }
 
         // Usar db.batch() para inserir todos de uma vez (1 round-trip ao D1)
-        const stmt = contexto.env.DB_SCAE.prepare(
+        const stmt = contexto.env.DB_CATRAKI.prepare(
             `INSERT OR IGNORE INTO registros_acesso
             (id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, timestamp_acesso, sincronizado)
             VALUES (?, ?, ?, ?, ?, ?, 1)`
@@ -36,7 +36,7 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
             registro.timestamp
         ));
 
-        const batchResults = await contexto.env.DB_SCAE.batch(stmts);
+        const batchResults = await contexto.env.DB_CATRAKI.batch(stmts);
 
         const resultados: ResultadoSincronizacao[] = registros.map((registro, i) => ({
             id: registro.id,
@@ -57,7 +57,7 @@ async function processarSincronizacaoAcessos(contexto: ContextoSCAE): Promise<Re
     }
 }
 
-async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> {
+async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.VER_ACESSO);
@@ -87,9 +87,9 @@ async function processarBuscaAcessos(contexto: ContextoSCAE): Promise<Response> 
         }
 
         // Buscar total + dados em batch (1 round-trip)
-        const [countResult, dataResult] = await contexto.env.DB_SCAE.batch([
-            contexto.env.DB_SCAE.prepare(`SELECT COUNT(*) as total ${queryBase}`).bind(...params),
-            contexto.env.DB_SCAE.prepare(
+        const [countResult, dataResult] = await contexto.env.DB_CATRAKI.batch([
+            contexto.env.DB_CATRAKI.prepare(`SELECT COUNT(*) as total ${queryBase}`).bind(...params),
+            contexto.env.DB_CATRAKI.prepare(
                 `SELECT id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura as metodo_validacao, timestamp_acesso as timestamp, sincronizado ${queryBase} ORDER BY timestamp_acesso DESC LIMIT ? OFFSET ?`
             ).bind(...params, porPagina, offset)
         ]);

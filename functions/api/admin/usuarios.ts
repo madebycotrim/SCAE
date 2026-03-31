@@ -1,13 +1,13 @@
 import { ErroBase, ErroInterno } from '../erros';
-import { ContextoSCAE } from '../../tipos/ambiente';
+import { ContextoCatraki } from '../../tipos/ambiente';
 import { verificarPermissao } from '../_seguranca';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         // RBAC: Apenas CENTRAL pode listar todos os usuários globalmente
         verificarPermissao(contexto, ['CENTRAL']);
 
-        const { results } = await contexto.env.DB_SCAE.prepare(
+        const { results } = await contexto.env.DB_CATRAKI.prepare(
             `SELECT
                 u.email,
                 u.escola_id,

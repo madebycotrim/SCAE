@@ -42,7 +42,7 @@ export default function LoginCentral() {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 mb-6">
                         <ShieldCheck className="text-slate-600" size={32} />
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">SCAE Central</h1>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Catraki Central</h1>
                     <p className="text-sm text-slate-500 mt-2">Painel de Administração Global</p>
                 </div>
 
@@ -80,7 +80,7 @@ export default function LoginCentral() {
                 </div>
 
                 <div className="mt-8 text-center">
-                    <p className="text-xs text-slate-400">Desenvolvido sob infraestrutura SCAE © {new Date().getFullYear()}</p>
+                    <p className="text-xs text-slate-400">Desenvolvido sob infraestrutura Catraki © {new Date().getFullYear()}</p>
                 </div>
             </div>
         </div>

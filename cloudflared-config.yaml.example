@@ -1,0 +1,9 @@
+# Configuração do Túnel SCAE (Local)
+# Execute: cloudflared tunnel run SCAE
+tunnel: 7b65ef91-22b2-4041-8580-06f5093ab147
+credentials-file: ~/.cloudflared/7b65ef91-22b2-4041-8580-06f5093ab147.json
+
+ingress:
+  - hostname: scae-api.seudominio.com # Substitua pelo seu hostname configurado
+    service: http://localhost:8788
+  - service: http_status:404

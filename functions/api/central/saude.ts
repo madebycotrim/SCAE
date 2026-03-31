@@ -3,15 +3,15 @@
  * Healthcheck endpoint para monitoramento do sistema.
  * Retorna status do banco D1 e metadata.
  */
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     const inicio = Date.now();
     let dbStatus: 'ok' | 'erro' = 'ok';
     let dbLatencia = 0;
 
     try {
-        await contexto.env.DB_SCAE.prepare('SELECT 1').first();
+        await contexto.env.DB_CATRAKI.prepare('SELECT 1').first();
         dbLatencia = Date.now() - inicio;
     } catch {
         dbStatus = 'erro';
@@ -20,7 +20,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
 
     let kvStatus: 'ok' | 'erro' = 'ok';
     try {
-        await contexto.env.KV_SCAE.get('__healthcheck__');
+        await contexto.env.KV_CATRAKI.get('__healthcheck__');
     } catch {
         kvStatus = 'erro';
     }

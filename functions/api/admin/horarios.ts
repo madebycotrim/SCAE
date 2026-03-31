@@ -1,13 +1,13 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroValidacao, ErroNaoEncontrado } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../_seguranca';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         const escolaId = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
 
-        const result = await contexto.env.DB_SCAE.prepare(`
+        const result = await contexto.env.DB_CATRAKI.prepare(`
             SELECT janelas FROM escolas WHERE id = ?
         `).bind(escolaId).first<{ janelas: string }>();
 
@@ -31,7 +31,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestPatch(contexto: ContextoCatraki): Promise<Response> {
     try {
         const escolaId = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
@@ -49,7 +49,7 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
 
         const janelasJson = JSON.stringify(corpo.janelas);
 
-        const resultado = await contexto.env.DB_SCAE.prepare(`
+        const resultado = await contexto.env.DB_CATRAKI.prepare(`
             UPDATE escolas SET janelas = ? WHERE id = ?
         `).bind(janelasJson, escolaId).run();
 

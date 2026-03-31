@@ -1,4 +1,4 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroInterno } from '../erros';
 import { extrairEscolaId, verificarPermissao } from '../_seguranca';
 import { CALENDARIO_SEEDF_2026, obterDiasNaoLetivos } from './calendario.compartilhado';
@@ -7,13 +7,13 @@ interface EscolaDominio {
     dominio_email: string | null;
 }
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO', 'SECRETARIA']);
 
         // Busca dias manuais configurados pela escola
-        const { results: diasManuais } = await contexto.env.DB_SCAE.prepare(
+        const { results: diasManuais } = await contexto.env.DB_CATRAKI.prepare(
             `SELECT data, escola_id, descricao, tipo FROM calendario_letivo WHERE escola_id = ? ORDER BY data ASC`
         ).bind(idEscola).all();
 
@@ -25,7 +25,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         }
 
         // Fallback: calendário SEEDF para escolas do DF
-        const escola = await contexto.env.DB_SCAE.prepare(
+        const escola = await contexto.env.DB_CATRAKI.prepare(
             `SELECT dominio_email FROM escolas WHERE id = ?`
         ).bind(idEscola).first<EscolaDominio>();
 
@@ -49,7 +49,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestPost(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
@@ -58,12 +58,12 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
         const acao = searchParams.get('acao');
 
         if (acao === 'sincronizar_seedf') {
-            const stmt = contexto.env.DB_SCAE.prepare(
+            const stmt = contexto.env.DB_CATRAKI.prepare(
                 `INSERT OR REPLACE INTO calendario_letivo (data, escola_id, descricao, tipo)
                  VALUES (?, ?, ?, ?)`
             );
 
-            await contexto.env.DB_SCAE.batch(
+            await contexto.env.DB_CATRAKI.batch(
                 CALENDARIO_SEEDF_2026.map(d => stmt.bind(d.data, idEscola, d.descricao, d.tipo))
             );
 
@@ -84,7 +84,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
             throw new ErroValidacao('Data é obrigatória', 'CALENDARIO_DATA_AUSENTE');
         }
 
-        await contexto.env.DB_SCAE.prepare(
+        await contexto.env.DB_CATRAKI.prepare(
             `INSERT OR REPLACE INTO calendario_letivo (data, escola_id, descricao, tipo)
              VALUES (?, ?, ?, ?)`
         ).bind(dados.data, idEscola, dados.descricao || '', dados.tipo || 'FERIADO').run();
@@ -102,7 +102,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-export async function onRequestDelete(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestDelete(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
@@ -114,7 +114,7 @@ export async function onRequestDelete(contexto: ContextoSCAE): Promise<Response>
             throw new ErroValidacao('Data é obrigatória para remoção', 'CALENDARIO_DATA_AUSENTE');
         }
 
-        await contexto.env.DB_SCAE.prepare(
+        await contexto.env.DB_CATRAKI.prepare(
             `DELETE FROM calendario_letivo WHERE data = ? AND escola_id = ?`
         ).bind(data, idEscola).run();
 

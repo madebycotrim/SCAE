@@ -7,11 +7,11 @@
 // Bindings do Ambiente (Cloudflare wrangler.toml / Pages Settings)
 // ============================================================
 
-export interface AmbienteSCAE {
+export interface AmbienteCatraki {
     /** Banco D1 principal do sistema */
-    DB_SCAE: D1Database;
+    DB_CATRAKI: D1Database;
     /** Cache de alto desempenho KV */
-    KV_SCAE: KVNamespace;
+    KV_CATRAKI: KVNamespace;
     /** Bypass de autenticação para desenvolvimento local (valor: '1') */
     DEV_AUTH_BYPASS?: string;
     /** Tenant padrão quando não enviado no header */
@@ -24,12 +24,12 @@ export interface AmbienteSCAE {
 
 export interface DadosContexto {
     user?: DadosTokenFirebase;
-    usuarioScae?: UsuarioDB;
+    usuarioCatraki?: UsuarioDB;
 }
 
-export interface ContextoSCAE {
+export interface ContextoCatraki {
     request: Request;
-    env: AmbienteSCAE;
+    env: AmbienteCatraki;
     params: Record<string, string>;
     data: DadosContexto;
     next: () => Promise<Response>;

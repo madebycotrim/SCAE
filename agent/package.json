@@ -1,10 +1,10 @@
 {
-  "name": "scae-agent",
+  "name": "catraki-agent",
   "version": "1.1.0",
-  "description": "Agente local SCAE - Comunicação Modular de Hardware",
+  "description": "Agente local Catraki - Comunicação Modular de Hardware",
   "main": "dist/main/main.js",
   "scripts": {
-    "dev": "tsc && copy src\\main\\index.html dist\\main\\index.html && electron dist/main/main.js",
+    "dev": "npm run build && npx electron .",
     "build": "tsc && copy src\\main\\index.html dist\\main\\index.html",
     "package": "npm run build && electron-builder"
   },
@@ -22,8 +22,8 @@
     "typescript": "^5.3.3"
   },
   "build": {
-    "appId": "br.gov.df.scae.agent",
-    "productName": "SCAE Agent",
+    "appId": "br.com.catraki.agent",
+    "productName": "Catraki Agent",
     "win": {
       "target": "nsis"
     },

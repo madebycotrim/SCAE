@@ -30,11 +30,20 @@ export const IdFlexHelper = {
         let body = '';
         res.on('data', (c) => body += c);
         res.on('end', () => {
+          if (res.statusCode && res.statusCode >= 400) {
+            const err = new Error(`Erro HTTP ${res.statusCode} do iDFlex: ${body.slice(0, 100)}`);
+            (err as any).code = 'HTTP_ERROR';
+            (err as any).statusCode = res.statusCode;
+            return reject(err);
+          }
+          
           try {
             const json = JSON.parse(body);
             resolve(json);
           } catch {
-            reject(new Error(`Resposta iDFlex inválida (JSON Malformado): ${body}`));
+            const err = new Error(`Resposta iDFlex inválida (JSON Malformado): ${body.slice(0, 100)}`);
+            (err as any).code = 'JSON_MALFORMED';
+            reject(err);
           }
         });
       });

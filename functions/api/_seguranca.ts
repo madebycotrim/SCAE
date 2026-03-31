@@ -2,7 +2,7 @@
  * Centralização da lógica de Segurança e RBAC (Regra 6).
  */
 import { ErroPermissao, ErroValidacao } from './erros';
-import type { ContextoSCAE } from '../tipos/ambiente';
+import type { ContextoCatraki } from '../tipos/ambiente';
 import { Permissao, Papel, temPermissao } from './seguranca/rbac';
 
 /** Email root do sistema — centralizado para evitar hardcode espalhado */
@@ -12,8 +12,8 @@ export const EMAIL_ROOT = 'madebycotrim@gmail.com';
  * [DEPRECADA] Evite usar arrays de string mágicos.
  * Use `verificarAcesso(contexto, Permissao.ACAO_ESPECIFICA)`
  */
-export function verificarPermissao(contexto: ContextoSCAE, papeisPermitidos: string[] | Papel[]) {
-    const papelUsuario = contexto.data.usuarioScae?.papel;
+export function verificarPermissao(contexto: ContextoCatraki, papeisPermitidos: string[] | Papel[]) {
+    const papelUsuario = contexto.data.usuarioCatraki?.papel;
     const eDono = contexto.data.user?.email === EMAIL_ROOT;
 
     if (eDono) return;
@@ -28,8 +28,8 @@ export function verificarPermissao(contexto: ContextoSCAE, papeisPermitidos: str
  * Verifica se o usuário tem a CAPABILITY necessária para a ação,
  * consultando a matriz de RBAC central, isolando Papéis soltos.
  */
-export function verificarAcesso(contexto: ContextoSCAE, permissaoNecessaria: Permissao) {
-    const papelUsuario = contexto.data.usuarioScae?.papel as Papel | undefined;
+export function verificarAcesso(contexto: ContextoCatraki, permissaoNecessaria: Permissao) {
+    const papelUsuario = contexto.data.usuarioCatraki?.papel as Papel | undefined;
     const eDono = contexto.data.user?.email === EMAIL_ROOT;
 
     // Desenvolvedor ROOT tem acesso global ilimitado

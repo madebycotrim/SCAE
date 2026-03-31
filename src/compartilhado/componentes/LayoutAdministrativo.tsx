@@ -206,7 +206,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-indigo-200">
                         <Crown size={40} className="text-indigo-600" />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-2">Bem-vindo(a) ao SCAE!</h2>
+                    <h2 className="text-2xl font-black text-slate-800 mb-2">Bem-vindo(a) ao Catraki!</h2>
                     <p className="text-slate-400 mb-8 leading-relaxed">
                         Você recebeu acesso de <span className="font-bold text-indigo-600">{usuario.papel}</span>.
                         Para continuar, confirme seus dados e aceite o convite para utilizar o sistema.
@@ -272,7 +272,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         {!sidebarMinimizado && (
                             <div className="flex flex-col">
                                 <h1 className="font-black text-white leading-tight uppercase tracking-widest">
-                                    SCAE
+                                    Catraki
                                 </h1>
                                 <p className="text-[12px] text-slate-400 font-bold truncate max-w-[160px] uppercase tracking-tighter">{nomeEscola}</p>
                             </div>

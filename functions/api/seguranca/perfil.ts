@@ -1,10 +1,10 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroNaoEncontrado } from '../erros';
 import { EMAIL_ROOT } from '../_seguranca';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
-        const usuarioBD = contexto.data.usuarioScae;
+        const usuarioBD = contexto.data.usuarioCatraki;
         const dadosToken = contexto.data.user;
 
         // 🛡️ BYPASS ADMIN GLOBAL: Se for o desenvolvedor raiz, sempre retorna perfil full

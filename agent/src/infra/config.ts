@@ -25,7 +25,7 @@ export interface AgenteConfig {
 
 // Configuração carregada por variável de ambiente ou arquivo local
 export const config: AgenteConfig = {
-  escola_id: process.env.SCAE_ESCOLA_ID || 'cem03-taguatinga',
+  escola_id: process.env.CATRAKI_ESCOLA_ID || 'cem03-taguatinga',
   leitores: [
     {
       id: 'portaria-principal',
@@ -44,6 +44,6 @@ export const config: AgenteConfig = {
   ],
   intervalo_polling_ms: 1000,   // Coleta a cada 1 segundo
   intervalo_sync_ms: 5000,      // Sincroniza com a nuvem a cada 5 segundos
-  endpoint_worker: process.env.SCAE_API_URL || 'https://scae.workers.dev',
-  agente_token: process.env.SCAE_AGENTE_TOKEN || 'scae_dev_token'
+  endpoint_worker: process.env.CATRAKI_TUNNEL_URL || process.env.CATRAKI_API_URL || 'https://catraki.workers.dev',
+  agente_token: process.env.CATRAKI_AGENTE_TOKEN || 'catraki_dev_token'
 };

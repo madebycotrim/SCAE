@@ -12,11 +12,13 @@ import { NotificadorVoz } from './notificador-voz';
 
 export let leitoresAtivos: ILeitor[] = config.leitores.map(c => LeitorFactory.criarLeitor(c));
 let notificadorGlobal: NotificadorVoz | null = null;
+const falhasLeitores: Map<string, { contador: number, proximaTentativa: number }> = new Map();
 
 /** Reinicializa os leitores após uma mudança de config */
 export function recarregarLeitores() {
   console.log('[Hardware] Recarregando drivers de biometria...');
   leitoresAtivos = config.leitores.map(c => LeitorFactory.criarLeitor(c));
+  falhasLeitores.clear();
 }
 
 /** Inicia o loop infinito de coleta de hardware */
@@ -39,7 +41,15 @@ export async function iniciarPolling(notificador?: NotificadorVoz | null) {
 
 /** Varre cada equipamento, busca novos eventos e salva no SQLite local */
 async function executarCicloColeta() {
+  const agora = Date.now();
+
   for (const leitor of leitoresAtivos) {
+    // Implementação de Backoff: se o leitor está falhando, espera mais tempo para tentar novamente
+    const falha = falhasLeitores.get(leitor.id);
+    if (falha && agora < falha.proximaTentativa) {
+      continue; 
+    }
+
     try {
       // 1. Onde paramos a leitura neste equipamento?
       const cursor = await getSql<{ ultimo_evento_id: string }>(
@@ -50,6 +60,13 @@ async function executarCicloColeta() {
 
       // 2. Busca novos eventos no hardware (TCP/USB/REST)
       const novosEventos = await leitor.buscarEventos(ultimoId);
+      
+      // Se chegou aqui, a comunicação funcionou. Limpa registro de falhas.
+      if (falhasLeitores.has(leitor.id)) {
+        console.log(`[Poller] ${leitor.nome}: Comunicação restabelecida.`);
+        falhasLeitores.delete(leitor.id);
+      }
+
       if (novosEventos.length === 0) continue;
 
       console.log(`[Poller] ${leitor.nome}: Coletou ${novosEventos.length} novas presenças.`);
@@ -99,8 +116,21 @@ async function executarCicloColeta() {
           atualizado_em = datetime('now', 'localtime')
       `, [leitor.id, maxId]);
 
-    } catch (e) {
-      console.error(`[Poller] Erro na coleta do equipamento ${leitor.id}:`, e);
+    } catch (e: any) {
+      // Registra a falha e calcula o backoff (ex: 5s, 10s, 20s... até 1 minuto)
+      const falhaAtual = falhasLeitores.get(leitor.id) || { contador: 0, proximaTentativa: 0 };
+      const novoContador = falhaAtual.contador + 1;
+      const delay = Math.min(5000 * Math.pow(2, Math.min(novoContador - 1, 4)), 60000); // Max 1 min
+      
+      falhasLeitores.set(leitor.id, {
+        contador: novoContador,
+        proximaTentativa: agora + delay
+      });
+
+      // Evita poluir o log se for erro de conexão (já logado pelo driver amigavelmente)
+      if (e.code !== 'ECONNREFUSED' && e.code !== 'ETIMEDOUT') {
+        console.error(`[Poller] Falha crítica no leitor ${leitor.id}:`, e.message);
+      }
     }
   }
 }

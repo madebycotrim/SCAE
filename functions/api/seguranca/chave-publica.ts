@@ -1,4 +1,4 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ServicoCache } from '../utilitarios/cache';
 import { ErroValidacao, ErroNaoEncontrado } from '../erros';
 
@@ -6,7 +6,7 @@ import { ErroValidacao, ErroNaoEncontrado } from '../erros';
  * Endpoint para fornecer a Chave Pública ECDSA P-256 da escola.
  * Utilizado pelos tablets/quiosques para validar assinaturas de QR Code offline.
  */
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     const url = new URL(contexto.request.url);
     const escolaId = url.searchParams.get('escola_id');
 

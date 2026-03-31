@@ -3,10 +3,10 @@
  * Cálculo dinâmico de ausências (Alunos que não bateram ponto).
  */
 
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { extrairEscolaId } from '../_seguranca';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         const { searchParams } = new URL(contexto.request.url);
@@ -15,13 +15,13 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
         const dataAlvo = searchParams.get('data') || new Date().toISOString().split('T')[0];
 
         // 1. Buscar todos os alunos ativos da escola
-        const alunosAtivos = await contexto.env.DB_SCAE.prepare(
+        const alunosAtivos = await contexto.env.DB_CATRAKI.prepare(
             `SELECT matricula, nome_completo, turma_id FROM alunos 
              WHERE escola_id = ? AND ativo = 1`
         ).bind(idEscola).all<any>();
 
         // 2. Buscar matrículas que bateram ponto hoje (ENTRADA)
-        const presencas = await contexto.env.DB_SCAE.prepare(
+        const presencas = await contexto.env.DB_CATRAKI.prepare(
             `SELECT DISTINCT aluno_matricula FROM registros_acesso 
              WHERE escola_id = ? 
              AND substr(timestamp_acesso, 1, 10) = ?

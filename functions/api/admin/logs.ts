@@ -1,13 +1,13 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroInterno } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../_seguranca';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN']);
 
-        const { results } = await contexto.env.DB_SCAE.prepare(
+        const { results } = await contexto.env.DB_CATRAKI.prepare(
             `SELECT
                 a.id,
                 a.escola_id,

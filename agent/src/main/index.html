@@ -2,136 +2,383 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>SCAE Edge Control</title>
+    <title>Catraki Edge Control</title>
     <style>
-        :root { --p: #4f46e5; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --sub: #64748b; --green: #22c55e; }
-        body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system; background: var(--bg); color: var(--text); overflow: hidden; }
-        .header { background: #0f172a; color: white; padding: 1.5rem 2rem; border-bottom: 4px solid var(--p); display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { margin: 0; font-size: 1rem; font-weight: 900; letter-spacing: -0.01em; }
-        .school-info { font-size: 10px; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
+        :root { 
+            --primary: #6366f1; 
+            --primary-dark: #4f46e5;
+            --bg: #f1f5f9; 
+            --card: #ffffff; 
+            --text-main: #0f172a; 
+            --text-sub: #64748b; 
+            --success: #10b981; 
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+        }
 
-        .container { padding: 1rem; display: grid; gap: 1rem; height: calc(100vh - 100px); }
-        .top-row { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1rem; }
+        * { box-sizing: border-box; transition: all 0.2s ease; }
         
-        .card { background: var(--card); border-radius: 1.25rem; padding: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .card-title { font-size: 9px; font-weight: 900; color: var(--sub); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+        body { 
+            margin: 0; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
 
-        .cam-box { width: 120px; height: 120px; background: #000; border-radius: 50%; overflow: hidden; border: 3px solid var(--p); margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+        /* Auth Screen */
+        .auth-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: var(--dark); 
+            z-index: 1000; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            backdrop-filter: blur(8px); 
+        }
+        .auth-card { 
+            background: white; 
+            width: 360px; 
+            padding: 3rem 2rem; 
+            border-radius: 2rem; 
+            text-align: center; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
+        }
+        .auth-card h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--dark); }
+        .auth-card p { font-size: 0.875rem; color: var(--text-sub); margin-bottom: 2rem; line-height: 1.5; }
+        
+        .pin-container { margin-bottom: 2rem; }
+        .pin-input { 
+            width: 100%; 
+            padding: 1rem; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 1rem; 
+            text-align: center; 
+            font-size: 2rem; 
+            font-weight: 700;
+            letter-spacing: 0.5rem;
+            color: var(--primary-dark);
+        }
+        .pin-input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        .btn-primary { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 1rem; 
+            border-radius: 1rem; 
+            width: 100%; 
+            font-weight: 700; 
+            font-size: 1rem;
+            cursor: pointer; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .btn-primary:active { transform: translateY(0); }
+
+        /* Main App Header */
+        .header { 
+            background: white; 
+            padding: 1.25rem 1.5rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .header h1 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+        .header .dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+        .school-badge { 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            color: var(--primary-dark); 
+            background: rgba(99, 102, 241, 0.1); 
+            padding: 4px 12px; 
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        /* Dashboard Layout */
+        .dashboard { 
+            padding: 1.5rem; 
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        
+        .card { 
+            background: var(--card); 
+            border-radius: 1.5rem; 
+            padding: 1.5rem; 
+            border: 1px solid #e2e8f0; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+            display: flex;
+            flex-direction: column;
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+        .card-title { font-size: 0.75rem; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Vision Card */
+        .vision-box { 
+            aspect-ratio: 1; 
+            background: #000; 
+            border-radius: 1.25rem; 
+            overflow: hidden; 
+            position: relative;
+            border: 2px solid #f1f5f9;
+        }
         video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        .vision-overlay { 
+            position: absolute; 
+            bottom: 0; 
+            inset-x: 0; 
+            background: linear-gradient(transparent, rgba(0,0,0,0.8)); 
+            padding: 1rem; 
+            color: white; 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            text-align: center; 
+        }
 
-        .status-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f1f5f9; border-radius: 12px; margin-bottom: 8px; font-size: 11px; font-weight: 800; border-left: 5px solid #cbd5e1; transition: all 0.3s; }
-        .status-item.active { border-left-color: var(--green); background: #f0fdf4; color: #15803d; }
-        .status-icon { font-size: 16px; margin-right: 8px; }
+        /* Status Items */
+        .status-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .status-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 1rem; 
+            background: #f8fafc; 
+            border-radius: 1rem; 
+            font-size: 0.8125rem; 
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+        .status-item.active { background: #f0fdf4; border-color: #dcfce7; color: #15803d; }
+        .status-item.offline { background: #fef2f2; border-color: #fee2e2; color: #b91c1c; }
+        .status-indicator { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+        .active .status-indicator { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .offline .status-indicator { background: var(--error); box-shadow: 0 0 8px var(--error); }
 
-        .log-box { background: #0f172a; border-radius: 1rem; padding: 1rem; color: #94a3b8; font-family: 'Consolas', monospace; font-size: 10px; height: 260px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
-        .log-entry { border-bottom: 1px solid #1e293b; padding: 6px 0; display: flex; gap: 8px; }
-        .log-time { color: var(--p); font-weight: bold; min-width: 60px; }
+        /* Log Section */
+        .log-section { flex: 1; min-height: 200px; display: flex; flex-direction: column; }
+        .log-container { 
+            background: var(--dark); 
+            border-radius: 1.25rem; 
+            padding: 1.25rem; 
+            flex: 1;
+            font-family: 'JetBrains Mono', 'Consolas', monospace; 
+            font-size: 0.75rem; 
+            color: #94a3b8; 
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .log-line { display: flex; gap: 12px; line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px; }
+        .log-time { color: var(--primary); font-weight: 700; opacity: 0.8; }
+        .log-msg { color: #e2e8f0; }
+        .log-type-info { color: #38bdf8; }
+        .log-type-warn { color: #fbbf24; }
+        .log-type-error { color: #f87171; }
 
-        .auth-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .auth-card { background: white; width: 320px; padding: 2.5rem; border-radius: 2rem; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-        select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 1rem; font-size: 13px; font-weight: 800; background: #f8fafc; }
-        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; margin: 1rem 0; text-align: center; font-size: 24px; letter-spacing: 6px; }
-        button { background: var(--p); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 900; cursor: pointer; }
+        /* Footer */
+        .footer { 
+            padding: 1rem 1.5rem; 
+            font-size: 0.7rem; 
+            color: var(--text-sub); 
+            display: flex; 
+            justify-content: space-between; 
+            background: white; 
+            border-top: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
+    <!-- Auth Screen -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
-            <h2 style="margin:0; font-size: 1.25rem;">🔒 Acesso Agente</h2>
-            <p style="font-size: 11px; color: var(--sub); margin: 8px 0;">DIGITE O PIN EXCLUSIVO DA UNIDADE</p>
+            <h2>Bem-vindo ao Catraki</h2>
+            <p>Digite o PIN da sua unidade escolar para ativar o terminal inteligente.</p>
             
-            <input type="password" id="pin" placeholder="••••••" maxlength="6">
-            <button onclick="autenticar()">ATIVAR TERMINAL</button>
-            <p style="font-size: 9px; color: #94a3b8; margin-top: 1rem;">O PIN vincula este terminal à sua escola automaticamente.</p>
+            <div class="pin-container">
+                <input type="password" id="pin" class="pin-input" placeholder="••••••" maxlength="6" autofocus>
+            </div>
+            
+            <button class="btn-primary" id="btn-auth">ATIVAR AGENTE</button>
+            <p style="margin-top: 1.5rem; font-size: 0.7rem;">O PIN vincula este hardware à rede central da escola de forma segura.</p>
         </div>
     </div>
 
+    <!-- Main Header -->
     <div class="header">
-        <h1>SCAE Edge Agent</h1>
-        <div class="school-info" id="school-name">Escola: Carregando...</div>
+        <h1><span class="dot"></span> Catraki Edge Control</h1>
+        <div id="school-badge" class="school-badge">Aguardando PIN...</div>
     </div>
 
-    <div class="container">
-        <div class="top-row">
+    <!-- Dashboard Content -->
+    <div class="dashboard">
+        <div class="stats-grid">
+            <!-- Computer Vision Card -->
             <div class="card">
-                <div class="card-title">👨‍💻 Visão Computacional</div>
-                <div class="cam-box"><video id="webcam" autoplay muted playsinline></video></div>
-                <p style="font-size: 9px; text-align:center; color: var(--sub); margin-top: 12px; font-weight: 800;" id="vision-text">AGUARDANDO ATIVAÇÃO...</p>
+                <div class="card-header">
+                    <span class="card-title">Visão Computacional</span>
+                </div>
+                <div class="vision-box">
+                    <video id="webcam" autoplay muted playsinline></video>
+                    <div class="vision-overlay" id="vision-status">RECONHECIMENTO INATIVO</div>
+                </div>
             </div>
+
+            <!-- Hardware Status Card -->
             <div class="card">
-                <div class="card-title">📟 Status Operacional</div>
-                <div class="status-item active" id="st-facial"><span class="status-icon">👨</span> RECONHECIMENTO FACIAL: ONLINE</div>
-                <div class="status-item" id="st-biometry"><span class="status-icon">☝️</span> BIOMETRIA: OFFLINE</div>
-                <div class="status-item" id="st-sync"><span class="status-icon">📡</span> SINCRONIZAÇÃO NUVEM: OK</div>
+                <div class="card-header">
+                    <span class="card-title">Estado do Hardware</span>
+                </div>
+                <div class="status-list">
+                    <div class="status-item" id="st-biometry">
+                        <span class="status-indicator"></span>
+                        <span>Leitor Biométrico</span>
+                    </div>
+                    <div class="status-item" id="st-face">
+                        <span class="status-indicator"></span>
+                        <span>Reconhecimento Facial</span>
+                    </div>
+                    <div class="status-item" id="st-cloud">
+                        <span class="status-indicator"></span>
+                        <span>Sincronização Nuvem</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="card">
-            <div class="card-title">🕒 Atividade em Tempo Real</div>
-            <div id="logs" class="log-box"></div>
+
+        <!-- Terminal Logs Card -->
+        <div class="card log-section">
+            <div class="card-header">
+                <span class="card-title">Log de Operações</span>
+            </div>
+            <div id="log-container" class="log-container">
+                <div class="log-line">
+                    <span class="log-time">00:00:00</span>
+                    <span class="log-msg log-type-info">Aguardando inicialização do sistema...</span>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- Footer Status Bar -->
+    <div class="footer">
+        <div>Catraki Edge Agent v1.5.0</div>
+        <div id="runtime-status">Processamento: Local Edge</div>
     </div>
 
     <script>
-        function adicionarLog(msg) {
-            const logs = document.getElementById('logs');
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.innerHTML = '<span class="log-time">' + new Date().toLocaleTimeString() + '</span> ' + msg;
-            logs.appendChild(entry);
+        const logContainer = document.getElementById('log-container');
+        const visionStatus = document.getElementById('vision-status');
+        const btnAuth = document.getElementById('btn-auth');
+        const pinInput = document.getElementById('pin');
+        const authScreen = document.getElementById('auth-screen');
+        const schoolBadge = document.getElementById('school-badge');
+
+        function pushLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('pt-BR');
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-msg log-type-${type}">${message}</span>
+            `;
+            logContainer.appendChild(line);
+            logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        async function autenticar() {
-            const pin = document.getElementById('pin').value;
-            
-            if (!pin || pin.length < 6) return alert("PIN deve ter 6 dígitos!");
-            
-            adicionarLog("SCAE Borda: Validando PIN via Túnel Local...");
+        async function handleAuth() {
+            const pin = pinInput.value;
+            if (pin.length < 6) {
+                pushLog("PIN inválido: deve ter 6 dígitos", "error");
+                return;
+            }
+
+            btnAuth.disabled = true;
+            btnAuth.textContent = "AUTENTICANDO...";
+            pushLog("Iniciando handshake com a nuvem...");
 
             try {
-                // Linkar terminal com a escola via IPC (Evita erros de CORS/Rede no browser)
-                if (!window.scaeApi) return alert("API Interna indisponível.");
-                
-                const dados = await window.scaeApi.loginPin(pin);
+                const res = await window.scaeApi.loginPin(pin);
+                if (res.ok) {
+                    pushLog("Autenticação bem-sucedida! Escola: " + res.escola_nome, "info");
+                    schoolBadge.textContent = res.escola_nome;
+                    authScreen.classList.add('hidden');
+                    
+                    // Salvar no main process
+                    await window.scaeApi.saveConfig({ 
+                        escolaId: res.escola_id, 
+                        token: res.token,
+                        configHardware: res.config_hardware 
+                    });
 
-                if (!dados.ok) {
-                    return alert(dados.mensagem || "PIN Inválido!");
+                    pushLog("Configurações aplicadas. Ativando drivers...");
+                    visionStatus.textContent = "SISTEMA ATIVO - MONITORANDO";
+                    
+                    // Iniciar Câmera
+                    startCamera();
+                } else {
+                    pushLog(res.mensagem || "Erro no PIN", "error");
+                    btnAuth.disabled = false;
+                    btnAuth.textContent = "ATIVAR AGENTE";
                 }
-
-                // Salvar Configuração no Backend do Agente (Incluindo Hardware Remoto)
-                await window.scaeApi.saveConfig({
-                    escolaId: dados.escola_id,
-                    token: dados.token,
-                    configHardware: dados.config_hardware
-                });
-
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('school-name').innerText = "Escola: " + dados.nome_escola;
-                
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    document.getElementById('webcam').srcObject = stream;
-                    adicionarLog("SCAE Borda Ativado: " + dados.nome_escola);
-                } catch(e) { 
-                    adicionarLog("Alerta: Sem câmera instalada."); 
-                }
-
-            } catch (err) {
-                alert("Falha de rede ao tentar ativar terminal.");
+            } catch (e) {
+                pushLog("Erro de rede: " + e.message, "error");
+                btnAuth.disabled = false;
+                btnAuth.textContent = "ATIVAR AGENTE";
             }
         }
 
-        // Integração Real com o Backend (Node API via Preload)
-        if (window.scaeApi) {
-            window.scaeApi.onHardwareStatus((status) => {
-                document.getElementById('st-biometry').className = status.biometria ? 'status-item active' : 'status-item';
-                document.getElementById('st-biometry').innerHTML = '<span class="status-icon">☝️</span> BIOMETRIA: ' + (status.biometria ? 'ATIVA' : 'DESLIGADA');
-                
-                document.getElementById('st-sync').className = status.sync ? 'status-item active' : 'status-item';
-                document.getElementById('school-name').innerText = "Escola: " + status.escola;
-            });
-
-            window.scaeApi.onNewLog((msg) => adicionarLog(msg));
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                document.getElementById('webcam').srcObject = stream;
+                pushLog("Câmera frontal ativada com sucesso.");
+            } catch (e) {
+                pushLog("Falha ao acessar câmera: " + e.message, "warn");
+            }
         }
+
+        // Event Listeners
+        btnAuth.addEventListener('click', handleAuth);
+        pinInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleAuth());
+
+        // Escutar Status do Hardware
+        window.scaeApi.onHardwareStatus((status) => {
+            const stBio = document.getElementById('st-biometry');
+            const stFace = document.getElementById('st-face');
+            const stCloud = document.getElementById('st-cloud');
+
+            if (stBio) stBio.className = `status-item ${status.biometria ? 'active' : 'offline'}`;
+            if (stFace) stFace.className = `status-item active`; // Always active after auth
+            if (stCloud) stCloud.className = `status-item ${status.sync ? 'active' : 'offline'}`;
+        });
+
+        // Escutar Logs do Main Process
+        window.scaeApi.onNewLog((log) => {
+            let type = 'info';
+            if (log.toLowerCase().includes('erro') || log.toLowerCase().includes('falha')) type = 'error';
+            if (log.toLowerCase().includes('aviso') || log.toLowerCase().includes('desconectado')) type = 'warn';
+            pushLog(log, type);
+        });
+
+        pushLog("Catraki Edge Control pronto para ativação.");
     </script>
 </body>
 </html>

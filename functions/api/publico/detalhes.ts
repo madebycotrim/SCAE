@@ -1,8 +1,8 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
 import { ServicoCache } from '../utilitarios/cache';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         const url = new URL(contexto.request.url);
         const slug = url.searchParams.get('slug');

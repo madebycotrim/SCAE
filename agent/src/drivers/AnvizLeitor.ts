@@ -19,6 +19,7 @@ const CMD = {
 
 export class AnvizLeitor implements ILeitor {
   readonly tipo = TipoLeitor.ANVIZ;
+  private ultimoErroLogado?: string;
 
   constructor(private cfg: LeitorTcpConfig) {}
 
@@ -56,6 +57,7 @@ export class AnvizLeitor implements ILeitor {
         if (buf[buf.length - 1] === 0x0D) {
           clearTimeout(timeout);
           socket.destroy();
+          this.ultimoErroLogado = undefined; // Sucesso, limpa estado de erro
           resolve(Buffer.concat(chunks));
         }
       });
@@ -113,8 +115,15 @@ export class AnvizLeitor implements ILeitor {
       }
 
       return eventos;
-    } catch (e) {
-      console.error(`[Agente][${this.id}] Erro ao buscar eventos Anviz:`, e);
+    } catch (e: any) {
+      const msgErro = (e.code === 'ECONNREFUSED' || e.code === 'ETIMEDOUT' || e.message?.includes('Timeout'))
+        ? `Equipamento desconectado ou IP ${this.cfg.ip} inacessível.`
+        : `Erro no Anviz ${this.cfg.ip}: ${e.message}`;
+
+      if (msgErro !== this.ultimoErroLogado) {
+        console.warn(`[Agente][${this.id}] ${msgErro}`);
+        this.ultimoErroLogado = msgErro;
+      }
       return [];
     }
   }

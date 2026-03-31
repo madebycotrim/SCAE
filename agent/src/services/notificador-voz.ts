@@ -41,7 +41,7 @@ export class NotificadorVoz {
   async anunciarAcesso(nome: string, tipo: string = 'ENTRADA') {
     const saudacao = new Date().getHours() < 12 ? 'Bom dia' : 'Boa tarde';
     const acao = tipo === 'ENTRADA' ? 'Bem-vindo' : 'Pode passar';
-    const msg = `${saudacao}, ${nome.split(' ')[0]}. ${acao} ao SCAE!`;
+    const msg = `${saudacao}, ${nome.split(' ')[0]}. ${acao} ao Catraki!`;
     await this.falar(msg);
   }
 }

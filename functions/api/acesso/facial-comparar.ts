@@ -4,12 +4,12 @@
  * Usado quando o Agente Local está offline ou em dispositivos móveis.
  */
 
-import { ContextoSCAE } from '../../tipos/ambiente';
+import { ContextoCatraki } from '../../tipos/ambiente';
 import { extrairEscolaId, verificarAcesso } from '../_seguranca';
 import { Permissao } from '../seguranca/rbac';
 import { ErroValidacao } from '../erros';
 
-export async function onRequestPost({ request, env }: ContextoSCAE) {
+export async function onRequestPost({ request, env }: ContextoCatraki) {
     const idEscola = extrairEscolaId(request);
     // Permissão para bater ponto via facial
     verificarAcesso({ request, env } as any, Permissao.REGISTRAR_ACESSO);
@@ -20,7 +20,7 @@ export async function onRequestPost({ request, env }: ContextoSCAE) {
         throw new ErroValidacao('Vetor facial de busca inválido (Esperado 128d)');
     }
 
-    const { DB_SCAE: db } = env;
+    const { DB_CATRAKI: db } = env;
 
     try {
         // 1. Buscar todos os descritores ativos da escola

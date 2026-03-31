@@ -1,4 +1,4 @@
-import type { ContextoSCAE } from '../../../tipos/ambiente';
+import type { ContextoCatraki } from '../../../tipos/ambiente';
 import { ErroBase, ErroInterno } from '../../erros';
 import { verificarPermissao } from '../../_seguranca';
 import { ServicoCache } from '../../utilitarios/cache';
@@ -36,11 +36,11 @@ function arrayParaB64(buffer: ArrayBuffer): string {
     return btoa(binario);
 }
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         verificarPermissao(contexto, ['CENTRAL']);
 
-        const { results } = await contexto.env.DB_SCAE.prepare(`
+        const { results } = await contexto.env.DB_CATRAKI.prepare(`
             SELECT 
                 id, 
                 nome_escola as nome, 
@@ -76,7 +76,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestPost(contexto: ContextoCatraki): Promise<Response> {
     try {
         verificarPermissao(contexto, ['CENTRAL']);
 
@@ -105,7 +105,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
         const privadaPKCS8 = await crypto.subtle.exportKey("pkcs8", chaves.privateKey) as ArrayBuffer;
         const publicaSPKI = await crypto.subtle.exportKey("spki", chaves.publicKey) as ArrayBuffer;
 
-        await contexto.env.DB_SCAE.prepare(`
+        await contexto.env.DB_CATRAKI.prepare(`
             INSERT INTO escolas (
                 id, nome_escola, dominio_email, provedor_auth,
                 cor_primaria, cor_secundaria, logo_url, 

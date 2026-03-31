@@ -1,14 +1,14 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroValidacao, ErroNaoEncontrado } from '../erros';
 import { verificarPermissao, extrairEscolaId } from '../_seguranca';
 import { ServicoCache } from '../utilitarios/cache';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         const escolaId = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
 
-        const escola = await contexto.env.DB_SCAE.prepare(`
+        const escola = await contexto.env.DB_CATRAKI.prepare(`
             SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url 
             FROM escolas WHERE id = ?
         `).bind(escolaId).first<{
@@ -46,7 +46,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestPatch(contexto: ContextoCatraki): Promise<Response> {
     try {
         const escolaId = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
@@ -93,7 +93,7 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
         
         const sql = `UPDATE escolas SET ${queryParts.join(', ')} WHERE id = ?`;
 
-        const resultado = await contexto.env.DB_SCAE.prepare(sql).bind(...binds).run();
+        const resultado = await contexto.env.DB_CATRAKI.prepare(sql).bind(...binds).run();
 
         if (resultado.meta.changes === 0) {
             throw new ErroNaoEncontrado('Escola não encontrada para atualizar.');

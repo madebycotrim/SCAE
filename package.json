@@ -1,13 +1,17 @@
 {
-  "name": "scae",
+  "name": "catraki",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "wrangler pages dev dist --port 8788 --d1 DB_SCAE=scae_db --kv KV_SCAE",
-    "dev:full": "npm run build && concurrently \"npm run dev:api\" \"vite\"",
-    "dev:live": "cross-env VITE_PROXY_TARGET=https://scae.pages.dev npm run dev",
+    "dev:web": "vite",
+    "dev:agent": "concurrently \"npm run dev:tunnel:quick\" \"npm run dev --prefix agent\"",
+    "dev:api": "wrangler pages dev . --port 8788 --d1 DB_CATRAKI=scae_db --kv KV_CATRAKI --compatibility-date=2024-04-01",
+    "dev:tunnel": "cloudflared tunnel run SCAE",
+    "dev:tunnel:quick": "cloudflared tunnel --url http://localhost:8788",
+    "dev:full": "concurrently \"npm run dev:api\" \"npm run dev:web\" \"npm run dev:agent\"",
+    "dev:live": "cross-env VITE_PROXY_TARGET=https://catraki.pages.dev npm run dev",
     "build": "vite build",
     "lint": "eslint ."
   },
@@ -53,6 +57,6 @@
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
     "vite-plugin-pwa": "^1.2.0",
-    "wrangler": "^4.63.0"
+    "wrangler": "^4.78.0"
   }
 }

@@ -1,4 +1,4 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroPermissao, ErroInterno } from '../erros';
 import { verificarAcesso, extrairEscolaId } from '../_seguranca';
 import { Permissao } from './rbac';
@@ -6,13 +6,13 @@ import { esquemaUsuario } from './usuarios.esquemas';
 import { z } from 'zod';
 import { ServicoCache } from '../utilitarios/cache';
 
-async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response> {
+async function processarBuscaUsuarios(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
 
         try {
-            const { results } = await contexto.env.DB_SCAE.prepare(
+            const { results } = await contexto.env.DB_CATRAKI.prepare(
                 "SELECT email, escola_id, nome_completo, papel, ativo, criado_por, pendente, criado_em, atualizado_em FROM usuarios WHERE escola_id = ?"
             ).bind(idEscola).all();
 
@@ -32,7 +32,7 @@ async function processarBuscaUsuarios(contexto: ContextoSCAE): Promise<Response>
     }
 }
 
-async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response> {
+async function processarCriacaoUsuario(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
@@ -54,7 +54,7 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
         const { email, papel, ativo, nome_completo, criado_por, pendente, criado_em } = resultadoZod.data;
 
         try {
-            await contexto.env.DB_SCAE.prepare(
+            await contexto.env.DB_CATRAKI.prepare(
                 `INSERT INTO usuarios (email, escola_id, papel, ativo, nome_completo, criado_por, pendente, criado_em, atualizado_em)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(email, escola_id) DO UPDATE SET
@@ -94,7 +94,7 @@ async function processarCriacaoUsuario(contexto: ContextoSCAE): Promise<Response
     }
 }
 
-async function processarAtualizacaoParcial(contexto: ContextoSCAE): Promise<Response> {
+async function processarAtualizacaoParcial(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
@@ -116,7 +116,7 @@ async function processarAtualizacaoParcial(contexto: ContextoSCAE): Promise<Resp
         const valores = chaves.map(k => k === 'ativo' || k === 'pendente' ? (campos[k] ? 1 : 0) : campos[k]);
 
         try {
-            const resultado = await contexto.env.DB_SCAE.prepare(
+            const resultado = await contexto.env.DB_CATRAKI.prepare(
                 `UPDATE usuarios SET ${sets}, atualizado_em = CURRENT_TIMESTAMP WHERE email = ? AND escola_id = ?`
             ).bind(...valores, email, idEscola).run();
 
@@ -139,7 +139,7 @@ async function processarAtualizacaoParcial(contexto: ContextoSCAE): Promise<Resp
     }
 }
 
-async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response> {
+async function processarRemocaoUsuario(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_USUARIOS);
@@ -156,7 +156,7 @@ async function processarRemocaoUsuario(contexto: ContextoSCAE): Promise<Response
         }
 
         try {
-            const resultado = await contexto.env.DB_SCAE.prepare(
+            const resultado = await contexto.env.DB_CATRAKI.prepare(
                 "DELETE FROM usuarios WHERE email = ? AND escola_id = ?"
             ).bind(email, idEscola).run();
 

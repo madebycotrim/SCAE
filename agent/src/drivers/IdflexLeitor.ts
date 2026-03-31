@@ -12,6 +12,7 @@ import { IdFlexHelper } from './IdFlexHelper';
 export class IdflexLeitor implements ILeitor {
   readonly tipo = TipoLeitor.ID_FLEX;
   private tokenSessao?: string;
+  private ultimoErroLogado?: string;
 
   constructor(private cfg: LeitorTcpConfig) {}
 
@@ -23,7 +24,9 @@ export class IdflexLeitor implements ILeitor {
       this.tokenSessao = await IdFlexHelper.login({ ip: this.cfg.ip });
     }
     try {
-      return await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados);
+      const resp = await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados);
+      this.ultimoErroLogado = undefined; // Limpa erro ao ter sucesso
+      return resp;
     } catch (e: any) {
       if (e.message.includes('401') || e.message.includes('session')) {
         this.tokenSessao = await IdFlexHelper.login({ ip: this.cfg.ip });
@@ -65,8 +68,15 @@ export class IdflexLeitor implements ILeitor {
         autorizado: l.event === 7, // 7 = acesso autorizado
         leitorId: this.id
       }));
-    } catch (e) {
-      console.error(`[Agente][${this.id}] Erro ao carregar logs iDFlex:`, e);
+    } catch (e: any) {
+      const msgErro = e.code === 'ECONNREFUSED' || e.code === 'ETIMEDOUT' || e.message?.includes('fetch')
+        ? `Equipamento iDFlex offline em ${this.cfg.ip}.`
+        : `Erro no iDFlex ${this.cfg.ip}: ${e.message}`;
+
+      if (msgErro !== this.ultimoErroLogado) {
+        console.warn(`[Agente][${this.id}] ${msgErro}`);
+        this.ultimoErroLogado = msgErro;
+      }
       return [];
     }
   }

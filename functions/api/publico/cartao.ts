@@ -1,9 +1,9 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroValidacao, ErroNaoEncontrado, ErroPermissao } from '../erros';
 import { ServicoCache } from '../utilitarios/cache';
 import { SignJWT, importPKCS8, importJWK } from 'jose';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     const url = new URL(contexto.request.url);
     const slug = url.searchParams.get('slug');
     const matriculaInput = url.searchParams.get('matricula');
@@ -20,7 +20,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     }
 
     // 2. Buscar Aluno e Validar
-    const aluno = await contexto.env.DB_SCAE.prepare(
+    const aluno = await contexto.env.DB_CATRAKI.prepare(
         "SELECT a.*, e.chave_privada_ecdsa, e.nome_escola FROM alunos a JOIN escolas e ON a.escola_id = e.id WHERE a.matricula = ? AND a.escola_id = ? AND a.ativo = 1"
     ).bind(matriculaInput, idEscola).first<any>();
 

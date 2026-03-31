@@ -4,9 +4,9 @@
  * Identifica a escola automaticamente pelo PIN secreto de 6 dígitos.
  */
 
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 
-export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestPost(contexto: ContextoCatraki): Promise<Response> {
     try {
         const { pin } = await contexto.request.json() as any;
 
@@ -15,7 +15,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
         }
 
         // 1. Buscar escola e configuração de terminais pelo PIN
-        const dados = await contexto.env.DB_SCAE.prepare(
+        const dados = await contexto.env.DB_CATRAKI.prepare(
             `SELECT e.id, e.nome_escola, t.config_leitores 
              FROM escolas e 
              LEFT JOIN terminais t ON t.escola_id = e.id
@@ -30,7 +30,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
         const configLeitores = dados.config_leitores ? JSON.parse(dados.config_leitores) : [];
 
         // 3. Gerar Token de Sessão (Automatizado)
-        const tokenAgente = `SCAE_AUTO_${btoa(dados.id)}_${Date.now()}`;
+        const tokenAgente = `CATRAKI_AUTO_${btoa(dados.id)}_${Date.now()}`;
 
         return Response.json({
             ok: true,

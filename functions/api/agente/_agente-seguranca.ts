@@ -7,10 +7,10 @@ import { extrairEscolaId } from '../_seguranca';
  */
 export function validarAgente(request: Request, env: any) {
     const authHeader = request.headers.get('Authorization');
-    const tokenEsperado = env.SCAE_AGENTE_TOKEN;
+    const tokenEsperado = env.CATRAKI_AGENTE_TOKEN;
 
     if (!tokenEsperado) {
-        console.error('[Agente] Erro de Servidor: SCAE_AGENTE_TOKEN não está configurado na Cloudflare.');
+        console.error('[Agente] Erro de Servidor: CATRAKI_AGENTE_TOKEN não está configurado na Cloudflare.');
         throw new Error('Erro de configuração de segurança central.');
     }
 

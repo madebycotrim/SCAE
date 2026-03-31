@@ -1,5 +1,5 @@
-﻿/**
- * Gerador de UUID v4 para identificadores únicos do SCAE.
+/**
+ * Gerador de UUID v4 para identificadores �nicos do SCAE.
  * Usa crypto.randomUUID() nativo do Cloudflare Workers runtime.
  */
 export function gerarScaeUuid(): string {

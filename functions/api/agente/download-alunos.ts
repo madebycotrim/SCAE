@@ -2,15 +2,15 @@
  * api/agente/download-alunos.ts
  * Fornece a base de alunos da escola para o Agente Local fazer cache offline.
  */
-import { ContextoSCAE } from '../../tipos/ambiente';
+import { ContextoCatraki } from '../../tipos/ambiente';
 import { validarAgente } from './_agente-seguranca';
 
-export async function onRequestGet({ request, env }: ContextoSCAE) {
+export async function onRequestGet({ request, env }: ContextoCatraki) {
     // 1. Validar segurança (Token + Escola ID)
     const escolaId = validarAgente(request, env);
     
     // 2. Extrair dados da escola no D1
-    const { DB_SCAE: db } = env;
+    const { DB_CATRAKI: db } = env;
 
     try {
         // Selecionar alunos ativos E seus descritores faciais (se houver) via JOIN

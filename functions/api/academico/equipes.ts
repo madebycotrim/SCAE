@@ -1,4 +1,4 @@
-import type { ContextoSCAE } from '../../tipos/ambiente';
+import type { ContextoCatraki } from '../../tipos/ambiente';
 import { ErroBase, ErroValidacao, ErroNaoEncontrado, ErroInterno } from '../erros';
 import { verificarAcesso, extrairEscolaId } from '../_seguranca';
 import { Permissao } from '../seguranca/rbac';
@@ -7,13 +7,13 @@ import { esquemaEquipe } from './equipes.esquemas';
 /**
  * GET — Lista as equipes da escola.
  */
-async function listarEquipes(contexto: ContextoSCAE): Promise<Response> {
+async function listarEquipes(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.VER_ACADEMICO);
 
         try {
-            const { results } = await contexto.env.DB_SCAE.prepare(
+            const { results } = await contexto.env.DB_CATRAKI.prepare(
                 `SELECT 
                     e.id, e.nome_equipe, e.cor, e.tts_alias, e.criado_em,
                     (SELECT COUNT(*) FROM aluno_equipe ae WHERE ae.equipe_id = e.id AND ae.escola_id = e.escola_id) as totalAlunos,
@@ -41,7 +41,7 @@ async function listarEquipes(contexto: ContextoSCAE): Promise<Response> {
 /**
  * POST — Cria ou atualiza uma equipe.
  */
-async function salvarEquipe(contexto: ContextoSCAE): Promise<Response> {
+async function salvarEquipe(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
@@ -58,7 +58,7 @@ async function salvarEquipe(contexto: ContextoSCAE): Promise<Response> {
         const { id, nome_equipe, cor, tts_alias, criado_em } = resultadoZod.data;
 
         try {
-            await contexto.env.DB_SCAE.prepare(
+            await contexto.env.DB_CATRAKI.prepare(
                 `INSERT INTO equipes (id, escola_id, nome_equipe, cor, tts_alias, criado_em, atualizado_em) 
                     VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                     ON CONFLICT(id, escola_id) DO UPDATE SET
@@ -88,7 +88,7 @@ async function salvarEquipe(contexto: ContextoSCAE): Promise<Response> {
 /**
  * DELETE — Remove uma equipe.
  */
-async function removerEquipe(contexto: ContextoSCAE): Promise<Response> {
+async function removerEquipe(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
@@ -103,7 +103,7 @@ async function removerEquipe(contexto: ContextoSCAE): Promise<Response> {
         try {
             // A FK com ON DELETE CASCADE deve lidar com os grupos e vínculos se configurado corretamente no SQLite,
             // mas o D1 as vezes exige cuidado extra dependendo de como as constraints são tratadas.
-            const resultado = await contexto.env.DB_SCAE.prepare(
+            const resultado = await contexto.env.DB_CATRAKI.prepare(
                 "DELETE FROM equipes WHERE id = ? AND escola_id = ?"
             ).bind(id, idEscola).run();
 
