@@ -1641,14 +1641,20 @@
                 <span class="log-lv ${clMap[normType] || 'lv-info'}">${lvMap[type] || 'INFO'}</span>
                 <span class="log-txt">${message}</span>
             `;
-            logContainer.appendChild(entry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-            applyFilters();
+            if (logContainer) {
+                logContainer.appendChild(entry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+                applyFilters();
+            } else {
+                console.log(`[LOG ${normType.toUpperCase()}] ${message}`);
+            }
         }
 
         // ─── FILTERS ─────────────────────────────────────────────
         function applyFilters() {
-            const search = document.getElementById('log-search').value.toLowerCase();
+            const logSearch = document.getElementById('log-search');
+            if (!logSearch) return;
+            const search = logSearch.value.toLowerCase();
             document.querySelectorAll('.log-entry').forEach(el => {
                 const typeMatch = activeFilter === 'all' || el.dataset.type === activeFilter;
                 const txt = el.querySelector('.log-txt').textContent.toLowerCase();
@@ -1665,9 +1671,12 @@
                 applyFilters();
             });
         });
-        document.getElementById('log-search').addEventListener('input', applyFilters);
-        document.getElementById('btn-clear-log').onclick = () => {
-            logContainer.innerHTML = '';
+        const logSearchEl = document.getElementById('log-search');
+        if (logSearchEl) logSearchEl.addEventListener('input', applyFilters);
+        
+        const btnClearLogEl = document.getElementById('btn-clear-log');
+        if (btnClearLogEl) btnClearLogEl.onclick = () => {
+            if (logContainer) logContainer.innerHTML = '';
             pushLog('Terminal de operações limpo.', 'info');
         };
 
@@ -1788,7 +1797,7 @@
         
         // Ativação do Login (Botão e Teclado)
         if (btnAuth) btnAuth.onclick = handleAuth;
-        if (pinInput) pinInput.onkeypress = (e) => (e.key === 'Enter') && handleAuth();
+        if (pinInput) pinInput.onkeypress = (e) => { if (e.key === 'Enter') handleAuth(); };
 
         // ─── SETTINGS ────────────────────────────────────────────
         function renderSettings() {
@@ -1816,11 +1825,15 @@
         };
 
         // ─── LOG SCREEN TOGGLE ───────────────────────────────────
-        document.getElementById('btn-logs-open').onclick = () => {
-            document.getElementById('logs-screen').classList.remove('hidden');
+        const btnLogsOpen = document.getElementById('btn-logs-open');
+        if (btnLogsOpen) btnLogsOpen.onclick = () => {
+            const logsScreen = document.getElementById('logs-screen');
+            if (logsScreen) logsScreen.classList.remove('hidden');
         };
-        document.getElementById('btn-logs-close').onclick = () => {
-            document.getElementById('logs-screen').classList.add('hidden');
+        const btnLogsClose = document.getElementById('btn-logs-close');
+        if (btnLogsClose) btnLogsClose.onclick = () => {
+            const logsScreen = document.getElementById('logs-screen');
+            if (logsScreen) logsScreen.classList.add('hidden');
         };
 
         // ─── USER MANAGEMENT ─────────────────────────────────────
@@ -1829,11 +1842,12 @@
             if (!l) return;
             pushLog('Sincronizando usuários...', 'info');
             const alunos = await window.scaeApi.listarAlunos(l.id);
-            const container = document.getElementById('user-list-result');
-            if (!alunos.length) {
-                container.innerHTML = `<div class="empty-msg">Nenhum usuário no hardware.</div>`;
-            } else {
-                container.innerHTML = alunos.map(a => `
+            const container = document.getElementById('user-list-result') || document.getElementById('access-feed');
+            if (container) {
+                if (!alunos.length) {
+                    container.innerHTML = `<div class="empty-msg">Nenhum usuário no hardware.</div>`;
+                } else {
+                    container.innerHTML = alunos.map(a => `
                     <div class="user-item">
                         <div style="flex:1;min-width:0">
                             <div class="u-name">${a.name}</div>
@@ -1852,6 +1866,7 @@
                             </button>
                         </div>
                     </div>`).join('');
+                }
             }
         };
 

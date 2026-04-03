@@ -92,19 +92,7 @@ async function createWindow() {
 
   // Autenticação Digital via PIN (Eliminando erro de Rede/CORS no Browser)
   ipcMain.handle('login-pin', async (_event, pin) => {
-    // 1. Verificação de Backup/Admin Local (Permitir acesso se a nuvem cair)
-    if (pin === config.admin_pin) {
-      console.log('[Auth] Acesso concedido via Senha Admin local.');
-      return { 
-        ok: true, 
-        escola_id: config.escola_id, 
-        escola_nome: 'ACESSANDO VIA ADMIN (OFFLINE)',
-        token: config.agente_token,
-        config_hardware: config.leitores 
-      };
-    }
-
-    // 2. Fluxo Normal via Nuvem
+    // 1. Fluxo Principal via Nuvem
     try {
       const url = `${config.endpoint_worker}/api/agente/login-pin`;
       const res = await fetch(url, {
@@ -115,9 +103,22 @@ async function createWindow() {
       return await res.json();
     } catch (e: any) {
       console.warn('[Network] Falha na rede cloud:', e.message);
+      
+      // 2. Verificação de Backup/Admin Local (Acesso Offline de Emergência)
+      if (pin === config.admin_pin) {
+        console.log('[Auth] Acesso concedido via Senha Admin local (Fallback Offline).');
+        return { 
+          ok: true, 
+          escola_id: config.escola_id, 
+          escola_nome: 'ACESSANDO VIA ADMIN (OFFLINE)',
+          token: config.agente_token,
+          config_hardware: config.leitores 
+        };
+      }
+
       return { 
         ok: false, 
-        mensagem: `DNS inviável ou servidor indisponível (${e.code || 'CLOUD_OFFLINE'}). Tente a Senha Admin local.` 
+        mensagem: `Acesso à rede indisponível (${e.code || 'CLOUD_OFFLINE'}). Túnel possivelmente offline.` 
       };
     }
   });

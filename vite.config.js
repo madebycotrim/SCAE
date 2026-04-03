@@ -102,6 +102,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
+      allowedHosts: ['agente.catraki.com.br'],
       headers: {
         'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
       },
