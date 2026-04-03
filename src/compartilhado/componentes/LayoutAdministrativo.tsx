@@ -8,8 +8,11 @@ import { usarNotificacoes, type Notificacao } from '@compartilhado/contextos/Con
 import { usarBuscaGlobal } from '@/compartilhado/hooks/usarBuscaGlobal';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarInstalacaoPWA } from '@/compartilhado/hooks/usarInstalacaoPWA';
-import { mscararEmail } from '@/compartilhado/utils/formatar';
+import { mascararEmail } from '@/compartilhado/utils/formatar';
+
+
 import {
+    Activity,
     LayoutDashboard,
     Users,
     FileText,
@@ -47,18 +50,6 @@ import { ReactNode } from 'react';
 
 const log = criarRegistrador('Layout');
 
-/**
- * Função utilitária para mascarar o e-mail, exibindo apenas o primeiro e o último caractere do nome de usuário.
- * Ex: joao@exemplo.com -> j...o@exemplo.com
- */
-const mascararEmail = (email?: string | null) => {
-    if (!email) return '';
-    const [usuario, dominio] = email.split('@');
-    if (!dominio) return email;
-    if (usuario.length <= 2) return email;
-    return `${usuario[0]}...${usuario[usuario.length - 1]}@${dominio}`;
-};
-
 interface LayoutAdministrativoProps {
     children: ReactNode;
     titulo: string;
@@ -95,7 +86,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     // Busca Global
     const { termo, definirTermo, resultados } = usarBuscaGlobal();
     const [mostrarResultados, definirMostrarResultados] = useState(false);
-    
+
     // Estados para preservação de UI
     const [animado, definirAnimado] = useState(false);
     const mainRef = useRef<HTMLElement>(null);
@@ -134,15 +125,15 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
     const gruposMenu = [
         {
-            titulo: 'Visão',
+            titulo: 'Visão Estratégica',
             itens: [
                 { icone: LayoutDashboard, texto: 'Painel', rota: '/painel' },
-                { icone: Users, texto: 'Alunos', rota: '/alunos' }
             ]
         },
         {
             titulo: 'Acadêmico',
             itens: [
+                { icone: Users, texto: 'Alunos', rota: '/alunos' },
                 ...(pode('visualizar', 'turmas') ? [{ icone: Layers, texto: 'Turmas', rota: '/turmas' }] : []),
                 ...(pode('visualizar', 'academico') ? [{ icone: Calendar, texto: 'Calendário', rota: '/calendario' }] : []),
             ]
@@ -155,12 +146,12 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 ...(pode('visualizar', 'relatorios') ? [{ icone: FileText, texto: 'Relatórios', rota: '/relatorios' }] : []),
             ]
         },
-        { 
-            titulo: 'Sistema', 
+        {
+            titulo: 'Sistema',
             itens: [
-                ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
-                ...(pode('visualizar', 'auditoria') ? [{ icone: ShieldCheck, texto: 'Logs', rota: '/logs' }] : []),
                 ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
+                ...(pode('visualizar', 'auditoria') ? [{ icone: Activity, texto: 'Logs', rota: '/logs' }] : []),
+                ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
             ]
         }
     ].filter(g => g.itens.length > 0);
@@ -247,7 +238,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     return (
         <div className="flex h-screen bg-gray-50 font-sans overflow-hidden selection:bg-blue-100 selection:text-blue-900">
             <BarraProgressoGlobal ativa={!!carregando} />
-            
+
             {/* Link de Pulo para Acessibilidade (WCAG 2.4.1) */}
             <a href="#conteudo-principal" className="pular-conteudo">
                 Pular para o conteúdo principal
@@ -570,7 +561,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 </header>
 
                 {/* Conteúdo (Acessibilidade: main landmark) */}
-                <main 
+                <main
                     id="conteudo-principal"
                     role="main"
                     tabIndex={-1}
@@ -578,7 +569,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     onScroll={lidarComScroll}
                     className="flex-1 overflow-y-auto p-8 md:p-10 lg:p-12 scroll-smooth z-10 custom-scrollbar bg-slate-50/30"
                 >
-                    <motion.div 
+                    <motion.div
                         key={localizacao.pathname}
                         initial={!animado ? { opacity: 0, y: 20 } : false}
                         animate={{ opacity: 1, y: 0 }}

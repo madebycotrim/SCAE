@@ -1,4 +1,4 @@
-import type { ContextoSCAE } from '../../../tipos/ambiente';
+import type { ContextoCatraki } from '../../../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroNaoEncontrado, ErroValidacao } from '../../erros';
 import { verificarPermissao } from '../../_seguranca';
 import { ServicoCache } from '../../utilitarios/cache';
@@ -27,7 +27,7 @@ const esquemaUpdateEscola = z.object({
  * GET /api/central/escolas/[id]
  * Recupera todos os dados de uma unidade para edição (excluindo chave privada).
  */
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         verificarPermissao(contexto, ['CENTRAL']);
         const { id } = contexto.params;
@@ -58,7 +58,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
  * PATCH /api/central/escolas/[id]
  * Atualiza diretrizes ou status da unidade com validação Zod.
  */
-export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestPatch(contexto: ContextoCatraki): Promise<Response> {
     try {
         verificarPermissao(contexto, ['CENTRAL']);
         const { id } = contexto.params;
@@ -132,7 +132,7 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
  * DELETE /api/central/escolas/[id]
  * Remove uma unidade do sistema.
  */
-export async function onRequestDelete(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestDelete(contexto: ContextoCatraki): Promise<Response> {
     try {
         verificarPermissao(contexto, ['CENTRAL']);
         const { id } = contexto.params;

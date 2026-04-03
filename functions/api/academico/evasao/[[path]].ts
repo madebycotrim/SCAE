@@ -7,12 +7,12 @@
  * POST /api/evasao/processar → Roda a engine varrendo o tenant por ausências
  */
 import { gerarScaeUuid } from '../../../utilitarios/uuid';
-import type { ContextoSCAE, PayloadAtualizacaoAlerta } from '../../../tipos/ambiente';
+import type { ContextoCatraki, PayloadAtualizacaoAlerta } from '../../../tipos/ambiente';
 import { ErroBase, ErroInterno, ErroValidacao } from '../../erros';
 import { verificarPermissao, extrairEscolaId } from '../../_seguranca';
 import { obterDiasNaoLetivos } from '../calendario.compartilhado';
 
-export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestGet(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
@@ -53,7 +53,7 @@ export async function onRequestGet(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestPost(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
@@ -73,7 +73,7 @@ export async function onRequestPost(contexto: ContextoSCAE): Promise<Response> {
     }
 }
 
-export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> {
+export async function onRequestPatch(contexto: ContextoCatraki): Promise<Response> {
     try {
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
@@ -98,7 +98,7 @@ export async function onRequestPatch(contexto: ContextoSCAE): Promise<Response> 
 /**
  * Atualiza o status da tratativa da coordenação com a familia do aluno em risco.
  */
-async function atualizarStatusAlerta(contexto: ContextoSCAE, db: D1Database, idEscola: string, alertaId: string): Promise<Response> {
+async function atualizarStatusAlerta(contexto: ContextoCatraki, db: D1Database, idEscola: string, alertaId: string): Promise<Response> {
     let dados: PayloadAtualizacaoAlerta;
     try {
         dados = await contexto.request.json();
