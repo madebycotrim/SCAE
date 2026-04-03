@@ -15,13 +15,13 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
 
         // 🚀 Otimização N+1 / Batching Crítico (DIMENSÃO 2)
         // 1 Round-trip único agrupado minimizando latência:
-        const [alunosRes, turmasRes, alertasRes, registrosHjRes, historicoRes, alunosFeedRes] = await contexto.env.DB_CATRAKI.batch([
-            contexto.env.DB_CATRAKI.prepare("SELECT COUNT(matricula) as t FROM alunos WHERE escola_id = ? AND ativo = 1").bind(idEscola),
-            contexto.env.DB_CATRAKI.prepare("SELECT COUNT(id) as t FROM turmas WHERE escola_id = ?").bind(idEscola),
-            contexto.env.DB_CATRAKI.prepare("SELECT COUNT(id) as t FROM alertas_risco WHERE escola_id = ? AND status != 'RESOLVIDO'").bind(idEscola),
-            contexto.env.DB_CATRAKI.prepare("SELECT aluno_matricula, tipo_movimentacao, timestamp_acesso as timestamp FROM registros_acesso WHERE escola_id = ? AND timestamp_acesso LIKE ?").bind(idEscola, `${hojeStr}%`),
-            contexto.env.DB_CATRAKI.prepare("SELECT substr(timestamp_acesso, 1, 10) as data, COUNT(DISTINCT aluno_matricula) as total FROM registros_acesso WHERE escola_id = ? AND tipo_movimentacao = 'ENTRADA' AND timestamp_acesso >= ? GROUP BY data ORDER BY data DESC LIMIT 7").bind(idEscola, inicioSemana),
-            contexto.env.DB_CATRAKI.prepare("SELECT matricula, nome_completo, turma_id FROM alunos WHERE escola_id = ?").bind(idEscola), // Usado apenas no Live Feed do front momentaneamente
+        const [alunosRes, turmasRes, alertasRes, registrosHjRes, historicoRes, alunosFeedRes] = await contexto.env.DB_SCAE.batch([
+            contexto.env.DB_SCAE.prepare("SELECT COUNT(matricula) as t FROM alunos WHERE escola_id = ? AND ativo = 1").bind(idEscola),
+            contexto.env.DB_SCAE.prepare("SELECT COUNT(id) as t FROM turmas WHERE escola_id = ?").bind(idEscola),
+            contexto.env.DB_SCAE.prepare("SELECT COUNT(id) as t FROM alertas_risco WHERE escola_id = ? AND status != 'RESOLVIDO'").bind(idEscola),
+            contexto.env.DB_SCAE.prepare("SELECT aluno_matricula, tipo_movimentacao, timestamp_acesso as timestamp FROM registros_acesso WHERE escola_id = ? AND timestamp_acesso LIKE ?").bind(idEscola, `${hojeStr}%`),
+            contexto.env.DB_SCAE.prepare("SELECT substr(timestamp_acesso, 1, 10) as data, COUNT(DISTINCT aluno_matricula) as total FROM registros_acesso WHERE escola_id = ? AND tipo_movimentacao = 'ENTRADA' AND timestamp_acesso >= ? GROUP BY data ORDER BY data DESC LIMIT 7").bind(idEscola, inicioSemana),
+            contexto.env.DB_SCAE.prepare("SELECT matricula, nome_completo, turma_id FROM alunos WHERE escola_id = ?").bind(idEscola), // Usado apenas no Live Feed do front momentaneamente
         ]);
 
         const totalAlunos = (alunosRes.results[0] as {t: number})?.t || 0;

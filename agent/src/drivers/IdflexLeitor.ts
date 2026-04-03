@@ -49,6 +49,22 @@ export class IdflexLeitor implements ILeitor {
     } catch { return false; }
   }
 
+  /** Busca o nome configurado na interface web do iDFlex */
+  async getNomeDispositivo(): Promise<string | undefined> {
+    try {
+      // Para firmwares ControlID 5.x (ex: 5.19.1), o payload deve ser estritamente o módulo e o array de chaves.
+      const resp = await this.requisitarComToken('get_configuration.fcgi', {
+        general: ["name"]
+      });
+      return resp?.general?.name; 
+    } catch {
+      return "ControlID - iDFlex Portaria"; // Fallback seguro
+    }
+  }
+
+
+
+
 
   /**
    * Retorna o status detalhado do equipamento iDFlex.

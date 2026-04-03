@@ -11,7 +11,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
     let dbLatencia = 0;
 
     try {
-        await contexto.env.DB_CATRAKI.prepare('SELECT 1').first();
+        await contexto.env.DB_SCAE.prepare('SELECT 1').first();
         dbLatencia = Date.now() - inicio;
     } catch {
         dbStatus = 'erro';

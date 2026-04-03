@@ -27,7 +27,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
             throw new ErroBase('escola_id obrigatorio', 'VALIDACAO_FALHA', 400);
         }
 
-        const { results } = await contexto.env.DB_CATRAKI.prepare(`
+        const { results } = await contexto.env.DB_SCAE.prepare(`
             SELECT aluno_matricula as matricula, descritores
             FROM descritores_faciais
             WHERE escola_id = ?
@@ -65,7 +65,7 @@ export async function onRequestPost(contexto: ContextoCatraki): Promise<Response
         }
 
         // Upsert — INSERT OR REPLACE
-        await contexto.env.DB_CATRAKI.prepare(`
+        await contexto.env.DB_SCAE.prepare(`
             INSERT OR REPLACE INTO descritores_faciais (aluno_matricula, escola_id, descritores, atualizado_em)
             VALUES (?, ?, ?, CURRENT_TIMESTAMP)
         `).bind(matricula, escola_id, JSON.stringify(descritores)).run();
@@ -95,7 +95,7 @@ export async function onRequestDelete(contexto: ContextoCatraki): Promise<Respon
             throw new ErroBase('Campos obrigatorios: escola_id, matricula', 'VALIDACAO_FALHA', 400);
         }
 
-        await contexto.env.DB_CATRAKI.prepare(`
+        await contexto.env.DB_SCAE.prepare(`
             DELETE FROM descritores_faciais WHERE aluno_matricula = ? AND escola_id = ?
         `).bind(matricula, escola_id).run();
 

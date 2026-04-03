@@ -15,13 +15,13 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         const dataAlvo = searchParams.get('data') || new Date().toISOString().split('T')[0];
 
         // 1. Buscar todos os alunos ativos da escola
-        const alunosAtivos = await contexto.env.DB_CATRAKI.prepare(
+        const alunosAtivos = await contexto.env.DB_SCAE.prepare(
             `SELECT matricula, nome_completo, turma_id FROM alunos 
              WHERE escola_id = ? AND ativo = 1`
         ).bind(idEscola).all<any>();
 
         // 2. Buscar matrículas que bateram ponto hoje (ENTRADA)
-        const presencas = await contexto.env.DB_CATRAKI.prepare(
+        const presencas = await contexto.env.DB_SCAE.prepare(
             `SELECT DISTINCT aluno_matricula FROM registros_acesso 
              WHERE escola_id = ? 
              AND substr(timestamp_acesso, 1, 10) = ?

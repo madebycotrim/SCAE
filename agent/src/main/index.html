@@ -312,7 +312,6 @@
 
     <script>
         const logContainer = document.getElementById('log-container');
-        const visionStatus = document.getElementById('vision-status');
         const btnAuth = document.getElementById('btn-auth');
         const pinInput = document.getElementById('pin');
         const authScreen = document.getElementById('auth-screen');
@@ -358,7 +357,6 @@
                         configHardware: res.config_hardware 
                     });
 
-                    startCamera();
                 } else {
                     pushLog(res.mensagem || "Erro no PIN", "error");
                     btnAuth.disabled = false;
@@ -387,15 +385,6 @@
         window.updateLeitor = (index, key, value) => {
             configAtual.leitores[index][key] = value;
         };
-
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                document.getElementById('webcam').srcObject = stream;
-            } catch (e) {
-                pushLog("Câmera frontal inativa.", "warn");
-            }
-        }
 
         // Event Listeners
         btnAuth.addEventListener('click', handleAuth);

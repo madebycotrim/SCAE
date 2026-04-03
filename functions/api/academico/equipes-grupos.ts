@@ -21,7 +21,7 @@ async function listarGrupos(contexto: ContextoCatraki): Promise<Response> {
         }
 
         try {
-            const { results } = await contexto.env.DB_CATRAKI.prepare(
+            const { results } = await contexto.env.DB_SCAE.prepare(
                 `SELECT 
                     g.id, g.equipe_id, g.nome_grupo, g.escala_tipo, g.escala_dias, g.criado_em,
                     (SELECT COUNT(*) FROM aluno_equipe ae WHERE ae.grupo_id = g.id AND ae.escola_id = g.escola_id) as totalAlunos
@@ -66,7 +66,7 @@ async function salvarGrupo(contexto: ContextoCatraki): Promise<Response> {
         const idGrupo = id || crypto.randomUUID();
 
         try {
-            await contexto.env.DB_CATRAKI.prepare(
+            await contexto.env.DB_SCAE.prepare(
                 `INSERT INTO grupos_equipe (id, escola_id, equipe_id, nome_grupo, escala_tipo, escala_dias, criado_em, atualizado_em) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                     ON CONFLICT(id, escola_id) DO UPDATE SET
@@ -110,7 +110,7 @@ async function removerGrupo(contexto: ContextoCatraki): Promise<Response> {
         }
 
         try {
-            const resultado = await contexto.env.DB_CATRAKI.prepare(
+            const resultado = await contexto.env.DB_SCAE.prepare(
                 "DELETE FROM grupos_equipe WHERE id = ? AND escola_id = ?"
             ).bind(id, idEscola).run();
 

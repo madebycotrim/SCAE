@@ -76,15 +76,14 @@ async function sincronizarCacheAlunos() {
   // Atualizar cache via Upsert e injetar no Hardware
   for (const a of alunosServidor) {
     await runSql(`
-      INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo, vetor_facial)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo)
+      VALUES (?, ?, ?, ?, ?)
       ON CONFLICT(matricula, escola_id) DO UPDATE SET
         nome_completo = excluded.nome_completo,
         turma_id = excluded.turma_id,
         ativo = excluded.ativo,
-        vetor_facial = excluded.vetor_facial,
         atualizado_em = datetime('now', 'localtime')
-    `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo, a.vetor_facial]);
+    `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo]);
 
     // Injetar nos leitores físicos se o aluno estiver ativo
     if (a.ativo && leitoresAtivos.length > 0) {

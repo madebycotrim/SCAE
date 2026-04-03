@@ -7,12 +7,12 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
     let results: any[];
 
     if (termo.length < 2) {
-        const todas = await contexto.env.DB_CATRAKI.prepare(
+        const todas = await contexto.env.DB_SCAE.prepare(
             `SELECT id, nome_escola as nome FROM escolas ORDER BY nome_escola ASC LIMIT 50`
         ).all();
         results = todas.results;
     } else {
-        const buscadas = await contexto.env.DB_CATRAKI.prepare(
+        const buscadas = await contexto.env.DB_SCAE.prepare(
             `SELECT id, nome_escola as nome FROM escolas WHERE nome_escola LIKE ?1 OR id LIKE ?1 ORDER BY nome_escola ASC LIMIT 10`
         ).bind(`%${termo}%`).all();
         results = buscadas.results;

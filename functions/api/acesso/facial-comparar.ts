@@ -20,7 +20,7 @@ export async function onRequestPost({ request, env }: ContextoCatraki) {
         throw new ErroValidacao('Vetor facial de busca inválido (Esperado 128d)');
     }
 
-    const { DB_CATRAKI: db } = env;
+    const { DB_SCAE: db } = env;
 
     try {
         // 1. Buscar todos os descritores ativos da escola

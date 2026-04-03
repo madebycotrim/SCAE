@@ -10,7 +10,7 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
     const escolaId = validarAgente(request, env);
     
     // 2. Extrair dados da escola no D1
-    const { DB_CATRAKI: db } = env;
+    const { DB_SCAE: db } = env;
 
     try {
         // Selecionar alunos ativos E seus descritores faciais (se houver) via JOIN

@@ -15,11 +15,11 @@ async function processarBuscaAlunos(contexto: ContextoCatraki): Promise<Response
         const offset = (pagina - 1) * porPagina;
 
         // Buscar total + dados em batch (1 round-trip ao D1)
-        const [countResult, dataResult] = await contexto.env.DB_CATRAKI.batch([
-            contexto.env.DB_CATRAKI.prepare(
+        const [countResult, dataResult] = await contexto.env.DB_SCAE.batch([
+            contexto.env.DB_SCAE.prepare(
                 "SELECT COUNT(*) as total FROM alunos WHERE escola_id = ?"
             ).bind(idEscola),
-            contexto.env.DB_CATRAKI.prepare(
+            contexto.env.DB_SCAE.prepare(
                 "SELECT matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo, criado_em, atualizado_em FROM alunos WHERE escola_id = ? ORDER BY nome_completo ASC LIMIT ? OFFSET ?"
             ).bind(idEscola, porPagina, offset)
         ]);
@@ -67,7 +67,7 @@ async function processarCriacaoAluno(contexto: ContextoCatraki): Promise<Respons
 
         try {
             // UPSERT: Inserir ou Atualizar Aluno
-            await contexto.env.DB_CATRAKI.prepare(
+            await contexto.env.DB_SCAE.prepare(
                 `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo) VALUES (?, ?, ?, ?, ?, ?)
                     ON CONFLICT(matricula, escola_id) DO UPDATE SET
                     nome_completo = excluded.nome_completo,
@@ -106,7 +106,7 @@ async function processarRemocaoAluno(contexto: ContextoCatraki): Promise<Respons
         }
 
         try {
-            const resultado = await contexto.env.DB_CATRAKI.prepare(
+            const resultado = await contexto.env.DB_SCAE.prepare(
                 "DELETE FROM alunos WHERE matricula = ? AND escola_id = ?"
             ).bind(matricula, idEscola).run();
 

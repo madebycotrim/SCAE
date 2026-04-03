@@ -10,7 +10,7 @@ async function processarBuscaTurmas(contexto: ContextoCatraki): Promise<Response
         verificarAcesso(contexto, Permissao.VER_ACADEMICO);
 
         try {
-            const { results } = await contexto.env.DB_CATRAKI.prepare(
+            const { results } = await contexto.env.DB_SCAE.prepare(
                 `SELECT 
                     t.id, t.escola_id, t.ano_letivo, t.serie, t.letra, t.turno,
                     t.sala, t.professor_regente, t.sincronizado, t.criado_em,
@@ -58,7 +58,7 @@ async function processarCriacaoTurma(contexto: ContextoCatraki): Promise<Respons
 
         try {
             // UPSERT
-            await contexto.env.DB_CATRAKI.prepare(
+            await contexto.env.DB_SCAE.prepare(
                 `INSERT INTO turmas (id, escola_id, serie, letra, turno, ano_letivo, professor_regente, sala, lotacao_maxima, criado_em) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(id, escola_id) DO UPDATE SET
@@ -104,11 +104,11 @@ async function processarRemocaoTurma(contexto: ContextoCatraki): Promise<Respons
 
         try {
             // Remover vínculo dos alunos antes de excluir (Evita FOREIGN KEY constraint SQLITE_CONSTRAINT)
-            await contexto.env.DB_CATRAKI.prepare(
+            await contexto.env.DB_SCAE.prepare(
                 "UPDATE alunos SET turma_id = NULL WHERE turma_id = ? AND escola_id = ?"
             ).bind(id, idEscola).run();
 
-            const resultado = await contexto.env.DB_CATRAKI.prepare(
+            const resultado = await contexto.env.DB_SCAE.prepare(
                 "DELETE FROM turmas WHERE id = ? AND escola_id = ?"
             ).bind(id, idEscola).run();
 

@@ -6,13 +6,22 @@ import { TipoLeitor, LeitorConfig, LeitorTcpConfig } from '../drivers/ILeitor';
 const CONFIG_LOCAL_PATH = path.resolve(__dirname, '../../local-config.json');
 
 
-// Carregar variáveis de ambiente do .env na raiz do agent/
+// Carregar variáveis de ambiente do .env na raiz do SCAE
 try {
   const dotenv = require('dotenv');
-  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+  // Procura no diretório raiz do projeto (../../../.env porque estamos em dist/infra/)
+  const rootEnv = path.resolve(__dirname, '../../../.env');
+  const agentEnv = path.resolve(__dirname, '../../.env');
+  
+  if (fs.existsSync(rootEnv)) {
+    dotenv.config({ path: rootEnv });
+  } else {
+    dotenv.config({ path: agentEnv });
+  }
 } catch {
   console.warn('[Config] dotenv não encontrado, usando variáveis de ambiente do sistema.');
 }
+
 
 export interface AgenteConfig {
   escola_id: string;
@@ -40,7 +49,8 @@ let configBase: AgenteConfig = {
   ],
   intervalo_polling_ms: 1000,
   intervalo_sync_ms: 5000,
-  endpoint_worker: process.env.CATRAKI_TUNNEL_URL || process.env.CATRAKI_API_URL || 'https://scae.workers.dev',
+  endpoint_worker: process.env.CATRAKI_TUNNEL_URL || process.env.CATRAKI_API_URL || 'https://scae.pages.dev',
+
   agente_token: process.env.CATRAKI_AGENTE_TOKEN || 'catraki_dev_token',
   admin_pin: process.env.CATRAKI_ADMIN_PIN || '123456'
 };

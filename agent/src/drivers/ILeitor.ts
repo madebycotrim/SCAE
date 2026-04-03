@@ -4,10 +4,9 @@
  */
 
 export enum TipoLeitor {
-  ID_FLEX = 'ID_FLEX',
-  ANVIZ = 'ANVIZ',
-  USB_HID = 'USB_HID'
+  ID_FLEX = 'ID_FLEX'
 }
+
 
 export type TipoMovimentacao = 'ENTRADA' | 'SAIDA';
 

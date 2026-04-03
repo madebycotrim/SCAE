@@ -7,7 +7,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         const escolaId = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
 
-        const result = await contexto.env.DB_CATRAKI.prepare(`
+        const result = await contexto.env.DB_SCAE.prepare(`
             SELECT janelas FROM escolas WHERE id = ?
         `).bind(escolaId).first<{ janelas: string }>();
 
@@ -49,7 +49,7 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
 
         const janelasJson = JSON.stringify(corpo.janelas);
 
-        const resultado = await contexto.env.DB_CATRAKI.prepare(`
+        const resultado = await contexto.env.DB_SCAE.prepare(`
             UPDATE escolas SET janelas = ? WHERE id = ?
         `).bind(janelasJson, escolaId).run();
 

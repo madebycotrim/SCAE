@@ -17,7 +17,7 @@ export async function onRequestPost({ request, env }: ContextoCatraki) {
         return Response.json({ ok: true, processados: 0 });
     }
 
-    const { DB_CATRAKI: db } = env;
+    const { DB_SCAE: db } = env;
 
     // 3. Persistir lotes no D1
     // Usamos INSERT OR IGNORE para idempotência (evita erro se reenviar lote)

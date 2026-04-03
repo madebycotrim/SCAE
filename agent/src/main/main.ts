@@ -39,12 +39,26 @@ async function createWindow() {
   // Broadcast de Status Real e Detalhado
   setInterval(async () => {
     if (mainWindow) {
-      const statusLeitores = await Promise.all(leitoresAtivos.map(async l => ({
-        id: l.id,
-        nome: l.nome,
-        tipo: l.tipo,
-        online: await l.ping()
-      })));
+      const statusLeitores = await Promise.all(leitoresAtivos.map(async l => {
+        let isOnline = false;
+        let pNome = l.nome;
+
+        try {
+          isOnline = await l.ping();
+          if (isOnline && (l as any).getNomeDispositivo) {
+            const n = await (l as any).getNomeDispositivo();
+            if (n) pNome = n; // "IDFLEX-CATRAKI" ou etc
+          }
+        } catch {}
+
+        return {
+          id: l.id,
+          nome: pNome,
+          tipo: l.tipo,
+          online: isOnline
+        };
+      }));
+
 
       mainWindow.webContents.send('hardware-status', {
         escola: config.escola_id,
@@ -142,6 +156,30 @@ async function createWindow() {
 app.whenReady().then(async () => {
   await createWindow();
   
+  // Interceptar logs do terminal para exibir na Janela Visual
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const originalError = console.error;
+
+  function repassarAoLogVisual(msg: string) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('new-log', msg);
+    }
+  }
+
+  console.log = (...args) => {
+      originalLog(...args);
+      repassarAoLogVisual(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+  };
+  console.warn = (...args) => {
+      originalWarn(...args);
+      repassarAoLogVisual('[Aviso] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+  };
+  console.error = (...args) => {
+      originalError(...args);
+      repassarAoLogVisual('[Erro] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+  };
+
   // Audio Feedback Service
   notificador = new NotificadorVoz(mainWindow);
 
@@ -162,6 +200,7 @@ app.whenReady().then(async () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
+
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

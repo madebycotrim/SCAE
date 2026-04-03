@@ -7,7 +7,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         const idEscola = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN']);
 
-        const { results } = await contexto.env.DB_CATRAKI.prepare(
+        const { results } = await contexto.env.DB_SCAE.prepare(
             `SELECT
                 a.id,
                 a.escola_id,

@@ -7,7 +7,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         // RBAC: Apenas CENTRAL pode listar todos os usuários globalmente
         verificarPermissao(contexto, ['CENTRAL']);
 
-        const { results } = await contexto.env.DB_CATRAKI.prepare(
+        const { results } = await contexto.env.DB_SCAE.prepare(
             `SELECT
                 u.email,
                 u.escola_id,

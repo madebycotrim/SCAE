@@ -13,7 +13,7 @@ async function listarEquipes(contexto: ContextoCatraki): Promise<Response> {
         verificarAcesso(contexto, Permissao.VER_ACADEMICO);
 
         try {
-            const { results } = await contexto.env.DB_CATRAKI.prepare(
+            const { results } = await contexto.env.DB_SCAE.prepare(
                 `SELECT 
                     e.id, e.nome_equipe, e.cor, e.tts_alias, e.criado_em,
                     (SELECT COUNT(*) FROM aluno_equipe ae WHERE ae.equipe_id = e.id AND ae.escola_id = e.escola_id) as totalAlunos,
@@ -58,7 +58,7 @@ async function salvarEquipe(contexto: ContextoCatraki): Promise<Response> {
         const { id, nome_equipe, cor, tts_alias, criado_em } = resultadoZod.data;
 
         try {
-            await contexto.env.DB_CATRAKI.prepare(
+            await contexto.env.DB_SCAE.prepare(
                 `INSERT INTO equipes (id, escola_id, nome_equipe, cor, tts_alias, criado_em, atualizado_em) 
                     VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                     ON CONFLICT(id, escola_id) DO UPDATE SET
@@ -103,7 +103,7 @@ async function removerEquipe(contexto: ContextoCatraki): Promise<Response> {
         try {
             // A FK com ON DELETE CASCADE deve lidar com os grupos e vínculos se configurado corretamente no SQLite,
             // mas o D1 as vezes exige cuidado extra dependendo de como as constraints são tratadas.
-            const resultado = await contexto.env.DB_CATRAKI.prepare(
+            const resultado = await contexto.env.DB_SCAE.prepare(
                 "DELETE FROM equipes WHERE id = ? AND escola_id = ?"
             ).bind(id, idEscola).run();
 

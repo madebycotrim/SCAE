@@ -10,7 +10,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
 
     // Migração 1: Coluna status
     try {
-        await contexto.env.DB_CATRAKI.prepare(`
+        await contexto.env.DB_SCAE.prepare(`
             ALTER TABLE escolas ADD COLUMN status TEXT DEFAULT 'ATIVA'
         `).run();
         resultados.push('Coluna [status] criada com sucesso.');
@@ -20,7 +20,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
 
     // Migração 2: Coluna contato_suporte
     try {
-        await contexto.env.DB_CATRAKI.prepare(`
+        await contexto.env.DB_SCAE.prepare(`
             ALTER TABLE escolas ADD COLUMN contato_suporte TEXT
         `).run();
         resultados.push('Coluna [contato_suporte] criada com sucesso.');

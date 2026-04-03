@@ -20,7 +20,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
     }
 
     // 2. Buscar Aluno e Validar
-    const aluno = await contexto.env.DB_CATRAKI.prepare(
+    const aluno = await contexto.env.DB_SCAE.prepare(
         "SELECT a.*, e.chave_privada_ecdsa, e.nome_escola FROM alunos a JOIN escolas e ON a.escola_id = e.id WHERE a.matricula = ? AND a.escola_id = ? AND a.ativo = 1"
     ).bind(matriculaInput, idEscola).first<any>();
 

@@ -54,7 +54,7 @@ async function processarCriacaoUsuario(contexto: ContextoCatraki): Promise<Respo
         const { email, papel, ativo, nome_completo, criado_por, pendente, criado_em } = resultadoZod.data;
 
         try {
-            await contexto.env.DB_CATRAKI.prepare(
+            await contexto.env.DB_SCAE.prepare(
                 `INSERT INTO usuarios (email, escola_id, papel, ativo, nome_completo, criado_por, pendente, criado_em, atualizado_em)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(email, escola_id) DO UPDATE SET
@@ -116,7 +116,7 @@ async function processarAtualizacaoParcial(contexto: ContextoCatraki): Promise<R
         const valores = chaves.map(k => k === 'ativo' || k === 'pendente' ? (campos[k] ? 1 : 0) : campos[k]);
 
         try {
-            const resultado = await contexto.env.DB_CATRAKI.prepare(
+            const resultado = await contexto.env.DB_SCAE.prepare(
                 `UPDATE usuarios SET ${sets}, atualizado_em = CURRENT_TIMESTAMP WHERE email = ? AND escola_id = ?`
             ).bind(...valores, email, idEscola).run();
 
@@ -156,7 +156,7 @@ async function processarRemocaoUsuario(contexto: ContextoCatraki): Promise<Respo
         }
 
         try {
-            const resultado = await contexto.env.DB_CATRAKI.prepare(
+            const resultado = await contexto.env.DB_SCAE.prepare(
                 "DELETE FROM usuarios WHERE email = ? AND escola_id = ?"
             ).bind(email, idEscola).run();
 

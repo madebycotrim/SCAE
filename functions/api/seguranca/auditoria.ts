@@ -26,7 +26,7 @@ async function processarRecebimentoLogs(contexto: ContextoCatraki): Promise<Resp
         }
 
         // Usar db.batch() para inserir todos de uma vez (1 round-trip ao D1)
-        const stmt = contexto.env.DB_CATRAKI.prepare(
+        const stmt = contexto.env.DB_SCAE.prepare(
             `INSERT OR IGNORE INTO logs_auditoria 
             (id, escola_id, criado_em, usuario_email, acao, entidade_tipo, entidade_id, dados_anteriores, dados_novos, ip_address, user_agent, sincronizado) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
@@ -46,7 +46,7 @@ async function processarRecebimentoLogs(contexto: ContextoCatraki): Promise<Resp
             log.user_agent ?? null
         ));
 
-        const batchResults = await contexto.env.DB_CATRAKI.batch(stmts);
+        const batchResults = await contexto.env.DB_SCAE.batch(stmts);
 
         const resultados: ResultadoSincronizacao[] = logs.map((log, i) => ({
             id: log.id,
@@ -85,7 +85,7 @@ async function processarVerificacaoLogs(contexto: ContextoCatraki): Promise<Resp
 
         query += ` ORDER BY criado_em DESC LIMIT 500`;
 
-        const { results } = await contexto.env.DB_CATRAKI.prepare(query).bind(...params).all();
+        const { results } = await contexto.env.DB_SCAE.prepare(query).bind(...params).all();
         
         return Response.json({
             dados: results,

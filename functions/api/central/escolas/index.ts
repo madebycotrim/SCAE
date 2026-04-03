@@ -40,7 +40,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
     try {
         verificarPermissao(contexto, ['CENTRAL']);
 
-        const { results } = await contexto.env.DB_CATRAKI.prepare(`
+        const { results } = await contexto.env.DB_SCAE.prepare(`
             SELECT 
                 id, 
                 nome_escola as nome, 
@@ -105,7 +105,7 @@ export async function onRequestPost(contexto: ContextoCatraki): Promise<Response
         const privadaPKCS8 = await crypto.subtle.exportKey("pkcs8", chaves.privateKey) as ArrayBuffer;
         const publicaSPKI = await crypto.subtle.exportKey("spki", chaves.publicKey) as ArrayBuffer;
 
-        await contexto.env.DB_CATRAKI.prepare(`
+        await contexto.env.DB_SCAE.prepare(`
             INSERT INTO escolas (
                 id, nome_escola, dominio_email, provedor_auth,
                 cor_primaria, cor_secundaria, logo_url, 

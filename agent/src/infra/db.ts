@@ -61,7 +61,6 @@ export function getDb(): sqlite3.Database {
         nome_completo TEXT,
         turma_id TEXT,
         ativo INTEGER DEFAULT 1,
-        vetor_facial TEXT,
         atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')),
         PRIMARY KEY (matricula, escola_id)
       )
