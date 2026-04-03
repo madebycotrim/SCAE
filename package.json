@@ -3,13 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.22.2"
+  },
   "scripts": {
     "dev": "vite",
     "dev:web": "vite",
-    "dev:agent": "concurrently \"npm run dev:tunnel:quick\" \"npm run dev --prefix agent\"",
+    "dev:agent": "npm run dev --prefix agent",
     "dev:api": "wrangler pages dev . --port 8788 --d1 DB_SCAE=scae_db --kv KV_SCAE --compatibility-date=2024-04-01",
     "dev:tunnel": "cloudflared tunnel run SCAE",
-    "dev:tunnel:quick": "cloudflared tunnel --url http://localhost:8788",
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev:web\" \"npm run dev:agent\"",
     "dev:live": "cross-env VITE_PROXY_TARGET=https://scae.pages.dev npm run dev",
     "build": "vite build",
