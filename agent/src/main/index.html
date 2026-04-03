@@ -1,519 +1,1598 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catraki Edge Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <style>
-        :root { 
-            --primary: #6366f1; 
-            --primary-dark: #4f46e5;
-            --bg: #f1f5f9; 
-            --card: #ffffff; 
-            --text-main: #0f172a; 
-            --text-sub: #64748b; 
-            --success: #10b981; 
-            --error: #ef4444;
-            --warning: #f59e0b;
-            --dark: #1e293b;
+        :root {
+            --bg: #121318;
+            --s1: #1a1c23;
+            --s2: #1f2129;
+            --s3: #252830;
+            --b1: rgba(255, 255, 255, 0.055);
+            --b2: rgba(255, 255, 255, 0.09);
+            --b3: rgba(255, 255, 255, 0.14);
+            --t1: #d4d8e2;
+            --t2: #8b91a0;
+            --t3: #555c6e;
+            --ok: #5a9e7c;
+            --ok-dim: rgba(90, 158, 124, 0.12);
+            --warn: #9e8c5a;
+            --warn-dim: rgba(158, 140, 90, 0.12);
+            --err: #9e5a5a;
+            --err-dim: rgba(158, 90, 90, 0.12);
+            --info-dim: rgba(90, 110, 158, 0.12);
+            --info: #5a6e9e;
+            --mono: 'IBM Plex Mono', monospace;
+            --sans: 'IBM Plex Sans', sans-serif;
+            --r: 6px;
         }
 
-        * { box-sizing: border-box; transition: all 0.2s ease; }
-        
-        body { 
-            margin: 0; 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            background: var(--bg); 
-            color: var(--text-main); 
-            overflow: hidden; 
-            display: flex;
-            flex-direction: column;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--t1);
             height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
         }
 
-        /* Auth Screen */
-        .auth-overlay { 
-            position: fixed; 
-            inset: 0; 
-            background: var(--dark); 
-            z-index: 1000; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            backdrop-filter: blur(8px); 
+        /* ── TOASTS ─────────────────────────────────────── */
+        #toast-area {
+            position: fixed;
+            bottom: 40px;
+            right: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
         }
-        .auth-card { 
-            background: white; 
-            width: 360px; 
-            padding: 3rem 2rem; 
-            border-radius: 2rem; 
-            text-align: center; 
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
-        }
-        .auth-card h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--dark); }
-        .auth-card p { font-size: 0.875rem; color: var(--text-sub); margin-bottom: 2rem; line-height: 1.5; }
-        
-        .pin-container { margin-bottom: 2rem; }
-        .pin-input { 
-            width: 100%; 
-            padding: 1rem; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 1rem; 
-            text-align: center; 
-            font-size: 2rem; 
-            font-weight: 700;
-            letter-spacing: 0.5rem;
-            color: var(--primary-dark);
-        }
-        .pin-input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
 
-        .btn-primary { 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            padding: 1rem; 
-            border-radius: 1rem; 
-            width: 100%; 
-            font-weight: 700; 
-            font-size: 1rem;
-            cursor: pointer; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        .toast {
+            background: var(--s3);
+            border: 1px solid var(--b2);
+            border-radius: var(--r);
+            padding: 8px 14px;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--t2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toastIn 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
-        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .btn-primary:active { transform: translateY(0); }
 
-        /* Main App Header */
-        .header { 
-            background: white; 
-            padding: 1.25rem 1.5rem; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            border-bottom: 1px solid #e2e8f0;
+        .toast.ok {
+            border-color: rgba(90, 158, 124, 0.3);
+            color: var(--ok);
         }
-        .header h1 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 8px; }
-        .header .dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
-        .school-badge { 
-            font-size: 0.75rem; 
-            font-weight: 700; 
-            color: var(--primary-dark); 
-            background: rgba(99, 102, 241, 0.1); 
-            padding: 4px 12px; 
-            border-radius: 20px;
+
+        .toast.err {
+            border-color: rgba(158, 90, 90, 0.3);
+            color: var(--err);
+        }
+
+        .toast.warn {
+            border-color: rgba(158, 140, 90, 0.3);
+            color: var(--warn);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+        }
+
+        /* ── AUTH ───────────────────────────────────────── */
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-card {
+            width: 380px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-wordmark {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            color: var(--t3);
             text-transform: uppercase;
+            margin-bottom: 2rem;
         }
 
-        /* Dashboard Layout */
-        .dashboard { 
-            padding: 1.5rem; 
+        .auth-wordmark span {
+            color: var(--t2);
+        }
+
+        .auth-heading {
+            font-weight: 300;
+            font-size: 1.75rem;
+            line-height: 1.25;
+            color: var(--t1);
+            margin-bottom: 0.4rem;
+        }
+
+        .auth-sub {
+            font-size: 0.8rem;
+            color: var(--t3);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .field-label {
+            display: block;
+            font-family: var(--mono);
+            font-size: 0.58rem;
+            letter-spacing: 0.15em;
+            color: var(--t3);
+            margin-bottom: 6px;
+        }
+
+        .pin-input {
+            width: 100%;
+            background: var(--s1);
+            border: 1px solid var(--b2);
+            border-radius: var(--r);
+            padding: 0.85rem 1rem;
+            font-family: var(--mono);
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--t1);
+            letter-spacing: 0.4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            transition: border-color 0.15s;
+        }
+
+        .pin-input:focus {
+            outline: none;
+            border-color: var(--b3);
+        }
+
+        .pin-input::placeholder {
+            color: var(--t3);
+            letter-spacing: 0.25rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--s3);
+            border: 1px solid var(--b3);
+            border-radius: var(--r);
+            padding: 0.8rem;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: var(--t1);
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .btn-primary:hover {
+            background: var(--b2);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .auth-hint {
+            margin-top: 1.25rem;
+            font-size: 0.68rem;
+            color: var(--t3);
+            text-align: center;
+        }
+
+        /* ── HEADER ─────────────────────────────────────── */
+        .header {
+            height: 48px;
+            background: var(--s1);
+            border-bottom: 1px solid var(--b1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .h-brand {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--t2);
+        }
+
+        .h-sep {
+            width: 1px;
+            height: 16px;
+            background: var(--b2);
+        }
+
+        .h-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--ok);
+            animation: blink 2.5s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            55% {
+                opacity: .35
+            }
+        }
+
+        .h-school {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--t3);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+            background: transparent;
+            color: var(--t3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--b2);
+            color: var(--t2);
+            background: var(--s2);
+        }
+
+        /* ── LAYOUT ─────────────────────────────────────── */
+        .layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            overflow: hidden;
+        }
+
+        /* ── SIDEBAR ────────────────────────────────────── */
+        .sidebar {
+            background: var(--s1);
+            border-right: 1px solid var(--b1);
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        
-        .card { 
-            background: var(--card); 
-            border-radius: 1.5rem; 
-            padding: 1.5rem; 
-            border: 1px solid #e2e8f0; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+        .sidebar::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--b2);
+        }
+
+        .sb-section {
+            padding: 14px;
+            border-bottom: 1px solid var(--b1);
+        }
+
+        .sb-label {
+            font-family: var(--mono);
+            font-size: 0.54rem;
+            letter-spacing: 0.18em;
+            color: var(--t3);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .metric-card {
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+            padding: 10px 12px;
+        }
+
+        .metric-val {
+            font-family: var(--mono);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--t1);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 0.6rem;
+            color: var(--t3);
+        }
+
+        .metric-card.wide {
+            grid-column: span 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-card.wide .metric-val {
+            font-size: 0.75rem;
+            margin-bottom: 0;
+        }
+
+        /* Devices */
+        .device-list {
             display: flex;
             flex-direction: column;
-        }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-        .card-title { font-size: 0.75rem; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
-
-        /* Vision Card */
-        .vision-box { 
-            aspect-ratio: 1; 
-            background: #000; 
-            border-radius: 1.25rem; 
-            overflow: hidden; 
-            position: relative;
-            border: 2px solid #f1f5f9;
-        }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        .vision-overlay { 
-            position: absolute; 
-            bottom: 0; 
-            inset-x: 0; 
-            background: linear-gradient(transparent, rgba(0,0,0,0.8)); 
-            padding: 1rem; 
-            color: white; 
-            font-size: 0.75rem; 
-            font-weight: 600; 
-            text-align: center; 
+            gap: 5px;
         }
 
-        /* Status Items */
-        .status-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        .status-item { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            padding: 1rem; 
-            background: #f8fafc; 
-            border-radius: 1rem; 
-            font-size: 0.8125rem; 
-            font-weight: 700;
-            border: 1px solid transparent;
+        .device-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: var(--r);
+            border: 1px solid var(--b1);
+            background: var(--s2);
         }
-        .status-item.active { background: #f0fdf4; border-color: #dcfce7; color: #15803d; }
-        .status-item.offline { background: #fef2f2; border-color: #fee2e2; color: #b91c1c; }
-        .status-indicator { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
-        .active .status-indicator { background: var(--success); box-shadow: 0 0 8px var(--success); }
-        .offline .status-indicator { background: var(--error); box-shadow: 0 0 8px var(--error); }
 
-        /* Log Section */
-        .log-section { flex: 1; min-height: 200px; display: flex; flex-direction: column; }
-        .log-container { 
-            background: var(--dark); 
-            border-radius: 1.25rem; 
-            padding: 1.25rem; 
+        .device-row.online {
+            border-color: rgba(90, 158, 124, 0.18);
+            background: rgba(90, 158, 124, 0.04);
+        }
+
+        .device-row.offline {
+            border-color: rgba(158, 90, 90, 0.18);
+            background: rgba(158, 90, 90, 0.04);
+        }
+
+        .d-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--t3);
+            flex-shrink: 0;
+        }
+
+        .online .d-dot {
+            background: var(--ok);
+        }
+
+        .offline .d-dot {
+            background: var(--err);
+        }
+
+        .d-name {
+            font-size: 0.7rem;
+            font-weight: 500;
             flex: 1;
-            font-family: 'JetBrains Mono', 'Consolas', monospace; 
-            font-size: 0.75rem; 
-            color: #94a3b8; 
-            overflow-y: auto;
+        }
+
+        .d-tag {
+            font-family: var(--mono);
+            font-size: 0.5rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .online .d-tag {
+            color: var(--ok);
+            background: var(--ok-dim);
+        }
+
+        .offline .d-tag {
+            color: var(--err);
+            background: var(--err-dim);
+        }
+
+        .d-meta {
+            font-size: 0.58rem;
+            color: var(--t3);
+        }
+
+        /* Sync row */
+        .sync-row {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+        }
+
+        .sync-label {
+            font-size: 0.65rem;
+            color: var(--t3);
+        }
+
+        /* Access feed */
+        .access-feed {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
-        .log-line { display: flex; gap: 12px; line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px; }
-        .log-time { color: var(--primary); font-weight: 700; opacity: 0.8; }
-        .log-msg { color: #e2e8f0; }
-        .log-type-info { color: #38bdf8; }
-        .log-type-warn { color: #fbbf24; }
-        .log-type-error { color: #f87171; }
 
-        /* Footer */
-        .footer { 
-            padding: 1rem 1.5rem; 
-            font-size: 0.7rem; 
-            color: var(--text-sub); 
-            display: flex; 
-            justify-content: space-between; 
-            background: white; 
-            border-top: 1px solid #e2e8f0;
-            font-weight: 600;
+        .access-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
         }
 
-        .hidden { display: none !important; }
+        .access-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .access-icon.in {
+            background: var(--ok-dim);
+            color: var(--ok);
+        }
+
+        .access-icon.out {
+            background: var(--info-dim);
+            color: var(--info);
+        }
+
+        .access-icon.deny {
+            background: var(--err-dim);
+            color: var(--err);
+        }
+
+        .access-name {
+            font-size: 0.68rem;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .access-time {
+            font-family: var(--mono);
+            font-size: 0.55rem;
+            color: var(--t3);
+            flex-shrink: 0;
+        }
+
+        /* User section */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .f-input {
+            background: var(--s2);
+            border: 1px solid var(--b2);
+            border-radius: var(--r);
+            padding: 7px 10px;
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            color: var(--t1);
+            width: 100%;
+            transition: border-color 0.15s;
+        }
+
+        .f-input::placeholder {
+            color: var(--t3);
+        }
+
+        .f-input:focus {
+            outline: none;
+            border-color: var(--b3);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-s {
+            font-family: var(--mono);
+            font-size: 0.58rem;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: var(--r);
+            border: 1px solid var(--b2);
+            background: var(--s2);
+            color: var(--t2);
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-s:hover {
+            background: var(--s3);
+            border-color: var(--b3);
+            color: var(--t1);
+        }
+
+        .btn-s.primary {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-s:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        /* Spinner */
+        .spin {
+            width: 10px;
+            height: 10px;
+            border: 1.5px solid var(--t3);
+            border-top-color: var(--t1);
+            border-radius: 50%;
+            animation: spinAnim 0.6s linear infinite;
+            display: none;
+        }
+
+        @keyframes spinAnim {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading .spin {
+            display: inline-block;
+        }
+
+        .loading .btn-text {
+            display: none;
+        }
+
+        /* User list */
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .user-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .user-list::-webkit-scrollbar-thumb {
+            background: var(--b2);
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+        }
+
+        .u-name {
+            font-size: 0.68rem;
+            font-weight: 500;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .u-id {
+            font-family: var(--mono);
+            font-size: 0.55rem;
+            color: var(--t3);
+        }
+
+        .u-actions {
+            display: flex;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+
+        .u-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.12s;
+        }
+
+        .u-fp {
+            background: var(--info-dim);
+            color: var(--info);
+        }
+
+        .u-fp:hover {
+            background: rgba(90, 110, 158, 0.22);
+        }
+
+        .u-del {
+            background: var(--err-dim);
+            color: var(--err);
+        }
+
+        .u-del:hover {
+            background: rgba(158, 90, 90, 0.22);
+        }
+
+        /* Biometric bar */
+        .bio-bar-wrap {
+            height: 2px;
+            background: var(--s3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .bio-bar-wrap.active {
+            display: block;
+        }
+
+        .bio-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--ok);
+            border-radius: 2px;
+            transition: width 0.2s linear;
+        }
+
+        .empty-msg {
+            font-size: 0.65rem;
+            color: var(--t3);
+            text-align: center;
+            padding: 14px 0;
+        }
+
+        /* ── CONTENT (LOG) ──────────────────────────────── */
+        .content {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .terminal-bar {
+            height: 40px;
+            background: var(--s1);
+            border-bottom: 1px solid var(--b1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            flex-shrink: 0;
+        }
+
+        .terminal-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .t-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .td {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        .td-r {
+            background: #4a2a2a
+        }
+
+        .td-y {
+            background: #4a3d2a
+        }
+
+        .td-g {
+            background: #2a4a35
+        }
+
+        .t-title {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--t3);
+        }
+
+        .terminal-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Log filter + search */
+        .log-filter-btns {
+            display: flex;
+            gap: 3px;
+        }
+
+        .filter-btn {
+            font-family: var(--mono);
+            font-size: 0.55rem;
+            padding: 3px 7px;
+            border-radius: 3px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--t3);
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+
+        .filter-btn:hover {
+            color: var(--t2);
+        }
+
+        .filter-btn.active {
+            border-color: var(--b2);
+            background: var(--s2);
+            color: var(--t1);
+        }
+
+        .filter-btn.f-ok.active {
+            color: var(--ok);
+            border-color: rgba(90, 158, 124, 0.25);
+            background: var(--ok-dim);
+        }
+
+        .filter-btn.f-warn.active {
+            color: var(--warn);
+            border-color: rgba(158, 140, 90, 0.25);
+            background: var(--warn-dim);
+        }
+
+        .filter-btn.f-err.active {
+            color: var(--err);
+            border-color: rgba(158, 90, 90, 0.25);
+            background: var(--err-dim);
+        }
+
+        .filter-btn.f-info.active {
+            color: var(--info);
+            border-color: rgba(90, 110, 158, 0.25);
+            background: var(--info-dim);
+        }
+
+        .log-search-wrap {
+            position: relative;
+        }
+
+        .log-search {
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+            padding: 4px 26px 4px 8px;
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--t1);
+            width: 150px;
+            transition: border-color 0.15s, width 0.2s;
+        }
+
+        .log-search::placeholder {
+            color: var(--t3);
+        }
+
+        .log-search:focus {
+            outline: none;
+            border-color: var(--b2);
+            width: 190px;
+        }
+
+        .log-search-icon {
+            position: absolute;
+            right: 7px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--t3);
+            pointer-events: none;
+        }
+
+        .log-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+        }
+
+        .log-body::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .log-body::-webkit-scrollbar-thumb {
+            background: var(--b2);
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.018);
+            line-height: 1.6;
+            animation: logIn 0.15s ease;
+        }
+
+        .log-entry.hidden-entry {
+            display: none;
+        }
+
+        @keyframes logIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .log-ts {
+            color: var(--t3);
+            flex-shrink: 0;
+            font-size: 0.58rem;
+        }
+
+        .log-lv {
+            font-size: 0.52rem;
+            font-weight: 600;
+            padding: 1px 4px;
+            border-radius: 2px;
+            flex-shrink: 0;
+            letter-spacing: 0.06em;
+        }
+
+        .lv-ok {
+            color: var(--ok);
+            background: var(--ok-dim);
+        }
+
+        .lv-info {
+            color: var(--info);
+            background: var(--info-dim);
+        }
+
+        .lv-warn {
+            color: var(--warn);
+            background: var(--warn-dim);
+        }
+
+        .lv-err {
+            color: var(--err);
+            background: var(--err-dim);
+        }
+
+        .log-txt {
+            color: #9ba4b5;
+        }
+
+        /* ── STATUS BAR ─────────────────────────────────── */
+        .statusbar {
+            height: 26px;
+            background: var(--s1);
+            border-top: 1px solid var(--b1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            flex-shrink: 0;
+        }
+
+        .sb-item {
+            font-family: var(--mono);
+            font-size: 0.55rem;
+            color: var(--t3);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sb-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--t3);
+        }
+
+        .sb-dot.ok {
+            background: var(--ok);
+        }
+
+        /* ── SETTINGS MODAL ─────────────────────────────── */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.15s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .modal {
+            background: var(--s1);
+            border: 1px solid var(--b2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            width: 440px;
+            max-width: 95vw;
+            animation: slideUp 0.2s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-title {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            color: var(--t2);
+        }
+
+        .modal-close {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--b2);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--t3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            line-height: 1;
+            transition: all 0.12s;
+        }
+
+        .modal-close:hover {
+            color: var(--t2);
+            background: var(--s2);
+        }
+
+        .settings-item {
+            margin-bottom: 10px;
+            padding: 12px;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+        }
+
+        .settings-item-name {
+            font-family: var(--mono);
+            font-size: 0.58rem;
+            color: var(--t3);
+            letter-spacing: 0.12em;
+            margin-bottom: 8px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 80px;
+            gap: 6px;
+        }
+
+        .modal-footer {
+            margin-top: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
+
 <body>
-    <!-- Auth Screen -->
+
+    <div id="toast-area"></div>
+
+    <!-- ── AUTH ───────────────────────────────────────────────── -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
-            <h2>Bem-vindo ao Catraki</h2>
-            <p>Digite o PIN da sua unidade escolar para ativar o terminal inteligente.</p>
-            
-            <div class="pin-container">
-                <input type="password" id="pin" class="pin-input" placeholder="••••••" maxlength="6" autofocus>
-            </div>
-            
+            <div class="auth-wordmark">Catraki / <span>Edge Control System</span></div>
+            <h1 class="auth-heading">Acesso ao<br>Terminal</h1>
+            <p class="auth-sub">Informe o PIN da unidade escolar para ativar o agente e vincular este hardware à rede
+                central.</p>
+            <label class="field-label">PIN DE ACESSO</label>
+            <input type="password" id="pin" class="pin-input" placeholder="· · · · · ·" maxlength="6" autofocus>
             <button class="btn-primary" id="btn-auth">ATIVAR AGENTE</button>
-            <p style="margin-top: 1.5rem; font-size: 0.7rem;">O PIN vincula este hardware à rede central da escola de forma segura.</p>
+            <p class="auth-hint">Comunicação segura e criptografada</p>
         </div>
     </div>
 
-    <!-- Main Header -->
+    <!-- ── HEADER ──────────────────────────────────────────────── -->
     <div class="header">
-        <h1><span class="dot"></span> Catraki Edge Control</h1>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div id="school-badge" class="school-badge">Aguardando PIN...</div>
-            <button id="btn-settings-open" style="background: none; border: none; cursor: pointer; color: var(--text-sub);">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7-4.3c.04-.4.06-.8.06-1.2 0-.4-.02-.8-.06-1.2l2.1-1.6c.2-.1.24-.4.1-.6l-2-3.5c-.14-.2-.4-.3-.6-.2l-2.5 1c-.5-.4-1.1-.7-1.7-1l-.4-2.6c0-.2-.2-.4-.5-.4h-4c-.3 0-.5.2-.5.4l-.4 2.6c-.6.3-1.2.6-1.7 1l-2.5-1c-.2-.1-.46 0-.6.2l-2 3.5c-.14.2-.1.5.1.6l2.1 1.6c-.04.4-.06.8-.06 1.2 0 .4.02.8.06 1.2l-2.1 1.6c-.2.1-.24.4-.1.6l2 3.5c.14.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.2.4.5.4h4c.3 0 .5.2.5.4l.4 2.6c.6.3 1.2.6 1.7 1l2.5-1c.2-.1.46 0 .6-.2l2-3.5c.14-.2.1-.5-.1-.6l-2.1-1.6Z"/></svg>
+        <div class="header-left">
+            <span class="h-brand">CATRAKI EDGE</span>
+            <div class="h-sep"></div>
+            <div class="h-status-dot"></div>
+            <span class="h-school" id="school-badge">aguardando pin</span>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" id="btn-settings-open" title="Configurações de Hardware">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
             </button>
         </div>
     </div>
 
-    <!-- Dashboard Content -->
-    <div class="dashboard">
-        <div class="stats-grid">
-            <!-- Hardware Status Card -->
-            <div class="card" style="grid-column: span 2;">
-                <div class="card-header">
-                    <span class="card-title">Estado do Hardware</span>
-                </div>
-                <div class="status-list" id="hardware-status-list">
-                    <!-- Gerado dinamicamente -->
-                    <div class="status-item">
-                        <span class="status-indicator"></span>
-                        <span style="color: var(--text-sub)">Carregando...</span>
+    <!-- ── LAYOUT ───────────────────────────────────────────────── -->
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+
+            <!-- Metrics -->
+            <div class="sb-section">
+                <div class="sb-label">Métricas — Hoje</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-val" id="m-entradas">0</div>
+                        <div class="metric-label">Entradas</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-val" id="m-negadas">0</div>
+                        <div class="metric-label">Negadas</div>
+                    </div>
+                    <div class="metric-card wide">
+                        <div>
+                            <div class="metric-label">Pico de acesso</div>
+                            <div class="metric-val" id="m-pico" style="margin-top:3px">—</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div class="metric-label">Último acesso</div>
+                            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--t2);margin-top:3px"
+                                id="m-ultimo">—</div>
+                        </div>
                     </div>
                 </div>
-                <div id="st-cloud" class="status-item" style="margin-top: 1rem; font-size: 0.7rem; padding: 0.5rem;">
-                    <span class="status-indicator"></span>
-                    <span>Sincronização Nuvem</span>
+            </div>
+
+            <!-- Hardware -->
+            <div class="sb-section">
+                <div class="sb-label">Leitores</div>
+                <div class="device-list" id="hardware-status-list">
+                    <div class="device-row">
+                        <span class="d-dot"></span>
+                        <span class="d-name" style="color:var(--t3)">Inicializando...</span>
+                    </div>
+                </div>
+                <div class="sync-row">
+                    <span class="sync-label">Sync Nuvem</span>
+                    <span id="sync-badge" style="font-family:var(--mono);font-size:0.55rem;color:var(--t3)">—</span>
                 </div>
             </div>
 
-            
-            <!-- User Management Card -->
-            <div id="card-users" class="card hidden" style="grid-column: span 2;">
-                <div class="card-header">
-                    <span class="card-title">Gestão de Alunos (Hardware Conectado)</span>
-                    <button id="btn-list-users" style="font-size: 0.7rem; background: var(--dark); color: white; border: none; padding: 4px 12px; border-radius: 8px; cursor: pointer;">LISTAR TODOS</button>
-                </div>
-                <!-- ... campos e lista já existentes ... -->
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr 120px; gap: 10px; margin-bottom: 1.5rem;">
-                    <input type="text" id="cad-nome" placeholder="Nome Completo" style="padding: 0.75rem; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    <input type="text" id="cad-matricula" placeholder="Matrícula" style="padding: 0.75rem; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    <button id="btn-cad-save" class="btn-primary" style="padding: 0.75rem;">CADASTRAR</button>
-                </div>
-                <div id="user-list-result" style="max-height: 200px; overflow-y: auto; background: #f8fafc; border-radius: 1rem; border: 1px solid #e2e8f0; font-size: 0.75rem;">
-                    <div style="padding: 2rem; text-align: center; color: var(--text-sub);">Use os campos acima para gerenciar o hardware local.</div>
+            <!-- Last Accesses -->
+            <div class="sb-section">
+                <div class="sb-label">Últimos Acessos</div>
+                <div class="access-feed" id="access-feed">
+                    <div class="empty-msg">Nenhum acesso registrado.</div>
                 </div>
             </div>
+
+            <!-- User Management -->
+            <div class="sb-section" id="card-users" style="flex:1">
+                <div class="sb-label">Gestão de Alunos</div>
+                <div class="input-group">
+                    <input type="text" id="cad-nome" class="f-input" placeholder="Nome Completo">
+                    <input type="text" id="cad-matricula" class="f-input" placeholder="Matrícula">
+                </div>
+                <div class="btn-row" style="margin-bottom:8px">
+                    <button id="btn-cad-save" class="btn-s primary">
+                        <span class="spin"></span>
+                        <span class="btn-text">CADASTRAR</span>
+                    </button>
+                    <button id="btn-list-users" class="btn-s" title="Listar alunos">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6" />
+                            <line x1="8" y1="12" x2="21" y2="12" />
+                            <line x1="8" y1="18" x2="21" y2="18" />
+                            <line x1="3" y1="6" x2="3.01" y2="6" />
+                            <line x1="3" y1="12" x2="3.01" y2="12" />
+                            <line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="bio-bar-wrap" id="bio-bar-wrap">
+                    <div class="bio-bar" id="bio-bar"></div>
+                </div>
+                <div id="user-list-result" class="user-list">
+                    <div class="empty-msg">Nenhum aluno carregado.</div>
+                </div>
+            </div>
+
         </div>
 
-
-
-        <!-- Terminal Logs Card -->
-        <div class="card log-section">
-            <div class="card-header">
-                <span class="card-title">Log de Operações</span>
-            </div>
-            <div id="log-container" class="log-container">
-                <div class="log-line">
-                    <span class="log-time">00:00:00</span>
-                    <span class="log-msg log-type-info">Aguardando inicialização do sistema...</span>
+        <!-- LOG TERMINAL -->
+        <div class="content">
+            <div class="terminal-bar">
+                <div class="terminal-bar-left">
+                    <div class="t-dots">
+                        <div class="td td-r"></div>
+                        <div class="td td-y"></div>
+                        <div class="td td-g"></div>
+                    </div>
+                    <span class="t-title">catraki-edge — operation log</span>
+                </div>
+                <div class="terminal-bar-right">
+                    <div class="log-filter-btns">
+                        <button class="filter-btn active" data-filter="all">TODOS</button>
+                        <button class="filter-btn f-ok" data-filter="ok">OK</button>
+                        <button class="filter-btn f-info" data-filter="info">INFO</button>
+                        <button class="filter-btn f-warn" data-filter="warn">WARN</button>
+                        <button class="filter-btn f-err" data-filter="err">FAIL</button>
+                    </div>
+                    <div class="log-search-wrap">
+                        <input type="text" class="log-search" id="log-search" placeholder="buscar logs...">
+                        <svg class="log-search-icon" width="11" height="11" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </div>
+                    <button class="btn-s" id="btn-clear-log" style="padding:3px 8px">LIMPAR</button>
                 </div>
             </div>
-        </d    <!-- Settings Overlay -->
-    <div id="settings-screen" class="auth-overlay hidden" style="background: rgba(15, 23, 42, 0.9);">
-        <div class="auth-card" style="width: 480px; text-align: left; padding: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h2 style="margin: 0;">Configurações Locais</h2>
-                <button id="btn-settings-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
-            </div>
-            
-            <div id="settings-list" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
-                <!-- Dinâmico -->
-            </div>
-
-            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-                <button class="btn-primary" id="btn-settings-save">SALVAR E REINICIAR</button>
-            </div>
+            <div class="log-body" id="log-container"></div>
         </div>
     </div>
 
-    <!-- Footer Status Bar -->
-    <div class="footer">
-        <div>Catraki Edge Agent v1.6.0</div>
-        <div id="runtime-status">Processamento: Local Edge</div>
+    <!-- ── STATUS BAR ──────────────────────────────────────────── -->
+    <div class="statusbar">
+        <div class="sb-item"><span class="sb-dot ok"></span>Catraki Edge Agent v1.6.0</div>
+        <div class="sb-item">uptime: <span id="uptime-val" style="color:var(--t2);margin-left:3px">00:00:00</span></div>
+        <div class="sb-item">local edge · <span id="status-clock"
+                style="color:var(--t2);margin-left:3px">--:--:--</span></div>
+    </div>
+
+    <!-- ── SETTINGS MODAL ──────────────────────────────────────── -->
+    <div id="settings-screen" class="modal-bg hidden">
+        <div class="modal">
+            <div class="modal-head">
+                <span class="modal-title">CONFIGURAÇÕES DE HARDWARE</span>
+                <button id="btn-settings-close" class="modal-close">&times;</button>
+            </div>
+            <div id="settings-list"></div>
+            <div class="modal-footer">
+                <button id="btn-settings-save" class="btn-s primary"
+                    style="width:100%;justify-content:center;padding:9px">SALVAR CONFIGURAÇÕES</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const logContainer = document.getElementById('log-container');
-        const btnAuth = document.getElementById('btn-auth');
-        const pinInput = document.getElementById('pin');
-        const authScreen = document.getElementById('auth-screen');
-        const settingsScreen = document.getElementById('settings-screen');
-        const hardwareStatusList = document.getElementById('hardware-status-list');
-        const schoolBadge = document.getElementById('school-badge');
-        
+        // ─── STATE ────────────────────────────────────────────────
         let configAtual = { leitores: [] };
+        let activeFilter = 'all';
+        let uptimeSeconds = 0;
+        let entradas = 0, negadas = 0;
+        let peakCount = 0, peakHour = null;
+        let hourCounts = {};
+
+        // ─── CLOCK & UPTIME ───────────────────────────────────────
+        setInterval(() => {
+            document.getElementById('status-clock').textContent = new Date().toLocaleTimeString('pt-BR');
+            uptimeSeconds++;
+            const h = String(Math.floor(uptimeSeconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((uptimeSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(uptimeSeconds % 60).padStart(2, '0');
+            document.getElementById('uptime-val').textContent = `${h}:${m}:${s}`;
+        }, 1000);
+
+        // ─── TOAST ────────────────────────────────────────────────
+        function showToast(msg, type = 'info') {
+            const area = document.getElementById('toast-area');
+            const t = document.createElement('div');
+            t.className = `toast ${type === 'ok' ? 'ok' : type === 'error' ? 'err' : type === 'warn' ? 'warn' : ''}`;
+            t.textContent = msg;
+            area.appendChild(t);
+            setTimeout(() => {
+                t.style.animation = 'toastOut 0.2s ease forwards';
+                setTimeout(() => t.remove(), 200);
+            }, 2800);
+        }
+
+        // ─── LOG ENGINE ───────────────────────────────────────────
+        const logContainer = document.getElementById('log-container');
 
         function pushLog(message, type = 'info') {
             const time = new Date().toLocaleTimeString('pt-BR');
-            const line = document.createElement('div');
-            line.className = 'log-line';
-            line.innerHTML = `
-                <span class="log-time">${time}</span>
-                <span class="log-msg log-type-${type}">${message}</span>
+            const lvMap = { ok: 'OK', info: 'INFO', warn: 'WARN', error: 'FAIL', err: 'FAIL' };
+            const clMap = { ok: 'lv-ok', info: 'lv-info', warn: 'lv-warn', error: 'lv-err', err: 'lv-err' };
+            const normType = type === 'error' ? 'err' : type;
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.dataset.type = normType;
+            entry.innerHTML = `
+                <span class="log-ts">${time}</span>
+                <span class="log-lv ${clMap[normType] || 'lv-info'}">${lvMap[type] || 'INFO'}</span>
+                <span class="log-txt">${message}</span>
             `;
-            logContainer.appendChild(line);
+            logContainer.appendChild(entry);
             logContainer.scrollTop = logContainer.scrollHeight;
+            applyFilters();
         }
+
+        // ─── FILTERS ─────────────────────────────────────────────
+        function applyFilters() {
+            const search = document.getElementById('log-search').value.toLowerCase();
+            document.querySelectorAll('.log-entry').forEach(el => {
+                const typeMatch = activeFilter === 'all' || el.dataset.type === activeFilter;
+                const txt = el.querySelector('.log-txt').textContent.toLowerCase();
+                const searchMatch = !search || txt.includes(search);
+                el.classList.toggle('hidden-entry', !(typeMatch && searchMatch));
+            });
+        }
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeFilter = btn.dataset.filter;
+                applyFilters();
+            });
+        });
+        document.getElementById('log-search').addEventListener('input', applyFilters);
+        document.getElementById('btn-clear-log').onclick = () => {
+            logContainer.innerHTML = '';
+            pushLog('Terminal de operações limpo.', 'info');
+        };
+
+        // ─── ACCESS FEED & METRICS ────────────────────────────────
+        function addAccess(name, type = 'in') {
+            const now = new Date();
+            const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const hour = now.getHours();
+
+            if (type === 'ENTRADA' || type === 'in') {
+                entradas++;
+                document.getElementById('m-entradas').textContent = entradas;
+                document.getElementById('m-ultimo').textContent = time;
+                hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+                if (hourCounts[hour] > peakCount) {
+                    peakCount = hourCounts[hour];
+                    peakHour = hour;
+                    document.getElementById('m-pico').textContent = `${String(peakHour).padStart(2, '0')}h`;
+                }
+            } else if (type === 'NEGADO' || type === 'deny') {
+                negadas++;
+                document.getElementById('m-negadas').textContent = negadas;
+            }
+
+            const feed = document.getElementById('access-feed');
+            if (feed.querySelector('.empty-msg')) feed.innerHTML = '';
+            
+            const icons = { ENTRADA: '↑', SAIDA: '↓', NEGADO: '✕', in: '↑', out: '↓', deny: '✕' };
+            const classMap = { ENTRADA: 'in', SAIDA: 'out', NEGADO: 'deny' };
+            
+            const row = document.createElement('div');
+            row.className = 'access-row';
+            row.innerHTML = `
+                <div class="access-icon ${classMap[type] || type}">${icons[type] || '·'}</div>
+                <span class="access-name">${name}</span>
+                <span class="access-time">${time}</span>
+            `;
+            feed.insertBefore(row, feed.firstChild);
+            if (feed.children.length > 8) feed.removeChild(feed.lastChild);
+        }
+
+        // ─── AUTH ─────────────────────────────────────────────────
+        const btnAuth = document.getElementById('btn-auth');
+        const pinInput = document.getElementById('pin');
+        const authScreen = document.getElementById('auth-screen');
 
         async function handleAuth() {
             const pin = pinInput.value;
-            if (pin.length < 6) {
-                pushLog("PIN inválido: deve ter 6 dígitos", "error");
-                return;
-            }
-
+            if (pin.length < 6) return;
             btnAuth.disabled = true;
-            btnAuth.textContent = "AUTENTICANDO...";
-            
+            btnAuth.textContent = 'AUTENTICANDO...';
             try {
                 const res = await window.scaeApi.loginPin(pin);
                 if (res.ok) {
-                    pushLog("Acesso liberado! Unidade: " + res.escola_nome, "info");
-                    schoolBadge.textContent = res.escola_nome;
+                    pushLog('Terminal ativado: ' + res.escola_nome, 'ok');
+                    showToast('Conectado: ' + res.escola_nome, 'ok');
+                    document.getElementById('school-badge').textContent = res.escola_nome.toLowerCase();
                     authScreen.classList.add('hidden');
                     configAtual.leitores = res.config_hardware || [];
-                    
-                    await window.scaeApi.saveConfig({ 
-                        escolaId: res.escola_id, 
-                        token: res.token,
-                        configHardware: res.config_hardware 
-                    });
-
+                    await window.scaeApi.saveConfig({ escolaId: res.escola_id, token: res.token, configHardware: res.config_hardware });
                 } else {
-                    pushLog(res.mensagem || "Erro no PIN", "error");
+                    pushLog(res.mensagem || 'PIN incorreto.', 'error');
                     btnAuth.disabled = false;
-                    btnAuth.textContent = "ATIVAR AGENTE";
+                    btnAuth.textContent = 'ATIVAR AGENTE';
                 }
             } catch (e) {
-                pushLog("Erro de rede: " + e.message, "error");
+                pushLog('Falha na autenticação: ' + e.message, 'error');
                 btnAuth.disabled = false;
-                btnAuth.textContent = "ATIVAR AGENTE";
+                btnAuth.textContent = 'ATIVAR AGENTE';
             }
         }
 
+        btnAuth.addEventListener('click', handleAuth);
+        pinInput.addEventListener('keypress', e => e.key === 'Enter' && handleAuth());
+
+        // ─── SETTINGS ────────────────────────────────────────────
         function renderSettings() {
             const list = document.getElementById('settings-list');
             list.innerHTML = configAtual.leitores.map((l, i) => `
-                <div style="background: #f1f5f9; padding: 1rem; border-radius: 1rem;">
-                    <div style="font-weight: 800; font-size: 0.7rem; margin-bottom: 0.5rem; color: var(--primary);">${l.nome}</div>
-                    <div style="display: grid; grid-template-columns: 1fr 80px; gap: 10px;">
-                        <input type="text" placeholder="IP" value="${l.ip || ''}" onchange="updateLeitor(${i}, 'ip', this.value)" style="padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #cbd5e1;">
-                        <input type="number" placeholder="Porta" value="${l.porta || ''}" onchange="updateLeitor(${i}, 'porta', this.value)" style="padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #cbd5e1;">
+                <div class="settings-item">
+                    <div class="settings-item-name">${l.nome}</div>
+                    <div class="settings-grid">
+                        <input type="text" class="f-input" placeholder="Endereço IP"
+                            value="${l.ip || ''}" onchange="updateLeitor(${i},'ip',this.value)">
+                        <input type="number" class="f-input" placeholder="Porta"
+                            value="${l.porta || ''}" onchange="updateLeitor(${i},'porta',this.value)">
                     </div>
                 </div>
-            `).join('');
+            `).join('') || `<div class="empty-msg">Nenhum leitor configurado.</div>`;
         }
 
-        window.updateLeitor = (index, key, value) => {
-            configAtual.leitores[index][key] = value;
-        };
-
-        // Event Listeners
-        btnAuth.addEventListener('click', handleAuth);
-        pinInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleAuth());
-        
-        document.getElementById('btn-settings-open').onclick = () => {
-            renderSettings();
-            settingsScreen.classList.remove('hidden');
-        };
-        document.getElementById('btn-settings-close').onclick = () => settingsScreen.classList.add('hidden');
-        
+        window.updateLeitor = (i, k, v) => { configAtual.leitores[i][k] = v; };
+        document.getElementById('btn-settings-open').onclick = () => { renderSettings(); document.getElementById('settings-screen').classList.remove('hidden'); };
+        document.getElementById('btn-settings-close').onclick = () => document.getElementById('settings-screen').classList.add('hidden');
         document.getElementById('btn-settings-save').onclick = async () => {
-            pushLog("Salvando novas configurações de hardware...");
-            await window.scaeApi.saveConfig({ 
-                configHardware: configAtual.leitores 
-            });
-            settingsScreen.classList.add('hidden');
+            await window.scaeApi.saveConfig({ configHardware: configAtual.leitores });
+            showToast('Configurações salvas.', 'ok');
+            document.getElementById('settings-screen').classList.add('hidden');
         };
 
-        // Gestão de Alunos (Hardware)
+        // ─── USER MANAGEMENT ─────────────────────────────────────
         document.getElementById('btn-list-users').onclick = async () => {
-            const leitorPrincipal = configAtual.leitores[0]; // Assume o primeiro como principal
-            if (!leitorPrincipal) return pushLog("Nenhum leitor configurado", "error");
-            
-            pushLog("Carregando lista de alunos do hardware...");
-            const alunos = await window.scaeApi.listarAlunos(leitorPrincipal.id);
+            const l = configAtual.leitores[0];
+            if (!l) return;
+            pushLog('Sincronizando usuários...', 'info');
+            const alunos = await window.scaeApi.listarAlunos(l.id);
             const container = document.getElementById('user-list-result');
-            
-            if (alunos.length === 0) {
-                container.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-sub);">Nenhum usuário encontrado no hardware.</div>`;
+            if (!alunos.length) {
+                container.innerHTML = `<div class="empty-msg">Nenhum usuário no hardware.</div>`;
             } else {
                 container.innerHTML = alunos.map(a => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0;">
-                        <div>
-                            <span style="font-weight: 800;">${a.name}</span> <br/>
-                            <span style="color: var(--text-sub); font-size: 0.65rem;">ID: ${a.id} | Matrícula: ${a.registration || '-'}</span>
+                    <div class="user-item">
+                        <div style="flex:1;min-width:0">
+                            <div class="u-name">${a.name}</div>
+                            <div class="u-id">#${a.id} · ${a.registration || '—'}</div>
                         </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button onclick="iniciarCaptura(${a.id})" style="background: var(--primary); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.6rem; cursor: pointer;">DIGITAL</button>
-                            <button onclick="excluirAluno('${a.registration || a.id}')" style="background: var(--error); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.6rem; cursor: pointer;">EXCLUIR</button>
+                        <div class="u-actions">
+                            <button class="u-btn u-fp" onclick="iniciarCaptura(${a.id})" title="Configurar Biometria">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
+                                </svg>
+                            </button>
+                            <button class="u-btn u-del" onclick="excluirAluno('${a.registration || a.id}')" title="Remover">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                                </svg>
+                            </button>
                         </div>
-                    </div>
-                `).join('');
+                    </div>`).join('');
             }
         };
 
         document.getElementById('btn-cad-save').onclick = async () => {
-            const nome = document.getElementById('cad-nome').value;
-            const matricula = document.getElementById('cad-matricula').value;
-            const leitorPrincipal = configAtual.leitores[0];
-            
-            if (!nome || !matricula) return pushLog("Preencha nome e matrícula", "warn");
-            if (!leitorPrincipal) return pushLog("Leitor offline", "error");
-
-            pushLog(`Cadastrando ${nome} no hardware...`);
-            const res = await window.scaeApi.cadastrarAluno({
-                leitorId: leitorPrincipal.id,
-                aluno: { nomeCompleto: nome, matricula: matricula }
-            });
-
+            const nome = document.getElementById('cad-nome').value.trim();
+            const matricula = document.getElementById('cad-matricula').value.trim();
+            const l = configAtual.leitores[0];
+            if (!nome || !matricula) return showToast('Preencha nome e matrícula.', 'warn');
+            const btn = document.getElementById('btn-cad-save');
+            btn.classList.add('loading'); btn.disabled = true;
+            const res = await window.scaeApi.cadastrarAluno({ leitorId: l.id, aluno: { nomeCompleto: nome, matricula } });
             if (res.ok) {
-                pushLog(`Usuário ${nome} criado com ID ${res.idInterno}`, "info");
+                showToast(`Sucesso: ${nome} cadastrado!`, 'ok');
                 document.getElementById('cad-nome').value = '';
                 document.getElementById('cad-matricula').value = '';
-                document.getElementById('btn-list-users').click(); // Recarregar lista
+                document.getElementById('btn-list-users').click();
             } else {
-                pushLog("Erro: " + res.erro, "error");
+                pushLog('Erro no cadastro: ' + res.erro, 'error');
             }
+            btn.classList.remove('loading'); btn.disabled = false;
         };
 
         window.iniciarCaptura = async (userId) => {
-            const leitorPrincipal = configAtual.leitores[0];
-            pushLog(`Ativando modo de captura p/ usuário ${userId}...`);
-            const res = await window.scaeApi.iniciarCaptura({ leitorId: leitorPrincipal.id, userId });
-            if (res) pushLog("Aguardando dedo no equipamento!", "info");
-            else pushLog("Falha ao abrir captura", "error");
+            const l = configAtual.leitores[0];
+            showToast('Aguardando dedo no leitor...', 'info');
+            const wrap = document.getElementById('bio-bar-wrap');
+            const bar = document.getElementById('bio-bar');
+            wrap.classList.add('active'); bar.style.width = '0%';
+            let prog = 0;
+            const iv = setInterval(() => {
+                prog += 8; bar.style.width = Math.min(prog, 92) + '%';
+                if (prog >= 92) clearInterval(iv);
+            }, 300);
+            const res = await window.scaeApi.iniciarCaptura({ leitorId: l.id, userId });
+            clearInterval(iv);
+            bar.style.width = res ? '100%' : '0%';
+            setTimeout(() => wrap.classList.remove('active'), 1200);
+            if (res) showToast('Digital capturada!', 'ok');
+            else pushLog('Leitor não detectado para captura.', 'error');
         };
 
         window.excluirAluno = async (matricula) => {
-            if (!confirm(`Deseja excluir o usuário ${matricula} do hardware?`)) return;
-            const leitorPrincipal = configAtual.leitores[0];
-            const res = await window.scaeApi.excluirAluno({ leitorId: leitorPrincipal.id, matricula });
-            if (res) {
-                pushLog("Usuário removido do hardware.");
-                document.getElementById('btn-list-users').click();
-            } else pushLog("Falha ao excluir", "error");
+            if (!confirm(`Excluir aluno ${matricula}?`)) return;
+            const res = await window.scaeApi.excluirAluno({ leitorId: configAtual.leitores[0].id, matricula });
+            if (res) { showToast('Aluno excluído.', 'ok'); document.getElementById('btn-list-users').click(); }
         };
 
-        // Escutar Status do Hardware Dinâmico
+        // ─── IPC BRIDGE ───────────────────────────────────────────
+        window.scaeApi.onHardwareStatus(status => {
+            const badge = document.getElementById('sync-badge');
+            badge.textContent = status.sync ? 'CONECTADO' : 'OFFLINE';
+            badge.style.color = status.sync ? 'var(--ok)' : 'var(--err)';
 
-        window.scaeApi.onHardwareStatus((status) => {
-            const stCloud = document.getElementById('st-cloud');
-            if (stCloud) stCloud.className = `status-item ${status.sync ? 'active' : 'offline'}`;
-
-            const cardUsers = document.getElementById('card-users');
-            const hasAnyOnline = status.leitores && status.leitores.some(l => l.online);
-            
-            if (hasAnyOnline) {
-                cardUsers.classList.remove('hidden');
-                // Sincroniza a config interna de leitores ativos p/ as funções de click
-                configAtual.leitores = status.leitores.filter(l => l.online);
-            } else {
-                cardUsers.classList.add('hidden');
-            }
-
-            // Atualiza Lista de Leitores Dinamicamente
             if (status.leitores) {
-                hardwareStatusList.innerHTML = status.leitores.map(l => `
-                    <div class="status-item ${l.online ? 'active' : 'offline'}" title="${l.id}">
-                        <span class="status-indicator"></span>
-                        <div style="display: flex; flex-direction: column;">
-                            <span>${l.nome}</span>
-                            ${l.online ? `<span style="font-size: 0.6rem; opacity: 0.7;">Conectado via ${l.tipo}</span>` : ''}
+                document.getElementById('hardware-status-list').innerHTML = status.leitores.map(l => `
+                    <div class="device-row ${l.online ? 'online' : 'offline'}">
+                        <span class="d-dot"></span>
+                        <div style="flex:1;min-width:0">
+                            <div class="d-name">${l.nome}</div>
+                            ${l.online ? `<div class="d-meta">${l.tipo}</div>` : ''}
                         </div>
+                        <span class="d-tag">${l.online ? 'ON' : 'OFF'}</span>
                     </div>
                 `).join('');
+                configAtual.leitores = status.leitores.filter(l => l.online);
             }
         });
 
-
-        window.scaeApi.onNewLog((log) => {
+        window.scaeApi.onNewLog(log => {
+            const lc = log.toLowerCase();
             let type = 'info';
-            if (log.toLowerCase().includes('erro') || log.toLowerCase().includes('falha')) type = 'error';
-            if (log.toLowerCase().includes('aviso') || log.toLowerCase().includes('desconectado')) type = 'warn';
+            if (lc.includes('erro') || lc.includes('falha') || lc.includes('fail')) type = 'error';
+            else if (lc.includes('aviso') || lc.includes('desconectado')) type = 'warn';
+            else if (lc.includes('sucesso') || lc.includes('liberado') || lc.includes(' ok')) type = 'ok';
+            
+            if (lc.includes('coletou') && lc.includes('presenças')) showToast(log, 'ok');
             pushLog(log, type);
         });
 
-        pushLog("Catraki Edge Control pronto.");
-    </script>
-</body>
-</html>
+        window.scaeApi.onNewAccess(data => {
+            addAccess(data.nome, data.tipo);
+            showToast(`${data.tipo}: ${data.nome.split(' ')[0]}`, data.tipo === 'NEGADO' ? 'error' : 'ok');
+        });
 
+        // ─── INIT ─────────────────────────────────────────────────
+        pushLog('Catraki Edge Control inicializado.', 'ok');
+    </script>
+
+</body>
+
+</html>
