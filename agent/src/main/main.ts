@@ -9,17 +9,23 @@ import path from 'path';
 import { iniciarPolling, leitoresAtivos, recarregarLeitores } from '../services/poller';
 import { iniciarSync } from '../services/sync';
 import { NotificadorVoz } from '../services/notificador-voz';
-import { config } from '../infra/config';
+import { config, salvarLeitoresNoDisco } from '../infra/config';
+import { TipoLeitor } from '../drivers/ILeitor';
+import { WorkerApi } from '../services/worker-endpoint';
+
+
+
 
 let mainWindow: BrowserWindow | null = null;
 let notificador: NotificadorVoz | null = null;
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 520,
-    height: 680,
-    resizable: false,
-    maximizable: false,
+    width: 800,
+    height: 850,
+    resizable: true,
+    maximizable: true,
+
     title: 'Catraki Edge Agent Control',
     icon: nativeImage.createEmpty(),
     autoHideMenuBar: true,
@@ -30,36 +36,61 @@ async function createWindow() {
     },
   });
 
-  // Broadcast de Status Real
-  setInterval(() => {
+  // Broadcast de Status Real e Detalhado
+  setInterval(async () => {
     if (mainWindow) {
+      const statusLeitores = await Promise.all(leitoresAtivos.map(async l => ({
+        id: l.id,
+        nome: l.nome,
+        tipo: l.tipo,
+        online: await l.ping()
+      })));
+
       mainWindow.webContents.send('hardware-status', {
         escola: config.escola_id,
-        biometria: leitoresAtivos.length > 0,
-        sync: true
+        leitores: statusLeitores,
+        sync: WorkerApi.online
       });
+
     }
-  }, 10000);
+  }, 5000);
+
+
 
   // Escutar configuração da UI (Seletor de Escola)
   ipcMain.handle('save-config', (_event, { escolaId, token, configHardware }) => {
-    console.log(`[Config Web] Vinculando terminal à escola: ${escolaId}`);
-    
-    config.escola_id = escolaId;
-    config.agente_token = token;
+    if (escolaId) {
+        console.log(`[Config Web] Vinculando terminal à escola: ${escolaId}`);
+        config.escola_id = escolaId;
+    }
+    if (token) config.agente_token = token;
 
-    // Se a nuvem mandou configuração de hardware, aplica agora
-    if (configHardware && Array.isArray(configHardware) && configHardware.length > 0) {
-        console.log(`[Config Web] Aplicando ${configHardware.length} leitores via remota.`);
-        config.leitores = configHardware;
+    if (configHardware && Array.isArray(configHardware)) {
+        console.log(`[Config Web] Persistindo ${configHardware.length} leitores localmente...`);
+        salvarLeitoresNoDisco(configHardware);
         recarregarLeitores();
+
     }
     
     return { ok: true };
   });
 
+
   // Autenticação Digital via PIN (Eliminando erro de Rede/CORS no Browser)
   ipcMain.handle('login-pin', async (_event, pin) => {
+    // 1. Verificação de Backup/Admin Local (Permitir acesso se a nuvem cair)
+    if (pin === config.admin_pin) {
+      console.log('[Auth] Acesso concedido via Senha Admin local.');
+      return { 
+        ok: true, 
+        escola_id: config.escola_id, 
+        escola_nome: 'ACESSANDO VIA ADMIN (OFFLINE)',
+        token: config.agente_token,
+        config_hardware: config.leitores 
+      };
+    }
+
+    // 2. Fluxo Normal via Nuvem
     try {
       const url = `${config.endpoint_worker}/api/agente/login-pin`;
       const res = await fetch(url, {
@@ -68,13 +99,44 @@ async function createWindow() {
         body: JSON.stringify({ pin })
       });
       return await res.json();
-    } catch (e) {
-      console.error('[Network] Erro ao autenticar PIN:', e);
-      return { ok: false, mensagem: 'Servidor indisponível ou erro de rede local.' };
+    } catch (e: any) {
+      console.warn('[Network] Falha na rede cloud:', e.message);
+      return { 
+        ok: false, 
+        mensagem: `DNS inviável ou servidor indisponível (${e.code || 'CLOUD_OFFLINE'}). Tente a Senha Admin local.` 
+      };
     }
   });
 
+
+  // --- Gestão de Usuários e Hardware ---
+  ipcMain.handle('listar-alunos', async (_event, leitorId) => {
+    const leitor = leitoresAtivos.find(l => l.id === leitorId);
+    return (leitor && leitor.listarAlunos) ? await leitor.listarAlunos() : [];
+  });
+
+  ipcMain.handle('iniciar-captura', async (_event, { leitorId, userId }) => {
+    const leitor = leitoresAtivos.find(l => l.id === leitorId);
+    return (leitor && leitor.iniciarCaptura) ? await leitor.iniciarCaptura(userId) : false;
+  });
+
+  ipcMain.handle('cadastrar-aluno', async (_event, { leitorId, aluno }) => {
+    const leitor = leitoresAtivos.find(l => l.id === leitorId);
+    return leitor ? await leitor.cadastrarAluno(aluno) : { ok: false, erro: 'Leitor offline' };
+  });
+
+  ipcMain.handle('excluir-aluno', async (_event, { leitorId, matricula }) => {
+    const leitor = leitoresAtivos.find(l => l.id === leitorId);
+    return leitor ? await leitor.removerAluno(matricula) : false;
+  });
+
+  ipcMain.handle('abrir-porta', async (_event, leitorId) => {
+    const leitor = leitoresAtivos.find(l => l.id === leitorId);
+    return leitor ? await leitor.abrirPorta() : false;
+  });
+
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
 }
 
 app.whenReady().then(async () => {

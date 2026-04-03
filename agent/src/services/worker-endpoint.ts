@@ -6,9 +6,18 @@
 import { config } from '../infra/config';
 
 export const WorkerApi = {
+  online: false,
+
   /** Envia múltiplos registros coletados localmente em um único lote (batch) para eficiência */
   async enviarBatida(registros: any[]): Promise<boolean> {
-    if (registros.length === 0) return true;
+    if (registros.length === 0) {
+        // Se não tem nada p/ enviar, faz um ping rápido usando o heartbeat oficial para checar conexão
+        try {
+            await this.enviarStatus([]);
+        } catch { this.online = false; }
+        return true;
+    }
+
     
     try {
       const resp = await fetch(`${config.endpoint_worker}/api/agente/sync-ponto`, {
@@ -16,17 +25,19 @@ export const WorkerApi = {
         headers: {
           'Content-Type': 'application/json',
           'X-Escola-ID': config.escola_id,
-          'Authorization': `Bearer ${config.agente_token}` // Token centralizado
+          'Authorization': `Bearer ${config.agente_token}`
         },
         body: JSON.stringify({ registros })
       });
 
+      this.online = resp.ok;
       if (!resp.ok) {
         throw new Error(`Cloudfalre Worker respondeu com erro ${resp.status}`);
       }
 
       return true;
     } catch (e) {
+      this.online = false;
       console.error('[WorkerApi] Falha no envio para nuvem:', e);
       return false;
     }
@@ -42,9 +53,13 @@ export const WorkerApi = {
         }
       });
       
+      this.online = resp.ok;
+      if (!resp.ok) return [];
+
       const dados = await resp.json() as any;
       return dados.alunos || [];
     } catch (e) {
+      this.online = false;
       console.error('[WorkerApi] Erro ao sincronizar alunos:', e);
       return [];
     }
@@ -53,7 +68,7 @@ export const WorkerApi = {
   /** Reporta que o agente está online e o status de seus leitores */
   async enviarStatus(leitores: any[]): Promise<boolean> {
     try {
-      await fetch(`${config.endpoint_worker}/api/agente/heartbeat`, {
+      const resp = await fetch(`${config.endpoint_worker}/api/agente/heartbeat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +80,11 @@ export const WorkerApi = {
           leitores 
         })
       });
-      return true;
-    } catch { return false; }
+      this.online = resp.ok;
+      return resp.ok;
+    } catch { 
+      this.online = false;
+      return false; 
+    }
   }
 };

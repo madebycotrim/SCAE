@@ -224,44 +224,56 @@
     <!-- Main Header -->
     <div class="header">
         <h1><span class="dot"></span> Catraki Edge Control</h1>
-        <div id="school-badge" class="school-badge">Aguardando PIN...</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div id="school-badge" class="school-badge">Aguardando PIN...</div>
+            <button id="btn-settings-open" style="background: none; border: none; cursor: pointer; color: var(--text-sub);">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7-4.3c.04-.4.06-.8.06-1.2 0-.4-.02-.8-.06-1.2l2.1-1.6c.2-.1.24-.4.1-.6l-2-3.5c-.14-.2-.4-.3-.6-.2l-2.5 1c-.5-.4-1.1-.7-1.7-1l-.4-2.6c0-.2-.2-.4-.5-.4h-4c-.3 0-.5.2-.5.4l-.4 2.6c-.6.3-1.2.6-1.7 1l-2.5-1c-.2-.1-.46 0-.6.2l-2 3.5c-.14.2-.1.5.1.6l2.1 1.6c-.04.4-.06.8-.06 1.2 0 .4.02.8.06 1.2l-2.1 1.6c-.2.1-.24.4-.1.6l2 3.5c.14.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.2.4.5.4h4c.3 0 .5.2.5.4l.4 2.6c.6.3 1.2.6 1.7 1l2.5-1c.2-.1.46 0 .6-.2l2-3.5c.14-.2.1-.5-.1-.6l-2.1-1.6Z"/></svg>
+            </button>
+        </div>
     </div>
 
     <!-- Dashboard Content -->
     <div class="dashboard">
         <div class="stats-grid">
-            <!-- Computer Vision Card -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Visão Computacional</span>
-                </div>
-                <div class="vision-box">
-                    <video id="webcam" autoplay muted playsinline></video>
-                    <div class="vision-overlay" id="vision-status">RECONHECIMENTO INATIVO</div>
-                </div>
-            </div>
-
             <!-- Hardware Status Card -->
-            <div class="card">
+            <div class="card" style="grid-column: span 2;">
                 <div class="card-header">
                     <span class="card-title">Estado do Hardware</span>
                 </div>
-                <div class="status-list">
-                    <div class="status-item" id="st-biometry">
+                <div class="status-list" id="hardware-status-list">
+                    <!-- Gerado dinamicamente -->
+                    <div class="status-item">
                         <span class="status-indicator"></span>
-                        <span>Leitor Biométrico</span>
+                        <span style="color: var(--text-sub)">Carregando...</span>
                     </div>
-                    <div class="status-item" id="st-face">
-                        <span class="status-indicator"></span>
-                        <span>Reconhecimento Facial</span>
-                    </div>
-                    <div class="status-item" id="st-cloud">
-                        <span class="status-indicator"></span>
-                        <span>Sincronização Nuvem</span>
-                    </div>
+                </div>
+                <div id="st-cloud" class="status-item" style="margin-top: 1rem; font-size: 0.7rem; padding: 0.5rem;">
+                    <span class="status-indicator"></span>
+                    <span>Sincronização Nuvem</span>
+                </div>
+            </div>
+
+            
+            <!-- User Management Card -->
+            <div id="card-users" class="card hidden" style="grid-column: span 2;">
+                <div class="card-header">
+                    <span class="card-title">Gestão de Alunos (Hardware Conectado)</span>
+                    <button id="btn-list-users" style="font-size: 0.7rem; background: var(--dark); color: white; border: none; padding: 4px 12px; border-radius: 8px; cursor: pointer;">LISTAR TODOS</button>
+                </div>
+                <!-- ... campos e lista já existentes ... -->
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 120px; gap: 10px; margin-bottom: 1.5rem;">
+                    <input type="text" id="cad-nome" placeholder="Nome Completo" style="padding: 0.75rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <input type="text" id="cad-matricula" placeholder="Matrícula" style="padding: 0.75rem; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <button id="btn-cad-save" class="btn-primary" style="padding: 0.75rem;">CADASTRAR</button>
+                </div>
+                <div id="user-list-result" style="max-height: 200px; overflow-y: auto; background: #f8fafc; border-radius: 1rem; border: 1px solid #e2e8f0; font-size: 0.75rem;">
+                    <div style="padding: 2rem; text-align: center; color: var(--text-sub);">Use os campos acima para gerenciar o hardware local.</div>
                 </div>
             </div>
         </div>
+
+
 
         <!-- Terminal Logs Card -->
         <div class="card log-section">
@@ -274,12 +286,27 @@
                     <span class="log-msg log-type-info">Aguardando inicialização do sistema...</span>
                 </div>
             </div>
+        </d    <!-- Settings Overlay -->
+    <div id="settings-screen" class="auth-overlay hidden" style="background: rgba(15, 23, 42, 0.9);">
+        <div class="auth-card" style="width: 480px; text-align: left; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="margin: 0;">Configurações Locais</h2>
+                <button id="btn-settings-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div id="settings-list" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Dinâmico -->
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn-primary" id="btn-settings-save">SALVAR E REINICIAR</button>
+            </div>
         </div>
     </div>
 
     <!-- Footer Status Bar -->
     <div class="footer">
-        <div>Catraki Edge Agent v1.5.0</div>
+        <div>Catraki Edge Agent v1.6.0</div>
         <div id="runtime-status">Processamento: Local Edge</div>
     </div>
 
@@ -289,7 +316,11 @@
         const btnAuth = document.getElementById('btn-auth');
         const pinInput = document.getElementById('pin');
         const authScreen = document.getElementById('auth-screen');
+        const settingsScreen = document.getElementById('settings-screen');
+        const hardwareStatusList = document.getElementById('hardware-status-list');
         const schoolBadge = document.getElementById('school-badge');
+        
+        let configAtual = { leitores: [] };
 
         function pushLog(message, type = 'info') {
             const time = new Date().toLocaleTimeString('pt-BR');
@@ -312,26 +343,21 @@
 
             btnAuth.disabled = true;
             btnAuth.textContent = "AUTENTICANDO...";
-            pushLog("Iniciando handshake com a nuvem...");
-
+            
             try {
                 const res = await window.scaeApi.loginPin(pin);
                 if (res.ok) {
-                    pushLog("Autenticação bem-sucedida! Escola: " + res.escola_nome, "info");
+                    pushLog("Acesso liberado! Unidade: " + res.escola_nome, "info");
                     schoolBadge.textContent = res.escola_nome;
                     authScreen.classList.add('hidden');
+                    configAtual.leitores = res.config_hardware || [];
                     
-                    // Salvar no main process
                     await window.scaeApi.saveConfig({ 
                         escolaId: res.escola_id, 
                         token: res.token,
                         configHardware: res.config_hardware 
                     });
 
-                    pushLog("Configurações aplicadas. Ativando drivers...");
-                    visionStatus.textContent = "SISTEMA ATIVO - MONITORANDO";
-                    
-                    // Iniciar Câmera
                     startCamera();
                 } else {
                     pushLog(res.mensagem || "Erro no PIN", "error");
@@ -345,32 +371,151 @@
             }
         }
 
+        function renderSettings() {
+            const list = document.getElementById('settings-list');
+            list.innerHTML = configAtual.leitores.map((l, i) => `
+                <div style="background: #f1f5f9; padding: 1rem; border-radius: 1rem;">
+                    <div style="font-weight: 800; font-size: 0.7rem; margin-bottom: 0.5rem; color: var(--primary);">${l.nome}</div>
+                    <div style="display: grid; grid-template-columns: 1fr 80px; gap: 10px;">
+                        <input type="text" placeholder="IP" value="${l.ip || ''}" onchange="updateLeitor(${i}, 'ip', this.value)" style="padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #cbd5e1;">
+                        <input type="number" placeholder="Porta" value="${l.porta || ''}" onchange="updateLeitor(${i}, 'porta', this.value)" style="padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #cbd5e1;">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.updateLeitor = (index, key, value) => {
+            configAtual.leitores[index][key] = value;
+        };
+
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
                 document.getElementById('webcam').srcObject = stream;
-                pushLog("Câmera frontal ativada com sucesso.");
             } catch (e) {
-                pushLog("Falha ao acessar câmera: " + e.message, "warn");
+                pushLog("Câmera frontal inativa.", "warn");
             }
         }
 
         // Event Listeners
         btnAuth.addEventListener('click', handleAuth);
         pinInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleAuth());
+        
+        document.getElementById('btn-settings-open').onclick = () => {
+            renderSettings();
+            settingsScreen.classList.remove('hidden');
+        };
+        document.getElementById('btn-settings-close').onclick = () => settingsScreen.classList.add('hidden');
+        
+        document.getElementById('btn-settings-save').onclick = async () => {
+            pushLog("Salvando novas configurações de hardware...");
+            await window.scaeApi.saveConfig({ 
+                configHardware: configAtual.leitores 
+            });
+            settingsScreen.classList.add('hidden');
+        };
 
-        // Escutar Status do Hardware
+        // Gestão de Alunos (Hardware)
+        document.getElementById('btn-list-users').onclick = async () => {
+            const leitorPrincipal = configAtual.leitores[0]; // Assume o primeiro como principal
+            if (!leitorPrincipal) return pushLog("Nenhum leitor configurado", "error");
+            
+            pushLog("Carregando lista de alunos do hardware...");
+            const alunos = await window.scaeApi.listarAlunos(leitorPrincipal.id);
+            const container = document.getElementById('user-list-result');
+            
+            if (alunos.length === 0) {
+                container.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-sub);">Nenhum usuário encontrado no hardware.</div>`;
+            } else {
+                container.innerHTML = alunos.map(a => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0;">
+                        <div>
+                            <span style="font-weight: 800;">${a.name}</span> <br/>
+                            <span style="color: var(--text-sub); font-size: 0.65rem;">ID: ${a.id} | Matrícula: ${a.registration || '-'}</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="iniciarCaptura(${a.id})" style="background: var(--primary); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.6rem; cursor: pointer;">DIGITAL</button>
+                            <button onclick="excluirAluno('${a.registration || a.id}')" style="background: var(--error); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.6rem; cursor: pointer;">EXCLUIR</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        };
+
+        document.getElementById('btn-cad-save').onclick = async () => {
+            const nome = document.getElementById('cad-nome').value;
+            const matricula = document.getElementById('cad-matricula').value;
+            const leitorPrincipal = configAtual.leitores[0];
+            
+            if (!nome || !matricula) return pushLog("Preencha nome e matrícula", "warn");
+            if (!leitorPrincipal) return pushLog("Leitor offline", "error");
+
+            pushLog(`Cadastrando ${nome} no hardware...`);
+            const res = await window.scaeApi.cadastrarAluno({
+                leitorId: leitorPrincipal.id,
+                aluno: { nomeCompleto: nome, matricula: matricula }
+            });
+
+            if (res.ok) {
+                pushLog(`Usuário ${nome} criado com ID ${res.idInterno}`, "info");
+                document.getElementById('cad-nome').value = '';
+                document.getElementById('cad-matricula').value = '';
+                document.getElementById('btn-list-users').click(); // Recarregar lista
+            } else {
+                pushLog("Erro: " + res.erro, "error");
+            }
+        };
+
+        window.iniciarCaptura = async (userId) => {
+            const leitorPrincipal = configAtual.leitores[0];
+            pushLog(`Ativando modo de captura p/ usuário ${userId}...`);
+            const res = await window.scaeApi.iniciarCaptura({ leitorId: leitorPrincipal.id, userId });
+            if (res) pushLog("Aguardando dedo no equipamento!", "info");
+            else pushLog("Falha ao abrir captura", "error");
+        };
+
+        window.excluirAluno = async (matricula) => {
+            if (!confirm(`Deseja excluir o usuário ${matricula} do hardware?`)) return;
+            const leitorPrincipal = configAtual.leitores[0];
+            const res = await window.scaeApi.excluirAluno({ leitorId: leitorPrincipal.id, matricula });
+            if (res) {
+                pushLog("Usuário removido do hardware.");
+                document.getElementById('btn-list-users').click();
+            } else pushLog("Falha ao excluir", "error");
+        };
+
+        // Escutar Status do Hardware Dinâmico
+
         window.scaeApi.onHardwareStatus((status) => {
-            const stBio = document.getElementById('st-biometry');
-            const stFace = document.getElementById('st-face');
             const stCloud = document.getElementById('st-cloud');
-
-            if (stBio) stBio.className = `status-item ${status.biometria ? 'active' : 'offline'}`;
-            if (stFace) stFace.className = `status-item active`; // Always active after auth
             if (stCloud) stCloud.className = `status-item ${status.sync ? 'active' : 'offline'}`;
+
+            const cardUsers = document.getElementById('card-users');
+            const hasAnyOnline = status.leitores && status.leitores.some(l => l.online);
+            
+            if (hasAnyOnline) {
+                cardUsers.classList.remove('hidden');
+                // Sincroniza a config interna de leitores ativos p/ as funções de click
+                configAtual.leitores = status.leitores.filter(l => l.online);
+            } else {
+                cardUsers.classList.add('hidden');
+            }
+
+            // Atualiza Lista de Leitores Dinamicamente
+            if (status.leitores) {
+                hardwareStatusList.innerHTML = status.leitores.map(l => `
+                    <div class="status-item ${l.online ? 'active' : 'offline'}" title="${l.id}">
+                        <span class="status-indicator"></span>
+                        <div style="display: flex; flex-direction: column;">
+                            <span>${l.nome}</span>
+                            ${l.online ? `<span style="font-size: 0.6rem; opacity: 0.7;">Conectado via ${l.tipo}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
         });
 
-        // Escutar Logs do Main Process
+
         window.scaeApi.onNewLog((log) => {
             let type = 'info';
             if (log.toLowerCase().includes('erro') || log.toLowerCase().includes('falha')) type = 'error';
@@ -378,7 +523,8 @@
             pushLog(log, type);
         });
 
-        pushLog("Catraki Edge Control pronto para ativação.");
+        pushLog("Catraki Edge Control pronto.");
     </script>
 </body>
 </html>
+

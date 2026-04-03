@@ -7,6 +7,7 @@ import { TipoLeitor, LeitorConfig, LeitorTcpConfig, ILeitor } from './ILeitor';
 import { IdflexLeitor } from './IdflexLeitor';
 import { AnvizLeitor } from './AnvizLeitor';
 import { UsbLeitor } from './UsbLeitor';
+import { ControlidUsbLeitor } from './ControlidUsbLeitor';
 
 export const LeitorFactory = {
   /** Cria um leitor robusto a partir do objeto de configuração */
@@ -19,6 +20,10 @@ export const LeitorFactory = {
         return new AnvizLeitor(cfg as LeitorTcpConfig);
 
       case TipoLeitor.USB_HID:
+        // Se o nome contiver iDBio ou for explicitamente ControlID USB
+        if (cfg.nome?.toLowerCase().includes('controlid') || cfg.nome?.toLowerCase().includes('idbio')) {
+            return new ControlidUsbLeitor(cfg);
+        }
         return new UsbLeitor(cfg);
 
       default:
@@ -26,3 +31,4 @@ export const LeitorFactory = {
     }
   }
 };
+

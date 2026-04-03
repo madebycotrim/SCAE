@@ -72,4 +72,15 @@ export interface ILeitor {
 
   /** Remove um usuário do hardware */
   removerAluno(matricula: string): Promise<boolean>;
+
+  /** Aciona a abertura da porta/catraca remotamente */
+  abrirPorta(): Promise<boolean>;
+
+  /** Retorna a lista de usuários (alunos) residentes no hardware */
+  listarAlunos?(): Promise<any[]>;
+
+  /** Inicia o modo de captura biométrica no equipamento */
+  iniciarCaptura?(userId: number): Promise<boolean>;
 }
+
+

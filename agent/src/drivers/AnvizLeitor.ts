@@ -162,4 +162,11 @@ export class AnvizLeitor implements ILeitor {
     const seg = bcd(buf[offset + 5]);
     return new Date(ano, mes, dia, hora, min, seg);
   }
+
+  async abrirPorta(): Promise<boolean> {
+    // Protocolo Anviz varia muito para abertura remota, implementamos falso por padrão
+    console.warn(`[Anviz][${this.id}] Abertura remota não suportada neste driver.`);
+    return false;
+  }
 }
+

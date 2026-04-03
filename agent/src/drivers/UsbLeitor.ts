@@ -56,4 +56,10 @@ export class UsbLeitor implements ILeitor {
   async removerAluno(matricula: string): Promise<boolean> {
     return true;
   }
+
+  async abrirPorta(): Promise<boolean> {
+    // Leitores USB não costumam ter acionamento de relé direto
+    return true; // Simulado
+  }
 }
+

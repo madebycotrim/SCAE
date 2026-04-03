@@ -1,10 +1,10 @@
-/**
- * infra/config.ts
- * Gestão de configurações do agente local.
- */
-
+import fs from 'fs';
 import path from 'path';
 import { TipoLeitor, LeitorConfig, LeitorTcpConfig } from '../drivers/ILeitor';
+
+// Caminho para o arquivo de persistência local das configurações de hardware
+const CONFIG_LOCAL_PATH = path.resolve(__dirname, '../../local-config.json');
+
 
 // Carregar variáveis de ambiente do .env na raiz do agent/
 try {
@@ -21,29 +21,53 @@ export interface AgenteConfig {
   intervalo_sync_ms: number;
   endpoint_worker: string;
   agente_token: string;
+  admin_pin: string; // Senha mestre para acesso local/configuração
 }
 
-// Configuração carregada por variável de ambiente ou arquivo local
-export const config: AgenteConfig = {
+
+// Configuração padrão in-memory
+let configBase: AgenteConfig = {
   escola_id: process.env.CATRAKI_ESCOLA_ID || 'cem03-taguatinga',
   leitores: [
     {
-      id: 'portaria-principal',
-      nome: 'iDFlex Portaria Principal',
+      id: 'idflex-real',
+      nome: 'iDFlex Portaria (Físico)',
       tipo: TipoLeitor.ID_FLEX,
-      ip: '192.168.1.10',
-      porta: 80
-    } as LeitorTcpConfig,
-    {
-      id: 'portaria-secundaria',
-      nome: 'Anviz Portaria Norte',
-      tipo: TipoLeitor.ANVIZ,
-      ip: '192.168.1.11',
-      porta: 5010
+      ip: '192.168.1.34:8080',
+      porta: 8080
     } as LeitorTcpConfig
+
   ],
-  intervalo_polling_ms: 1000,   // Coleta a cada 1 segundo
-  intervalo_sync_ms: 5000,      // Sincroniza com a nuvem a cada 5 segundos
-  endpoint_worker: process.env.CATRAKI_TUNNEL_URL || process.env.CATRAKI_API_URL || 'https://catraki.workers.dev',
-  agente_token: process.env.CATRAKI_AGENTE_TOKEN || 'catraki_dev_token'
+  intervalo_polling_ms: 1000,
+  intervalo_sync_ms: 5000,
+  endpoint_worker: process.env.CATRAKI_TUNNEL_URL || process.env.CATRAKI_API_URL || 'https://scae.workers.dev',
+  agente_token: process.env.CATRAKI_AGENTE_TOKEN || 'catraki_dev_token',
+  admin_pin: process.env.CATRAKI_ADMIN_PIN || '123456'
 };
+
+// Tenta carregar persistência do disco para o hardware
+try {
+  if (fs.existsSync(CONFIG_LOCAL_PATH)) {
+    const data = JSON.parse(fs.readFileSync(CONFIG_LOCAL_PATH, 'utf-8'));
+    if (data.leitores) configBase.leitores = data.leitores;
+    console.log('[Config] Hardware carregado do disco com sucesso.');
+  }
+} catch (e) {
+  console.log('[Config] Usando configurações padrão (disco não encontrado).');
+}
+
+// Exporta a config e função para salvar fisicamente
+export const config = configBase;
+
+export const salvarLeitoresNoDisco = (leitores: any[]) => {
+  try {
+    const data = { leitores };
+    fs.writeFileSync(CONFIG_LOCAL_PATH, JSON.stringify(data, null, 2));
+    config.leitores = leitores; // Atualiza em memória também
+    console.log('[Config] Novas configurações de hardware salvas no disco.');
+  } catch (e) {
+    console.error('[Config] Erro ao persistir no disco:', e);
+  }
+};
+
+

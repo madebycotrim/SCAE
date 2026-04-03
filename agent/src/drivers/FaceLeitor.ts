@@ -53,4 +53,9 @@ export class FaceLeitor implements ILeitor {
   async removerAluno(matricula: string): Promise<boolean> {
     return true;
   }
+
+  async abrirPorta(): Promise<boolean> {
+    return false;
+  }
 }
+
