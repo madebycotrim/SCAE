@@ -1,6 +1,6 @@
 import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users, Eye } from 'lucide-react';
+import { usarEscola } from '@/escola/ProvedorEscola';
 import { Aluno } from '../tipos/academico';
-import { mascararDadoPessoal } from '@/compartilhado/utils/registrarLocal';
 import { CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 
 interface ListaAlunosProps {
@@ -32,6 +32,10 @@ export default function ListaAlunos({
     obterCorAvatar,
     carregando
 }: ListaAlunosProps) {
+    const escola = usarEscola();
+    const temQR = escola.metodosAcesso.includes('QRCODE');
+    const temFacial = escola.metodosAcesso.includes('FACIAL');
+
     if (alunos.length === 0) {
         return (
             <div className="bg-white rounded-2xl border border-slate-200 p-24 text-center animate-fade-in shadow-suave flex flex-col items-center justify-center">
@@ -133,16 +137,18 @@ export default function ListaAlunos({
                                     </td>
                                     <td className="py-4 px-8 text-right">
                                         <div className="flex items-center justify-end gap-1">
-                                            <button
-                                                onClick={() => aoVerQRCode(aluno.matricula)}
-                                                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
-                                                title="Visualizar Credencial"
-                                            >
-                                                <QrCode size={16} />
-                                            </button>
-                                            {aoCadastrarFacial && (
+                                            {temQR && (
                                                 <button
-                                                    onClick={() => aoCadastrarFacial(aluno)}
+                                                    onClick={() => aoVerQRCode(aluno.matricula)}
+                                                    className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
+                                                    title="Visualizar Credencial"
+                                                >
+                                                    <QrCode size={16} />
+                                                </button>
+                                            )}
+                                            {temFacial && (
+                                                <button
+                                                    onClick={() => aoCadastrarFacial ? aoCadastrarFacial(aluno) : null}
                                                     className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all"
                                                     title="Cadastrar Reconhecimento Facial"
                                                 >

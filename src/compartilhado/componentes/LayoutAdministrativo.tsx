@@ -120,19 +120,26 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         }
     }, [localizacao, navegar]);
 
-    // Agrupamento lógico dos itens
+    // Agrupamento lógico dos itens adaptados ao método de acesso da escola
+    const metodos = usarEscola().metodosAcesso; // ['QRCODE', 'FACIAL', 'DIGITAL']
+    const temQR = metodos.includes('QRCODE');
+    const temFacial = metodos.includes('FACIAL');
+    const temDigital = metodos.includes('DIGITAL');
+
     const gruposMenu = [
         {
             titulo: 'Visão',
             itens: [
-                { icone: LayoutDashboard, texto: 'Painel', rota: '/painel' }
+                { icone: LayoutDashboard, texto: 'Painel', rota: '/painel' },
+                { icone: Users, texto: 'Alunos', rota: '/alunos' }
             ]
         },
         {
             titulo: 'Acadêmico',
             itens: [
                 ...(pode('visualizar', 'turmas') ? [{ icone: Layers, texto: 'Turmas', rota: '/turmas' }] : []),
-                ...(pode('visualizar', 'academico') ? [{ icone: Hexagon, texto: 'Equipes', rota: '/equipes' }] : []),
+                // Somente exibe Calendário se não for apenas um terminal de bico (ex: simplificado)
+                ...(pode('visualizar', 'academico') ? [{ icone: Calendar, texto: 'Calendário', rota: '/calendario' }] : []),
             ]
         },
         {
@@ -140,6 +147,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 ...(pode('visualizar', 'configuracao-horarios') ? [{ icone: Clock, texto: 'Horários', rota: '/configuracao-horarios' }] : []),
                 ...(pode('visualizar', 'risco_abandono') ? [{ icone: AlertTriangle, texto: 'Risco de Abandono', rota: '/risco-abandono' }] : []),
+                // Relatórios são genéricos, mas podemos filtrar tipos lá dentro
                 ...(pode('visualizar', 'relatorios') ? [{ icone: FileText, texto: 'Relatórios', rota: '/relatorios' }] : []),
             ]
         },

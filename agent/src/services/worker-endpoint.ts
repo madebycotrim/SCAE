@@ -32,13 +32,14 @@ export const WorkerApi = {
 
       this.online = resp.ok;
       if (!resp.ok) {
-        throw new Error(`Cloudfalre Worker respondeu com erro ${resp.status}`);
+        const erroJson = await resp.json() as any;
+        throw new Error(`Cloudflare Worker Error: ${erroJson.detalhe || resp.statusText}`);
       }
 
       return true;
-    } catch (e) {
+    } catch (e: any) {
       this.online = false;
-      console.error('[WorkerApi] Falha no envio para nuvem:', e);
+      console.error('[WorkerApi] Falha no envio para nuvem:', e.message);
       return false;
     }
   },

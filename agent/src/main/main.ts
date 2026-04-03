@@ -12,6 +12,37 @@ import { NotificadorVoz } from '../services/notificador-voz';
 import { config, salvarLeitoresNoDisco } from '../infra/config';
 import { TipoLeitor } from '../drivers/ILeitor';
 import { WorkerApi } from '../services/worker-endpoint';
+import http from 'http';
+
+// --- Servidor de Descoberta Local ---
+// Permite que o Dashboard Web saiba se este agente está rodando nesta máquina.
+const LOCAL_SERVER_PORT = 1912; // Porta fixa para descoberta
+const iniciarServidorDescoberta = () => {
+  const server = http.createServer((req, res) => {
+    // Enable CORS para o sistema web
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    
+    if (req.url === '/ping') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        ok: true, 
+        agente: 'Catraki Edge Agent', 
+        versao: '1.6.0',
+        escola: config.escola_id,
+        status: 'RUNNING' 
+      }));
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+  });
+
+  server.listen(LOCAL_SERVER_PORT, '127.0.0.1', () => {
+    console.log(`[Local API] Servidor de descoberta ativo em http://127.0.0.1:${LOCAL_SERVER_PORT}`);
+  });
+};
+
 
 
 
@@ -124,26 +155,7 @@ async function createWindow() {
   });
 
 
-  // --- Gestão de Usuários e Hardware ---
-  ipcMain.handle('listar-alunos', async (_event, leitorId) => {
-    const leitor = leitoresAtivos.find(l => l.id === leitorId);
-    return (leitor && leitor.listarAlunos) ? await leitor.listarAlunos() : [];
-  });
-
-  ipcMain.handle('iniciar-captura', async (_event, { leitorId, userId }) => {
-    const leitor = leitoresAtivos.find(l => l.id === leitorId);
-    return (leitor && leitor.iniciarCaptura) ? await leitor.iniciarCaptura(userId) : false;
-  });
-
-  ipcMain.handle('cadastrar-aluno', async (_event, { leitorId, aluno }) => {
-    const leitor = leitoresAtivos.find(l => l.id === leitorId);
-    return leitor ? await leitor.cadastrarAluno(aluno) : { ok: false, erro: 'Leitor offline' };
-  });
-
-  ipcMain.handle('excluir-aluno', async (_event, { leitorId, matricula }) => {
-    const leitor = leitoresAtivos.find(l => l.id === leitorId);
-    return leitor ? await leitor.removerAluno(matricula) : false;
-  });
+  // --- Gestão de Usuários e Hardware Transferida para Nuvem ---
 
   ipcMain.handle('abrir-porta', async (_event, leitorId) => {
     const leitor = leitoresAtivos.find(l => l.id === leitorId);
@@ -155,6 +167,7 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  iniciarServidorDescoberta();
   await createWindow();
   
   // Interceptar logs do terminal para exibir na Janela Visual
@@ -168,17 +181,23 @@ app.whenReady().then(async () => {
     }
   }
 
+  function safeStringify(a: any) {
+    if (a instanceof Error) return a.message || String(a);
+    if (typeof a === 'object') return JSON.stringify(a);
+    return a;
+  }
+
   console.log = (...args) => {
       originalLog(...args);
-      repassarAoLogVisual(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+      repassarAoLogVisual(args.map(safeStringify).join(' '));
   };
   console.warn = (...args) => {
       originalWarn(...args);
-      repassarAoLogVisual('[Aviso] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+      repassarAoLogVisual('[Aviso] ' + args.map(safeStringify).join(' '));
   };
   console.error = (...args) => {
       originalError(...args);
-      repassarAoLogVisual('[Erro] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+      repassarAoLogVisual('[Erro] ' + args.map(safeStringify).join(' '));
   };
 
   // Audio Feedback Service

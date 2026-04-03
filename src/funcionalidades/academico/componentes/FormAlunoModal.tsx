@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import { SelectComBusca } from '@/compartilhado/componentes/SelectComBusca';
-import { CheckCircle, User, Hash, GraduationCap, Power, Calendar as CalendarIcon, ShieldCheck, ArrowRight, ArrowLeft, Cake } from 'lucide-react';
+import { CheckCircle, User, Hash, GraduationCap, Power, ShieldCheck, ArrowRight, ArrowLeft, Cake } from 'lucide-react';
 import { Aluno, TurmaLocal } from '../tipos/academico';
 import { Botao } from '@/compartilhado/componentes/UI';
+import { usarEscola } from '@/escola/ProvedorEscola';
 import toast from 'react-hot-toast';
 
 interface FormAlunoModalProps {
@@ -14,6 +15,9 @@ interface FormAlunoModalProps {
 }
 
 export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: FormAlunoModalProps) {
+    const escola = usarEscola();
+    const temQR = escola.metodosAcesso.includes('QRCODE');
+    
     const ehEdicao = !!aluno;
     const [passo, definirPasso] = useState(1);
     const [carregando, definirCarregando] = useState(false);
@@ -114,7 +118,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                             </div>
 
                             {/* Data de Nascimento (Aparece direto no Editar) */}
-                            {ehEdicao && (
+                            {ehEdicao && temQR && (
                                 <div className="relative md:col-span-2 p-6 bg-indigo-50/30 border border-indigo-100/50 rounded-2xl">
                                     <label className="flex items-center gap-2 text-[10px] font-black text-indigo-600/60 uppercase tracking-widest mb-3 ml-1">
                                         <Cake size={14} /> Credencial de Segurança (Nascimento)
@@ -166,44 +170,46 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                     </div>
                 ) : (
                     <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
-                        {/* Passo 2: Apenas no Cadastro Novo */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-6">
-                            <div className="relative group">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 transition-colors group-focus-within:text-indigo-600">
-                                    <Cake size={14} /> Data de Nascimento
-                                </label>
-                                <input
-                                    type="date"
-                                    required
-                                    className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
-                                    value={dadosFormulario.data_nascimento}
-                                    onChange={(e) => definirDadosFormulario({ ...dadosFormulario, data_nascimento: e.target.value })}
-                                />
-                                <p className="mt-2 ml-1 text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">Credencial de acesso do estudante</p>
-                            </div>
+                        {/* Passo 2: Apenas no Cadastro Novo e se usar QR Code */}
+                        {temQR && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-6">
+                                <div className="relative group">
+                                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 transition-colors group-focus-within:text-indigo-600">
+                                        <Cake size={14} /> Data de Nascimento
+                                    </label>
+                                    <input
+                                        type="date"
+                                        required
+                                        className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                                        value={dadosFormulario.data_nascimento}
+                                        onChange={(e) => definirDadosFormulario({ ...dadosFormulario, data_nascimento: e.target.value })}
+                                    />
+                                    <p className="mt-2 ml-1 text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">Credencial de acesso do estudante</p>
+                                </div>
 
-                            <div className="p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl flex gap-4 items-center">
-                                <div className="p-3 bg-white rounded-2xl border border-indigo-100 shadow-sm flex-shrink-0">
-                                    <ShieldCheck size={20} className="text-indigo-600" />
-                                </div>
-                                <div className="space-y-1">
-                                    <h4 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Protocolo de Segurança</h4>
-                                    <p className="text-[9px] font-bold text-indigo-700/80 leading-relaxed uppercase tracking-tight">
-                                        Data necessária para o aluno validar a identidade e gerar o QR Code no celular.
-                                    </p>
+                                <div className="p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl flex gap-4 items-center">
+                                    <div className="p-3 bg-white rounded-2xl border border-indigo-100 shadow-sm flex-shrink-0">
+                                        <ShieldCheck size={20} className="text-indigo-600" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h4 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Protocolo de Segurança</h4>
+                                        <p className="text-[9px] font-bold text-indigo-700/80 leading-relaxed uppercase tracking-tight">
+                                            Data necessária para o aluno validar a identidade e gerar o QR Code.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )}
 
                 <div className="flex gap-4 pt-8 mt-4 border-t border-slate-100 justify-end">
-                    {(ehEdicao || passo === 2) ? (
+                    {(ehEdicao || passo === 2 || !temQR) ? (
                         <>
                             <Botao variante="secundario" tamanho="lg" onClick={aoFechar} disabled={carregando}>
                                 {ehEdicao ? 'Cancelar' : 'Voltar'}
                             </Botao>
-                            {passo === 2 && !ehEdicao && (
+                            {passo === 2 && !ehEdicao && temQR && (
                                 <Botao variante="secundario" tamanho="lg" icone={ArrowLeft} onClick={() => definirPasso(1)} disabled={carregando}>
                                     Voltar
                                 </Botao>
@@ -214,6 +220,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                                 icone={CheckCircle}
                                 onClick={manipularSalvar}
                                 loading={carregando}
+                                disabled={!dadosFormulario.nome_completo || !dadosFormulario.matricula}
                             >
                                 {aluno ? 'Salvar Alterações' : 'Finalizar Matrícula'}
                             </Botao>

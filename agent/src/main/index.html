@@ -1322,7 +1322,7 @@
         .layout { display: flex; flex: 1; height: calc(100vh - 45px - 28px); overflow: hidden; }
         
         .sidebar {
-            width: 300px;
+            width: 340px;
             background: rgba(15, 15, 15, 0.4);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
@@ -1397,30 +1397,13 @@
 
     <div id="toast-area"></div>
 
-    <!-- ── AUTH ───────────────────────────────────────────────── -->
-    <div id="auth-screen" class="auth-overlay">
-        <div class="auth-card">
-            <div class="auth-wordmark">Catraki / <span>Edge Control System</span></div>
-            <h1 class="auth-heading">Acesso ao<br>Terminal</h1>
-            <p class="auth-sub">Informe o PIN da unidade escolar para ativar o agente e vincular este hardware à rede
-                central.</p>
-            <label class="field-label">PIN DE ACESSO</label>
-            <input type="password" id="pin" class="pin-input" placeholder="· · · · · ·" maxlength="6" autofocus>
-            
-            <div id="auth-error"></div>
-
-            <button class="btn-primary" id="btn-auth">ATIVAR AGENTE</button>
-            <p class="auth-hint">Comunicação segura e criptografada</p>
-        </div>
-    </div>
-
     <!-- ── HEADER ──────────────────────────────────────────────── -->
     <div class="header">
         <div class="header-left">
             <span class="h-brand">CATRAKI EDGE</span>
             <div class="h-sep"></div>
             <div class="h-status-dot"></div>
-            <span class="h-school" id="school-badge">aguardando pin</span>
+            <span class="h-school" id="school-badge">MODO HEADLESS ON</span>
         </div>
         <div class="header-right">
             <button class="icon-btn" id="btn-logs-open" title="Log de Diagnóstico">
@@ -1438,134 +1421,83 @@
         </div>
     </div>
 
+    
     <!-- ── LAYOUT PRINCIPAL ── -->
     <div class="layout" id="main-layout">
 
-        <!-- SIDEBAR DE GESTÃO -->
+        <!-- LATERAL (STATUS + CARDS) -->
         <div class="sidebar">
-            <div class="side-section">
-                <div class="section-title">EQUIPAMENTOS</div>
-                <div id="hardware-list">
-                    <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px">
-                            <span class="sb-dot ok"></span>
-                            <span style="font-size: 0.8rem; font-weight:600; color:var(--t1)">iDFlex Portaria</span>
-                        </div>
-                        <div style="font-size: 0.65rem; color:var(--t3); display:flex; justify-content:space-between">
-                            <span>Sincronizado</span>
-                            <span style="color:var(--ok)">ONLINE</span>
-                        </div>
+            <div class="monitor-head" style="margin-bottom:0">
+                <div>
+                    <h1 class="monitor-title" style="font-size:1.4rem">Fluxo em Tempo Real</h1>
+                    <div class="monitor-status"><span class="sb-dot ok" style="animation: pulse 1.5s infinite;"></span> OPERAÇÃO NORMAL</div>
+                </div>
+            </div>
+
+            <!-- INSIGHT CARDS NO SIDEBAR -->
+            <div class="insights-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-top:0">
+                <div class="insight-card" style="padding: 14px; gap:8px">
+                    <div class="i-icon blue" style="width:30px;height:30px;font-size:0.9rem">↑</div>
+                    <div class="i-info">
+                        <span class="i-label" style="font-size:0.6rem">Entradas</span>
+                        <span class="i-val" id="m-entradas" style="font-size:1.1rem">0</span>
+                    </div>
+                </div>
+                <div class="insight-card" style="padding: 14px; gap:8px">
+                    <div class="i-icon red" style="width:30px;height:30px;font-size:0.9rem">✕</div>
+                    <div class="i-info">
+                        <span class="i-label" style="font-size:0.6rem">Negados</span>
+                        <span class="i-val" id="m-negadas" style="font-size:1.1rem">0</span>
+                    </div>
+                </div>
+                <div class="insight-card" style="padding: 14px; gap:8px">
+                    <div class="i-icon gold" style="width:30px;height:30px;font-size:0.9rem">🕓</div>
+                    <div class="i-info">
+                        <span class="i-label" style="font-size:0.6rem">Pico</span>
+                        <span class="i-val" id="m-pico" style="font-size:1.1rem">--:--</span>
+                    </div>
+                </div>
+                <div class="insight-card" style="padding: 14px; gap:8px">
+                    <div class="i-icon gold" style="width:30px;height:30px;font-size:0.9rem">⦿</div>
+                    <div class="i-info">
+                        <span class="i-label" style="font-size:0.6rem">Último</span>
+                        <span class="i-val" id="m-ultimo" style="font-size:1.1rem">--:--</span>
                     </div>
                 </div>
             </div>
 
             <div class="side-section">
-                <div class="section-title">CADASTRO RÁPIDO</div>
-                <div class="cad-form">
-                    <input type="text" id="cad-nome" placeholder="Nome do aluno..." class="input-s" style="margin-bottom:8px">
-                    <input type="text" id="cad-matricula" placeholder="Matrícula..." class="input-s" style="margin-bottom:8px">
-                    <div class="btn-row" style="margin-bottom:8px">
-                        <button id="btn-cad-save" class="btn-s primary" style="flex:1">CADASTRAR</button>
-                        <button id="btn-list-users" class="btn-s" title="Listar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg></button>
-                    </div>
+                <div class="section-title">EQUIPAMENTOS</div>
+                <div id="hardware-list">
+                    <div class="empty-msg" style="text-align:left">Aguardando...</div>
                 </div>
             </div>
 
             <div class="side-section" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
                 <div class="section-title">MINI FEED</div>
                 <div id="access-feed" class="user-list" style="flex:1">
-                    <div class="empty-msg">Aguardando...</div>
+                    <div class="empty-msg">Nenhuma passagem...</div>
                 </div>
             </div>
         </div>
 
-        <!-- MONITOR DE FLUXO (CENTRAL) -->
-        <div id="main-monitor" class="live-monitor">
-            <div class="monitor-head">
+        <!-- PRINCIPAL (LOGS DO TERMINAL) -->
+        <div id="main-monitor" class="live-monitor" style="padding: 24px; background: rgba(10,10,10,0.8);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom: 20px;">
                 <div>
-                    <h1 class="monitor-title">Fluxo de Alunos em Tempo Real</h1>
-                    <div class="monitor-status"><span class="sb-dot ok" style="animation: pulse 1.5s infinite;"></span> OPERAÇÃO NORMAL • CONECTADO AO ID_FLEX</div>
+                    <h1 style="font-size: 1.3rem; margin:0; color:var(--t1)">Terminal de Eventos (Logs)</h1>
+                    <div style="font-size: 0.8rem; color:var(--t3); margin-top:4px">Visualização em tempo real das atividades internas e comunicação. Monitorando <span id="monitor-school-id" style="color:var(--gold); font-family:var(--mono);">ATIVO</span>.</div>
                 </div>
-                <div style="text-align: right">
-                    <span style="font-size: 0.65rem; color: var(--t3); display: block;">AGENTE TOKEN:</span>
-                    <span style="font-family: var(--mono); font-size: 0.75rem; color: var(--gold);" id="monitor-school-id">ACTIVE_NODE_12</span>
-                </div>
-            </div>
-
-            <!-- INSIGHT CARDS -->
-            <div class="insights-grid">
-                <div class="insight-card">
-                    <div class="i-icon blue">↑</div>
-                    <div class="i-info">
-                        <span class="i-label">Entradas</span>
-                        <span class="i-val" id="m-entradas">0</span>
-                    </div>
-                </div>
-                <div class="insight-card">
-                    <div class="i-icon red">✕</div>
-                    <div class="i-info">
-                        <span class="i-label">Negados</span>
-                        <span class="i-val" id="m-negadas">0</span>
-                    </div>
-                </div>
-                <div class="insight-card">
-                    <div class="i-icon gold">🕓</div>
-                    <div class="i-info">
-                        <span class="i-label">Horário de Pico</span>
-                        <span class="i-val" id="m-pico">--:--</span>
-                    </div>
-                </div>
-                <div class="insight-card">
-                    <div class="i-icon gold">⦿</div>
-                    <div class="i-info">
-                        <span class="i-label">Último Acesso</span>
-                        <span class="i-val" id="m-ultimo">--:--</span>
-                    </div>
+                <div class="log-filters" style="display:flex; gap:8px;">
+                    <button class="log-filter-btn active" onclick="setFilter('all')">Todos</button>
+                    <button class="log-filter-btn" onclick="setFilter('info')">Info</button>
+                    <button class="log-filter-btn" onclick="setFilter('warn')">Alertas</button>
+                    <button class="log-filter-btn" onclick="setFilter('err')">Erros</button>
                 </div>
             </div>
             
-            <div id="timeline-feed" style="display: flex; flex-direction: column; gap: 16px;">
-                <div style="padding: 120px 0; text-align: center; opacity: 0.3;">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 16px;">
-                        <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-                    </svg>
-                    <div style="font-size: 0.9rem; letter-spacing: 0.05em;">Aguardando leitura do iDFlex...</div>
-                </div>
-            </div>
-        </div>
-
-    </div> <!-- Fim Layout Principal -->
-
-    <!-- MODAL BIOMETRIA -->
-    <div id="bio-modal">
-        <div class="bio-modal-card">
-            <div class="bio-icon-wrap" id="bio-modal-icon">
-                <div class="bio-pulse" id="bio-modal-pulse"></div>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="1.5" id="bio-svg">
-                    <path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
-                </svg>
-            </div>
-            <div class="bio-title" id="bio-m-title">Biometria</div>
-            <p class="bio-msg" id="bio-m-msg">Aguardando...</p>
-            <div class="bio-loader"><div class="bio-loader-bar" id="bio-m-bar"></div></div>
-            <button class="bio-btn-cancel" id="btn-bio-cancel">CANCELAR</button>
-        </div>
-    </div>
-
-    <!-- MODAL CONFIRMAÇÃO -->
-    <div id="confirm-modal">
-        <div class="confirm-card">
-            <div class="confirm-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-            </div>
-            <div class="confirm-title" id="confirm-m-title">Deseja excluir?</div>
-            <p class="confirm-msg" id="confirm-m-msg">Essa ação removerá o aluno permanentemente do hardware iDFlex.</p>
-            <div class="confirm-btns">
-                <button class="confirm-btn no" id="confirm-btn-no">CANCELAR</button>
-                <button class="confirm-btn yes" id="confirm-btn-yes">CONFIRMAR</button>
+            <div id="log-container" style="flex:1; overflow-y:auto; padding-top: 16px; font-family:var(--mono); display:flex; flex-direction:column; gap:6px;">
+                <!-- logs will go here -->
             </div>
         </div>
     </div>
@@ -1704,33 +1636,6 @@
             }
 
             // 2. Timeline Central (Cards Premium)
-            const timeline = document.getElementById('timeline-feed');
-            if (timeline && timeline.querySelector('div[style*="opacity: 0.4"]')) timeline.innerHTML = ''; 
-
-            const card = document.createElement('div');
-            card.className = 'access-card';
-            card.innerHTML = `
-                <div class="card-icon ${isOk ? 'ok' : 'err'}">
-                    ${isOk ? '✓' : '✕'}
-                </div>
-                <div class="card-body">
-                    <div class="card-name">${name}</div>
-                    <div class="card-meta">
-                        <span>Hardware: iDFlex Portaria</span>
-                        <span>•</span>
-                        <span>Metodo: Biometria</span>
-                    </div>
-                </div>
-                <div class="card-side">
-                    <div class="card-time">${time}</div>
-                    <div class="card-status-label ${isOk ? 'label-ok' : 'label-err'}">${type}</div>
-                </div>
-            `;
-            if (timeline) {
-                timeline.prepend(card);
-                if (timeline.children.length > 10) timeline.lastElementChild.remove();
-            }
-
             // 3. Mini Feed Sidebar (Retro-compatibilidade)
             const feed = document.getElementById('access-feed');
             if (feed) {
@@ -1746,58 +1651,6 @@
                 if (feed.children.length > 8) feed.removeChild(feed.lastChild);
             }
         }
-
-        // ─── AUTH ─────────────────────────────────────────────────
-        const btnAuth = document.getElementById('btn-auth');
-        const pinInput = document.getElementById('pin');
-        const authScreen = document.getElementById('auth-screen');
-
-        async function handleAuth() {
-            const pin = pinInput.value;
-            const errEl = document.getElementById('auth-error');
-            
-            if (pin.length < 6) {
-                errEl.innerHTML = `<strong>PIN INVÁLIDO</strong><br>A senha de acesso precisa ter exatamente 6 dígitos numéricos.`;
-                errEl.style.display = 'block';
-                return;
-            }
-
-            errEl.style.display = 'none';
-            btnAuth.disabled = true;
-            btnAuth.textContent = 'AUTENTICANDO...';
-            
-            try {
-                const res = await window.scaeApi.loginPin(pin);
-                if (res.ok) {
-                    pushLog('Terminal ativado: ' + res.escola_nome, 'ok');
-                    showToast('Conectado: ' + res.escola_nome, 'ok');
-                    document.getElementById('school-badge').textContent = res.escola_nome.toLowerCase();
-                    authScreen.classList.add('hidden');
-                    
-                    // Sincroniza configurações recebidas
-                    configAtual.leitores = res.config_hardware || [];
-                    await window.scaeApi.saveConfig({ 
-                        escolaId: res.escola_id, 
-                        token: res.token, 
-                        configHardware: res.config_hardware 
-                    });
-                } else {
-                    errEl.innerHTML = `<strong>ACESSO NEGADO</strong><br>${res.mensagem || 'O PIN informado não existe ou expirou.'}`;
-                    errEl.style.display = 'block';
-                    btnAuth.disabled = false;
-                    btnAuth.textContent = 'ATIVAR AGENTE';
-                }
-            } catch (e) {
-                errEl.innerHTML = `<strong>ERRO DE REDE</strong><br>Não foi possível conectar ao servidor. Verifique o Túnel ou se o Wrangler está rodando.`;
-                errEl.style.display = 'block';
-                btnAuth.disabled = false;
-                btnAuth.textContent = 'ATIVAR AGENTE';
-            }
-        }
-        
-        // Ativação do Login (Botão e Teclado)
-        if (btnAuth) btnAuth.onclick = handleAuth;
-        if (pinInput) pinInput.onkeypress = (e) => { if (e.key === 'Enter') handleAuth(); };
 
         // ─── SETTINGS ────────────────────────────────────────────
         function renderSettings() {
@@ -1834,140 +1687,6 @@
         if (btnLogsClose) btnLogsClose.onclick = () => {
             const logsScreen = document.getElementById('logs-screen');
             if (logsScreen) logsScreen.classList.add('hidden');
-        };
-
-        // ─── USER MANAGEMENT ─────────────────────────────────────
-        document.getElementById('btn-list-users').onclick = async () => {
-            const l = configAtual.leitores[0];
-            if (!l) return;
-            pushLog('Sincronizando usuários...', 'info');
-            const alunos = await window.scaeApi.listarAlunos(l.id);
-            const container = document.getElementById('user-list-result') || document.getElementById('access-feed');
-            if (container) {
-                if (!alunos.length) {
-                    container.innerHTML = `<div class="empty-msg">Nenhum usuário no hardware.</div>`;
-                } else {
-                    container.innerHTML = alunos.map(a => `
-                    <div class="user-item">
-                        <div style="flex:1;min-width:0">
-                            <div class="u-name">${a.name}</div>
-                            <div class="u-id">#${a.id} · ${a.registration || '—'}</div>
-                        </div>
-                        <div class="u-actions">
-                            <button class="u-btn u-fp" onclick="iniciarCaptura(${a.id})" title="Configurar Biometria">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
-                                </svg>
-                            </button>
-                            <button class="u-btn u-del" onclick="excluirAluno('${a.registration || a.id}')" title="Remover">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>`).join('');
-                }
-            }
-        };
-
-        document.getElementById('btn-cad-save').onclick = async () => {
-            const nome = document.getElementById('cad-nome').value.trim();
-            const matricula = document.getElementById('cad-matricula').value.trim();
-            const l = configAtual.leitores[0];
-            if (!nome || !matricula) return showToast('Preencha nome e matrícula.', 'warn');
-            const btn = document.getElementById('btn-cad-save');
-            btn.classList.add('loading'); btn.disabled = true;
-            const res = await window.scaeApi.cadastrarAluno({ leitorId: l.id, aluno: { nomeCompleto: nome, matricula } });
-            if (res.ok) {
-                showToast(`Sucesso: ${nome} cadastrado!`, 'ok');
-                document.getElementById('cad-nome').value = '';
-                document.getElementById('cad-matricula').value = '';
-                document.getElementById('btn-list-users').click();
-            } else {
-                pushLog('Erro no cadastro: ' + res.erro, 'error');
-            }
-            btn.classList.remove('loading'); btn.disabled = false;
-        };
-
-        window.iniciarCaptura = async (userId) => {
-            const l = configAtual.leitores[0];
-            if (!l) return showToast('Nenhum leitor online para captura.', 'error');
-
-            const modal = document.getElementById('bio-modal');
-            const title = document.getElementById('bio-m-title');
-            const msg = document.getElementById('bio-m-msg');
-            const bar = document.getElementById('bio-m-bar');
-            const svg = document.getElementById('bio-svg');
-            const pulse = document.getElementById('bio-modal-pulse');
-            const btnCancel = document.getElementById('btn-bio-cancel');
-
-            // Reset UI
-            modal.classList.add('active');
-            title.textContent = 'Aguardando Dedo...';
-            msg.textContent = 'Posicione o dedo no leitor eletrônico agora.';
-            bar.style.width = '0%';
-            bar.style.background = 'var(--ok)';
-            svg.style.stroke = 'var(--ok)';
-            pulse.style.display = 'block';
-            btnCancel.textContent = 'CANCELAR';
-            btnCancel.onclick = () => { modal.classList.remove('active'); };
-
-            let prog = 0;
-            const iv = setInterval(() => {
-                prog += 2.5; 
-                bar.style.width = Math.min(prog, 92) + '%';
-                if (prog >= 92) clearInterval(iv);
-            }, 300);
-
-            try {
-                const res = await window.scaeApi.iniciarCaptura({ leitorId: l.id, userId });
-                clearInterval(iv);
-
-                if (res) {
-                    title.textContent = 'Sucesso!';
-                    msg.textContent = 'Digital capturada e salva com sucesso.';
-                    bar.style.width = '100%';
-                    pulse.style.display = 'none';
-                    btnCancel.textContent = 'FECHAR';
-                } else {
-                    throw new Error('O tempo limite expirou ou o hardware falhou.');
-                }
-            } catch (e) {
-                clearInterval(iv);
-                title.textContent = 'Erro na Captura';
-                msg.textContent = e.message || 'Não foi possível ler a digital.';
-                bar.style.width = '100%';
-                bar.style.background = 'var(--err)';
-                svg.style.stroke = 'var(--err)';
-                pulse.style.display = 'none';
-                btnCancel.textContent = 'TENTAR NOVAMENTE';
-            }
-        };
-
-        window.excluirAluno = (matricula) => {
-            const modal = document.getElementById('confirm-modal');
-            const btnYes = document.getElementById('confirm-btn-yes');
-            const btnNo = document.getElementById('confirm-btn-no');
-            const msg = document.getElementById('confirm-m-msg');
-
-            msg.textContent = `Deseja realmente remover o aluno ${matricula}? Esta ação não pode ser desfeita no hardware.`;
-            modal.classList.add('active');
-
-            return new Promise((resolve) => {
-                btnYes.onclick = async () => {
-                    modal.classList.remove('active');
-                    const res = await window.scaeApi.excluirAluno({ leitorId: configAtual.leitores[0].id, matricula });
-                    if (res) { 
-                        showToast('Aluno removido com sucesso.', 'ok'); 
-                        document.getElementById('btn-list-users').click(); 
-                    }
-                    resolve(true);
-                };
-                btnNo.onclick = () => {
-                    modal.classList.remove('active');
-                    resolve(false);
-                };
-            });
         };
 
         // ─── IPC BRIDGE ───────────────────────────────────────────
