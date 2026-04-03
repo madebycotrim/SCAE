@@ -51,14 +51,13 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
         const escolaId = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
 
-        let corpo: Record<string, unknown>;
+        let corpo: Record<string, any>;
         try {
             corpo = await contexto.request.json();
         } catch {
             throw new ErroValidacao('JSON inválido no corpo da requisição', 'JSON_PARSE_ERROR');
         }
 
-        // Atualiza apenas os campos permitidos
         const queryParts: string[] = [];
         const binds: (string | number)[] = [];
 
@@ -78,7 +77,7 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
         }
 
         if (corpo.metodoAcesso !== undefined) {
-            const modos_permitidos = ['QRCODE', 'FACIAL', 'DIGITAL'];
+            const modos_permitidos = ['QRCODE', 'DIGITAL'];
             if (typeof corpo.metodoAcesso === 'string' && modos_permitidos.includes(corpo.metodoAcesso)) {
                 queryParts.push("metodo_acesso = ?");
                 binds.push(corpo.metodoAcesso);
@@ -99,7 +98,6 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
             throw new ErroNaoEncontrado('Escola não encontrada para atualizar.');
         }
 
-        // Invalida o cache para que as mudanças reflitam imediatamente
         await ServicoCache.limparCacheEscola(escolaId, contexto.env);
 
         return Response.json({

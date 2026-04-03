@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { Botao, CartaoConteudo } from '@/compartilhado/componentes/UI';
-import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorClosed, ScanFace, Fingerprint, Smartphone, Cpu, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorClosed, Fingerprint, Smartphone, Cpu, CheckCircle2, AlertCircle } from 'lucide-react';
 
 import { usarConfiguracoesEscola } from '@/compartilhado/hooks/usarConfiguracoesEscola';
 import { createPortal } from 'react-dom';
@@ -13,7 +13,7 @@ export function PaginaConfiguracoes() {
     const [protocolo, definirProtocolo] = useState<boolean>(false);
     const [tts, definirTts] = useState<boolean>(false);
     const [saidaObrigatoria, definirSaidaObrigatoria] = useState<boolean>(true);
-    const [metodo, definirMetodo] = useState<'QRCODE' | 'FACIAL' | 'DIGITAL'>('QRCODE');
+    const [metodo, definirMetodo] = useState<'QRCODE' | 'DIGITAL'>('QRCODE');
     
     // --- ESTADO DO AGENTE LOCAL ---
     const [statusAgente, setStatusAgente] = useState<'DESCONHECIDO' | 'RODANDO' | 'AUSENTE'>('DESCONHECIDO');
@@ -150,7 +150,7 @@ export function PaginaConfiguracoes() {
                     </CartaoConteudo>
                 )}
 
-                {(metodo === 'QRCODE' || metodo === 'FACIAL') && (
+                {metodo === 'QRCODE' && (
                     <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
                         {/* Left Info Section */}
                         <div className="flex gap-6 items-start">
@@ -247,8 +247,8 @@ export function PaginaConfiguracoes() {
 
                 <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
                     <div className="flex gap-6 items-start">
-                        <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all ${metodo === 'QRCODE' ? 'bg-blue-50 border-blue-100 text-blue-600' : metodo === 'FACIAL' ? 'bg-purple-50 border-purple-100 text-purple-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
-                            {metodo === 'QRCODE' ? <Smartphone strokeWidth={2.5} size={24} /> : metodo === 'FACIAL' ? <ScanFace strokeWidth={2.5} size={24} /> : <Fingerprint strokeWidth={2.5} size={24} />}
+                        <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all ${metodo === 'QRCODE' ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
+                            {metodo === 'QRCODE' ? <Smartphone strokeWidth={2.5} size={24} /> : <Fingerprint strokeWidth={2.5} size={24} />}
                         </div>
                         <div className="flex flex-col gap-1.5 mt-1">
                             <div className="flex items-center gap-3">
@@ -260,7 +260,7 @@ export function PaginaConfiguracoes() {
                                 </span>
                             </div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-xl leading-relaxed mt-1">
-                                Defina o mecanismo primário de identificação suportado pela portaria. QR Code via aplicativo, Biometria de dedo ou o módulo unificado de reconhecimento Biométrico Facial.
+                                Defina o mecanismo primário de identificação suportado pela portaria. QR Code via aplicativo ou Biometria de dedo (Digital) integrada ao hardware.
                             </p>
                         </div>
                     </div>
@@ -285,16 +285,6 @@ export function PaginaConfiguracoes() {
                         >
                             <Fingerprint size={14} className={metodo === 'DIGITAL' ? 'text-emerald-500' : 'text-slate-400'} strokeWidth={2.5} />
                             Digital
-                        </button>
-                        <button
-                            onClick={() => definirMetodo('FACIAL')}
-                            className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${metodo === 'FACIAL'
-                                ? 'bg-white text-purple-600 shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-slate-200/50'
-                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'
-                                }`}
-                        >
-                            <ScanFace size={14} className={metodo === 'FACIAL' ? 'text-purple-500' : 'text-slate-400'} strokeWidth={2.5} />
-                            Facial
                         </button>
                     </div>
                 </CartaoConteudo>

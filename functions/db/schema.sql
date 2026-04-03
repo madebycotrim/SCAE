@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS vinculos_responsavel_aluno;
 DROP TABLE IF EXISTS alertas_evasao;
 DROP TABLE IF EXISTS alertas_risco;
 DROP TABLE IF EXISTS registros_acesso;
-DROP TABLE IF EXISTS descritores_faciais;
+
 DROP TABLE IF EXISTS alunos;
 DROP TABLE IF EXISTS responsaveis;
 DROP TABLE IF EXISTS turmas;
@@ -107,9 +107,8 @@ CREATE TABLE alunos (
 CREATE INDEX idx_alunos_turma ON alunos(turma_id, escola_id);
 CREATE INDEX idx_alunos_ativo ON alunos(ativo, escola_id);
 
--- ====================================
--- DESCRITORES FACIAIS (Reconhecimento)
--- LGPD Art. 11 — Dado biometrico sensivel
+
+
 -- Armazena apenas vetores numericos 128d, NUNCA fotos
 -- ====================================
 CREATE TABLE descritores_faciais (

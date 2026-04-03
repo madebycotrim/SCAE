@@ -147,7 +147,7 @@ export default function TelaAcesso() {
                             <div className="p-2 rounded-lg bg-white/[0.08] border border-white/[0.12]">
                                 <ShieldCheck className="w-5 h-5 text-white" />
                             </div>
-                            <span className="text-xl font-bold text-white tracking-tight">SCAE<span className="text-sky-400">.</span></span>
+                            <span className="text-xl font-black text-white tracking-tighter uppercase italic">Catraki<span className="text-orange-500">.</span></span>
                         </div>
 
                         {/* BLOCO 2, 3, 4 — Conteúdo central */}
@@ -173,15 +173,15 @@ export default function TelaAcesso() {
                             {/* BLOCO 4 — Bullet points de valor */}
                             <div className="space-y-2.5">
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                                    <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">Registros de acesso em tempo real</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                                    <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">QR Code Digital para alunos</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                                    <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">Conformidade total com a LGPD</span>
                                 </div>
                             </div>
@@ -279,7 +279,7 @@ export default function TelaAcesso() {
                         onClick={lidarComCliqueAdmin}
                         className="text-[10px] font-bold text-slate-400 transition-opacity uppercase tracking-[0.3em] opacity-10 cursor-default select-none hover:opacity-20"
                     >
-                        SCAE v 3.0
+                        Catraki v 4.0
                     </span>
                 </div>
             </div>

@@ -13,7 +13,7 @@ export default function TermosUso() {
     const navegar = useNavigate();
     const { slugEscola } = useParams();
     const escola = usarEscolaOpcional();
-    const nomeEscola = escola?.nomeEscola || 'Sistema de Controle de Acesso Escolar (SCAE)';
+    const nomeEscola = escola?.nomeEscola || 'Catraki — Sistema de Gestão de Acesso';
     const daEscola = !!escola;
     const { caraterUso, nomeFornecedor, foro, dataUltimaRevisao } = usarConteudoLegal();
 
@@ -49,13 +49,13 @@ export default function TermosUso() {
                 <div className="text-center mb-12 font-bold uppercase">
                     {daEscola && <p className="text-[12pt]">{nomeEscola}</p>}
                     <p className="text-[12pt] mt-8">TERMOS DE USO</p>
-                    <p className="text-[12pt]">Sistema de Controle de Acesso Escolar — SCAE</p>
+                    <p className="text-[12pt]">Catraki — Sistema de Gestão de Acesso</p>
                 </div>
 
                 <div className="text-[12pt] leading-[1.5] text-justify space-y-4">
 
                     <p className="indent-[1.25cm]">
-                        Este documento estabelece as condições de uso do Sistema de Controle de Acesso Escolar (SCAE)
+                        Este documento estabelece as condições de uso do sistema Catraki
                         {daEscola && <>, disponibilizado à instituição <strong>{nomeEscola}</strong></>}. O acesso ou uso do
                         sistema implica a aceitação integral destes Termos. O SCAE é um projeto desenvolvido de forma
                         independente por um estudante universitário, pessoa física, sem fins lucrativos, com o objetivo
@@ -65,7 +65,7 @@ export default function TermosUso() {
                     {/* --- SEÇÃO 1 --- */}
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">1. DA NATUREZA DO SISTEMA</h2>
                     <p className="indent-[1.25cm]">
-                        O SCAE é uma plataforma SaaS (Software as a Service — software entregue como serviço via
+                        O Catraki é uma plataforma SaaS (Software as a Service — software entregue como serviço via
                         internet, sem instalação local) para gestão de controle de acesso, registro de frequência
                         e segurança escolar.
                     </p>
@@ -181,7 +181,7 @@ export default function TermosUso() {
                     {/* --- SEÇÃO 7 --- */}
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">7. PROPRIEDADE INTELECTUAL</h2>
                     <p className="indent-[1.25cm]">
-                        Os direitos de propriedade intelectual do SCAE pertencem ao seu desenvolvedor,
+                        Os direitos de propriedade intelectual do Catraki pertencem ao seu desenvolvedor,
                         <strong> {nomeFornecedor}</strong>, pessoa física, autor independente do sistema,
                         nos termos da Lei nº 9.610/1998 (Lei de Direitos Autorais).
                     </p>

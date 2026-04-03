@@ -1,4 +1,4 @@
-import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users, Eye } from 'lucide-react';
+import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { Aluno } from '../tipos/academico';
 import { CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
@@ -13,7 +13,7 @@ interface ListaAlunosProps {
     aoEditar: (aluno: Aluno) => void;
     aoExcluir: (aluno: Aluno) => void;
     aoMudarPagina: (pagina: number) => void;
-    aoCadastrarFacial?: (aluno: Aluno) => void;
+
     obterCorAvatar: (id: string) => string;
     carregando?: boolean;
 }
@@ -28,13 +28,12 @@ export default function ListaAlunos({
     aoEditar,
     aoExcluir,
     aoMudarPagina,
-    aoCadastrarFacial,
+
     obterCorAvatar,
     carregando
 }: ListaAlunosProps) {
     const escola = usarEscola();
     const temQR = escola.metodosAcesso.includes('QRCODE');
-    const temFacial = escola.metodosAcesso.includes('FACIAL');
 
     if (alunos.length === 0) {
         return (
@@ -146,15 +145,7 @@ export default function ListaAlunos({
                                                     <QrCode size={16} />
                                                 </button>
                                             )}
-                                            {temFacial && (
-                                                <button
-                                                    onClick={() => aoCadastrarFacial ? aoCadastrarFacial(aluno) : null}
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all"
-                                                    title="Cadastrar Reconhecimento Facial"
-                                                >
-                                                    <Eye size={16} />
-                                                </button>
-                                            )}
+
                                             <button
                                                 onClick={() => aoEditar(aluno)}
                                                 className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"

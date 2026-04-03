@@ -12,8 +12,8 @@ import { Botao } from '@/compartilhado/componentes/UI';
 export default function PoliticaPrivacidade() {
     const navegar = useNavigate();
     const escola = usarEscolaOpcional();
-    const nomeEscola = escola?.nomeEscola || 'Desenvolvedor SCAE';
-    const nomeAmigavel = escola?.nomeEscola || 'SCAE';
+    const nomeEscola = escola?.nomeEscola || 'Desenvolvedor Catraki';
+    const nomeAmigavel = escola?.nomeEscola || 'Catraki';
     const daEscola = !!escola;
     const {
         basesLegais,
@@ -69,7 +69,7 @@ export default function PoliticaPrivacidade() {
                         ) : (
                             <>Esta Política de Privacidade informa</>
                         )} como os dados pessoais de alunos e colaboradores são coletados,
-                        tratados e protegidos pela plataforma SCAE, operada tecnicamente por <strong>{nomeFornecedor}</strong> (Operador
+                        tratados e protegidos pela plataforma Catraki, operada tecnicamente por <strong>{nomeFornecedor}</strong> (Operador
                         de Dados) — desenvolvedor independente, pessoa física, sem fins lucrativos —, em conformidade
                         com a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais — LGPD).
                     </p>
@@ -112,7 +112,8 @@ export default function PoliticaPrivacidade() {
                     {/* ─── SEÇÃO 2 ─── */}
                     <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">2. DAS BASES LEGAIS</h2>
                     <p className="indent-[1.25cm]">
-                        O tratamento dos dados é realizado com base nas seguintes hipóteses legais previstas na LGPD:
+                        O tratamento de dados realizado por este sistema segue a Política de Privacidade do Catraki,
+                        baseado nas seguintes hipóteses legais previstas na LGPD:
                     </p>
                     <ul className="list-disc pl-[2.5cm]">
                         {basesLegais.map((base, idx) => (

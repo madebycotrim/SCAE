@@ -275,7 +275,7 @@ export default function TerminalAcesso() {
                             <span className="px-2 py-0.5 text-white text-[8px] font-black rounded uppercase tracking-widest shadow-sm" 
                                   style={{ backgroundColor: 'var(--cor-primaria, #6366f1)' }}>SISTEMA</span>
                         </div>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-0.5">Controle de Entrada e Saída</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-0.5">Segurança em Movimento</p>
                     </div>
                 </div>
 
@@ -315,12 +315,12 @@ export default function TerminalAcesso() {
 
                 {/* Main Scanning Reactor */}
                 <CartaoConteudo className="flex-[5] flex flex-col items-center justify-center p-12 relative bg-slate-900/40 border-white/5 shadow-md overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
 
                     <div className="text-center space-y-2 mb-12">
                         <h2 className="text-xs font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3"
                             style={{ color: corDoDia }}>
-                            <Radar size={16} className="animate-spin-slow" /> Pronto para ler
+                            <Radar size={16} className="animate-spin-slow" /> Escaneando...
                         </h2>
                         <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Câmera de Acesso</h3>
                     </div>
@@ -363,11 +363,11 @@ export default function TerminalAcesso() {
 
                 {/* Operational Sidebar Dashboard */}
                 <CartaoConteudo className="flex-[3] lg:max-w-md w-full p-8 flex flex-col bg-slate-900 border-white/10 shadow-md relative group">
-                    <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                     <div className="flex items-center justify-between pb-6 border-b border-white/5 mb-10 z-10 relative">
                         <h3 className="text-xs font-black text-slate-300 flex items-center gap-3 uppercase tracking-widest">
-                            <Terminal size={18} className="text-indigo-500" /> Informações do Aluno
+                            <Terminal size={18} className="text-orange-500" /> Informações
                         </h3>
                         <div className="w-8 h-8 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-indigo-400 transition-colors">
                             <Zap size={14} />
@@ -441,7 +441,7 @@ export default function TerminalAcesso() {
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fluxo Estável</span>
                         </div>
                         <p className="text-[10px] font-mono font-black text-indigo-400/40 uppercase tracking-widest">
-                            SCAE OS v2.0
+                            CATRAKI OS v3.0
                         </p>
                     </div>
                 </CartaoConteudo>

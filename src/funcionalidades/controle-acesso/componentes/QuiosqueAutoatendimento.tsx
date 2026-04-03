@@ -1,17 +1,3 @@
-/**
- * QuiosqueAutoatendimento — Componente MAE do quiosque.
- *
- * Responsabilidades:
- * - UI shell: header, camera frame, sidebar, feedback overlay
- * - Registro de acesso (servicoSincronizacao)
- * - TTS (anunciarNome)
- * - Auditoria
- *
- * Delega a DETECCAO para os filhos:
- * - usarLeitorQRCode  (metodoAcesso === 'QRCODE')
- * - usarLeitorFacial   (metodoAcesso === 'FACIAL')
- * - usarLeitorDigital   (metodoAcesso === 'DIGITAL')
- */
 import { useState, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ptBR } from 'date-fns/locale';
@@ -31,11 +17,10 @@ import { buscarAlunoEmCache, alunoEstaRevogado } from '../servicos/cacheMemoria'
 import { Registrador, ACOES_AUDITORIA } from '@/compartilhado/servicos/auditoria';
 import { TIPO_ACESSO } from '../types/controleAcesso.tipos';
 import { StatusConexao } from './StatusConexao';
-import { ShieldCheck, UserX, Clock, Fingerprint, User, Eye, QrCode } from 'lucide-react';
+import { ShieldCheck, UserX, Clock, Fingerprint, User, QrCode } from 'lucide-react';
 
 // Filhos — cada um cuida da sua deteccao
 import { usarLeitorQRCode } from './LeitorQRCode';
-import { usarLeitorFacial } from './LeitorFacial';
 import { usarLeitorDigital } from './LeitorDigital';
 
 const log = criarRegistrador('ControleAcesso:Quiosque');
@@ -61,8 +46,8 @@ export default function QuiosqueAutoatendimento() {
     const [dataHora, definirDataHora] = useState(new Date());
 
     // Define qual método está ativo no tablet local
-    const metodoAtivo = (metodoParam?.toUpperCase() || escola.metodosAcesso[0] || 'QRCODE') as 'QRCODE' | 'FACIAL' | 'DIGITAL';
-    const metodoPermitido = escola.metodosAcesso.includes(metodoAtivo) ? metodoAtivo : (escola.metodosAcesso[0] as 'QRCODE' | 'FACIAL' | 'DIGITAL' || 'QRCODE');
+    const metodoAtivo = (metodoParam?.toUpperCase() || escola.metodosAcesso[0] || 'QRCODE') as 'QRCODE' | 'DIGITAL';
+    const metodoPermitido = escola.metodosAcesso.includes(metodoAtivo) ? metodoAtivo : (escola.metodosAcesso[0] as 'QRCODE' | 'DIGITAL' || 'QRCODE');
 
     // Relogio em tempo real
     useEffect(() => {
@@ -89,9 +74,6 @@ export default function QuiosqueAutoatendimento() {
             setTimeout(() => definirStatusLeitura('AGUARDANDO'), confFila.duracaoFeedbackMs * 1.5);
             return;
         }
-
-        // Pausar reconhecimento facial durante feedback
-        if (metodoPermitido === 'FACIAL' && pausarFacial) pausarFacial();
 
         const movimentoBase: 'ENTRADA' | 'SAIDA' = (tipoAcessoAtual === TIPO_ACESSO.INDEFINIDO)
             ? 'ENTRADA'
@@ -132,7 +114,6 @@ export default function QuiosqueAutoatendimento() {
 
         setTimeout(() => {
             definirStatusLeitura('AGUARDANDO');
-            if (metodoPermitido === 'FACIAL' && retomarFacial) retomarFacial();
         }, confFila.duracaoFeedbackMs);
 
     }, [tipoAcessoAtual, confFila, escola, acionarWorker]);
@@ -142,10 +123,6 @@ export default function QuiosqueAutoatendimento() {
     // ========================================================
     const aoIdentificarQR = useCallback((matricula: string) => {
         registrarAcesso(matricula, 'qr_carteirinha');
-    }, [registrarAcesso]);
-
-    const aoIdentificarFacial = useCallback((matricula: string) => {
-        registrarAcesso(matricula, 'facial');
     }, [registrarAcesso]);
 
     const aoIdentificarDigital = useCallback((matricula: string) => {
@@ -168,15 +145,6 @@ export default function QuiosqueAutoatendimento() {
         aoErro: aoErroDeteccao
     });
 
-    const facial = usarLeitorFacial({
-        elementoId: metodoPermitido === 'FACIAL' ? ELEMENTO_CAMERA_ID : '__desativado_facial__',
-        escolaId: escola.id,
-        cooldownMs: confFila.duracaoFeedbackMs + 2000,
-        aoIdentificar: aoIdentificarFacial
-    });
-    const pausarFacial = facial.pausar;
-    const retomarFacial = facial.retomar;
-
     const digital = usarLeitorDigital({
         elementoId: metodoPermitido === 'DIGITAL' ? ELEMENTO_CAMERA_ID : '__desativado_digital__',
         escolaId: escola.id,
@@ -186,30 +154,20 @@ export default function QuiosqueAutoatendimento() {
     // Status unificado da camera
     const statusCamera = metodoPermitido === 'QRCODE'
         ? qr.statusCamera
-        : metodoPermitido === 'FACIAL'
-        ? facial.statusCamera
         : digital.statusCamera;
 
     const corDoDia = '#3b82f6';
 
-    // Icone e label do modo atual
-    const iconeMetodo = metodoPermitido === 'FACIAL' ? Eye : metodoPermitido === 'DIGITAL' ? Fingerprint : QrCode;
-    const labelMetodo = metodoPermitido === 'FACIAL'
-        ? 'RECONHECIMENTO FACIAL ATIVO'
-        : metodoPermitido === 'DIGITAL'
+    const iconeMetodo = metodoPermitido === 'DIGITAL' ? Fingerprint : QrCode;
+    const labelMetodo = metodoPermitido === 'DIGITAL'
         ? 'IDENTIFICACAO DIGITAL ATIVA'
-        : 'SCAE PRO FRAMEWORK';
-    const mensagemAguardando = metodoPermitido === 'FACIAL'
-        ? 'Olhe para a camera para identificacao'
-        : metodoPermitido === 'DIGITAL'
+        : 'CATRAKI PRO FRAMEWORK';
+    const mensagemAguardando = metodoPermitido === 'DIGITAL'
         ? 'Apoie o dedo no leitor para identificacao'
         : 'Aproxime o cartao para iniciar a identificacao';
 
     return (
         <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col overflow-hidden text-slate-900 font-sans selection:bg-blue-100">
-            <StatusConexao />
-
-            {/* ===== HEADER ===== */}
             <header className="h-[100px] border-b border-slate-200/60 bg-white/80 backdrop-blur-xl flex items-center justify-between px-10 md:px-16 z-20 shrink-0 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--cor-primaria)] to-transparent opacity-50"></div>
 
@@ -258,31 +216,19 @@ export default function QuiosqueAutoatendimento() {
                 </div>
             </header>
 
-            {/* ===== MAIN ===== */}
             <main className="flex-1 flex flex-col lg:flex-row relative p-6 md:p-10 gap-8 lg:gap-12 max-w-[1600px] mx-auto w-full z-10">
-
-                {/* Area da Camera */}
                 <div className="flex-[5] flex flex-col items-center justify-center relative">
                     <div className="relative w-full max-w-md aspect-square z-10">
                         <div className="relative h-full bg-white rounded-2xl p-4 shadow-xl border border-slate-200 overflow-hidden">
                             <div className="absolute inset-4 rounded-2xl overflow-hidden bg-slate-50 shadow-inner border border-slate-100 flex items-center justify-center">
-                                {/* Container da camera — o filho injeta o video aqui */}
                                 <div id={ELEMENTO_CAMERA_ID} className={`w-full h-full object-cover transition-all duration-1000 ${statusCamera !== 'ATIVO' ? 'opacity-0' : 'opacity-100 grayscale-[20%]'}`}></div>
 
-                                {/* Feedbacks de Hardware/Permissao */}
                                 {statusCamera === 'INICIALIZANDO' && (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-20">
                                         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                            {metodoPermitido === 'FACIAL' ? 'Carregando IA Facial...' : 'Iniciando Camera...'}
+                                            Iniciando Camera...
                                         </p>
-                                    </div>
-                                )}
-
-                                {statusCamera === 'CARREGANDO_MODELOS' && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-20">
-                                        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Carregando Modelos IA...</p>
                                     </div>
                                 )}
 
@@ -292,7 +238,7 @@ export default function QuiosqueAutoatendimento() {
                                             <ShieldCheck size={32} className="text-rose-500" />
                                         </div>
                                         <h3 className="text-xl font-black uppercase tracking-tighter mb-2">Acesso Negado</h3>
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">O sistema precisa de permissao de camera para funcionar. Autorize nas configuracoes do navegador.</p>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">O sistema precisa de permissao de camera para funcionar.</p>
                                     </div>
                                 )}
 
@@ -302,55 +248,27 @@ export default function QuiosqueAutoatendimento() {
                                             <UserX size={32} className="text-slate-400" />
                                         </div>
                                         <h3 className="text-xl font-black uppercase tracking-tighter mb-2 text-slate-900">Hardware nao encontrado</h3>
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Nenhuma camera foi detectada neste dispositivo.</p>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Nenhuma camera detectada.</p>
                                     </div>
                                 )}
 
-                                {/* HUD — varia por modo */}
                                 {statusCamera === 'ATIVO' && (
                                     <div className="absolute inset-8 pointer-events-none z-10 animate-in fade-in duration-1000">
-                                        {metodoPermitido === 'FACIAL' ? (
-                                            /* Moldura circular para facial */
-                                            <>
-                                                <div className="absolute inset-4 border-2 border-dashed border-blue-400/40 rounded-full"></div>
-                                                <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-black/40 px-4 py-1 rounded-full backdrop-blur-sm">
-                                                    <span className="text-[8px] font-black text-white uppercase tracking-widest flex items-center gap-1.5">
-                                                        <Eye size={10} /> Facial
-                                                    </span>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            /* Cantos quadrados para QR */
-                                            <>
-                                                <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-blue-500 rounded-tl-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
-                                                <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-blue-500 rounded-tr-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
-                                                <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-blue-500 rounded-bl-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
-                                                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-blue-500 rounded-br-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
-                                            </>
-                                        )}
+                                        <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-blue-500 rounded-tl-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+                                        <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-blue-500 rounded-tr-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+                                        <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-blue-500 rounded-bl-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+                                        <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-blue-500 rounded-br-lg shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
                                     </div>
                                 )}
 
-                                {/* Linha de Scan (apenas QR) */}
                                 {statusLeitura === 'AGUARDANDO' && statusCamera === 'ATIVO' && metodoPermitido === 'QRCODE' && (
                                     <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-[scan_3s_ease-in-out_infinite] z-20"></div>
                                 )}
-
-                                {/* Badge de alunos cadastrados (apenas Facial) */}
-                                {statusCamera === 'ATIVO' && metodoPermitido === 'FACIAL' && facial.totalCadastrados > 0 && (
-                                    <div className="absolute bottom-6 inset-x-0 text-center z-20">
-                                        <span className="bg-black/50 text-white text-[8px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full backdrop-blur-sm">
-                                            {facial.totalCadastrados} rostos cadastrados
-                                        </span>
-                                    </div>
-                                )}
                             </div>
 
-                            {/* Moldura Colorida Diaria */}
                             <div className="absolute inset-0 border-[10px] rounded-2xl pointer-events-none z-0 opacity-10"
                                  style={{ borderColor: corDoDia }}></div>
 
-                            {/* Feedback Fullscreen */}
                             {statusLeitura !== 'AGUARDANDO' && (
                                 <div className={`absolute inset-0 flex flex-col items-center justify-center transition-all z-30 backdrop-blur-sm
                                     ${confFila.animacoesAtivadas ? 'duration-500 animate-in fade-in zoom-in-105' : 'duration-0'}
@@ -374,7 +292,6 @@ export default function QuiosqueAutoatendimento() {
                     </div>
                 </div>
 
-                {/* ===== SIDEBAR ===== */}
                 <aside className="w-full lg:w-[400px] shrink-0">
                     <div className="h-full bg-white rounded-2xl border border-slate-200 p-8 flex flex-col shadow-sm relative overflow-hidden">
                         <div className="flex-1 flex flex-col justify-center py-6">
@@ -416,9 +333,7 @@ export default function QuiosqueAutoatendimento() {
                             ) : (
                                 <div className="text-center space-y-8 opacity-20">
                                     <div className="w-40 h-40 border-4 border-dashed border-slate-200 rounded-[50px] mx-auto flex items-center justify-center">
-                                        {metodoPermitido === 'FACIAL'
-                                            ? <Eye size={80} strokeWidth={1} className="text-slate-300" />
-                                            : metodoPermitido === 'DIGITAL'
+                                        {metodoPermitido === 'DIGITAL'
                                             ? <Fingerprint size={80} strokeWidth={1} className="text-slate-300" />
                                             : <QrCode size={80} strokeWidth={1} className="text-slate-300" />
                                         }
@@ -434,10 +349,8 @@ export default function QuiosqueAutoatendimento() {
                         </div>
                     </div>
                 </aside>
-
             </main>
 
-            {/* Estilos Globais HUD */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes scan {

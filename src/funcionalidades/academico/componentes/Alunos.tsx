@@ -20,9 +20,7 @@ import ImportacaoAlunosModal from './ImportacaoAlunosModal';
 import PromocaoLoteModal from './PromocaoLoteModal';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 import ImpressaoCredenciaisLote from './ImpressaoCredenciaisLote';
-import CadastroFacial from './CadastroFacial';
-import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
-import { Eye } from 'lucide-react';
+
 import { api } from '@/compartilhado/servicos/api';
 
 export default function Alunos() {
@@ -80,7 +78,7 @@ export default function Alunos() {
     const [alunoParaQRCode, definirAlunoParaQRCode] = useState<Aluno | null>(null);
     const [alunosSelecionados, definirAlunosSelecionados] = useState<string[]>([]);
     const [alunoParaExcluir, definirAlunoParaExcluir] = useState<Aluno | null>(null);
-    const [alunoParaFacial, definirAlunoParaFacial] = useState<Aluno | null>(null);
+
 
     const alunosFiltrados = useMemo(() => {
         return alunos.filter(a => {
@@ -158,21 +156,7 @@ export default function Alunos() {
         return resultado;
     };
 
-    const salvarDescritorFacial = async (descritores: number[][]) => {
-        if (!alunoParaFacial) return;
-        try {
-            await api.enviar('/api/academico/facial', {
-                escola_id: escola.id,
-                matricula: alunoParaFacial.matricula,
-                descritores
-            });
-            toast.success(`Rosto de ${alunoParaFacial.nome_completo} cadastrado com sucesso!`);
-        } catch (erro: any) {
-            toast.error(erro.message || 'Erro ao salvar descritores faciais.');
-        } finally {
-            definirAlunoParaFacial(null);
-        }
-    };
+
 
     const obterCorAvatar = (id: string) => {
         const cores = ['from-indigo-500 to-purple-600', 'from-emerald-400 to-teal-600', 'from-rose-400 to-pink-600', 'from-amber-400 to-orange-500', 'from-sky-400 to-blue-600', 'from-violet-500 to-fuchsia-600'];
@@ -279,7 +263,7 @@ export default function Alunos() {
                 aoExcluir={excluirAluno}
                 aoMudarPagina={definirPaginaAtual}
                 obterCorAvatar={obterCorAvatar}
-                aoCadastrarFacial={escola.metodosAcesso.includes('FACIAL') ? (a) => definirAlunoParaFacial(a) : undefined}
+
                 carregando={carregandoInicial}
             />
 
@@ -310,22 +294,7 @@ export default function Alunos() {
                 />
             )}
 
-            {alunoParaFacial && (
-                <ModalUniversal
-                    titulo="Cadastro Facial"
-                    subtitulo="Registre o rosto do aluno para identificacao automatica"
-                    aoFechar={() => definirAlunoParaFacial(null)}
-                    icone={Eye}
-                    tamanho="lg"
-                >
-                    <CadastroFacial
-                        matricula={alunoParaFacial.matricula}
-                        nomeAluno={alunoParaFacial.nome_completo}
-                        aoFinalizar={salvarDescritorFacial}
-                        aoCancelar={() => definirAlunoParaFacial(null)}
-                    />
-                </ModalUniversal>
-            )}
+
         </LayoutAdministrativo>
     );
 }

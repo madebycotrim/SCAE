@@ -16,13 +16,13 @@ export function CabecalhoInicial({ temaEscuro, aoAlternarTema, aoAbrirModalSobre
                         <ShieldCheck className="w-5 h-5 text-white" />
                     </div>
                     <span className={`text-xl font-bold tracking-tight transition-colors ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
-                        SCAE<span className="text-sky-400">.</span>
+                        CATRAKI<span className="text-orange-500">.</span>
                     </span>
                 </div>
                 <div className="flex items-center gap-4 md:gap-6">
                     <div className="hidden md:flex items-center gap-8 text-sm font-semibold">
                         <button onClick={aoAbrirModalSobre} className={`transition-colors ${temaEscuro ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>
-                            Sobre a SCAE
+                            Sobre a Catraki
                         </button>
                         <div className={`h-4 w-px ${temaEscuro ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
                         <button onClick={aoAbrirModalContato} className={`transition-colors ${temaEscuro ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>

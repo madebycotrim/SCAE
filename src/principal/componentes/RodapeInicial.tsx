@@ -25,14 +25,14 @@ export function RodapeInicial({ temaEscuro }: RodapeInicialProps) {
                             <ShieldCheck className="w-4 h-4 text-white" />
                         </div>
                         <span className={`text-lg font-bold tracking-tight ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
-                            SCAE<span className="text-sky-400">.</span>
+                            Catraki<span className="text-orange-500">.</span>
                         </span>
                     </motion.div>
 
                     {/* Texto Principal */}
                     <div className="max-w-2xl mb-8">
                         <p className={`text-sm font-medium leading-relaxed ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                            &copy; {ano} SCAE. Desenvolvido por um estudante universitário para melhorar a segurança nas escolas públicas brasileiras. 
+                            &copy; {ano} Catraki. Desenvolvido por um estudante universitário para melhorar a segurança nas escolas públicas brasileiras. 
                             Um projeto independente dedicado à inovação na gestão escolar pública.
                         </p>
                     </div>
@@ -61,7 +61,7 @@ export function RodapeInicial({ temaEscuro }: RodapeInicialProps) {
                             href="https://github.com/madebycotrim" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className={`text-[10px] font-bold uppercase tracking-[0.3em] transition-all hover:text-sky-400 ${temaEscuro ? 'text-slate-600' : 'text-slate-300'}`}
+                            className={`text-[10px] font-bold uppercase tracking-[0.3em] transition-all hover:text-orange-500 ${temaEscuro ? 'text-slate-600' : 'text-slate-300'}`}
                         >
                             madebycotrim
                         </a>

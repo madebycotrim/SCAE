@@ -8,7 +8,7 @@ import { usarNotificacoes, type Notificacao } from '@compartilhado/contextos/Con
 import { usarBuscaGlobal } from '@/compartilhado/hooks/usarBuscaGlobal';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarInstalacaoPWA } from '@/compartilhado/hooks/usarInstalacaoPWA';
-import { mascararEmail } from '@/compartilhado/utils/formatar';
+import { mscararEmail } from '@/compartilhado/utils/formatar';
 import {
     LayoutDashboard,
     Users,
@@ -46,6 +46,18 @@ import { BarraProgressoGlobal } from '@/compartilhado/componentes/UI';
 import { ReactNode } from 'react';
 
 const log = criarRegistrador('Layout');
+
+/**
+ * Função utilitária para mascarar o e-mail, exibindo apenas o primeiro e o último caractere do nome de usuário.
+ * Ex: joao@exemplo.com -> j...o@exemplo.com
+ */
+const mascararEmail = (email?: string | null) => {
+    if (!email) return '';
+    const [usuario, dominio] = email.split('@');
+    if (!dominio) return email;
+    if (usuario.length <= 2) return email;
+    return `${usuario[0]}...${usuario[usuario.length - 1]}@${dominio}`;
+};
 
 interface LayoutAdministrativoProps {
     children: ReactNode;
@@ -120,12 +132,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         }
     }, [localizacao, navegar]);
 
-    // Agrupamento lógico dos itens adaptados ao método de acesso da escola
-    const metodos = usarEscola().metodosAcesso; // ['QRCODE', 'FACIAL', 'DIGITAL']
-    const temQR = metodos.includes('QRCODE');
-    const temFacial = metodos.includes('FACIAL');
-    const temDigital = metodos.includes('DIGITAL');
-
     const gruposMenu = [
         {
             titulo: 'Visão',
@@ -138,7 +144,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             titulo: 'Acadêmico',
             itens: [
                 ...(pode('visualizar', 'turmas') ? [{ icone: Layers, texto: 'Turmas', rota: '/turmas' }] : []),
-                // Somente exibe Calendário se não for apenas um terminal de bico (ex: simplificado)
                 ...(pode('visualizar', 'academico') ? [{ icone: Calendar, texto: 'Calendário', rota: '/calendario' }] : []),
             ]
         },
@@ -147,17 +152,18 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 ...(pode('visualizar', 'configuracao-horarios') ? [{ icone: Clock, texto: 'Horários', rota: '/configuracao-horarios' }] : []),
                 ...(pode('visualizar', 'risco_abandono') ? [{ icone: AlertTriangle, texto: 'Risco de Abandono', rota: '/risco-abandono' }] : []),
-                // Relatórios são genéricos, mas podemos filtrar tipos lá dentro
                 ...(pode('visualizar', 'relatorios') ? [{ icone: FileText, texto: 'Relatórios', rota: '/relatorios' }] : []),
             ]
         },
-                { titulo: 'Sistema', itens: [
-                    ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
-                    ...(pode('visualizar', 'auditoria') ? [{ icone: ShieldCheck, texto: 'Logs', rota: '/logs' }] : []),
-                    ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
-                ]}
+        { 
+            titulo: 'Sistema', 
+            itens: [
+                ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
+                ...(pode('visualizar', 'auditoria') ? [{ icone: ShieldCheck, texto: 'Logs', rota: '/logs' }] : []),
+                ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
+            ]
+        }
     ].filter(g => g.itens.length > 0);
-
 
     const aoSair = async () => {
         try {
@@ -274,13 +280,13 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 `}>
                     <div className="flex items-center gap-3 overflow-hidden">
                         <div className="shrink-0 flex items-center justify-center">
-                            <ShieldCheck className="w-6 h-6 text-sky-400" strokeWidth={2.5} />
+                            <ShieldCheck className="w-6 h-6 text-orange-500" strokeWidth={2.5} />
                         </div>
 
                         {!sidebarMinimizado && (
                             <div className="flex flex-col">
                                 <h1 className="font-black text-white leading-tight uppercase tracking-widest">
-                                    Catraki
+                                    CATRAKI
                                 </h1>
                                 <p className="text-[12px] text-slate-400 font-bold truncate max-w-[160px] uppercase tracking-tighter">{nomeEscola}</p>
                             </div>
@@ -329,7 +335,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                         w-full flex items-center transition-all duration-150 group
                                                         ${sidebarMinimizado ? 'justify-center p-2' : 'gap-3 px-3 py-2'}
                                                         ${ativo
-                                                            ? 'bg-sky-500/10 border-l-2 border-sky-400 text-white font-black rounded-r-2xl'
+                                                            ? 'bg-orange-500/10 border-l-2 border-orange-500 text-white font-black rounded-r-2xl'
                                                             : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-2xl'
                                                         }
                                                     `}
@@ -337,7 +343,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                 >
                                                     <Icone
                                                         size={16}
-                                                        className={ativo ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
+                                                        className={ativo ? 'text-orange-500' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
                                                     />
                                                     {!sidebarMinimizado && (
                                                         <span className="text-sm">{item.texto}</span>

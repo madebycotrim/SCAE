@@ -451,7 +451,7 @@ export function PaginaGestaoEscolas() {
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-medium text-slate-600 mb-1 block">Métodos de Identificação de Aluno</label>
                                     <div className="flex flex-wrap gap-x-6 gap-y-2">
-                                        {['QRCODE', 'FACIAL', 'DIGITAL'].map(m => {
+                                        {['QRCODE', 'DIGITAL'].map(m => {
                                             const metodos = form.metodo_acesso.split(',').filter(Boolean);
                                             const ativo = metodos.includes(m);
                                             return (
@@ -466,7 +466,7 @@ export function PaginaGestaoEscolas() {
                                                         }}
                                                         className="w-3.5 h-3.5 accent-slate-900 border-slate-300 rounded" 
                                                     />
-                                                    {m === 'QRCODE' ? 'QR Code' : m === 'FACIAL' ? 'Facial' : 'Digital'}
+                                                    {m === 'QRCODE' ? 'QR Code' : 'Digital'}
                                                 </label>
                                             )
                                         })}

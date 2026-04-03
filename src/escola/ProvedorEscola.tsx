@@ -18,7 +18,7 @@ export interface PerfilEscola {
     nomeDPO?: string;
     qrDinamico: boolean;
     saidaObrigatoria: boolean;
-    metodosAcesso: string[];  // ['QRCODE', 'FACIAL', 'DIGITAL']
+    metodosAcesso: string[];  // ['QRCODE', 'DIGITAL']
     provedorAuth: 'google' | 'microsoft';
 }
 
@@ -76,12 +76,7 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
 
                 definirPerfil(data);
             } catch (err) {
-                // Assuming 'log' is defined globally or imported, otherwise this line would cause an error.
-                // For this task, I'm faithfully applying the change as provided.
-                // If 'log' is not defined, it would need to be imported or defined.
-                // Example: import log from 'loglevel';
-                // Or: const log = console;
-                console.error('Erro ao carregar perfil da escola', err); // Changed log.error to console.error for immediate functionality
+                console.error('Erro ao carregar perfil da escola', err);
                 definirErro(true);
             }
         };
@@ -131,4 +126,3 @@ export const usarEscola = (): PerfilEscola => {
 export const usarEscolaOpcional = (): PerfilEscola | null => {
     return useContext(EscolaContext);
 };
-
