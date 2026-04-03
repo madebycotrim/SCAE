@@ -14,28 +14,27 @@ export class IdflexLeitor implements ILeitor {
   readonly tipo = TipoLeitor.ID_FLEX;
   private tokenSessao?: string;
   private ultimoErroLogado?: string;
+  private cacheNomes = new Map<string, { nome: string, matricula: string }>();
+  private lastCacheSync = 0;
 
   constructor(private cfg: LeitorTcpConfig) {}
 
   get id() { return this.cfg.id; }
   get nome() { return this.cfg.nome; }
 
-  /**
-   * Realiza requisição autenticada, renovando a sessão se necessário.
-   */
-  private async requisitarComToken(endpoint: string, dados: any = {}) {
+  private async requisitarComToken(endpoint: string, dados: any = {}, timeout?: number) {
     if (!this.tokenSessao) {
       this.tokenSessao = await IdFlexHelper.login({ ip: this.cfg.ip });
     }
     try {
-      const resp = await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados);
+      const resp = await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados, timeout);
       this.ultimoErroLogado = undefined;
       return resp;
     } catch (e: any) {
       // Se erro for 401 ou sessão inválida, tenta re-logar uma vez
       if (e.message.includes('401') || e.message.includes('session') || e.body?.includes('invalid session')) {
         this.tokenSessao = await IdFlexHelper.login({ ip: this.cfg.ip });
-        return await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados);
+        return await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados, timeout);
       }
       throw e;
     }
@@ -140,6 +139,7 @@ export class IdflexLeitor implements ILeitor {
    */
   async buscarEventos(ultimoId = '0'): Promise<EventoAcesso[]> {
     try {
+      await this.sincronizarCacheNomesHardware();
       // O iDFlex usa load_objects para a tabela access_logs
       const resp = await this.requisitarComToken('load_objects.fcgi', {
         object: 'access_logs'
@@ -149,13 +149,19 @@ export class IdflexLeitor implements ILeitor {
       const lastId = parseInt(ultimoId, 10) || 0;
       const logs = (resp.access_logs || []).filter((l: any) => l.id > lastId);
 
-      return logs.map((l: any) => ({
-        id: String(l.id),
-        idUsuario: String(l.user_id),
-        timestamp: new Date(l.time * 1000),
-        tipo: 'ENTRADA',
-        autorizado: [7, 10, 11, 12, 15].includes(l.event),
-        leitorId: this.id
+      // Mapeamento enriquecido: Busca o nome e matrícula do hardware para o dashboard
+      return Promise.all(logs.map(async (l: any) => {
+        const info = await this.obterDadosUsuarioHardware(String(l.user_id));
+        return {
+          id: String(l.id),
+          idUsuario: String(l.user_id),
+          matricula: info.matricula, // Novo campo habilitado
+          nomeHardware: info.nome,   // Novo campo habilitado
+          timestamp: new Date(l.time * 1000),
+          tipo: 'ENTRADA',
+          autorizado: [7, 10, 11, 12, 15].includes(l.event),
+          leitorId: this.id
+        };
       }));
     } catch (e: any) {
       const msgErro = e.code === 'ECONNREFUSED' || e.code === 'ETIMEDOUT'
@@ -176,35 +182,34 @@ export class IdflexLeitor implements ILeitor {
    */
   async cadastrarAluno(aluno: DadosAluno): Promise<ResultadoCadastro> {
     try {
-      const idInterno = aluno.idInterno ?? parseInt(aluno.matricula.replace(/\D/g, '').slice(-8), 10);
-      
-      // 1. Cadastra Objeto User
-      await this.requisitarComToken('set_db.fcgi', {
-        collection: 'users',
-        values: [{ id: idInterno, name: aluno.nomeCompleto, registration: aluno.matricula }]
+      // Gera um ID interno aleatório para o hardware (evita colisões)
+      const idInterno = Math.floor(Math.random() * 900000) + 100000;
+
+      // 1. Cadastra Objeto User (ID aleatório + Matrícula preservada)
+      await this.requisitarComToken('create_objects.fcgi', {
+        values: [{ id: idInterno, name: aluno.nomeCompleto, registration: aluno.matricula }],
+        object: 'users'
       });
 
-      // 2. Garante vínculo com grupo de acesso (essencial para o funcionamento)
-      // Tenta vincular ao grupo 1. Se falhar, tenta carregar grupos existentes.
+      // 2. Garante vínculo com grupo de acesso
       try {
-        await this.requisitarComToken('set_db.fcgi', {
-          collection: 'user_groups',
-          values: [{ user_id: idInterno, group_id: 1 }]
+        await this.requisitarComToken('create_objects.fcgi', {
+          values: [{ user_id: idInterno, group_id: 1 }],
+          object: 'user_groups'
         });
-      } catch {
-        console.warn(`[iDFlex][${this.id}] Falha ao vincular Grupo 1. Verifique as regras de acesso no equipamento.`);
-      }
+      } catch { /* ... */ }
 
       // 3. Cadastra Digitais
       if (aluno.templates && aluno.templates.length > 0) {
-        await this.requisitarComToken('set_db.fcgi', {
-          collection: 'fingerprints',
-          values: aluno.templates.map(t => ({ user_id: idInterno, template: t }))
+        await this.requisitarComToken('create_objects.fcgi', {
+          values: aluno.templates.map(t => ({ user_id: idInterno, template: t })),
+          object: 'fingerprints'
         });
       }
 
-      // Feedback sonoro de sucesso no cadastro
+      // Feedback sonoro e limpeza de cache para atualização imediata na UI
       await this.emitirBeep();
+      this.lastCacheSync = 0; // Força sincronismo de nomes no próximo poll
 
       return { ok: true, idInterno };
     } catch (e: any) {
@@ -225,14 +230,46 @@ export class IdflexLeitor implements ILeitor {
     } catch { /* Ignora erro de beep */ }
   }
 
-  /**
-   * Lista todos os usuários (alunos) residentes no hardware iDFlex.
-   */
   async listarAlunos(): Promise<any[]> {
     try {
       const res = await this.requisitarComToken('load_objects.fcgi', { object: 'users' });
       return res.users || [];
     } catch { return []; }
+  }
+
+  /** Sincroniza todos os nomes/matrículas do hardware para o cache local do driver */
+  private async sincronizarCacheNomesHardware(force = false): Promise<void> {
+    const now = Date.now();
+    // Cache de 30 segundos em modo poller, ou imediato se forçado (novo cadastro/ID não encontrado)
+    if (!force && (now - this.lastCacheSync < 30000) && this.cacheNomes.size > 0) return;
+
+    try {
+      const resp = await this.requisitarComToken('load_objects.fcgi', { object: 'users' });
+      const users = resp.users || [];
+      this.cacheNomes.clear();
+      for (const u of users) {
+        this.cacheNomes.set(String(u.id), { 
+          nome: u.name || `ID ${u.id}`, 
+          matricula: u.registration || '—' 
+        });
+      }
+      this.lastCacheSync = now;
+    } catch { /* erro silenciado */ }
+  }
+
+  /** Exibe uma mensagem de texto na tela do equipamento iDFlex físico */
+  async exibirMensagemHardware(message: string, timeout = 3000): Promise<void> {
+    try {
+      await this.requisitarComToken('message_to_screen.fcgi', { message, timeout });
+    } catch { /* ... */ }
+  }
+
+  private obterDadosUsuarioHardware(id: string): { nome: string, matricula: string } {
+    if (this.cacheNomes.has(id)) return this.cacheNomes.get(id)!;
+    
+    // Tratamento amigável para usuários não cadastrados ou desconhecidos no hardware
+    const nomeAmigavel = id === '0' ? 'ACESSO NÃO RECONHECIDO' : `DESCONHECIDO (ID: ${id})`;
+    return { nome: nomeAmigavel, matricula: '—' };
   }
 
   /**
@@ -241,16 +278,27 @@ export class IdflexLeitor implements ILeitor {
    */
   async iniciarCaptura(userId: number): Promise<boolean> {
     try {
+      // Usamos sync:true e timeout de 60s para esperar a interação física completa
       await this.requisitarComToken('remote_enroll.fcgi', {
         user_id: userId,
-        type: 'fingerprint',
+        type: 'biometry',
         save: true,
-        panic_finger: false
-      });
+        sync: true,
+        panic_finger: 0
+      }, 60000);
       return true;
     } catch (e: any) {
-      console.error(`[iDFlex][${this.id}] Erro ao iniciar captura remota: ${e.message}`);
-      return false;
+      // Extrai a mensagem de erro real do hardware para o Dashboard
+      let msgErro = e.message;
+      try {
+          if (e.body) {
+              const body = JSON.parse(e.body);
+              if (body.error) msgErro = body.error;
+          }
+      } catch {}
+      
+      console.error(`[iDFlex][${this.id}] Erro na captura: ${msgErro}`);
+      throw new Error(msgErro || 'Falha na captura física.');
     }
   }
 
@@ -258,19 +306,27 @@ export class IdflexLeitor implements ILeitor {
    * Remove aluno e vínculos do iDFlex.
    */
   async removerAluno(matricula: string): Promise<boolean> {
-
     try {
-      const idInterno = parseInt(matricula.replace(/\D/g, '').slice(-8), 10);
+      // 1. Busca o ID técnico do hardware através da matrícula (registration)
+      const resp = await this.requisitarComToken('load_objects.fcgi', { 
+        object: 'users',
+        where: { users: { registration: matricula } }
+      });
+
+      if (!resp.users || resp.users.length === 0) return false;
+      const idInterno = resp.users[0].id;
       
-      // O remove_db em users geralmente limpa os vínculos user_groups e templates automaticamente no iDFlex
-      await this.requisitarComToken('remove_db.fcgi', {
-        collection: 'users',
-        where: { id: idInterno }
+      // 2. Remove o registro definitivo usando o ID real do hardware
+      await this.requisitarComToken('destroy_objects.fcgi', {
+        object: 'users',
+        where: { users: { id: idInterno } }
       });
       
+      this.cacheNomes.delete(String(idInterno));
+      this.lastCacheSync = 0;
       return true;
     } catch (e: any) {
-      console.error(`[iDFlex][${this.id}] Erro ao remover usuário: ${e.message}`);
+      console.error(`[iDFlex][${this.id}] Erro ao remover usuário matrícula ${matricula}: ${e.message}`);
       return false;
     }
   }

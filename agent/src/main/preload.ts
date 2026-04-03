@@ -11,5 +11,11 @@ contextBridge.exposeInMainWorld('scaeApi', {
     ipcRenderer.on('new-access', (_event, data) => callback(data));
   },
   saveConfig: (data: { escolaId: string }) => ipcRenderer.invoke('save-config', data),
-  loginPin: (pin: string) => ipcRenderer.invoke('login-pin', pin)
+  loginPin: (pin: string) => ipcRenderer.invoke('login-pin', pin),
+  
+  // Gestão de Usuários no Hardware
+  listarAlunos: (leitorId: string) => ipcRenderer.invoke('listar-alunos', leitorId),
+  cadastrarAluno: (dados: any) => ipcRenderer.invoke('cadastrar-aluno', dados),
+  iniciarCaptura: (dados: any) => ipcRenderer.invoke('iniciar-captura', dados),
+  excluirAluno: (dados: any) => ipcRenderer.invoke('excluir-aluno', dados)
 });

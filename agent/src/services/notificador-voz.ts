@@ -43,12 +43,14 @@ export class NotificadorVoz {
     const acao = tipo === 'ENTRADA' ? 'Bem-vindo' : 'Pode passar';
     const msg = `${saudacao}, ${nome.split(' ')[0]}. ${acao} ao Catraki!`;
     
-    // Além da voz, enviamos um evento visual para a UI (Toast/Card)
-    if (this.window) {
-        this.window.webContents.send('new-access', { nome, msg, tipo });
-    }
-    
     await this.falar(msg);
+  }
+
+  /** Atualiza apenas a UI (métricas) sem emitir voz */
+  notificarAcessoVisual(nome: string, tipo: string = 'ENTRADA') {
+    if (this.window && !this.window.isDestroyed()) {
+        this.window.webContents.send('new-access', { nome, tipo });
+    }
   }
 }
 

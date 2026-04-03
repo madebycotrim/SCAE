@@ -12,7 +12,9 @@ export type TipoMovimentacao = 'ENTRADA' | 'SAIDA';
 
 export interface EventoAcesso {
   id: string;
-  idUsuario: string;
+  idUsuario: string; // ID Técnico (random)
+  matricula?: string; // Matrícula Real (registration)
+  nomeHardware?: string; // Nome vindo do hardware
   timestamp: Date;
   tipo: TipoMovimentacao;
   autorizado: boolean;
@@ -74,6 +76,9 @@ export interface ILeitor {
 
   /** Aciona a abertura da porta/catraca remotamente */
   abrirPorta(): Promise<boolean>;
+
+  /** Exibe uma mensagem de texto na tela do equipamento */
+  exibirMensagemHardware(message: string, timeout?: number): Promise<void>;
 
   /** Retorna a lista de usuários (alunos) residentes no hardware */
   listarAlunos?(): Promise<any[]>;

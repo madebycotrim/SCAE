@@ -92,11 +92,25 @@ async function executarCicloColeta() {
           ev.id
         ]);
 
-        // Feedback de Voz Contextual (Premium TTS)
+        // Feedback Visual e de Voz
         if (notificadorGlobal) {
-          const aluno = await getSql('SELECT nome_completo FROM alunos_cache WHERE matricula = ?', [ev.idUsuario]);
+          // Prioriza a matrícula real para buscar o nome no cache local
+          const matriculaParaBusca = ev.matricula || ev.idUsuario;
+          const aluno = await getSql('SELECT nome_completo FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
+          
           if (aluno?.nome_completo) {
+            notificadorGlobal.notificarAcessoVisual(`${aluno.nome_completo} (${matriculaParaBusca})`, ev.tipo);
             notificadorGlobal.anunciarAcesso(aluno.nome_completo, ev.tipo);
+          } else {
+            // Fallback para dados vindos apenas do hardware (se não houver cache local ainda)
+            const infoHw = ev.nomeHardware;
+            const matHw = ev.matricula;
+            
+            const idExibicao = (matHw && matHw !== '—') ? matHw : ev.idUsuario;
+            const nomeExibicao = `${infoHw || 'Desconhecido'} (${idExibicao})`;
+            
+            const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';
+            notificadorGlobal.notificarAcessoVisual(nomeExibicao, statusAcesso);
           }
         }
         

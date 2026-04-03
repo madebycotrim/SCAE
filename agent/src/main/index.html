@@ -1115,6 +1115,253 @@
         .hidden {
             display: none !important;
         }
+        /* BIO MODAL PREMIUM */
+        #bio-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #bio-modal.active { opacity: 1; pointer-events: all; }
+        .bio-modal-card {
+            background: #1a1a1a;
+            width: 380px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        #bio-modal.active .bio-modal-card { transform: translateY(0); }
+        .bio-icon-wrap {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .bio-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--ok);
+            animation: bioPulse 2s infinite;
+        }
+        @keyframes bioPulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+        .bio-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 12px; }
+        .bio-msg { color: var(--t3); font-size: 0.95rem; margin-bottom: 30px; }
+        .bio-loader { height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 24px; }
+        .bio-loader-bar { height: 100%; background: var(--ok); width: 0%; transition: width 0.3s ease; }
+        .bio-btn-cancel {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--t1);
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        /* CONFIRM MODAL PREMIUM */
+        #confirm-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+        #confirm-modal.active { opacity: 1; pointer-events: all; }
+        .confirm-card {
+            background: #1a1a1a;
+            width: 350px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            transform: scale(0.9);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #confirm-modal.active .confirm-card { transform: scale(1); }
+        .confirm-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 16px;
+            background: rgba(158, 90, 90, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--err);
+        }
+        .confirm-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; color: var(--t1); }
+        .confirm-msg { font-size: 0.88rem; color: var(--t3); line-height: 1.4; margin-bottom: 24px; }
+        .confirm-btns { display: flex; gap: 8px; }
+        .confirm-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.1s;
+        }
+        .confirm-btn.yes { background: var(--err); color: #fff; border: none; }
+        .confirm-btn.no { background: rgba(255,255,255,0.05); color: var(--t3); }
+        .confirm-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        /* LIVE FEED MONITOR */
+        .live-monitor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            overflow-y: auto;
+            gap: 16px;
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.4) 0%, rgba(10, 10, 10, 0.2) 100%);
+        }
+        .live-monitor::-webkit-scrollbar { width: 5px; }
+        .live-monitor::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 10px; }
+
+        .monitor-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .monitor-title { font-size: 1.25rem; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }
+        .monitor-status { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--t3); text-transform: uppercase; letter-spacing: 0.1em; }
+
+        /* ACCESS CARDS */
+        .access-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            animation: cardSlideIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: all 0.2s;
+        }
+        .access-card:hover { background: rgba(255, 255, 255, 0.04); transform: translateX(4px); border-color: rgba(255, 255, 255, 0.1); }
+        
+        @keyframes cardSlideIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .card-icon.ok { background: var(--ok-dim); color: var(--ok); box-shadow: 0 0 20px rgba(90, 158, 124, 0.1); }
+        .card-icon.err { background: var(--err-dim); color: var(--err); box-shadow: 0 0 20px rgba(158, 90, 90, 0.1); }
+
+        .card-body { flex: 1; }
+        .card-name { font-size: 1.05rem; font-weight: 600; color: var(--t1); margin-bottom: 2px; }
+        .card-meta { font-size: 0.75rem; color: var(--t3); display: flex; gap: 12px; }
+        
+        .card-side { text-align: right; }
+        .card-time { font-family: var(--mono); font-size: 0.9rem; font-weight: 600; color: var(--t2); }
+        .card-status-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+        .label-ok { background: var(--ok-dim); color: var(--ok); }
+        .label-err { background: var(--err-dim); color: var(--err); }
+        /* LAYOUT & HIERARCHY */
+        .layout { display: flex; flex: 1; height: calc(100vh - 45px - 28px); overflow: hidden; }
+        
+        .sidebar {
+            width: 300px;
+            background: rgba(15, 15, 15, 0.4);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 24px;
+            overflow-y: auto;
+        }
+
+        .live-monitor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 40px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, rgba(15,15,15,0.7) 0%, rgba(10,10,10,0.5) 100%);
+            gap: 30px;
+        }
+
+        /* INSIGHT CARDS (TOP) */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 10px;
+        }
+        .insight-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+        .insight-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
+        .i-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .i-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .i-icon.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .i-icon.gold { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        
+        .i-info { display: flex; flex-direction: column; }
+        .i-label { font-size: 0.65rem; color: var(--t3); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 2px; }
+        .i-val { font-size: 1.4rem; font-weight: 700; color: var(--t1); font-family: var(--mono); }
+
+        /* REFINED ACCESS CARDS */
+        .access-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            animation: cardSlideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .access-card:hover { border-color: rgba(255,255,255,0.1); background: rgba(20,20,20,0.6); }
+        .card-name { font-size: 1.15rem; }
     </style>
 </head>
 
@@ -1131,6 +1378,11 @@
                 central.</p>
             <label class="field-label">PIN DE ACESSO</label>
             <input type="password" id="pin" class="pin-input" placeholder="· · · · · ·" maxlength="6" autofocus>
+            
+            <div id="auth-error" style="display:none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 12px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 16px; line-height: 1.4; text-align: center;">
+                PIN incorreto ou falha na rede cloud.
+            </div>
+
             <button class="btn-primary" id="btn-auth">ATIVAR AGENTE</button>
             <p class="auth-hint">Comunicação segura e criptografada</p>
         </div>
@@ -1145,6 +1397,11 @@
             <span class="h-school" id="school-badge">aguardando pin</span>
         </div>
         <div class="header-right">
+            <button class="icon-btn" id="btn-logs-open" title="Log de Diagnóstico">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+                </svg>
+            </button>
             <button class="icon-btn" id="btn-settings-open" title="Configurações de Hardware">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <circle cx="12" cy="12" r="3" />
@@ -1155,126 +1412,135 @@
         </div>
     </div>
 
-    <!-- ── LAYOUT ───────────────────────────────────────────────── -->
-    <div class="layout">
+    <!-- ── LAYOUT PRINCIPAL ── -->
+    <div class="layout" id="main-layout">
 
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR DE GESTÃO -->
         <div class="sidebar">
-
-            <!-- Metrics -->
-            <div class="sb-section">
-                <div class="sb-label">Métricas — Hoje</div>
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-val" id="m-entradas">0</div>
-                        <div class="metric-label">Entradas</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-val" id="m-negadas">0</div>
-                        <div class="metric-label">Negadas</div>
-                    </div>
-                    <div class="metric-card wide">
-                        <div>
-                            <div class="metric-label">Pico de acesso</div>
-                            <div class="metric-val" id="m-pico" style="margin-top:3px">—</div>
+            <div class="side-section">
+                <div class="section-title">EQUIPAMENTOS</div>
+                <div id="hardware-list">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px">
+                            <span class="sb-dot ok"></span>
+                            <span style="font-size: 0.8rem; font-weight:600; color:var(--t1)">iDFlex Portaria</span>
                         </div>
-                        <div style="text-align:right">
-                            <div class="metric-label">Último acesso</div>
-                            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--t2);margin-top:3px"
-                                id="m-ultimo">—</div>
+                        <div style="font-size: 0.65rem; color:var(--t3); display:flex; justify-content:space-between">
+                            <span>Sincronizado</span>
+                            <span style="color:var(--ok)">ONLINE</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Hardware -->
-            <div class="sb-section">
-                <div class="sb-label">Leitores</div>
-                <div class="device-list" id="hardware-status-list">
-                    <div class="device-row">
-                        <span class="d-dot"></span>
-                        <span class="d-name" style="color:var(--t3)">Inicializando...</span>
+            <div class="side-section">
+                <div class="section-title">CADASTRO RÁPIDO</div>
+                <div class="cad-form">
+                    <input type="text" id="cad-nome" placeholder="Nome do aluno..." class="input-s" style="margin-bottom:8px">
+                    <input type="text" id="cad-matricula" placeholder="Matrícula..." class="input-s" style="margin-bottom:8px">
+                    <div class="btn-row" style="margin-bottom:8px">
+                        <button id="btn-cad-save" class="btn-s primary" style="flex:1">CADASTRAR</button>
+                        <button id="btn-list-users" class="btn-s" title="Listar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg></button>
                     </div>
                 </div>
-                <div class="sync-row">
-                    <span class="sync-label">Sync Nuvem</span>
-                    <span id="sync-badge" style="font-family:var(--mono);font-size:0.55rem;color:var(--t3)">—</span>
-                </div>
             </div>
 
-            <!-- Last Accesses -->
-            <div class="sb-section">
-                <div class="sb-label">Últimos Acessos</div>
-                <div class="access-feed" id="access-feed">
-                    <div class="empty-msg">Nenhum acesso registrado.</div>
+            <div class="side-section" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+                <div class="section-title">MINI FEED</div>
+                <div id="access-feed" class="user-list" style="flex:1">
+                    <div class="empty-msg">Aguardando...</div>
                 </div>
             </div>
-
-            <!-- User Management -->
-            <div class="sb-section" id="card-users" style="flex:1">
-                <div class="sb-label">Gestão de Alunos</div>
-                <div class="input-group">
-                    <input type="text" id="cad-nome" class="f-input" placeholder="Nome Completo">
-                    <input type="text" id="cad-matricula" class="f-input" placeholder="Matrícula">
-                </div>
-                <div class="btn-row" style="margin-bottom:8px">
-                    <button id="btn-cad-save" class="btn-s primary">
-                        <span class="spin"></span>
-                        <span class="btn-text">CADASTRAR</span>
-                    </button>
-                    <button id="btn-list-users" class="btn-s" title="Listar alunos">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6" />
-                            <line x1="8" y1="12" x2="21" y2="12" />
-                            <line x1="8" y1="18" x2="21" y2="18" />
-                            <line x1="3" y1="6" x2="3.01" y2="6" />
-                            <line x1="3" y1="12" x2="3.01" y2="12" />
-                            <line x1="3" y1="18" x2="3.01" y2="18" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="bio-bar-wrap" id="bio-bar-wrap">
-                    <div class="bio-bar" id="bio-bar"></div>
-                </div>
-                <div id="user-list-result" class="user-list">
-                    <div class="empty-msg">Nenhum aluno carregado.</div>
-                </div>
-            </div>
-
         </div>
 
-        <!-- LOG TERMINAL -->
-        <div class="content">
-            <div class="terminal-bar">
-                <div class="terminal-bar-left">
-                    <div class="t-dots">
-                        <div class="td td-r"></div>
-                        <div class="td td-y"></div>
-                        <div class="td td-g"></div>
-                    </div>
-                    <span class="t-title">catraki-edge — operation log</span>
+        <!-- MONITOR DE FLUXO (CENTRAL) -->
+        <div id="main-monitor" class="live-monitor">
+            <div class="monitor-head">
+                <div>
+                    <h1 class="monitor-title">Fluxo de Alunos em Tempo Real</h1>
+                    <div class="monitor-status"><span class="sb-dot ok" style="animation: pulse 1.5s infinite;"></span> OPERAÇÃO NORMAL • CONECTADO AO ID_FLEX</div>
                 </div>
-                <div class="terminal-bar-right">
-                    <div class="log-filter-btns">
-                        <button class="filter-btn active" data-filter="all">TODOS</button>
-                        <button class="filter-btn f-ok" data-filter="ok">OK</button>
-                        <button class="filter-btn f-info" data-filter="info">INFO</button>
-                        <button class="filter-btn f-warn" data-filter="warn">WARN</button>
-                        <button class="filter-btn f-err" data-filter="err">FAIL</button>
-                    </div>
-                    <div class="log-search-wrap">
-                        <input type="text" class="log-search" id="log-search" placeholder="buscar logs...">
-                        <svg class="log-search-icon" width="11" height="11" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8" />
-                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                        </svg>
-                    </div>
-                    <button class="btn-s" id="btn-clear-log" style="padding:3px 8px">LIMPAR</button>
+                <div style="text-align: right">
+                    <span style="font-size: 0.65rem; color: var(--t3); display: block;">AGENTE TOKEN:</span>
+                    <span style="font-family: var(--mono); font-size: 0.75rem; color: var(--gold);" id="monitor-school-id">ACTIVE_NODE_12</span>
                 </div>
             </div>
-            <div class="log-body" id="log-container"></div>
+
+            <!-- INSIGHT CARDS -->
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="i-icon blue">↑</div>
+                    <div class="i-info">
+                        <span class="i-label">Entradas</span>
+                        <span class="i-val" id="m-entradas">0</span>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="i-icon red">✕</div>
+                    <div class="i-info">
+                        <span class="i-label">Negados</span>
+                        <span class="i-val" id="m-negadas">0</span>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="i-icon gold">🕓</div>
+                    <div class="i-info">
+                        <span class="i-label">Horário de Pico</span>
+                        <span class="i-val" id="m-pico">--:--</span>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="i-icon gold">⦿</div>
+                    <div class="i-info">
+                        <span class="i-label">Último Acesso</span>
+                        <span class="i-val" id="m-ultimo">--:--</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="timeline-feed" style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="padding: 120px 0; text-align: center; opacity: 0.3;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 16px;">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                    </svg>
+                    <div style="font-size: 0.9rem; letter-spacing: 0.05em;">Aguardando leitura do iDFlex...</div>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- Fim Layout Principal -->
+
+    <!-- MODAL BIOMETRIA -->
+    <div id="bio-modal">
+        <div class="bio-modal-card">
+            <div class="bio-icon-wrap" id="bio-modal-icon">
+                <div class="bio-pulse" id="bio-modal-pulse"></div>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="1.5" id="bio-svg">
+                    <path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
+                </svg>
+            </div>
+            <div class="bio-title" id="bio-m-title">Biometria</div>
+            <p class="bio-msg" id="bio-m-msg">Aguardando...</p>
+            <div class="bio-loader"><div class="bio-loader-bar" id="bio-m-bar"></div></div>
+            <button class="bio-btn-cancel" id="btn-bio-cancel">CANCELAR</button>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO -->
+    <div id="confirm-modal">
+        <div class="confirm-card">
+            <div class="confirm-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <div class="confirm-title" id="confirm-m-title">Deseja excluir?</div>
+            <p class="confirm-msg" id="confirm-m-msg">Essa ação removerá o aluno permanentemente do hardware iDFlex.</p>
+            <div class="confirm-btns">
+                <button class="confirm-btn no" id="confirm-btn-no">CANCELAR</button>
+                <button class="confirm-btn yes" id="confirm-btn-yes">CONFIRMAR</button>
+            </div>
         </div>
     </div>
 
@@ -1382,39 +1648,68 @@
         // ─── ACCESS FEED & METRICS ────────────────────────────────
         function addAccess(name, type = 'in') {
             const now = new Date();
-            const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const hour = now.getHours();
+            const isOk = (type === 'ENTRADA' || type === 'in');
 
-            if (type === 'ENTRADA' || type === 'in') {
+            // 1. Atualiza Métricas
+            if (isOk) {
                 entradas++;
                 document.getElementById('m-entradas').textContent = entradas;
-                document.getElementById('m-ultimo').textContent = time;
+                document.getElementById('m-ultimo').textContent = time.slice(0, 5);
                 hourCounts[hour] = (hourCounts[hour] || 0) + 1;
                 if (hourCounts[hour] > peakCount) {
                     peakCount = hourCounts[hour];
                     peakHour = hour;
                     document.getElementById('m-pico').textContent = `${String(peakHour).padStart(2, '0')}h`;
                 }
-            } else if (type === 'NEGADO' || type === 'deny') {
+            } else {
                 negadas++;
                 document.getElementById('m-negadas').textContent = negadas;
             }
 
-            const feed = document.getElementById('access-feed');
-            if (feed.querySelector('.empty-msg')) feed.innerHTML = '';
-            
-            const icons = { ENTRADA: '↑', SAIDA: '↓', NEGADO: '✕', in: '↑', out: '↓', deny: '✕' };
-            const classMap = { ENTRADA: 'in', SAIDA: 'out', NEGADO: 'deny' };
-            
-            const row = document.createElement('div');
-            row.className = 'access-row';
-            row.innerHTML = `
-                <div class="access-icon ${classMap[type] || type}">${icons[type] || '·'}</div>
-                <span class="access-name">${name}</span>
-                <span class="access-time">${time}</span>
+            // 2. Timeline Central (Cards Premium)
+            const timeline = document.getElementById('timeline-feed');
+            if (timeline && timeline.querySelector('div[style*="opacity: 0.4"]')) timeline.innerHTML = ''; 
+
+            const card = document.createElement('div');
+            card.className = 'access-card';
+            card.innerHTML = `
+                <div class="card-icon ${isOk ? 'ok' : 'err'}">
+                    ${isOk ? '✓' : '✕'}
+                </div>
+                <div class="card-body">
+                    <div class="card-name">${name}</div>
+                    <div class="card-meta">
+                        <span>Hardware: iDFlex Portaria</span>
+                        <span>•</span>
+                        <span>Metodo: Biometria</span>
+                    </div>
+                </div>
+                <div class="card-side">
+                    <div class="card-time">${time}</div>
+                    <div class="card-status-label ${isOk ? 'label-ok' : 'label-err'}">${type}</div>
+                </div>
             `;
-            feed.insertBefore(row, feed.firstChild);
-            if (feed.children.length > 8) feed.removeChild(feed.lastChild);
+            if (timeline) {
+                timeline.prepend(card);
+                if (timeline.children.length > 10) timeline.lastElementChild.remove();
+            }
+
+            // 3. Mini Feed Sidebar (Retro-compatibilidade)
+            const feed = document.getElementById('access-feed');
+            if (feed) {
+                if (feed.querySelector('.empty-msg')) feed.innerHTML = '';
+                const row = document.createElement('div');
+                row.className = 'access-row';
+                row.innerHTML = `
+                    <div class="access-icon ${isOk ? 'in' : 'deny'}">${isOk ? '↑' : '!!'}</div>
+                    <span class="access-name">${name}</span>
+                    <span class="access-time">${time.slice(0, 5)}</span>
+                `;
+                feed.insertBefore(row, feed.firstChild);
+                if (feed.children.length > 8) feed.removeChild(feed.lastChild);
+            }
         }
 
         // ─── AUTH ─────────────────────────────────────────────────
@@ -1424,9 +1719,18 @@
 
         async function handleAuth() {
             const pin = pinInput.value;
-            if (pin.length < 6) return;
+            const errEl = document.getElementById('auth-error');
+            
+            if (pin.length < 6) {
+                errEl.textContent = 'O PIN deve ter 6 dígitos.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            errEl.style.display = 'none';
             btnAuth.disabled = true;
             btnAuth.textContent = 'AUTENTICANDO...';
+            
             try {
                 const res = await window.scaeApi.loginPin(pin);
                 if (res.ok) {
@@ -1434,15 +1738,23 @@
                     showToast('Conectado: ' + res.escola_nome, 'ok');
                     document.getElementById('school-badge').textContent = res.escola_nome.toLowerCase();
                     authScreen.classList.add('hidden');
+                    
+                    // Sincroniza configurações recebidas
                     configAtual.leitores = res.config_hardware || [];
-                    await window.scaeApi.saveConfig({ escolaId: res.escola_id, token: res.token, configHardware: res.config_hardware });
+                    await window.scaeApi.saveConfig({ 
+                        escolaId: res.escola_id, 
+                        token: res.token, 
+                        configHardware: res.config_hardware 
+                    });
                 } else {
-                    pushLog(res.mensagem || 'PIN incorreto.', 'error');
+                    errEl.textContent = res.mensagem || 'PIN de acesso incorreto.';
+                    errEl.style.display = 'block';
                     btnAuth.disabled = false;
                     btnAuth.textContent = 'ATIVAR AGENTE';
                 }
             } catch (e) {
-                pushLog('Falha na autenticação: ' + e.message, 'error');
+                errEl.textContent = 'Falha crítica na comunicação com o Agente: ' + e.message;
+                errEl.style.display = 'block';
                 btnAuth.disabled = false;
                 btnAuth.textContent = 'ATIVAR AGENTE';
             }
@@ -1474,6 +1786,14 @@
             await window.scaeApi.saveConfig({ configHardware: configAtual.leitores });
             showToast('Configurações salvas.', 'ok');
             document.getElementById('settings-screen').classList.add('hidden');
+        };
+
+        // ─── LOG SCREEN TOGGLE ───────────────────────────────────
+        document.getElementById('btn-logs-open').onclick = () => {
+            document.getElementById('logs-screen').classList.remove('hidden');
+        };
+        document.getElementById('btn-logs-close').onclick = () => {
+            document.getElementById('logs-screen').classList.add('hidden');
         };
 
         // ─── USER MANAGEMENT ─────────────────────────────────────
@@ -1529,44 +1849,99 @@
 
         window.iniciarCaptura = async (userId) => {
             const l = configAtual.leitores[0];
-            showToast('Aguardando dedo no leitor...', 'info');
-            const wrap = document.getElementById('bio-bar-wrap');
-            const bar = document.getElementById('bio-bar');
-            wrap.classList.add('active'); bar.style.width = '0%';
+            if (!l) return showToast('Nenhum leitor online para captura.', 'error');
+
+            const modal = document.getElementById('bio-modal');
+            const title = document.getElementById('bio-m-title');
+            const msg = document.getElementById('bio-m-msg');
+            const bar = document.getElementById('bio-m-bar');
+            const svg = document.getElementById('bio-svg');
+            const pulse = document.getElementById('bio-modal-pulse');
+            const btnCancel = document.getElementById('btn-bio-cancel');
+
+            // Reset UI
+            modal.classList.add('active');
+            title.textContent = 'Aguardando Dedo...';
+            msg.textContent = 'Posicione o dedo no leitor eletrônico agora.';
+            bar.style.width = '0%';
+            bar.style.background = 'var(--ok)';
+            svg.style.stroke = 'var(--ok)';
+            pulse.style.display = 'block';
+            btnCancel.textContent = 'CANCELAR';
+            btnCancel.onclick = () => { modal.classList.remove('active'); };
+
             let prog = 0;
             const iv = setInterval(() => {
-                prog += 8; bar.style.width = Math.min(prog, 92) + '%';
+                prog += 2.5; 
+                bar.style.width = Math.min(prog, 92) + '%';
                 if (prog >= 92) clearInterval(iv);
             }, 300);
-            const res = await window.scaeApi.iniciarCaptura({ leitorId: l.id, userId });
-            clearInterval(iv);
-            bar.style.width = res ? '100%' : '0%';
-            setTimeout(() => wrap.classList.remove('active'), 1200);
-            if (res) showToast('Digital capturada!', 'ok');
-            else pushLog('Leitor não detectado para captura.', 'error');
+
+            try {
+                const res = await window.scaeApi.iniciarCaptura({ leitorId: l.id, userId });
+                clearInterval(iv);
+
+                if (res) {
+                    title.textContent = 'Sucesso!';
+                    msg.textContent = 'Digital capturada e salva com sucesso.';
+                    bar.style.width = '100%';
+                    pulse.style.display = 'none';
+                    btnCancel.textContent = 'FECHAR';
+                } else {
+                    throw new Error('O tempo limite expirou ou o hardware falhou.');
+                }
+            } catch (e) {
+                clearInterval(iv);
+                title.textContent = 'Erro na Captura';
+                msg.textContent = e.message || 'Não foi possível ler a digital.';
+                bar.style.width = '100%';
+                bar.style.background = 'var(--err)';
+                svg.style.stroke = 'var(--err)';
+                pulse.style.display = 'none';
+                btnCancel.textContent = 'TENTAR NOVAMENTE';
+            }
         };
 
-        window.excluirAluno = async (matricula) => {
-            if (!confirm(`Excluir aluno ${matricula}?`)) return;
-            const res = await window.scaeApi.excluirAluno({ leitorId: configAtual.leitores[0].id, matricula });
-            if (res) { showToast('Aluno excluído.', 'ok'); document.getElementById('btn-list-users').click(); }
+        window.excluirAluno = (matricula) => {
+            const modal = document.getElementById('confirm-modal');
+            const btnYes = document.getElementById('confirm-btn-yes');
+            const btnNo = document.getElementById('confirm-btn-no');
+            const msg = document.getElementById('confirm-m-msg');
+
+            msg.textContent = `Deseja realmente remover o aluno ${matricula}? Esta ação não pode ser desfeita no hardware.`;
+            modal.classList.add('active');
+
+            return new Promise((resolve) => {
+                btnYes.onclick = async () => {
+                    modal.classList.remove('active');
+                    const res = await window.scaeApi.excluirAluno({ leitorId: configAtual.leitores[0].id, matricula });
+                    if (res) { 
+                        showToast('Aluno removido com sucesso.', 'ok'); 
+                        document.getElementById('btn-list-users').click(); 
+                    }
+                    resolve(true);
+                };
+                btnNo.onclick = () => {
+                    modal.classList.remove('active');
+                    resolve(false);
+                };
+            });
         };
 
         // ─── IPC BRIDGE ───────────────────────────────────────────
         window.scaeApi.onHardwareStatus(status => {
-            const badge = document.getElementById('sync-badge');
-            badge.textContent = status.sync ? 'CONECTADO' : 'OFFLINE';
-            badge.style.color = status.sync ? 'var(--ok)' : 'var(--err)';
-
-            if (status.leitores) {
-                document.getElementById('hardware-status-list').innerHTML = status.leitores.map(l => `
-                    <div class="device-row ${l.online ? 'online' : 'offline'}">
-                        <span class="d-dot"></span>
-                        <div style="flex:1;min-width:0">
-                            <div class="d-name">${l.nome}</div>
-                            ${l.online ? `<div class="d-meta">${l.tipo}</div>` : ''}
+            const hwList = document.getElementById('hardware-list');
+            if (hwList && status.leitores) {
+                hwList.innerHTML = status.leitores.map(l => `
+                    <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,${l.online ? '0.1' : '0.05'}); margin-bottom: 8px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px">
+                            <span class="sb-dot ${l.online ? 'ok' : 'err'}"></span>
+                            <span style="font-size: 0.8rem; font-weight:700; color:${l.online ? 'var(--t1)' : 'var(--t3)'}">${l.nome}</span>
                         </div>
-                        <span class="d-tag">${l.online ? 'ON' : 'OFF'}</span>
+                        <div style="font-size: 0.65rem; color:var(--t3); display:flex; justify-content:space-between">
+                            <span>Hardware: ${l.tipo}</span>
+                            <span style="color:${l.online ? 'var(--ok)' : 'var(--err)'}; font-weight:800">${l.online ? 'ONLINE' : 'OFFLINE'}</span>
+                        </div>
                     </div>
                 `).join('');
                 configAtual.leitores = status.leitores.filter(l => l.online);

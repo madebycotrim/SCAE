@@ -33,7 +33,7 @@ export const IdFlexHelper = {
   },
 
   /** Realiza requisição REST para o iDFlex */
-  async requisitar(cfg: IdFlexConfig, endpoint: string, dados: any = {}): Promise<any> {
+  async requisitar(cfg: IdFlexConfig, endpoint: string, dados: any = {}, msTimeout = 5000): Promise<any> {
     return new Promise((resolve, reject) => {
       const payload = JSON.stringify(dados);
       const url = `http://${cfg.ip}/${endpoint}${cfg.token ? `?session=${cfg.token}` : ''}`;
@@ -44,7 +44,7 @@ export const IdFlexHelper = {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(payload)
         },
-        timeout: 5000
+        timeout: msTimeout
       };
 
       const req = http.request(url, options, (res) => {
