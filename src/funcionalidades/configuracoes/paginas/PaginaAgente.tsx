@@ -131,50 +131,50 @@ export default function PaginaAgente() {
             <div className="space-y-6">
                 {/* 1. MÉTRICAS DE FLUXO (CABEÇALHO) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <CartaoConteudo className="p-4 bg-slate-900 text-white border-none shadow-lg">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                                <ArrowUp size={20} />
+                    <CartaoConteudo className="p-5 border-l-4 border-l-emerald-500">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <ArrowUp size={24} />
                             </div>
                             <div>
-                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Entradas</p>
-                                <h4 className="text-xl font-black leading-none">{status?.stats?.entradas || 0}</h4>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Entradas</p>
+                                <h4 className="text-2xl font-black text-slate-800 leading-none">{status?.stats?.entradas || 0}</h4>
                             </div>
                         </div>
                     </CartaoConteudo>
 
-                    <CartaoConteudo className="p-4 bg-slate-900 text-white border-none shadow-lg">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
-                                <XCircle size={20} />
+                    <CartaoConteudo className="p-5 border-l-4 border-l-rose-500">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                                <XCircle size={24} />
                             </div>
                             <div>
-                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Negados</p>
-                                <h4 className="text-xl font-black leading-none">{status?.stats?.negados || 0}</h4>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Negados</p>
+                                <h4 className="text-2xl font-black text-slate-800 leading-none">{status?.stats?.negados || 0}</h4>
                             </div>
                         </div>
                     </CartaoConteudo>
 
-                    <CartaoConteudo className="p-4 bg-slate-900 text-white border-none shadow-lg">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                                <Clock size={20} />
+                    <CartaoConteudo className="p-5 border-l-4 border-l-amber-500">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                                <Clock size={24} />
                             </div>
                             <div>
-                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Pico</p>
-                                <h4 className="text-xl font-black leading-none text-slate-300">--:--</h4>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pico</p>
+                                <h4 className="text-2xl font-black text-slate-800 leading-none">--:--</h4>
                             </div>
                         </div>
                     </CartaoConteudo>
 
-                    <CartaoConteudo className="p-4 bg-slate-900 text-white border-none shadow-lg">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                                <Activity size={20} />
+                    <CartaoConteudo className="p-5 border-l-4 border-l-indigo-500">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                <Activity size={24} />
                             </div>
                             <div>
-                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Último</p>
-                                <h4 className="text-xl font-black leading-none">{status?.stats?.ultimoAcesso || '--:--'}</h4>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Último</p>
+                                <h4 className="text-2xl font-black text-slate-800 leading-none">{status?.stats?.ultimoAcesso || '--:--'}</h4>
                             </div>
                         </div>
                     </CartaoConteudo>
