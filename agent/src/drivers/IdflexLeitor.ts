@@ -300,12 +300,12 @@ export class IdflexLeitor implements ILeitor {
   }
 
   /**
-   * Ativa o modo de captura biométrica remota.
-   * O iDFlex entrará no modo 'Aguardando dedo...' para o ID especificado.
+   * Ativa o modo de captura biométrica remota com auto-recuperação de aluno inexistente.
    */
   async iniciarCaptura(userId: number): Promise<boolean> {
     console.log(`[iDFlex][${this.id}] Iniciando modo de captura biométrica para Usuário ID ${userId}...`);
     try {
+      // 1. TENTATIVA DIRETA DE ENROLL
       // Usamos sync:true e timeout de 60s para esperar a interação física completa
       await this.requisitarComToken('remote_enroll.fcgi', {
         user_id: userId,
@@ -318,14 +318,40 @@ export class IdflexLeitor implements ILeitor {
       console.log(`[iDFlex][${this.id}] Biometria vinculada com sucesso ao ID ${userId}.`);
       return true;
     } catch (e: any) {
-      // Extrai a mensagem de erro real do hardware para o Dashboard
       let msgErro = e.message;
-      try {
-          if (e.body) {
-              const body = JSON.parse(e.body);
-              if (body.error) msgErro = body.error;
-          }
-      } catch {}
+      let bodyErro: any = {};
+      try { if (e.body) bodyErro = JSON.parse(e.body); } catch {}
+
+      // 2. SE O USUÁRIO NÃO EXISTIR NO HARDWARE: Cria e Tenta Novamente (Self-Healing)
+      const userNotFound = msgErro.toLowerCase().includes('not found') || 
+                           bodyErro.error?.toLowerCase().includes('not found') ||
+                           bodyErro.error?.toLowerCase().includes('inexistente');
+
+      if (userNotFound) {
+        console.warn(`[iDFlex][${this.id}] Aluno ${userId} não existe no hardware. Criando registro fantasma e repetindo...`);
+        try {
+          // Cria usuário mínimo no iDFlex para permitir o Enroll
+          await this.cadastrarAluno({
+            matricula: String(userId),
+            nomeCompleto: "NOVO ALUNO (SYNC EM CURSO)"
+          });
+          
+          await new Promise(r => setTimeout(r, 1500)); // Espera o banco interno
+
+          // Nova tentativa de Enroll
+          await this.requisitarComToken('remote_enroll.fcgi', {
+            user_id: userId,
+            type: 'biometry',
+            save: true,
+            sync: true
+          }, 60000);
+          
+          console.log(`[iDFlex][${this.id}] Biometria vinculada com sucesso após auto-criação do ID ${userId}.`);
+          return true;
+        } catch (errRetry: any) {
+           msgErro = errRetry.message;
+        }
+      }
       
       console.error(`[iDFlex][${this.id}] Falha na captura biometria: ${msgErro}`);
       throw new Error(msgErro || 'Falha na captura física.');

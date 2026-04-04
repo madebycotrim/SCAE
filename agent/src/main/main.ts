@@ -20,6 +20,7 @@ import { runSql, getSql } from '../infra/db';
 // --- Servidor de Descoberta Local ---
 // Permite que o Dashboard Web saiba se este agente está rodando nesta máquina.
 const LOCAL_SERVER_PORT = 1912; // Porta fixa para descoberta
+let enrollEmAndamento = false;
 const iniciarServidorDescoberta = () => {
   const server = http.createServer((req, res) => {
     // Enable CORS para o sistema web
@@ -72,6 +73,9 @@ const iniciarServidorDescoberta = () => {
                         matricula: alunoCache.matricula, 
                         nomeCompleto: alunoCache.nome_completo 
                     });
+                    
+                    // Pequeno delay para o iDFlex "respirar" e gravar o usuário no banco interno
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
 
                 // 2. Enroll no iDFlex via driver
@@ -88,6 +92,8 @@ const iniciarServidorDescoberta = () => {
                 console.error('[Agente] Falha no Enroll:', e.message);
                 res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok: false, mensagem: e.message }));
+             } finally {
+                enrollEmAndamento = false;
              }
         });
     } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {
