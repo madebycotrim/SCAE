@@ -13,8 +13,34 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
+  /**
+   * Plugin que bloqueia o acesso ao frontend pelo domínio do agente.
+   * Apenas rotas /api/ são permitidas por agente.catraki.com.br.
+   */
+  const bloqueioAgentePlugin = () => ({
+    name: 'bloqueio-agente',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const host = req.headers.host || '';
+        const ehDominioAgente = host.includes('agente.catraki.com.br');
+        const ehRotaApi = req.url?.startsWith('/api/');
+
+        if (ehDominioAgente && !ehRotaApi) {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            erro: 'Acesso restrito', 
+            mensagem: 'Este endpoint é exclusivo para comunicação com o Agente Catraki.' 
+          }));
+          return;
+        }
+        next();
+      });
+    }
+  });
+
   return {
     plugins: [
+      bloqueioAgentePlugin(),
       react(),
       tailwindcss(),
       VitePWA({
