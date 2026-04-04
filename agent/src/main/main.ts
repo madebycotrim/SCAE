@@ -19,20 +19,40 @@ import http from 'http';
 // Permite que o Dashboard Web saiba se este agente está rodando nesta máquina.
 const LOCAL_SERVER_PORT = 1912; // Porta fixa para descoberta
 const iniciarServidorDescoberta = () => {
-  const server = http.createServer((req, res) => {
+  const server = http.createServer(async (req, res) => {
     // Enable CORS para o sistema web
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
+    }
     
     if (req.url === '/ping') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       
-      // Coletar status dos leitores instantaneamente (ping leve)
-      const leitores = leitoresAtivos.map(l => ({
-        id: l.id,
-        nome: l.nome,
-        tipo: l.tipo,
-        online: (l as any).conectado || true, // O driver mantém o estado
+      // Coletar status dos leitores com nomes REAIS resolvidos do hardware
+      const leitores = await Promise.all(leitoresAtivos.map(async l => {
+        let nomeExibicao = l.nome;
+        let online = false;
+
+        try {
+          online = await l.ping();
+          if (online && (l as any).getNomeDispositivo) {
+            const nomeHw = await (l as any).getNomeDispositivo();
+            if (nomeHw) nomeExibicao = nomeHw;
+          }
+        } catch {}
+
+        return {
+          id: l.id,
+          nome: nomeExibicao,
+          tipo: l.tipo,
+          online
+        };
       }));
 
       res.end(JSON.stringify({ 
@@ -44,14 +64,36 @@ const iniciarServidorDescoberta = () => {
         stats: stats.obterSnapshot(),
         leitores
       }));
+    } else if (req.url === '/enroll' && req.method === 'POST') {
+        // ... (o código de enroll já existe via IPC, mas o dashboard web chama via HTTP 1912)
+        // Vou manter o suporte a POST aqui para o dashboard web se comunicar direto
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const { aluno_id } = JSON.parse(body);
+                // Busca o primeiro leitor online para fazer o enroll
+                const leitor = leitoresAtivos.find(l => (l as any).iniciarCaptura);
+                if (!leitor) throw new Error('Nenhum leitor biométrico compatível encontrado.');
+                
+                // Enroll no iDFlex usa ID numérico interno
+                const ok = await (leitor as any).iniciarCaptura(parseInt(aluno_id, 10));
+                
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok }));
+            } catch (e: any) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, mensagem: e.message }));
+            }
+        });
     } else {
       res.writeHead(404);
       res.end();
     }
   });
 
-  server.listen(LOCAL_SERVER_PORT, '127.0.0.1', () => {
-    console.log(`[Local API] Servidor de descoberta ativo em http://127.0.0.1:${LOCAL_SERVER_PORT}`);
+  server.listen(LOCAL_SERVER_PORT, '0.0.0.0', () => {
+    console.log(`[Local API] Servidor de descoberta ativo em http://0.0.0.0:${LOCAL_SERVER_PORT}`);
   });
 };
 
