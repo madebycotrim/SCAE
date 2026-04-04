@@ -65,24 +65,41 @@ async function processarCriacaoAluno(contexto: ContextoCatraki): Promise<Respons
 
         const { matricula, nome_completo, turma_id, data_nascimento, ativo } = resultadoZod.data;
 
+        // 1. Verificar se a MATRÍCULA já existe nesta escola
+        const alunoExistente = await contexto.env.DB_SCAE.prepare(
+            "SELECT matricula FROM alunos WHERE matricula = ? AND escola_id = ?"
+        ).bind(matricula, idEscola).first();
+
+        if (alunoExistente) {
+            throw new ErroValidacao(`A matrícula '${matricula}' já está cadastrada para outro aluno nesta escola.`, 'ALUNO_DUPLICADO_MATRICULA');
+        }
+
+        // 2. Verificar se já existe alguém com o MESMO NOME e DATA DE NASCIMENTO (opcional, mas evita duplicidade humana)
+        if (data_nascimento) {
+            const pessoaSimilar = await contexto.env.DB_SCAE.prepare(
+                "SELECT matricula FROM alunos WHERE nome_completo = ? AND data_nascimento = ? AND escola_id = ?"
+            ).bind(nome_completo, data_nascimento, idEscola).first();
+
+            if (pessoaSimilar) {
+                throw new ErroValidacao(`Já existe um aluno cadastrado com este nome e data de nascimento (Matrícula: ${pessoaSimilar.matricula}).`, 'ALUNO_DUPLICADO_PESSOA');
+            }
+        }
+
         try {
-            // UPSERT: Inserir ou Atualizar Aluno
+            // Inserção simples (sem UPSERT para garantir unicidade controlada pelo app)
             await contexto.env.DB_SCAE.prepare(
-                `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo) VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(matricula, escola_id) DO UPDATE SET
-                    nome_completo = excluded.nome_completo,
-                    turma_id = excluded.turma_id,
-                    data_nascimento = excluded.data_nascimento,
-                    ativo = excluded.ativo,
-                    atualizado_em = CURRENT_TIMESTAMP`
+                `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo) VALUES (?, ?, ?, ?, ?, ?)`
             ).bind(matricula, idEscola, nome_completo, turma_id ?? null, data_nascimento ?? null, ativo ? 1 : 0).run();
-        } catch (dbError) {
+        } catch (dbError: any) {
+            if (dbError.message?.includes('UNIQUE')) {
+                throw new ErroValidacao('Esta matrícula já está em uso.', 'DB_UNIQUE_CONSTRAINT');
+            }
             throw new ErroInterno(`Falha ao inserir aluno: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
         }
 
         return Response.json({
             dados: { matricula },
-            mensagem: 'Aluno processado com sucesso'
+            mensagem: 'Aluno cadastrado com sucesso'
         }, { status: 201 });
     } catch (erro) {
         if (erro instanceof ErroBase) {
@@ -130,9 +147,57 @@ async function processarRemocaoAluno(contexto: ContextoCatraki): Promise<Respons
     }
 }
 
+async function processarEdicaoAluno(contexto: ContextoCatraki): Promise<Response> {
+    try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarAcesso(contexto, Permissao.GERENCIAR_ACADEMICO);
+
+        let corpo;
+        try {
+            corpo = await contexto.request.json();
+        } catch {
+            throw new ErroValidacao('JSON inválido no corpo da requisição', 'JSON_PARSE_ERROR');
+        }
+
+        const resultadoZod = esquemaAluno.safeParse(corpo);
+        if (!resultadoZod.success) {
+            throw new ErroValidacao('Dados para edição inválidos', 'ALUNO_PATCH_ERRO', { detalhes: resultadoZod.error.format() });
+        }
+
+        const { matricula, nome_completo, turma_id, data_nascimento, ativo } = resultadoZod.data;
+
+        try {
+            const resultado = await contexto.env.DB_SCAE.prepare(
+                `UPDATE alunos SET
+                    nome_completo = ?,
+                    turma_id = ?,
+                    data_nascimento = ?,
+                    ativo = ?,
+                    atualizado_em = CURRENT_TIMESTAMP
+                 WHERE matricula = ? AND escola_id = ?`
+            ).bind(nome_completo, turma_id ?? null, data_nascimento ?? null, ativo ? 1 : 0, matricula, idEscola).run();
+
+            if (resultado.meta.changes === 0) {
+                throw new ErroNaoEncontrado('Aluno não encontrado para atualização.');
+            }
+        } catch (dbError) {
+            if (dbError instanceof ErroBase) throw dbError;
+            throw new ErroInterno(`Falha ao editar aluno: ${dbError instanceof Error ? dbError.message : 'Erro desconhecido'}`);
+        }
+
+        return Response.json({ mensagem: 'Registro do aluno atualizado com sucesso' });
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        return Response.json(new ErroInterno().toJSON(), { status: 500 });
+    }
+}
+
 // Exportações com Alias para o Framework
 export {
     processarBuscaAlunos as onRequestGet,
     processarCriacaoAluno as onRequestPost,
-    processarRemocaoAluno as onRequestDelete
+    processarRemocaoAluno as onRequestDelete,
+    processarEdicaoAluno as onRequestPatch
 };

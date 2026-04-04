@@ -47,7 +47,12 @@ export const alunoServico = {
         };
 
         try {
-            await api.enviar('/academico/alunos', alunoFinal);
+            // Se for edição, usa PATCH (api.atualizar). Se for novo, usa POST (api.enviar).
+            if (ehEdicao) {
+                await api.atualizar('/academico/alunos', alunoFinal);
+            } else {
+                await api.enviar('/academico/alunos', alunoFinal);
+            }
             
             // Auditoria completa: Novo vs Anterior
             await Registrador.registrar(
@@ -58,7 +63,7 @@ export const alunoServico = {
                 ehEdicao ? { ...alunoAnterior } : undefined
             );
             
-            log.info('Aluno processado online com sucesso');
+            log.info(`Aluno ${ehEdicao ? 'atualizado' : 'cadastrado'} online com sucesso`);
         } catch (erro) {
             log.error('Falha ao salvar aluno online', erro);
             throw erro;
