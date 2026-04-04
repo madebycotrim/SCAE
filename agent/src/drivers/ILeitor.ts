@@ -58,6 +58,8 @@ export interface ILeitor {
   readonly tipo: TipoLeitor;
   readonly id: string;
   readonly nome: string;
+  readonly ip: string;
+  readonly porta: number;
 
   /** Verifica se o hardware está acessível */
   ping(): Promise<boolean>;
@@ -85,6 +87,9 @@ export interface ILeitor {
 
   /** Inicia o modo de captura biométrica no equipamento */
   iniciarCaptura?(userId: number): Promise<boolean>;
+
+  /** Altera o nome interno do equipamento no hardware (Hostname) */
+  setNomeDispositivo?(nome: string): Promise<boolean>;
 }
 
 

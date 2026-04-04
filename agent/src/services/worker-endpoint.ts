@@ -87,5 +87,24 @@ export const WorkerApi = {
       this.online = false;
       return false; 
     }
+  },
+
+  /** Notifica que um aluno cadastrou a digital com sucesso no hardware */
+  async confirmarBiometria(matricula: string): Promise<boolean> {
+    try {
+      const resp = await fetch(`${config.endpoint_worker}/api/agente/confirmar-biometria`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Escola-ID': config.escola_id,
+          'Authorization': `Bearer ${config.agente_token}`
+        },
+        body: JSON.stringify({ matricula })
+      });
+      return resp.ok;
+    } catch (e: any) {
+      console.error('[WorkerApi] Erro ao confirmar biometria na nuvem:', e.message);
+      return false;
+    }
   }
 };

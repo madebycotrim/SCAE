@@ -34,18 +34,12 @@ const iniciarServidorDescoberta = () => {
     if (req.url === '/ping') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       
-      // Coletar status dos leitores instantaneamente (Nomes dinâmicos resolvidos pelos drivers)
+      // Coletar status dos leitores (Reduzido para o dashboard web - Sem IP/Porta)
       const leitores = leitoresAtivos.map(l => {
-        const configRaw = (l as any).cfg || {};
-        // Limpa o IP garantindo que não venha com porta grudada (ex: 1.1.1.1:8080 -> 1.1.1.1)
-        const ipLimpo = String(configRaw.ip || '0.0.0.0').split(':')[0];
-        
         return {
           id: l.id,
           nome: l.nome,
           tipo: l.tipo,
-          ip: ipLimpo,
-          porta: configRaw.porta || 80,
           online: true, 
         };
       });
@@ -71,63 +65,13 @@ const iniciarServidorDescoberta = () => {
                 // Enroll no iDFlex via driver
                 const ok = await (leitor as any).iniciarCaptura(parseInt(aluno_id, 10));
                 
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ ok }));
-            } catch (e: any) {
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ ok: false, mensagem: e.message }));
-            }
-        });
-    } else if (req.url === '/config/leitor' && req.method === 'POST') {
-        let body = '';
-        req.on('data', chunk => body += chunk);
-        req.on('end', async () => {
-            try {
-                const { id, ip, porta } = JSON.parse(body);
-                // Limpa o IP se o usuário digitou com porta (ex: 192.168.1.34:8080 -> 192.168.1.34)
-                const ipNormalizado = String(ip).split(':')[0];
-
-                // Atualiza a config em disco
-                const novosLeitores = config.leitores.map((l: any) => {
-                    if (l.id === id) return { ...l, ip: ipNormalizado, porta: parseInt(String(porta), 10) };
-                    return l;
-                });
-                
-                salvarLeitoresNoDisco(novosLeitores);
-                
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ ok: true, mensagem: 'Configuração atualizada. Reinicie o Agente para aplicar.' }));
-            } catch (e: any) {
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ ok: false, mensagem: e.message }));
-            }
-        });
-    } else if (req.url === '/config/adicionar' && req.method === 'POST') {
-        let body = '';
-        req.on('data', chunk => body += chunk);
-        req.on('end', async () => {
-            try {
-                const { id, ip, porta } = JSON.parse(body);
-                // Verifica se já existe
-                if (config.leitores.find((l: any) => l.id === id)) {
-                    throw new Error('Já existe um equipamento com esse ID.');
+                if (ok) {
+                    // Notifica a nuvem que a digital foi cadastrada com sucesso
+                    await WorkerApi.confirmarBiometria(aluno_id);
                 }
 
-                const novosLeitores = [
-                    ...config.leitores,
-                    { 
-                        id, 
-                        nome: id, 
-                        tipo: 'ID_FLEX', 
-                        ip: String(ip).split(':')[0], 
-                        porta: parseInt(String(porta), 10) 
-                    }
-                ];
-                
-                salvarLeitoresNoDisco(novosLeitores);
-                
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ ok: true, mensagem: 'Equipamento adicionado com sucesso!' }));
+                res.end(JSON.stringify({ ok }));
             } catch (e: any) {
                 res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok: false, mensagem: e.message }));
@@ -171,33 +115,41 @@ async function createWindow() {
   // Broadcast de Status Real e Detalhado
   setInterval(async () => {
     if (mainWindow) {
-      const statusLeitores = await Promise.all(leitoresAtivos.map(async l => {
+      const statusLeitores = await Promise.all((config.leitores || []).map(async (conf: any) => {
+        // Busca a instância ativa se existir
+        const lAtivo = leitoresAtivos.find(l => 
+          l.id === conf.id || 
+          (l.ip === conf.ip && l.porta === conf.porta)
+        );
+        
         let isOnline = false;
-        let pNome = l.nome;
+        let pNome = conf.nome || conf.id;
 
-        try {
-          isOnline = await l.ping();
-          if (isOnline && (l as any).getNomeDispositivo) {
-            const n = await (l as any).getNomeDispositivo();
-            if (n) pNome = n; // "IDFLEX-CATRAKI" ou etc
-          }
-        } catch {}
+        if (lAtivo) {
+            try {
+                isOnline = await lAtivo.ping();
+                if (isOnline && (lAtivo as any).getNomeDispositivo) {
+                    const n = await (lAtivo as any).getNomeDispositivo();
+                    if (n) pNome = n;
+                }
+            } catch {}
+        }
 
         return {
-          id: l.id,
+          id: conf.id || pNome,
           nome: pNome,
-          tipo: l.tipo,
+          ip: String(conf.ip || '').split(':')[0],
+          porta: conf.porta || 80,
+          tipo: conf.tipo || 'ID_FLEX',
           online: isOnline
         };
       }));
-
 
       mainWindow.webContents.send('hardware-status', {
         escola: config.escola_id,
         leitores: statusLeitores,
         sync: WorkerApi.online
       });
-
     }
   }, 5000);
 
@@ -216,6 +168,15 @@ async function createWindow() {
         salvarLeitoresNoDisco(configHardware);
         recarregarLeitores();
 
+        // Tentar atualizar o nome no hardware físico (hostname) em background se estiverem online
+        configHardware.forEach(conf => {
+            const lAtivo = leitoresAtivos.find(l => l.id === conf.id);
+            if (lAtivo && lAtivo.setNomeDispositivo && conf.nome) {
+                lAtivo.setNomeDispositivo(conf.nome).catch(e => 
+                    console.warn(`[Hardware][${conf.id}] Falha ao sincronizar Hostname: ${e.message}`)
+                );
+            }
+        });
     }
     
     return { ok: true };

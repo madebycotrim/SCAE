@@ -21,6 +21,8 @@ export class IdflexLeitor implements ILeitor {
 
   get id() { return this.cfg.id; }
   get nome() { return this.cfg.nome; }
+  get ip() { return this.cfg.ip; }
+  get porta() { return this.cfg.porta; }
 
   private async requisitarComToken(endpoint: string, dados: any = {}, timeout?: number) {
     if (!this.tokenSessao) {
@@ -145,42 +147,101 @@ export class IdflexLeitor implements ILeitor {
 
 
   /**
-   * Cadastra aluno no iDFlex com regra de acesso e digitais.
+   * Cadastra aluno no iDFlex com inteligência de UPSERT.
+   * Evita duplicar registros com a mesma matrícula.
    */
   async cadastrarAluno(aluno: DadosAluno): Promise<ResultadoCadastro> {
     try {
-      // Gera um ID interno aleatório para o hardware (evita colisões)
-      const idInterno = Math.floor(Math.random() * 900000) + 100000;
+      // 1. Determinar o ID que usaremos (sempre o mesmo para a mesma matrícula)
+      const matriculaNumerica = parseInt(aluno.matricula.replace(/\D/g, ''), 10);
+      let idPretendido: number;
+      if (!isNaN(matriculaNumerica) && matriculaNumerica > 0 && matriculaNumerica < 2147483647) {
+        idPretendido = matriculaNumerica;
+      } else {
+        idPretendido = Math.abs(aluno.matricula.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0)) % 2000000;
+      }
 
-      // 1. Cadastra Objeto User (ID aleatório + Matrícula preservada)
+      // 2. Verificar se já existe aluno com esta matrícula OU com este ID no hardware
+      let idExistente: number | undefined;
+      try {
+        const buscaReg = await this.requisitarComToken('load_objects.fcgi', {
+          object: 'users',
+          where: { registration: aluno.matricula }
+        });
+        
+        if (buscaReg?.users?.length > 0) {
+          idExistente = buscaReg.users[0].id;
+        } else {
+          // Se não achou por matrícula, verifica se o ID que queremos usar já está ocupado
+          const buscaId = await this.requisitarComToken('load_objects.fcgi', {
+            object: 'users',
+            where: { id: idPretendido }
+          });
+          if (buscaId?.users?.length > 0) idExistente = idPretendido;
+        }
+      } catch (e) {
+        // Se falhar a busca (ex: hardware não suporta where), prossegue com tentativa de criação
+      }
+
+      if (idExistente) {
+        // 3. JÁ EXISTE: Apenas atualiza o registro (evita erro UNIQUE)
+        await this.requisitarComToken('modify_objects.fcgi', {
+          object: 'users',
+          where: { users: { id: idExistente } },
+          values: { 
+            id: idPretendido, // Garante que o ID final seja o determinístico (numérico)
+            name: aluno.nomeCompleto, 
+            registration: aluno.matricula // MANTÉM STRING ORIGINAL (Preserva zeros à esquerda)
+          }
+        });
+
+        // Atualiza digitais se fornecidas (sobrescreve antigas do usuário)
+        if (aluno.templates && aluno.templates.length > 0) {
+          // Remove templates antigos primeiro para evitar erro de limite
+          try {
+            await this.requisitarComToken('destroy_objects.fcgi', {
+              object: 'fingerprints',
+              where: { fingerprints: { user_id: idExistente } }
+            });
+          } catch {}
+
+          await this.requisitarComToken('create_objects.fcgi', {
+            values: aluno.templates.map(t => ({ user_id: idExistente, template: t })),
+            object: 'fingerprints'
+          });
+        }
+
+        return { ok: true, idInterno: idExistente };
+      }
+
+      // 4. NÃO EXISTE EM LUGAR NENUM: Cria novo registro
       await this.requisitarComToken('create_objects.fcgi', {
-        values: [{ id: idInterno, name: aluno.nomeCompleto, registration: aluno.matricula }],
+        values: [{ id: idPretendido, name: aluno.nomeCompleto, registration: aluno.matricula }],
         object: 'users'
       });
 
-      // 2. Garante vínculo com grupo de acesso
+      // Vínculo com grupo padrão (id: 1)
       try {
         await this.requisitarComToken('create_objects.fcgi', {
-          values: [{ user_id: idInterno, group_id: 1 }],
+          values: [{ user_id: idPretendido, group_id: 1 }],
           object: 'user_groups'
         });
-      } catch { /* ... */ }
+      } catch {}
 
-      // 3. Cadastra Digitais
+      // Cadastra Digitais se fornecidas
       if (aluno.templates && aluno.templates.length > 0) {
         await this.requisitarComToken('create_objects.fcgi', {
-          values: aluno.templates.map(t => ({ user_id: idInterno, template: t })),
+          values: aluno.templates.map(t => ({ user_id: idPretendido, template: t })),
           object: 'fingerprints'
         });
       }
 
-      // Feedback sonoro e limpeza de cache para atualização imediata na UI
       await this.emitirBeep();
-      this.lastCacheSync = 0; // Força sincronismo de nomes no próximo poll
+      this.lastCacheSync = 0;
 
-      return { ok: true, idInterno };
+      return { ok: true, idInterno: idPretendido };
     } catch (e: any) {
-      console.error(`[iDFlex][${this.id}] Erro ao cadastrar ${aluno.nomeCompleto}: ${e.message}`);
+      console.error(`[iDFlex][${this.id}] Erro ao processar ${aluno.nomeCompleto}: ${e.message}`);
       return { ok: false, erro: e.message };
     }
   }
@@ -244,6 +305,7 @@ export class IdflexLeitor implements ILeitor {
    * O iDFlex entrará no modo 'Aguardando dedo...' para o ID especificado.
    */
   async iniciarCaptura(userId: number): Promise<boolean> {
+    console.log(`[iDFlex][${this.id}] Iniciando modo de captura biométrica para Usuário ID ${userId}...`);
     try {
       // Usamos sync:true e timeout de 60s para esperar a interação física completa
       await this.requisitarComToken('remote_enroll.fcgi', {
@@ -253,6 +315,8 @@ export class IdflexLeitor implements ILeitor {
         sync: true,
         panic_finger: 0
       }, 60000);
+      
+      console.log(`[iDFlex][${this.id}] Biometria vinculada com sucesso ao ID ${userId}.`);
       return true;
     } catch (e: any) {
       // Extrai a mensagem de erro real do hardware para o Dashboard
@@ -264,7 +328,7 @@ export class IdflexLeitor implements ILeitor {
           }
       } catch {}
       
-      console.error(`[iDFlex][${this.id}] Erro na captura: ${msgErro}`);
+      console.error(`[iDFlex][${this.id}] Falha na captura biometria: ${msgErro}`);
       throw new Error(msgErro || 'Falha na captura física.');
     }
   }
@@ -312,6 +376,30 @@ export class IdflexLeitor implements ILeitor {
     } catch (e: any) {
       console.error(`[iDFlex][${this.id}] Erro ao abrir porta: ${e.message}`);
       return false;
+    }
+  }
+
+  /**
+   * Altera o nome interno do equipamento no hardware (Hostname)
+   */
+  async setNomeDispositivo(nome: string): Promise<boolean> {
+    try {
+      // Tenta o parâmetro padrão de exibição (device_name)
+      await this.requisitarComToken('set_configuration.fcgi', {
+        general: { device_name: nome }
+      });
+      return true;
+    } catch (e: any) {
+      try {
+        // Fallback para hostname se device_name falhar em firmwares antigos
+        await this.requisitarComToken('set_configuration.fcgi', {
+          general: { hostname: nome }
+        });
+        return true;
+      } catch (err: any) {
+        console.error(`[iDFlex][${this.id}] Erro ao alterar nome do dispositivo (device_name/hostname): ${err.message}`);
+        return false;
+      }
     }
   }
 }
