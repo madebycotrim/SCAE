@@ -82,6 +82,20 @@ export const alunoServico = {
             await api.remover(`/academico/alunos?matricula=${matricula}`);
             await Registrador.registrar('DELETAR_ALUNO', 'aluno', matricula, { status: 'online_admin' });
             log.info('Aluno removido do servidor com sucesso');
+
+            // --- Integração Hardware Local ---
+            // Tenta remover do dispositivo físico IMEDIATAMENTE se o agente estiver aberto
+            try {
+                fetch('http://127.0.0.1:1912/delete-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matricula })
+                }).catch(() => {
+                    // Se o agente estiver fechado, a sincronização periódica cuidará disso depois
+                    log.info('Agente local offline, exclusão no hardware pendente de sincronização.');
+                });
+            } catch (e) { /* silencioso */ }
+            
         } catch (erro) {
             log.error('Falha ao remover aluno online', erro);
             throw erro;

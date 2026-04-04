@@ -87,6 +87,24 @@ async function sincronizarCacheAlunos() {
 
     // Injetar nos leitores físicos se o aluno estiver ativo
     if (a.ativo && leitoresAtivos.length > 0) {
+      
+      // --- Auditoria de Biometria (Hardware -> Cloud) ---
+      // Se a nuvem diz que não tem biometria, mas o hardware diz que tem, sincronizamos.
+      if (!a.biometria_cadastrada) {
+        for (const leitor of leitoresAtivos) {
+          if ((leitor as any).verificarBiometriaNoHardware) {
+            try {
+              const temFisica = await (leitor as any).verificarBiometriaNoHardware(a.matricula);
+              if (temFisica) {
+                console.log(`[Sync] Auditoria: Aluno ${a.matricula} tem digital no hardware mas não no cloud. Corrigindo...`);
+                await WorkerApi.confirmarBiometria(a.matricula);
+                break; // Um leitor confirmou, já podemos atualizar o cloud
+              }
+            } catch (err) { /* Falha na checagem silenciosa */ }
+          }
+        }
+      }
+
       const dados: DadosAluno = { matricula: a.matricula, nomeCompleto: a.nome_completo };
       for (const leitor of leitoresAtivos) {
         try {
@@ -100,6 +118,22 @@ async function sincronizarCacheAlunos() {
        for (const leitor of leitoresAtivos) {
          try { await leitor.removerAluno(a.matricula); } catch {}
        }
+    }
+  }
+
+  // --- Limpeza de Alunos Deletados na Nuvem (Faxina de Cache/Hardware) ---
+  const matriculasNuvem = new Set(alunosServidor.map(a => a.matricula));
+  const cacheLocal = await allSql(`SELECT matricula FROM alunos_cache WHERE escola_id = ?`, [config.escola_id]);
+  
+  for (const local of cacheLocal) {
+    if (!matriculasNuvem.has(local.matricula)) {
+       console.log(`[Sync] Aluno ${local.matricula} removido na nuvem. Limpando hardware e cache local...`);
+       
+       for (const leitor of leitoresAtivos) {
+         try { await leitor.removerAluno(local.matricula); } catch {}
+       }
+
+       await runSql(`DELETE FROM alunos_cache WHERE matricula = ? AND escola_id = ?`, [local.matricula, config.escola_id]);
     }
   }
 

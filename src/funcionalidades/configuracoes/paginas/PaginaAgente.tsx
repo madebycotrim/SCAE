@@ -305,9 +305,26 @@ export default function PaginaAgente() {
                             <div className="space-y-2">
                                 <AnimatePresence mode="popLayout">
                                     {(status?.stats?.ultimosEventos || []).map((ev: any, idx: number) => {
-                                        const alunoInfo = alunos.find(a => a.matricula === ev.matricula || a.matricula === ev.idUsuario);
+                                        const alunoInfo = alunos.find(a => {
+                                            const m1 = String(a.matricula || '').replace(/^0+/, '');
+                                            const m2 = String(ev.matricula || '').replace(/^0+/, '');
+                                            return (m1 === m2 && m1 !== '') || (a.matricula === ev.matricula);
+                                        });
+
                                         const nomeExibicao = alunoInfo?.nome_completo || ev.nome || 'ALUNO IDENTIFICADO';
                                         
+                                        // Formatação de hora segura (Trata ISO novo e HH:mm legado)
+                                        let horaFormatada = ev.timestamp;
+                                        const dataObjeto = new Date(ev.timestamp);
+                                        if (!isNaN(dataObjeto.getTime()) && String(ev.timestamp).includes('T')) {
+                                            const fuso = new Intl.DateTimeFormat('pt-BR', {
+                                                timeZone: 'America/Sao_Paulo',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            });
+                                            horaFormatada = fuso.format(dataObjeto);
+                                        }
+
                                         return (
                                             <motion.div
                                                 key={`${ev.timestamp}-${idx}`}
@@ -320,17 +337,24 @@ export default function PaginaAgente() {
                                                         {ev.tipo === 'NEGADO' ? <XCircle size={14} /> : <ArrowRightCircle size={14} />}
                                                     </div>
                                                     <div>
-                                                        <p className="text-[10px] font-black text-slate-800 uppercase tracking-tight leading-tight">
-                                                            {nomeExibicao}
-                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-[10px] font-black text-slate-800 uppercase tracking-tight leading-tight">
+                                                                {nomeExibicao}
+                                                            </p>
+                                                            {!!alunoInfo?.biometria_cadastrada && (
+                                                                <div className="bg-emerald-100 text-emerald-600 text-[7px] px-1 rounded-sm font-black uppercase tracking-widest flex items-center gap-0.5">
+                                                                    <ShieldCheck size={8} /> OK
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                                                            {alunoInfo?.matricula || ev.matricula} • {alunoInfo?.turma_id || '---'}
+                                                            {alunoInfo?.matricula || ev.matricula || '---'} • {alunoInfo?.turma_id || '---'}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
                                                     <span className="text-[9px] font-black text-indigo-500 font-mono bg-indigo-50 px-1.5 py-0.5 rounded-md">
-                                                        {new Date(ev.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}
+                                                        {horaFormatada}
                                                     </span>
                                                 </div>
                                             </motion.div>

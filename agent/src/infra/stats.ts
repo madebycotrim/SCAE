@@ -6,6 +6,7 @@
 export interface EventoRecente {
     nome: string;
     tipo: string;
+    matricula: string;
     timestamp: string;
 }
 
@@ -16,17 +17,19 @@ class StatsManager {
     ultimoAcesso: string | null = null;
     ultimosEventos: EventoRecente[] = [];
 
-    registrarAcesso(nome: string, tipo: string) {
+    registrarAcesso(nome: string, matricula: string, tipo: string) {
         if (tipo === 'ENTRADA') this.entradas++;
         else if (tipo === 'SAIDA') this.saidas++;
         else if (tipo === 'NEGADO') this.negados++;
 
-        this.ultimoAcesso = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const agora = new Date().toISOString();
+        this.ultimoAcesso = new Date(agora).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
         
         this.ultimosEventos.unshift({
             nome,
             tipo,
-            timestamp: this.ultimoAcesso
+            matricula,
+            timestamp: agora
         });
 
         // Mantém apenas os últimos 5

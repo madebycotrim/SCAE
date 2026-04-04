@@ -14,6 +14,8 @@ import { TipoLeitor } from '../drivers/ILeitor';
 import { WorkerApi } from '../services/worker-endpoint';
 import { stats } from '../infra/stats';
 import http from 'http';
+import { buscarIpLocal } from '../utils/rede';
+import { runSql } from '../infra/db';
 
 // --- Servidor de Descoberta Local ---
 // Permite que o Dashboard Web saiba se este agente está rodando nesta máquina.
@@ -76,6 +78,65 @@ const iniciarServidorDescoberta = () => {
                 res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok: false, mensagem: e.message }));
             }
+        });
+    } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {
+        // --- ENDPOINT DE PUSH (REAL-TIME) DO IDFLEX ---
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+             try {
+                const ev = JSON.parse(body); // event_type, user_id, time, device_id, etc.
+                const clientIp = req.socket.remoteAddress?.replace('::ffff:', '');
+                const leitor = leitoresAtivos.find(l => l.ip === clientIp) as any;
+
+                if (leitor && ev.user_id) {
+                    // 1. Busca dados amigáveis no cache do driver
+                    let info = leitor.obterDadosUsuarioHardware(String(ev.user_id));
+                    
+                    // Se o aluno for desconhecido (ex: acabou de ser cadastrado), força atualização do cache
+                    if (info.nome.includes('DESCONHECIDO') || info.nome.includes('ACESSO NÃO RECONHECIDO')) {
+                        try {
+                            await leitor.sincronizarCacheNomesHardware(true);
+                            info = leitor.obterDadosUsuarioHardware(String(ev.user_id));
+                        } catch {}
+                    }
+                    
+                    // 2. Feedback Físico (Beep e Mensagem)
+                    const statusAcesso = [7, 10, 11, 12, 15].includes(ev.event) ? 'ENTRADA' : 'NEGADO';
+                    if (statusAcesso === 'ENTRADA') {
+                        leitor.emitirBeep();
+                        leitor.exibirMensagemHardware(`BEM VINDO\n${info.nome.split(' ')[0]}`);
+                    }
+
+                    // 3. Registrar nos Stats para o Dashboard Web ver na hora
+                    stats.registrarAcesso(info.nome, info.matricula, statusAcesso);
+                }
+             } catch (e) { console.error('[Push] Erro ao processar evento:', e); }
+             
+             res.writeHead(200); res.end();
+        });
+    } else if (req.url === '/delete-user' && req.method === 'POST') {
+        // --- EXCLUSÃO IMEDIATA VIA COMANDO DASHBOARD ---
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+             try {
+                const { matricula } = JSON.parse(body);
+                console.log(`[Agente] Comando de exclusão imediata recebido para matrícula: ${matricula}`);
+                
+                // 1. Remover dos Hardwares
+                for (const leitor of leitoresAtivos) {
+                    try { await leitor.removerAluno(matricula); } catch {}
+                }
+
+                // 2. Limpar do Cache Local do SQLite
+                await runSql(`DELETE FROM alunos_cache WHERE matricula = ? AND escola_id = ?`, [matricula, config.escola_id]);
+                
+                console.log(`[Agente] Aluno ${matricula} removido com sucesso.`);
+             } catch (e) {
+                console.error('[Agente] Falha na exclusão imediata:', e);
+             }
+             res.writeHead(200); res.end();
         });
     } else {
       res.writeHead(404);
@@ -232,6 +293,21 @@ app.whenReady().then(async () => {
   iniciarServidorDescoberta();
   await createWindow();
   
+  // Ativação automática do Modo Escola (Push Real-Time + Sync Hora) em todos os iDFlex
+  setTimeout(async () => {
+    const ipLocal = buscarIpLocal();
+    if (ipLocal) {
+        console.log(`[Agente] Iniciando ativação do modo Real-Time para IP local: ${ipLocal}`);
+        for (const leitor of leitoresAtivos) {
+            if ((leitor as any).configurarModoEscola) {
+                (leitor as any).configurarModoEscola(ipLocal).catch((e: any) => 
+                   console.warn(`[Hardware][${leitor.id}] Falha ao ativar Push: ${e.message}`)
+                );
+            }
+        }
+    }
+  }, 8000); // Aguarda 8s para garantir que os hardwares e rede estejam estáveis
+
   // Interceptar logs do terminal para exibir na Janela Visual
   const originalLog = console.log;
   const originalWarn = console.warn;

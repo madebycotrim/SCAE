@@ -22,11 +22,13 @@ export async function onRequestPost(contexto: ContextoCatraki): Promise<Response
         }
 
         // Atualiza biometria_cadastrada no banco central (D1)
+        // Usamos LTRIM para garantir que '099803' e '99803' batam no mesmo aluno
         const res = await env.DB_SCAE.prepare(`
             UPDATE alunos 
             SET biometria_cadastrada = 1, atualizado_em = CURRENT_TIMESTAMP
-            WHERE matricula = ? AND escola_id = ?
-        `).bind(matricula, escolaId).run();
+            WHERE (matricula = ? OR LTRIM(matricula, '0') = LTRIM(?, '0'))
+              AND escola_id = ?
+        `).bind(matricula, matricula, escolaId).run();
 
         if (res.meta.changes === 0) {
             return new Response(JSON.stringify({ ok: false, erro: 'Aluno não encontrado nesta unidade.' }), { 

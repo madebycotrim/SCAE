@@ -402,5 +402,61 @@ export class IdflexLeitor implements ILeitor {
       }
     }
   }
+
+  /**
+   * Configura o hardware para o 'Modo Escola Catraki':
+   * 1. Sincroniza Horário (Brasília/Local)
+   * 2. Ativa modo Push/Monitor apontando para este Agente Local
+   * 3. Configura timeout de tela para ser amigável
+   */
+  async configurarModoEscola(ipAgente: string, portaAgente = 1912): Promise<boolean> {
+    try {
+      await this.sincronizarHorario();
+      
+      // Configura o Monitor (HTTP Push)
+      // O hardware enviará um POST para este Agente sempre que um acesso ocorrer
+      await this.requisitarComToken('set_configuration.fcgi', {
+        monitor: {
+          hostname: ipAgente,
+          port: portaAgente,
+          path: '/idflex-push'
+        },
+        general: {
+           button_timeout: 5000,
+           door_timeout: 3000
+        }
+      });
+      console.log(`[iDFlex][${this.id}] Modo Tempo Real (Push) ativado para http://${ipAgente}:${portaAgente}/idflex-push`);
+      return true;
+    } catch (e: any) {
+      console.error(`[iDFlex][${this.id}] Erro ao configurar modo escola: ${e.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Consulta o hardware (iDFlex) para saber se um usuário possui digitais cadastradas.
+   * Serve como 'prova real' física para sincronizar com o Cloud.
+   * @param userId ID/Matrícula do aluno (sem zeros à esquerda para o hardware)
+   */
+  async verificarBiometriaNoHardware(userId: string): Promise<boolean> {
+    try {
+      // Normaliza o ID para o hardware (sem zeros)
+      const idLimpo = parseInt(userId, 10);
+      if (isNaN(idLimpo)) return false;
+
+      // Consulta o objeto 'templates' (onde ficam as digitais)
+      const res = await this.requisitarComToken('load_objects.fcgi', {
+        object: "templates",
+        where: { user_id: idLimpo }
+      });
+
+      // Se retornou algum template, a biometria existe fisicamente
+      return res && res.templates && res.templates.length > 0;
+    } catch (e: any) {
+      console.error(`[iDFlex][${this.id}] Erro ao verificar biometria física para ${userId}: ${e.message}`);
+      return false;
+    }
+  }
 }
 
