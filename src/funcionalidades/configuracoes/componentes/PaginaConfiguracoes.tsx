@@ -329,9 +329,14 @@ export function PaginaConfiguracoes() {
                             Atualizar Status
                         </Botao>
                         {statusAgente === 'RODANDO' && (
-                            <Botao variante="primario" tamanho="sm" onClick={() => setModalHardwareAberto(true)}>
-                                Gerenciar Hardware
-                            </Botao>
+                            <>
+                                <Botao variante="secundario" tamanho="sm" icone={Plus} onClick={() => setModalHardwareAberto(true)}>
+                                    Adicionar IP
+                                </Botao>
+                                <Botao variante="primario" tamanho="sm" onClick={() => setModalHardwareAberto(true)}>
+                                    Gerenciar Hardware
+                                </Botao>
+                            </>
                         )}
                     </div>
                 </CartaoConteudo>
