@@ -16,7 +16,10 @@ import {
     Search,
     User,
     ChevronRight,
-    Loader2
+    Loader2,
+    ArrowUp,
+    Clock,
+    Radio
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usarEscola } from '@/escola/ProvedorEscola';
@@ -30,6 +33,23 @@ interface StatusAgente {
     versao: string;
     escola: string;
     status: string;
+    stats: {
+        entradas: number;
+        saidas: number;
+        negados: number;
+        ultimoAcesso: string | null;
+        ultimosEventos: Array<{
+            nome: string;
+            tipo: string;
+            timestamp: string;
+        }>;
+    };
+    leitores: Array<{
+        id: string;
+        nome: string;
+        tipo: string;
+        online: boolean;
+    }>;
 }
 
 export default function PaginaAgente() {
@@ -121,63 +141,116 @@ export default function PaginaAgente() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Status de Conexão */}
-                    <CartaoConteudo className="p-6 border-l-4 border-l-emerald-500">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status de Conexão</p>
-                                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">
-                                    {status?.ok ? '100% Conectado' : 'Desconectado'}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <div className={`w-2 h-2 rounded-full ${status?.ok ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">
-                                        {status?.ok ? 'Ponte de hardware ativa' : 'Aguardando agente local...'}
-                                    </span>
-                                </div>
+                {/* DASHBOARD EM TEMPO REAL - ESTILO PREMIUM */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    <CartaoConteudo className="p-5 bg-slate-950 text-white border-none">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                <ArrowUp size={24} />
                             </div>
-                            <div className={`p-3 rounded-2xl ${status?.ok ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Entradas</p>
+                                <h3 className="text-3xl font-black">{status?.stats?.entradas ?? 0}</h3>
+                            </div>
+                        </div>
+                    </CartaoConteudo>
+
+                    <CartaoConteudo className="p-5 bg-slate-950 text-white border-none">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-400">
+                                <XCircle size={24} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Negados</p>
+                                <h3 className="text-3xl font-black">{status?.stats?.negados ?? 0}</h3>
+                            </div>
+                        </div>
+                    </CartaoConteudo>
+
+                    <CartaoConteudo className="p-5 bg-slate-950 text-white border-none">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-400">
+                                <Clock size={24} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pico</p>
+                                <h3 className="text-xl font-black uppercase tracking-tight">--:--</h3>
+                            </div>
+                        </div>
+                    </CartaoConteudo>
+
+                    <CartaoConteudo className="p-5 bg-slate-950 text-white border-none">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                                 <Activity size={24} />
                             </div>
-                        </div>
-                    </CartaoConteudo>
-
-                    {/* Versão e Escola */}
-                    <CartaoConteudo className="p-6 border-l-4 border-l-indigo-500">
-                        <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Versão do Engine</p>
-                                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">
-                                    v{status?.versao || '---'}
-                                </h3>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mt-2">
-                                    {status?.agente || 'Catraki Edge Control'}
-                                </p>
-                            </div>
-                            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
-                                <Cpu size={24} />
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Último</p>
+                                <h3 className="text-xl font-black uppercase tracking-tight">{status?.stats?.ultimoAcesso ?? '--:--'}</h3>
                             </div>
                         </div>
                     </CartaoConteudo>
+                </div>
 
-                    {/* Escola Vinculada */}
-                    <CartaoConteudo className="p-6 border-l-4 border-l-amber-500">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Unidade Vinculada</p>
-                                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight truncate max-w-[180px]">
-                                    {status?.escola || '---'}
-                                </h3>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mt-2">
-                                    Sincronização em nuvem ativa
-                                </p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* EQUIPAMENTOS */}
+                    <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Equipamentos</h4>
+                        {status?.leitores ? status.leitores.map((leitor: any) => (
+                            <CartaoConteudo key={leitor.id} className="p-4 bg-slate-900 border-none">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-2 h-2 rounded-full ${leitor.online ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500'}`} />
+                                        <div>
+                                            <h4 className="text-xs font-black text-white uppercase tracking-tight">{leitor.nome}</h4>
+                                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Hardware: {leitor.tipo}</p>
+                                        </div>
+                                    </div>
+                                    <span className={`text-[9px] font-black uppercase tracking-widest ${leitor.online ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                        {leitor.online ? 'Online' : 'Offline'}
+                                    </span>
+                                </div>
+                            </CartaoConteudo>
+                        )) : (
+                            <div className="p-6 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                                <Radio className="mx-auto mb-2 text-slate-300 animate-pulse" />
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Procurando hardware...</p>
                             </div>
-                            <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl">
-                                <Globe size={24} />
-                            </div>
+                        )}
+                    </div>
+
+                    {/* MINI FEED */}
+                    <div className="space-y-4 lg:col-span-2">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Mini Feed</h4>
+                        <div className="space-y-2">
+                            <AnimatePresence mode="popLayout">
+                                {status?.stats?.ultimosEventos && status.stats.ultimosEventos.length > 0 ? (
+                                    status.stats.ultimosEventos.map((ev: any, idx: number) => (
+                                        <motion.div
+                                            key={`${ev.timestamp}-${idx}`}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            className="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-between"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${ev.tipo === 'NEGADO' ? 'bg-rose-500/20 text-rose-400' : 'bg-indigo-500/20 text-indigo-400'}`}>
+                                                    {ev.tipo === 'NEGADO' ? <XCircle size={14} /> : <User size={14} />}
+                                                </div>
+                                                <span className="text-[11px] font-black text-slate-200 uppercase tracking-tight truncate max-w-[200px]">
+                                                    {ev.nome}
+                                                </span>
+                                            </div>
+                                            <span className="text-[10px] font-bold text-slate-500 font-mono">{ev.timestamp}</span>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div className="p-10 text-center opacity-20">
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nenhuma atividade recente</p>
+                                    </div>
+                                )}
+                            </AnimatePresence>
                         </div>
-                    </CartaoConteudo>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

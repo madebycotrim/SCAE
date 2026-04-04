@@ -9,6 +9,7 @@ import { getSql, runSql } from '../infra/db';
 import { LeitorFactory } from '../drivers/LeitorFactory';
 import { ILeitor } from '../drivers/ILeitor';
 import { NotificadorVoz } from './notificador-voz';
+import { stats } from '../infra/stats';
 
 export let leitoresAtivos: ILeitor[] = config.leitores.map(c => LeitorFactory.criarLeitor(c));
 let notificadorGlobal: NotificadorVoz | null = null;
@@ -101,6 +102,7 @@ async function executarCicloColeta() {
           if (aluno?.nome_completo) {
             notificadorGlobal.notificarAcessoVisual(`${aluno.nome_completo} (${matriculaParaBusca})`, ev.tipo);
             notificadorGlobal.anunciarAcesso(aluno.nome_completo, ev.tipo);
+            stats.registrarAcesso(aluno.nome_completo, ev.tipo);
           } else {
             // Fallback para dados vindos apenas do hardware (se não houver cache local ainda)
             const infoHw = ev.nomeHardware;
@@ -111,6 +113,7 @@ async function executarCicloColeta() {
             
             const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';
             notificadorGlobal.notificarAcessoVisual(nomeExibicao, statusAcesso);
+            stats.registrarAcesso(nomeExibicao || 'ACESSO NÃO RECONHECIDO', statusAcesso);
           }
         }
         

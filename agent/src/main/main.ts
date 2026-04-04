@@ -12,6 +12,7 @@ import { NotificadorVoz } from '../services/notificador-voz';
 import { config, salvarLeitoresNoDisco } from '../infra/config';
 import { TipoLeitor } from '../drivers/ILeitor';
 import { WorkerApi } from '../services/worker-endpoint';
+import { stats } from '../infra/stats';
 import http from 'http';
 
 // --- Servidor de Descoberta Local ---
@@ -25,12 +26,23 @@ const iniciarServidorDescoberta = () => {
     
     if (req.url === '/ping') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
+      
+      // Coletar status dos leitores instantaneamente (ping leve)
+      const leitores = leitoresAtivos.map(l => ({
+        id: l.id,
+        nome: l.nome,
+        tipo: l.tipo,
+        online: (l as any).conectado || true, // O driver mantém o estado
+      }));
+
       res.end(JSON.stringify({ 
         ok: true, 
         agente: 'Catraki Edge Agent', 
         versao: '1.6.0',
         escola: config.escola_id,
-        status: 'RUNNING' 
+        status: 'RUNNING',
+        stats: stats.obterSnapshot(),
+        leitores
       }));
     } else {
       res.writeHead(404);
