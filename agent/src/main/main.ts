@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as http from 'http';
 import { leitoresAtivos, iniciarPolling, recarregarLeitores } from '../services/poller';
 import { IdflexLeitor } from '../drivers/IdflexLeitor';
-import { iniciarSync } from '../services/sync';
+import { iniciarSync, sincronizarCacheAlunos } from '../services/sync';
 import { runSql, getSql } from '../infra/db';
 import { config } from '../infra/config';
 import { stats } from '../infra/stats';
@@ -39,10 +39,16 @@ async function createWindow() {
         // --- GATILHO DE SINCRONIZAÇÃO INSTANTÂNEA ---
         try {
             console.log('[Agente] Sincronização em tempo real solicitada pelo Dashboard!');
-            const { sincronizarCacheAlunos } = require('../services/sync');
             await sincronizarCacheAlunos();
+            
+            // 🎙️ Feedback Vocal de Teste (Confirma que o TTS está OK e sincronizado)
+            if (notificador) {
+                await notificador.falar('Configurações atualizadas!');
+            }
+
             res.writeHead(200); res.end(JSON.stringify({ ok: true }));
         } catch (e) {
+            console.error('[Sync Now Error]', e);
             res.writeHead(500); res.end(JSON.stringify({ error: 'Erro no trigger de sync' }));
         }
     } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {

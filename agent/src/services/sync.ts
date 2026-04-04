@@ -87,7 +87,7 @@ async function sincronizarRegistrosPendentes() {
 }
 
 /** Baixa novos alunos e biometria da nuvem para o cache local */
-async function sincronizarCacheAlunos() {
+export async function sincronizarCacheAlunos() {
   console.log('[Sync] Atualizando cache local de alunos e biometria...');
   
   const resposta = await WorkerApi.buscarSincronizacaoAlunos();
