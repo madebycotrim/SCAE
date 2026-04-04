@@ -75,6 +75,7 @@ CREATE TABLE turmas (
     turno TEXT,
     sala TEXT,
     professor_regente TEXT,
+    lotacao_maxima INTEGER DEFAULT 35,
     sincronizado INTEGER DEFAULT 1,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id, escola_id),
@@ -169,6 +170,25 @@ CREATE TABLE alertas_risco (
     FOREIGN KEY (escola_id) REFERENCES escolas(id),
     FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id) ON DELETE CASCADE
 );
+
+-- ====================================
+-- ALERTAS DE EVASÃO (REDE DE PROTEÇÃO ART 70 ECA)
+-- ====================================
+CREATE TABLE alertas_evasao (
+    id TEXT NOT NULL,
+    escola_id TEXT NOT NULL,
+    aluno_matricula TEXT NOT NULL,
+    motivo TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDENTE' CHECK(status IN ('PENDENTE', 'EM_ANALISE', 'RESOLVIDO')),
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_resolucao DATETIME,
+    PRIMARY KEY (id, escola_id),
+    FOREIGN KEY (escola_id) REFERENCES escolas(id) ON DELETE CASCADE,
+    FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id) ON DELETE CASCADE
+);
+CREATE INDEX idx_alertas_evasao_escola ON alertas_evasao(escola_id);
+CREATE INDEX idx_alertas_evasao_aluno ON alertas_evasao(aluno_matricula, escola_id);
+CREATE INDEX idx_alertas_evasao_status ON alertas_evasao(status);
 
 -- ====================================
 -- LOGS DE AUDITORIA

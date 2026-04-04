@@ -61,8 +61,8 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
             tamanho="lg"
         >
             <div className="space-y-6">
-                {/* Stepper Visual (Apenas no Cadastro) */}
-                {!ehEdicao && (
+                {/* Stepper Visual (Apenas no Cadastro e se usar QR) */}
+                {!ehEdicao && temQR && (
                     <div className="flex items-center gap-3 mb-8 px-2">
                         <div className={`h-1.5 rounded-full transition-all duration-500 ${passo === 1 ? 'w-12 bg-slate-900' : 'w-4 bg-slate-200'}`}></div>
                         <div className={`h-1.5 rounded-full transition-all duration-500 ${passo === 2 ? 'w-12 bg-slate-900' : 'w-4 bg-slate-200'}`}></div>
@@ -207,7 +207,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                     {(ehEdicao || passo === 2 || !temQR) ? (
                         <>
                             <Botao variante="secundario" tamanho="lg" onClick={aoFechar} disabled={carregando}>
-                                {ehEdicao ? 'Cancelar' : 'Voltar'}
+                                {(ehEdicao || !temQR) ? 'Cancelar' : 'Voltar'}
                             </Botao>
                             {passo === 2 && !ehEdicao && temQR && (
                                 <Botao variante="secundario" tamanho="lg" icone={ArrowLeft} onClick={() => definirPasso(1)} disabled={carregando}>
