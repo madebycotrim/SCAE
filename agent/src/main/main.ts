@@ -94,14 +94,21 @@ async function createWindow() {
              }
         });
     } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {
-        // --- ENDPOINT DE PUSH (REAL-TIME) DO IDFLEX ---
+        // --- 📡 DEBUG DE RECEBIMENTO DE PUSH (REAL-TIME) ---
+        console.log(`[Push] Conexão recebida de ${req.socket.remoteAddress}`);
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
+             console.log(`[Push] Body recebido: ${body}`);
              try {
                 const ev = JSON.parse(body);
-                const clientIp = req.socket.remoteAddress?.replace('::ffff:', '');
-                const leitor = leitoresAtivos.find(l => l.ip === clientIp) as any;
+                const clientIp = req.socket.remoteAddress?.replace('::ffff:', '').split(':')[0]; // Pega só o IP, sem subporta IPv6
+                
+                // Busca o leitor cujo IP (contido na string IP:PORTA) bata com o IP do cliente
+                const leitor = leitoresAtivos.find(l => {
+                    const leitorBaseIp = l.ip.split(':')[0];
+                    return leitorBaseIp === clientIp;
+                }) as any;
 
                 if (leitor && ev.event !== undefined) {
                     const idUsuario = ev.user_id || 0;
@@ -159,7 +166,7 @@ async function createWindow() {
   ipcMain.handle('salvar-leitores', async (_event, { leitores }) => {
     try {
         console.log('[Agente] Salvando nova configuração de hardware...');
-        const { salvarLeitoresNoDisco } = require('../infra/config');
+        const { salvarLeitoresNoDisco } = await import('../infra/config');
         salvarLeitoresNoDisco(leitores);
         
         await recarregarLeitores(); // Reinicia conexões no Poller

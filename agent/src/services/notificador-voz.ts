@@ -12,8 +12,6 @@ export class NotificadorVoz {
 
   /**
    * Enuncia uma mensagem para o ambiente escolar.
-   * @param mensagem Texto a ser falado
-   * @param prioridade Se deve interromper falas anteriores
    */
   async falar(mensagem: string, prioridade: boolean = true) {
     if (!this.window) return;
@@ -37,62 +35,49 @@ export class NotificadorVoz {
   }
 
   /** Anuncia acesso com base na configuração personalizada da nuvem */
-  async anunciarAcesso(nome: string, tipo: string = 'ENTRADA') {
-    const ehSucesso = tipo === 'ENTRADA' || tipo === 'SAIDA';
+  async anunciarAcesso(nome: string, tipo: string = 'ENTRA') {
+    const ehSucesso = tipo === 'ENTRA' || tipo === 'SAIDA' || tipo === 'ENTRADA';
     
     try {
       // 1. Busca se o TTS está ativado
       const configAtivo = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsAtivado']);
       
       const valorConfig = configAtivo?.valor;
-      const ttsLigado = (valorConfig === 'true' || valorConfig === '1' || valorConfig === undefined); // Forçar ligado se undefined
+      // Forçar legado se undefined ou não configurado
+      const ttsLigado = (valorConfig === 'true' || valorConfig === '1' || valorConfig === undefined || valorConfig === null); 
       
       console.log(`[TTS Check] Chave: ttsAtivado | Valor Banco: "${valorConfig}" | Condição: ${ttsLigado ? 'FALAR' : 'SILÊNCIO'}`);
       
       if (!ttsLigado) return;
 
       // 2. Decide qual frase usar com base no tipo de acesso
-      // Se for NEGADO ou algo que indique falha, usamos a frase de erro
       const chaveFrase = ehSucesso ? 'ttsFraseSucesso' : 'ttsFraseErro';
-      
       const configFrase = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', [chaveFrase]);
-      console.log(`[TTS Frase] Chave: ${chaveFrase} | Valor: "${configFrase?.valor}"`);
       
       // 3. Monta a mensagem final (com fallbacks)
       let msg = configFrase?.valor;
       
-      if (!msg) {
+      if (!msg || msg === 'undefined') {
           msg = ehSucesso ? 'Bem-vindo, {nome}!' : 'Acesso negado.';
       }
       
-      // 4. Substitui placeholders dinâmicos (apenas se for sucesso ou tiver nome)
+      // 4. Substitui placeholders dinâmicos
       const primeiroNome = nome ? nome.split(' ')[0] : 'colega';
       msg = msg.replace(/\{nome\}/g, primeiroNome);
       
-      // 5. Caso especial: SAÍDA sem frase personalizada usa despedida padrão
-      if (tipo === 'SAIDA' && (!configFrase || configFrase.valor === 'Bem-vindo, {nome}!')) {
+      // 5. Caso especial: SAÍDA sem frase personalizada
+      if (tipo === 'SAIDA' && (msg === 'Bem-vindo, {nome}!' || !configFrase)) {
           msg = `Até logo, ${primeiroNome}!`;
       }
 
-      console.log(`[TTS] Falando: "${msg}" (Base: ${configFrase?.valor || 'Padrão'})`);
-
-      console.log(`[TTS] Sucesso! Falando: "${msg}" (Config: ${configFrase?.valor || 'Padrão'})`);
+      console.log(`[TTS] Falando: "${msg}" (Config: ${configFrase?.valor || 'Default'})`);
       await this.falar(msg);
 
     } catch (e: any) {
-      // Fallback secundário: Silencia erro PII se o banco estiver ocupado (WAL mode)
+      console.error('[TTS] Erro no fluxo de voz:', e.message);
+      // Fallback mínimo
       const primeiroNome = nome ? nome.split(' ')[0] : 'colega';
-      const saudacao = new Date().getHours() < 12 ? 'Bom dia' : 'Boa tarde';
-      const msgFallback = ehSucesso ? `${saudacao}, ${primeiroNome}!` : 'Acesso negado.';
-      
-      console.log(`[TTS] Info! Recorrendo a fallback de voz: "${msgFallback}" (Erro SQL: ${e.message})`);
-      
-      // Mesmo no fallback, tentamos checar o status de ativação se possível
-      try {
-          const configAtivo = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsAtivado']);
-          if (!configAtivo || configAtivo.valor !== 'true') return; 
-      } catch { /* por segurança silencioso */ return; }
-
+      const msgFallback = ehSucesso ? `Olá, ${primeiroNome}!` : 'Acesso negado.';
       await this.falar(msgFallback);
     }
   }
