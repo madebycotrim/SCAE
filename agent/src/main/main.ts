@@ -199,6 +199,16 @@ const iniciarServidorDescoberta = () => {
     }
   });
 
+  server.on('error', (e: any) => {
+    if (e.code === 'EADDRINUSE') {
+      console.warn('[Local API] Porta 1912 em uso. Tentando novamente em 5s...');
+      setTimeout(() => {
+        server.close();
+        server.listen(LOCAL_SERVER_PORT, '0.0.0.0');
+      }, 5000);
+    }
+  });
+
   server.listen(LOCAL_SERVER_PORT, '0.0.0.0', () => {
     console.log(`[Local API] Servidor de descoberta ativo em http://0.0.0.0:${LOCAL_SERVER_PORT}`);
   });

@@ -9,7 +9,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
 
         const escola = await contexto.env.DB_SCAE.prepare(`
-            SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url 
+            SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url, config_tts_frase_sucesso, config_tts_frase_erro
             FROM escolas WHERE id = ?
         `).bind(escolaId).first<{
             config_qr_dinamico: number;
@@ -19,6 +19,8 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
             cor_primaria: string;
             cor_secundaria: string;
             logo_url: string;
+            config_tts_frase_sucesso: string;
+            config_tts_frase_erro: string;
         }>();
 
         if (!escola) {
@@ -33,7 +35,9 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
                 metodoAcesso: escola.metodo_acesso || 'QRCODE',
                 corPrimaria: escola.cor_primaria,
                 corSecundaria: escola.cor_secundaria,
-                logoUrl: escola.logo_url
+                logoUrl: escola.logo_url,
+                ttsFraseSucesso: escola.config_tts_frase_sucesso || 'Bem-vindo, {nome}!',
+                ttsFraseErro: escola.config_tts_frase_erro || 'Acesso negado.'
             },
             mensagem: 'Configurações carregadas.'
         });
@@ -82,6 +86,16 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
                 queryParts.push("metodo_acesso = ?");
                 binds.push(corpo.metodoAcesso);
             }
+        }
+
+        if (corpo.ttsFraseSucesso !== undefined) {
+            queryParts.push("config_tts_frase_sucesso = ?");
+            binds.push(corpo.ttsFraseSucesso);
+        }
+
+        if (corpo.ttsFraseErro !== undefined) {
+            queryParts.push("config_tts_frase_erro = ?");
+            binds.push(corpo.ttsFraseErro);
         }
 
         if (queryParts.length === 0) {
