@@ -261,13 +261,14 @@ export default function PaginaAgente() {
                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] px-2">Hardware Conectado</h4>
                             <div className="grid gap-3">
                                 {status?.leitores && status.leitores.length > 0 ? status.leitores.map((leitor: any) => (
-                                    <CartaoConteudo key={leitor.id} className="p-4 bg-slate-900 border-none shadow-lg">
+                                    <CartaoConteudo key={leitor.id} className="relative p-4 overflow-hidden border-slate-100 shadow-sm">
+                                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${leitor.online ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-2.5 h-2.5 rounded-full ${leitor.online ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'bg-rose-500'}`} />
                                                 <div>
-                                                    <h5 className="text-[11px] font-black text-white uppercase tracking-tight leading-none">{leitor.nome}</h5>
-                                                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">{leitor.tipo}</p>
+                                                    <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-tight leading-none">{leitor.nome}</h5>
+                                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">{leitor.tipo}</p>
                                                 </div>
                                             </div>
                                             <span className={`text-[9px] font-black uppercase tracking-widest ${leitor.online ? 'text-emerald-500' : 'text-rose-500'}`}>
