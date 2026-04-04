@@ -448,7 +448,7 @@ app.whenReady().then(async () => {
 
   // Background Services — não devem impedir a abertura da janela
   try {
-    iniciarPolling(notificador);
+    iniciarPolling(leitoresAtivos, notificador);
   } catch (e) {
     console.warn('[Agent] Poller de hardware falhou na inicialização (sem hardware conectado?):', e);
   }

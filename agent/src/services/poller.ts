@@ -1,102 +1,78 @@
 /**
  * services/poller.ts
- * Monitor de hardware - Coleta eventos de leitores (Anviz, iDFlex, USB).
- * Versão Assíncrona (SQLite3).
+ * Monitoramento contínuo (Watchdog) e Polling de Hardwares iDFlex.
+ * Mantém a integridade do Modo Escola e busca logs offline se necessário.
  */
 
-import { config } from '../infra/config';
-import { getSql, runSql } from '../infra/db';
-import { buscarIpLocal } from '../utils/rede';
-import { LeitorFactory } from '../drivers/LeitorFactory';
-import { ILeitor } from '../drivers/ILeitor';
-import { NotificadorVoz } from './notificador-voz';
+import { ILeitor, EventoAcesso } from '../drivers/ILeitor';
+import { runSql, getSql } from '../infra/db';
 import { stats } from '../infra/stats';
+import { NotificadorVoz } from './notificador-voz';
+import { buscarIpLocal } from '../utils/rede';
 
-export let leitoresAtivos: ILeitor[] = config.leitores.map(c => LeitorFactory.criarLeitor(c));
-let notificadorGlobal: NotificadorVoz | null = null;
-const falhasLeitores: Map<string, { contador: number, proximaTentativa: number }> = new Map();
+// Lista de leitores em monitoramento
+export let leitoresAtivos: ILeitor[] = [];
+let notificadorGlobal: any = null;
 
-/** Reinicializa os leitores após uma mudança de config */
-export function recarregarLeitores() {
-  console.log('[Hardware] Recarregando drivers de biometria...');
-  leitoresAtivos = config.leitores.map(c => LeitorFactory.criarLeitor(c));
-  falhasLeitores.clear();
+// Controle de Backoff (para não inundar o hardware se ele cair)
+const falhasLeitores = new Map<string, { contador: number, proximaTentativa: number }>();
+
+/** Inicializa o monitoramento de todos os leitores configurados */
+export function iniciarPolling(insLeitores: ILeitor[], notificador: any) {
+  leitoresAtivos = insLeitores;
+  notificadorGlobal = notificador;
+  
+  console.log(`[Poller] Iniciando monitoramento para ${leitoresAtivos.length} equipamentos.`);
+  
+  // Ciclo Principal de Polling (Frequência: 2s)
+  setInterval(() => {
+    leitoresAtivos.forEach(leitor => monitorarLeitor(leitor));
+  }, 2000);
 }
 
-/** Inicia o loop infinito de coleta de hardware */
-export async function iniciarPolling(notificador?: NotificadorVoz | null) {
-  if (notificador) notificadorGlobal = notificador;
-  console.log(`[Poller] Iniciando coleta contínua de ${leitoresAtivos.length} equipamentos...`);
-  
-  // Executa o primeiro ciclo imediatamente
-  executarCicloColeta();
-  
-  // Agendar próximos ciclos (Assíncronos e Seguros)
-  setInterval(async () => {
-    try {
-      await executarCicloColeta();
-    } catch (e) {
-      console.error('[Poller] Erro no ciclo:', e);
-    }
-  }, config.intervalo_polling_ms);
+/** Recarrega a lista de leitores (Ex: mudança de IP no dashboard) */
+export function recarregarLeitores(novaLista: ILeitor[] = []) {
+    if (novaLista.length > 0) leitoresAtivos = novaLista;
+    console.log(`[Poller] Lista de leitores atualizada (${leitoresAtivos.length} ativos).`);
 }
 
-/** Varre cada equipamento, busca novos eventos e salva no SQLite local */
-async function executarCicloColeta() {
+/** Fluxo de monitoramento individual por equipamento */
+async function monitorarLeitor(leitor: ILeitor) {
   const agora = Date.now();
+  const falha = falhasLeitores.get(leitor.id);
+  
+  if (falha && agora < falha.proximaTentativa) return;
 
-  for (const leitor of leitoresAtivos) {
-    // Implementação de Backoff: se o leitor está falhando, espera mais tempo para tentar novamente
-    const falha = falhasLeitores.get(leitor.id);
-    if (falha && agora < falha.proximaTentativa) {
-      continue; 
+  try {
+    // 1. Verificar/Reativar Integridade do Modo Escola (Watchdog) a cada 5 min
+    const tagCheck = `last_watchdog_${leitor.id}`;
+    if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000)) {
+        const ipLocal = buscarIpLocal();
+        if (ipLocal) {
+            console.log(`[Watchdog][${leitor.id}] Sincronizando Modo Push + Log Negado...`);
+            // Ativa o Push
+            await (leitor as any).configurarModoEscola(ipLocal);
+            // ⚡ NOVO: Garante que o iDFlex gere logs de acesso NEGADO (para o push detectar erro)
+            await (leitor as any).requisitarComToken('set_configuration.fcgi', {
+                general: { send_identity: "1" },
+                access_control: { generate_logs_for_denied_access: "1" }
+            });
+            (global as any)[tagCheck] = agora;
+        }
     }
 
-    try {
-      // 1. Onde paramos a leitura neste equipamento?
-      const cursor = await getSql<{ ultimo_evento_id: string }>(
-        'SELECT ultimo_evento_id FROM cursores_leitura WHERE leitor_id = ?',
-        [leitor.id]
-      );
-      const ultimoId = cursor?.ultimo_evento_id || '0';
+    // 2. Buscar último ID lido para este leitor
+    const cursor = await getSql(`SELECT ultimo_evento_id FROM cursores_leitura WHERE leitor_id = ?`, [leitor.id]);
+    let maxId = cursor?.ultimo_evento_id || '0';
 
-      // 2. Busca novos eventos no hardware (TCP/USB/REST)
-      const novosEventos = await leitor.buscarEventos(ultimoId);
+    // 3. Buscar novos eventos (Fallback se o Push falhar ou rede oscilar)
+    const eventos: EventoAcesso[] = await leitor.buscarEventos(maxId);
+    
+    if (eventos.length > 0) {
+      console.log(`[Poller] ${leitor.nome}: Coletou ${eventos.length} novas presenças.`);
       
-      // Se chegou aqui, a comunicação funcionou. Limpa registro de falhas.
-      if (falhasLeitores.has(leitor.id)) {
-        console.log(`[Poller] ${leitor.nome}: Comunicação restabelecida.`);
-        falhasLeitores.delete(leitor.id);
-      }
-
-      if (novosEventos.length === 0) continue;
-
-      console.log(`[Poller] ${leitor.nome}: Coletou ${novosEventos.length} novas presenças.`);
-
-      // 3. Persistir os novos registros no SQLite local
-      let maxId = ultimoId;
-      for (const ev of novosEventos) {
-        const idUnico = `EVT_${leitor.id}_${ev.id}`;
-        
-        await runSql(`
-          INSERT OR IGNORE INTO registros_acesso (
-            id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, 
-            timestamp_acesso, leitor_id, id_evento_hardware
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [
-          idUnico, 
-          config.escola_id, 
-          ev.idUsuario, 
-          ev.tipo, 
-          leitor.tipo, 
-          ev.timestamp.toISOString(), 
-          leitor.id, 
-          ev.id
-        ]);
-
-        // Feedback Visual e de Voz
+      for (const ev of eventos) {
         if (notificadorGlobal) {
-          // Prioriza a matrícula real para buscar o nome no cache local
           const matriculaParaBusca = ev.matricula || ev.idUsuario;
           const aluno = await getSql('SELECT nome_completo FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
           
@@ -105,70 +81,34 @@ async function executarCicloColeta() {
             notificadorGlobal.anunciarAcesso(aluno.nome_completo, ev.tipo);
             stats.registrarAcesso(aluno.nome_completo, String(matriculaParaBusca), ev.tipo);
           } else {
-            // Fallback para dados vindos apenas do hardware (se não houver cache local ainda)
-            const infoHw = ev.nomeHardware;
-            const matHw = ev.matricula;
-            
-            const idExibicao = (matHw && matHw !== '—') ? matHw : ev.idUsuario;
-            const nomeExibicao = `${infoHw || 'Desconhecido'} (${idExibicao})`;
-            
             const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';
+            const nomeExibicao = ev.nomeHardware || `DESCONHECIDO (${ev.idUsuario})`;
             notificadorGlobal.notificarAcessoVisual(nomeExibicao, statusAcesso);
-            stats.registrarAcesso(nomeExibicao || 'ACESSO NÃO RECONHECIDO', String(idExibicao), statusAcesso);
+            stats.registrarAcesso(nomeExibicao, String(ev.idUsuario), statusAcesso);
           }
         }
         
-        // Mantém o rastro do maior ID para o próximo ciclo
         const idNum = parseInt(ev.id, 10);
-        if (!isNaN(idNum) && idNum > parseInt(maxId, 10)) {
-          maxId = ev.id;
-        }
+        if (!isNaN(idNum) && idNum > parseInt(maxId, 10)) maxId = ev.id;
       }
 
-      // 4. Atualizar o cursor de leitura do equipamento
       await runSql(`
         INSERT INTO cursores_leitura (leitor_id, ultimo_evento_id)
         VALUES (?, ?)
-        ON CONFLICT(leitor_id) DO UPDATE SET 
-          ultimo_evento_id = excluded.ultimo_evento_id,
-          atualizado_em = datetime('now', 'localtime')
+        ON CONFLICT(leitor_id) DO UPDATE SET ultimo_evento_id = excluded.ultimo_evento_id
       `, [leitor.id, maxId]);
+    }
 
-      // 4. Inteligência Autônoma: Watchdog de Configuração (A cada X ciclos)
-    // Se o hardware perder o modo Push (ex: restart), o Agente Local o reconfigura automaticamente.
-    try {
-        const agora = Date.now();
-        for (const leitor of leitoresAtivos) {
-            // A cada 5 minutos, ou se perder conexão, força a reaplicação do Modo Escola
-            if ((leitor as any).configurarModoEscola) {
-                const tagCheck = `last_watchdog_${leitor.id}`;
-                if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000)) {
-                    const ipLocal = buscarIpLocal();
-                    if (ipLocal) {
-                        console.log(`[Watchdog][${leitor.id}] Verificando/Reativando integridade do Modo Escola...`);
-                        await (leitor as any).configurarModoEscola(ipLocal);
-                        (global as any)[tagCheck] = agora;
-                    }
-                }
-            }
-        }
-    } catch (e) { /* Watchdog silencioso */ }
+    // Reset de falhas se chegou aqui com sucesso
+    falhasLeitores.delete(leitor.id);
 
   } catch (e: any) {
-      // Registra a falha e calcula o backoff (ex: 5s, 10s, 20s... até 1 minuto)
-      const falhaAtual = falhasLeitores.get(leitor.id) || { contador: 0, proximaTentativa: 0 };
-      const novoContador = falhaAtual.contador + 1;
-      const delay = Math.min(5000 * Math.pow(2, Math.min(novoContador - 1, 4)), 60000); // Max 1 min
-      
-      falhasLeitores.set(leitor.id, {
-        contador: novoContador,
-        proximaTentativa: agora + delay
-      });
-
-      // Evita poluir o log se for erro de conexão (já logado pelo driver amigavelmente)
-      if (e.code !== 'ECONNREFUSED' && e.code !== 'ETIMEDOUT') {
-        console.error(`[Poller] Falha crítica no leitor ${leitor.id}:`, e.message);
-      }
+    const contador = (falha?.contador || 0) + 1;
+    const delay = Math.min(5000 * Math.pow(2, contador - 1), 60000);
+    falhasLeitores.set(leitor.id, { contador, proximaTentativa: agora + delay });
+    
+    if (e.code !== 'ECONNREFUSED' && e.code !== 'ETIMEDOUT') {
+        console.error(`[Poller] Falha no leitor ${leitor.id}:`, e.message);
     }
   }
 }

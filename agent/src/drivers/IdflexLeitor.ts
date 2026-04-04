@@ -259,6 +259,18 @@ export class IdflexLeitor implements ILeitor {
     } catch { /* Ignora erro de beep */ }
   }
 
+  /**
+   * Emite um sinal de erro (beep longo).
+   */
+  async emitirBeepErro(): Promise<void> {
+    try {
+      await this.requisitarComToken('execute_actions.fcgi', {
+        action: 'buzzer',
+        parameters: 'duty_cycle=50, frequency=500, duration=1000'
+      });
+    } catch { /* Ignora erro de beep */ }
+  }
+
   async listarAlunos(): Promise<any[]> {
     try {
       const res = await this.requisitarComToken('load_objects.fcgi', { object: 'users' });
