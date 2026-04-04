@@ -391,14 +391,51 @@
             const list = document.getElementById('hardware-list');
             list.innerHTML = configAtiva.map(l => `
                 <div style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.05)">
-                    <div style="display:flex; align-items:center; gap:8px">
-                        <span class="sb-dot ${l.online ? 'ok' : 'err'}"></span>
-                        <span style="font-weight:700; font-size:0.8rem">${l.nome}</span>
+                    <div style="display:flex; align-items:center; justify-content:space-between">
+                        <div style="display:flex; align-items:center; gap:8px">
+                            <span class="sb-dot ${l.online ? 'ok' : 'err'}"></span>
+                            <span style="font-weight:700; font-size:0.8rem">${l.nome}</span>
+                        </div>
+                        <button onclick="verUsuarios('${l.id}', '${l.nome}')" style="background:var(--s3); border:none; color:var(--info); font-size:10px; padding:2px 6px; border-radius:4px; cursor:pointer">VER</button>
                     </div>
-                    <div style="font-size:0.65rem; color:var(--t3); margin-top:4px">${l.ip}:${l.porta} · ${l.online ? 'CONECTADO' : 'OFFLINE'}</div>
+                    <div style="font-size:0.65rem; color:var(--t3); margin-top:4px">
+                        ${l.ip}:${l.porta} · ${l.totalUsuarios || 0} USUÁRIOS
+                    </div>
                 </div>
             `).join('');
         });
+
+        async function verUsuarios(leitorId, leitorNome) {
+            pushLog(`Lendo banco de dados em tempo real de: ${leitorNome}...`, 'info');
+            try {
+                const users = await window.scaeApi.listarAlunos(leitorId);
+                const listHtml = users.length > 0 
+                  ? users.map(u => `<div style="padding:4px; font-family:var(--mono); font-size:11px; border-bottom:1px solid var(--b1)">[${u.id}] ${u.name}</div>`).join('')
+                  : '<div style="color:var(--t3); padding:20px; text-align:center">Ninguém cadastrado neste leitor.</div>';
+                
+                // Abre o modal de listagem
+                const modal = document.getElementById('settings-screen');
+                const listArea = document.getElementById('settings-list');
+                document.querySelector('.modal-title').textContent = `USUÁRIOS NO DISPOSITIVO: ${leitorNome}`;
+                listArea.innerHTML = `<div style="max-height:400px; overflow-y:auto">${listHtml}</div>`;
+                
+                // Esconde botão de adicionar no modal de visualização
+                document.querySelector('button[onclick="addNewHardware()"]').classList.add('hidden');
+                document.getElementById('btn-save').classList.add('hidden');
+
+                modal.classList.remove('hidden');
+            } catch (e) {
+                showToast('Erro ao ler hardware.', 'err');
+            }
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-screen').classList.add('hidden');
+            // Restaura botões para quando abrir configurações reais
+            document.querySelector('button[onclick="addNewHardware()"]').classList.remove('hidden');
+            document.getElementById('btn-save').classList.remove('hidden');
+            document.querySelector('.modal-title').textContent = 'GESTOR DE HARDWARE LOCAL';
+        }
 
         window.scaeApi.onNewLog(log => pushLog(log));
         window.scaeApi.onNewAccess(data => showToast(`ACESSO: ${data.nome}`, 'ok'));

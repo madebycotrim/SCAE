@@ -64,18 +64,20 @@ export class IdflexLeitor implements ILeitor {
       // Sincroniza horário se estiver online
       await this.sincronizarHorario();
 
-      // Busca contagem de usuários e logs
-      const [countUsers, countLogs] = await Promise.all([
-        this.requisitarComToken('load_objects.fcgi', { object: 'users', count: true }),
+      // Busca dados reais (contagem manual é mais confiável em firmwares antigos)
+      const [respUsers, respLogs] = await Promise.all([
+        this.requisitarComToken('load_objects.fcgi', { object: 'users' }),
         this.requisitarComToken('load_objects.fcgi', { object: 'access_logs', count: true })
       ]);
+
+      const users = respUsers.users || [];
 
       return {
         online: true,
         modelo: info.model || 'iDFlex',
         serial: info.serial_number,
-        totalUsuarios: countUsers.count,
-        totalRegistros: countLogs.count
+        totalUsuarios: users.length,
+        totalRegistros: respLogs.count || 0
       };
     } catch (e: any) {
       console.error(`[iDFlex][${this.id}] Erro ao buscar status: ${e.message}`);
@@ -305,6 +307,15 @@ export class IdflexLeitor implements ILeitor {
   async iniciarCaptura(userId: number): Promise<boolean> {
     console.log(`[iDFlex][${this.id}] Iniciando modo de captura biométrica para Usuário ID ${userId}...`);
     try {
+      // 0. LIMPEZA PREVENTIVA: Garante que não existam biometrias antigas para este ID
+      // Isso evita duplicados se o hardware já tiver um template fantasma
+      try {
+        await this.requisitarComToken('destroy_objects.fcgi', {
+          object: 'fingerprints',
+          where: { fingerprints: { user_id: userId } }
+        });
+      } catch {}
+
       // 1. TENTATIVA DIRETA DE ENROLL
       // Usamos sync:true e timeout de 60s para esperar a interação física completa
       await this.requisitarComToken('remote_enroll.fcgi', {

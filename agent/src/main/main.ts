@@ -17,6 +17,37 @@ import http from 'http';
 import { buscarIpLocal } from '../utils/rede';
 import { runSql, getSql } from '../infra/db';
 
+/** Envia o status detalhado de todos os hardwares para a interface do Electron */
+async function enviarStatusHardware() {
+  if (!mainWindow) return;
+  const statusLeitores = await Promise.all((config.leitores || []).map(async (conf: any) => {
+    const lAtivo = leitoresAtivos.find(l => l.id === conf.id || (l.ip === conf.ip && l.porta === conf.porta));
+    let isOnline = false, pNome = conf.nome || conf.id, totalUsuarios = 0;
+
+    if (lAtivo) {
+        try {
+            const s = await lAtivo.status();
+            isOnline = s.online;
+            totalUsuarios = s.totalUsuarios || 0;
+            if (isOnline && (lAtivo as any).getNomeDispositivo) {
+                const n = await (lAtivo as any).getNomeDispositivo();
+                if (n) pNome = n;
+            }
+        } catch {}
+    }
+    return {
+      id: conf.id || pNome,
+      nome: pNome,
+      ip: String(conf.ip || '').split(':')[0],
+      porta: conf.porta || 80,
+      tipo: conf.tipo || 'ID_FLEX',
+      online: isOnline,
+      totalUsuarios
+    };
+  }));
+  mainWindow.webContents.send('hardware-status', { leitores: statusLeitores, escolaId: config.escola_id });
+}
+
 // --- Servidor de Descoberta Local ---
 // Permite que o Dashboard Web saiba se este agente está rodando nesta máquina.
 const LOCAL_SERVER_PORT = 1912; // Porta fixa para descoberta
@@ -84,6 +115,8 @@ const iniciarServidorDescoberta = () => {
                 if (ok) {
                     // Notifica a nuvem que a digital foi cadastrada com sucesso
                     await WorkerApi.confirmarBiometria(aluno_id);
+                    // Força atualização da sidebar
+                    enviarStatusHardware();
                 }
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -106,7 +139,7 @@ const iniciarServidorDescoberta = () => {
                 const clientIp = req.socket.remoteAddress?.replace('::ffff:', '');
                 const leitor = leitoresAtivos.find(l => l.ip === clientIp) as any;
 
-                if (leitor && ev.user_id) {
+                if (leitor && ev.user_id && ev.user_id !== 0 && ev.user_id !== '0') {
                     // 1. Busca dados amigáveis no cache do driver
                     let info = leitor.obterDadosUsuarioHardware(String(ev.user_id));
                     
@@ -118,11 +151,18 @@ const iniciarServidorDescoberta = () => {
                         } catch {}
                     }
                     
-                    // 2. Feedback Físico (Beep e Mensagem)
+                    // 2. Feedback Físico e Voz (Beep, Mensagem e TTS)
                     const statusAcesso = [7, 10, 11, 12, 15].includes(ev.event) ? 'ENTRADA' : 'NEGADO';
+                    
                     if (statusAcesso === 'ENTRADA') {
                         leitor.emitirBeep();
                         leitor.exibirMensagemHardware(`BEM VINDO\n${info.nome.split(' ')[0]}`);
+                        // TTS de Sucesso
+                        if (notificador) notificador.anunciarAcesso(info.nome, 'ENTRADA');
+                    } else {
+                        leitor.exibirMensagemHardware(`NEGADO\nPROCURE A COORD.`);
+                        // TTS de Erro
+                        if (notificador) notificador.anunciarAcesso(info.nome, 'NEGADO');
                     }
 
                     // 3. Registrar nos Stats para o Dashboard Web ver na hora
@@ -169,6 +209,9 @@ const iniciarServidorDescoberta = () => {
                     }
                 }
                 
+                // Força atualização da sidebar
+                enviarStatusHardware();
+
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok: true }));
              } catch (e: any) {
@@ -192,6 +235,9 @@ const iniciarServidorDescoberta = () => {
 
                 // 2. Limpar do Cache Local do SQLite
                 await runSql(`DELETE FROM alunos_cache WHERE matricula = ? AND escola_id = ?`, [matricula, config.escola_id]);
+                
+                // Força atualização da sidebar
+                enviarStatusHardware();
                 
                 console.log(`[Agente] Aluno ${matricula} removido com sucesso.`);
              } catch (e) {
@@ -244,46 +290,11 @@ async function createWindow() {
     },
   });
 
+  // Inicializa o motor de voz vinculado a esta janela
+  notificador = new NotificadorVoz(mainWindow);
+
   // Broadcast de Status Real e Detalhado
-  setInterval(async () => {
-    if (mainWindow) {
-      const statusLeitores = await Promise.all((config.leitores || []).map(async (conf: any) => {
-        // Busca a instância ativa se existir
-        const lAtivo = leitoresAtivos.find(l => 
-          l.id === conf.id || 
-          (l.ip === conf.ip && l.porta === conf.porta)
-        );
-        
-        let isOnline = false;
-        let pNome = conf.nome || conf.id;
-
-        if (lAtivo) {
-            try {
-                isOnline = await lAtivo.ping();
-                if (isOnline && (lAtivo as any).getNomeDispositivo) {
-                    const n = await (lAtivo as any).getNomeDispositivo();
-                    if (n) pNome = n;
-                }
-            } catch {}
-        }
-
-        return {
-          id: conf.id || pNome,
-          nome: pNome,
-          ip: String(conf.ip || '').split(':')[0],
-          porta: conf.porta || 80,
-          tipo: conf.tipo || 'ID_FLEX',
-          online: isOnline
-        };
-      }));
-
-      mainWindow.webContents.send('hardware-status', {
-        escola: config.escola_id,
-        leitores: statusLeitores,
-        sync: WorkerApi.online
-      });
-    }
-  }, 5000);
+  setInterval(enviarStatusHardware, 5000);
 
 
 
@@ -351,9 +362,32 @@ async function createWindow() {
 
   // --- Gestão de Usuários e Hardware Transferida para Nuvem ---
 
-  ipcMain.handle('abrir-porta', async (_event, leitorId) => {
+  ipcMain.handle('listar-alunos', async (_event, leitorId: string) => {
     const leitor = leitoresAtivos.find(l => l.id === leitorId);
-    return leitor ? await leitor.abrirPorta() : false;
+    if (leitor && (leitor as any).listarAlunos) {
+        try { return await (leitor as any).listarAlunos(); } catch { return []; }
+    }
+    return [];
+  });
+
+  ipcMain.handle('cadastrar-aluno', async (_event, { leitorId, matricula, nome }) => {
+    const leitor = leitoresAtivos.find(l => l.id === leitorId);
+    if (leitor && (leitor as any).cadastrarAluno) {
+        return await (leitor as any).cadastrarAluno({ matricula, nomeCompleto: nome });
+    }
+    return { ok: false, erro: 'Hardware não suporta comando.' };
+  });
+
+  ipcMain.handle('iniciar-captura', async (_event, { leitorId, alunoId }) => {
+    const leitor = leitoresAtivos.find(l => l.id === leitorId);
+    if (leitor && (leitor as any).iniciarCaptura) {
+        try {
+            const ok = await (leitor as any).iniciarCaptura(parseInt(alunoId, 10));
+            if (ok) await WorkerApi.confirmarBiometria(alunoId);
+            return { ok };
+        } catch (e: any) { return { ok: false, mensagem: e.message }; }
+    }
+    return { ok: false, mensagem: 'Hardware não suporta comando.' };
   });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
