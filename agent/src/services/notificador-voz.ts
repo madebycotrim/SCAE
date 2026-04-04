@@ -38,6 +38,8 @@ export class NotificadorVoz {
 
   /** Anuncia acesso com base na configuração personalizada da nuvem */
   async anunciarAcesso(nome: string, tipo: string = 'ENTRADA') {
+    const ehSucesso = tipo === 'ENTRADA' || tipo === 'SAIDA';
+    
     try {
       // 1. Busca se o TTS está ativado
       const configAtivo = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsAtivado']);
@@ -45,7 +47,6 @@ export class NotificadorVoz {
 
       // 2. Decide qual frase usar com base no tipo de acesso
       // Se for NEGADO ou algo que indique falha, usamos a frase de erro
-      const ehSucesso = tipo === 'ENTRADA' || tipo === 'SAIDA';
       const chaveFrase = ehSucesso ? 'ttsFraseSucesso' : 'ttsFraseErro';
       
       const configFrase = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', [chaveFrase]);
@@ -66,18 +67,27 @@ export class NotificadorVoz {
           msg = `Até logo, ${primeiroNome}!`;
       }
 
+      console.log(`[TTS] Falando: "${msg}" (Base: ${configFrase?.valor || 'Padrão'})`);
+
+      console.log(`[TTS] Sucesso! Falando: "${msg}" (Config: ${configFrase?.valor || 'Padrão'})`);
       await this.falar(msg);
-    } catch (e) {
-      // Fallback básico em caso de erro no banco
+
+    } catch (e: any) {
+      // Fallback secundário: Silencia erro PII se o banco estiver ocupado (WAL mode)
+      const primeiroNome = nome ? nome.split(' ')[0] : 'colega';
       const saudacao = new Date().getHours() < 12 ? 'Bom dia' : 'Boa tarde';
-      await this.falar(`${saudacao}, ${nome.split(' ')[0]}.`);
+      const msgFallback = ehSucesso ? `${saudacao}, ${primeiroNome}!` : 'Acesso negado.';
+      
+      console.log(`[TTS] Info! Recorrendo a fallback de voz: "${msgFallback}" (Erro SQL: ${e.message})`);
+      await this.falar(msgFallback);
     }
   }
 
   /** Atualiza apenas a UI (métricas) sem emitir voz */
   notificarAcessoVisual(nome: string, tipo: string = 'ENTRADA') {
     if (this.window && !this.window.isDestroyed()) {
-        this.window.webContents.send('new-access', { nome, tipo });
+        const sucesso = tipo === 'ENTRADA' || tipo === 'SAIDA';
+        this.window.webContents.send('new-access', { nome, sucesso });
     }
   }
 }
