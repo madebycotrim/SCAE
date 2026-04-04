@@ -43,6 +43,8 @@ export class NotificadorVoz {
     try {
       // 1. Busca se o TTS está ativado
       const configAtivo = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsAtivado']);
+      console.log(`[TTS Check] Chave: ttsAtivado | Valor Banco: "${configAtivo?.valor}" | Condição: ${(!configAtivo || configAtivo.valor !== 'true') ? 'SILÊNCIO' : 'FALAR'}`);
+      
       if (!configAtivo || configAtivo.valor !== 'true') return;
 
       // 2. Decide qual frase usar com base no tipo de acesso
@@ -50,6 +52,7 @@ export class NotificadorVoz {
       const chaveFrase = ehSucesso ? 'ttsFraseSucesso' : 'ttsFraseErro';
       
       const configFrase = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', [chaveFrase]);
+      console.log(`[TTS Frase] Chave: ${chaveFrase} | Valor: "${configFrase?.valor}"`);
       
       // 3. Monta a mensagem final (com fallbacks)
       let msg = configFrase?.valor;
