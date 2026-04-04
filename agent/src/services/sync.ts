@@ -174,21 +174,24 @@ async function sincronizarCacheAlunos() {
   }
 
   // --- 3. Auditoria de Saneamento (Inteligência Autônoma) ---
-  // Verifica se existem digitais no hardware que ainda não foram marcadas como cadastradas na nuvem
   if (leitoresAtivos.length > 0) {
-      console.log(`[Sync] Auditando integridade física dos equipamentos...`);
       for (const leitor of leitoresAtivos) {
-          if ((leitor as any).verificarBiometriaNoHardware) {
-              const usuariosNoHardware = await (leitor as any).listarAlunos(); // Carrega lista básica de IDs no iDFlex
+          if ((leitor as any).obterMapaBiometriaHardware) {
+              // 1. Carrega todos os IDs que têm biometria no hardware (D1 CALL UNIFICADA)
+              const idsHardware = await (leitor as any).obterMapaBiometriaHardware();
               
+              const enviando = [];
               for (const u of (alunosServidor as any[])) {
-                  // Se localmente (cache) diz que não tem biometria, mas no hardware sim, corrige a nuvem
-                  const temNoHardware = await (leitor as any).verificarBiometriaNoHardware(u.matricula);
+                  const idNum = parseInt(u.matricula, 10);
+                  const temNoHardware = idsHardware.has(idNum);
+                  
                   if (temNoHardware && !u.biometria_cadastrada) {
-                      console.log(`[Sync][Auditoria] Detectada biometria física para ${u.matricula} não registrada na nuvem. Corrigindo...`);
-                      await WorkerApi.confirmarBiometria(u.matricula);
+                      console.log(`[Sync][Auditoria] Corrigindo status de ${u.matricula} (Confirmando biometria física)...`);
+                      enviando.push(WorkerApi.confirmarBiometria(u.matricula));
                   }
               }
+              // Resolve em lotes se necessário (pode crescer depois)
+              if (enviando.length > 0) await Promise.all(enviando);
           }
       }
   }

@@ -431,30 +431,25 @@ export class IdflexLeitor implements ILeitor {
   }
 
   /**
-   * Consulta o hardware (iDFlex) para saber se um usuário possui digitais cadastradas.
-   * Serve como 'prova real' física para sincronizar com o Cloud.
-   * @param userId ID/Matrícula do aluno (sem zeros à esquerda para o hardware)
+   * Consulta o hardware (iDFlex) para saber quais usuários possuem digitais cadastradas.
+   * Retorna um Set de IDs (Matrículas numéricas) para conferência rápida.
    */
-  async verificarBiometriaNoHardware(userId: string): Promise<boolean> {
+  async obterMapaBiometriaHardware(): Promise<Set<number>> {
     try {
-      // Normaliza o ID para o hardware (sem zeros)
-      const idLimpo = parseInt(userId, 10);
-      if (isNaN(idLimpo)) return false;
-
-      // Consulta o objeto 'templates' (onde ficam as digitais)
-      // iDFlex (load_objects): para 'templates', o firmware exige o where aninhado por padrão.
+      // Puxa todos os templates (user_id) de uma vez
       const res = await this.requisitarComToken('load_objects.fcgi', {
         object: "templates",
-        where: {
-            templates: { user_id: idLimpo }
-        }
+        columns: ["user_id"]
       });
 
-      // Se retornou algum template, a biometria existe fisicamente
-      return res && res.templates && res.templates.length > 0;
+      const ids = new Set<number>();
+      if (res && res.templates) {
+          for (const t of res.templates) ids.add(t.user_id);
+      }
+      return ids;
     } catch (e: any) {
-        console.error(`[iDFlex][${this.id}][Re] Erro ao verificar biometria física para ${userId}: ${e.message}`);
-        return false;
+        console.error(`[iDFlex][${this.id}][Re] Erro ao carregar mapa de biometria: ${e.message}`);
+        return new Set();
     }
   }
 }
