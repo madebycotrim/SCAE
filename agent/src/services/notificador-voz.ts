@@ -43,9 +43,13 @@ export class NotificadorVoz {
     try {
       // 1. Busca se o TTS está ativado
       const configAtivo = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsAtivado']);
-      console.log(`[TTS Check] Chave: ttsAtivado | Valor Banco: "${configAtivo?.valor}" | Condição: ${(!configAtivo || configAtivo.valor !== 'true') ? 'SILÊNCIO' : 'FALAR'}`);
       
-      if (!configAtivo || configAtivo.valor !== 'true') return;
+      const valorConfig = configAtivo?.valor;
+      const ttsLigado = (valorConfig === 'true' || valorConfig === '1' || valorConfig === undefined); // Forçar ligado se undefined
+      
+      console.log(`[TTS Check] Chave: ttsAtivado | Valor Banco: "${valorConfig}" | Condição: ${ttsLigado ? 'FALAR' : 'SILÊNCIO'}`);
+      
+      if (!ttsLigado) return;
 
       // 2. Decide qual frase usar com base no tipo de acesso
       // Se for NEGADO ou algo que indique falha, usamos a frase de erro

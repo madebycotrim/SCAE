@@ -22,7 +22,7 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
         const configs = await db.prepare(`
             SELECT config_qr_dinamico, tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro
             FROM escolas
-            WHERE slug = ?
+            WHERE id = ?
         `).bind(escolaId).first();
 
         return Response.json({

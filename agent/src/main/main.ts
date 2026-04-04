@@ -34,7 +34,24 @@ async function createWindow() {
     if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
     if (req.url === '/ping') {
-        res.writeHead(200); res.end(JSON.stringify({ ok: true, versao: '1.2.0' }));
+        const statsObj = {
+            ok: true,
+            agente: 'SCAE Edge Agent',
+            versao: '1.6.0',
+            escola: config.escola_id,
+            status: 'OPERACIONAL',
+            stats: stats.obterSnapshot(),
+            leitores: leitoresAtivos.map(l => ({
+                id: l.id,
+                nome: l.nome,
+                tipo: 'ID_FLEX',
+                online: (l as any).online || false,
+                ip: l.ip,
+                porta: l.porta
+            }))
+        };
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(statsObj));
     } else if (req.url === '/sync-now' && req.method === 'POST') {
         // --- GATILHO DE SINCRONIZAÇÃO INSTANTÂNEA ---
         try {
@@ -51,6 +68,31 @@ async function createWindow() {
             console.error('[Sync Now Error]', e);
             res.writeHead(500); res.end(JSON.stringify({ error: 'Erro no trigger de sync' }));
         }
+    } else if (req.url === '/enroll' && req.method === 'POST') {
+        // --- GATILHO DE CADASTRO REMOTO VIA DASHBOARD ---
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+             try {
+                const { aluno_id, leitor_id } = JSON.parse(body);
+                // Busca o leitor ativo (se não informado, pega o primeiro)
+                const leitor = leitor_id 
+                    ? leitoresAtivos.find(l => l.id === leitor_id)
+                    : leitoresAtivos[0];
+
+                if (leitor && (leitor as any).iniciarCaptura) {
+                    console.log(`[Enroll] Iniciando captura para aluno ${aluno_id} no leitor ${leitor.id}`);
+                    const ok = await (leitor as any).iniciarCaptura(parseInt(aluno_id, 10));
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ ok, mensagem: ok ? 'Captura iniciada' : 'Leitor ocupado ou erro' }));
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ ok: false, mensagem: 'Hardware não disponível' }));
+                }
+             } catch (e) {
+                res.writeHead(500); res.end(JSON.stringify({ ok: false, erro: 'Invalid Body' }));
+             }
+        });
     } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {
         // --- ENDPOINT DE PUSH (REAL-TIME) DO IDFLEX ---
         let body = '';
@@ -141,6 +183,11 @@ app.whenReady().then(async () => {
   
   notificador = new NotificadorVoz(mainWindow);
   console.log('[Agente] Motor de Voz (TTS) inicializado.');
+  
+  // 🔊 TESTE DE VOZ NO BOOT (Para diagnosticar se o Windows/Electron está OK)
+  setTimeout(() => {
+    notificador?.falar('Sistema de voz ativo');
+  }, 3000);
 
   try {
     console.log('[Agente] Iniciando Polling dos equipamentos...');

@@ -133,7 +133,7 @@ export async function sincronizarCacheAlunos() {
     }
 
     const { alunos: alunosServidor, configuracoes: configs } = resposta;
-    console.log(`[Sync] Resposta recebida com sucesso! Configurações: ${configs ? 'SIM' : 'NÃO'}`);
+    console.log(`[Sync] Resposta recebida! Alunos: ${alunosServidor?.length || 0} | Configurações:`, JSON.stringify(configs, null, 2));
 
   // 1. Atualizar Configurações da Unidade (Dessa forma unificamos o tráfego)
   if (configs) {
