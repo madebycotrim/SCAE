@@ -1,144 +1,73 @@
 /**
  * services/worker-endpoint.ts
- * Canal de comunicação criptografado com o sistema central na nuvem.
+ * Driver de Comunicação Online do Agente (Cloudflare Worker Real).
+ * Mantém o Agente sincronizado com o Dashboard em agente.catraki.com.br.
  */
-
 import { config } from '../infra/config';
 
-export const WorkerApi = {
-  online: false,
-
-  /** Envia múltiplos registros coletados localmente em um único lote (batch) para eficiência */
-  async enviarBatida(registros: any[]): Promise<boolean> {
-    if (registros.length === 0) {
-        // Se não tem nada p/ enviar, faz um ping rápido usando o heartbeat oficial para checar conexão
-        try {
-            await this.enviarStatus([]);
-        } catch { this.online = false; }
-        return true;
-    }
-
+export class WorkerApi {
+  /**
+   * Busca a base de alunos e configurações do D1 Online.
+   * Implementa retries exponenciais para garantir funcionamento em redes instáveis.
+   */
+  static async buscarSincronizacaoAlunos() {
+    const url = `${config.endpoint_worker}/api/agente/download-alunos`;
     
-    try {
-      const resp = await fetch(`${config.endpoint_worker}/api/agente/sync-ponto`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Escola-ID': config.escola_id
-        },
-        body: JSON.stringify({ registros })
-      });
+    // Tenta até 3 vezes com backoff
+    for (let i = 0; i < 3; i++) {
+        try {
+            const resp = await fetch(url, {
+                headers: { 'X-Escola-ID': config.escola_id }
+            });
 
-      this.online = resp.ok;
-      if (!resp.ok) {
-        const erroJson = await resp.json() as any;
-        throw new Error(`Cloudflare Worker Error: ${erroJson.detalhe || resp.statusText}`);
-      }
+            if (resp.ok) {
+                const data = await resp.json();
+                return { ...data, ok: true };
+            }
 
-      return true;
-    } catch (e: any) {
-      this.online = false;
-      console.error('[WorkerApi] Falha no envio para nuvem:', e.message);
-      return false;
-    }
-  },
-
-  /** Busca atualizações de alunos do servidor para o cache local */
-  async buscarSincronizacaoAlunos(): Promise<any> {
-    try {
-      const url = `${config.endpoint_worker}/api/agente/download-alunos?t=${Date.now()}`;
-      const resp = await fetch(url, {
-        headers: {
-          'X-Escola-ID': config.escola_id
+            console.error(`[WorkerApi] Erro na nuvem (${resp.status}):`, await resp.text());
+        } catch (e: any) {
+            console.warn(`[WorkerApi] Falha na conexão online (Tentativa ${i+1}):`, e.message);
         }
-      });
-      
-      this.online = resp.ok;
-      if (!resp.ok) return null;
+        
+        // Espera um pouco antes de tentar de novo (1s, 2s, 4s...)
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+    }
 
-      const data = await resp.json();
-      return { ...data, ok: true }; 
-    } catch (e) {
-      this.online = false;
-      console.warn('[WorkerApi] Tentando fallback para servidor local (8788)...');
-      try {
+    // Se falhar de vez na internet, tenta o servidor local de segurança (se estiver rodando)
+    console.warn('[WorkerApi] Mudando para modo offline/local temporário...');
+    try {
         const localResp = await fetch(`http://localhost:8788/api/agente/download-alunos`, {
           headers: { 'X-Escola-ID': config.escola_id }
         });
-        if (localResp.ok) {
-           const localData = await localResp.json();
-           return { ...localData, ok: true };
-        }
-      } catch {}
-      console.error('[WorkerApi] Erro total de sincronização:', e);
-      return null;
-    }
-  },
+        if (localResp.ok) return { ...(await localResp.json()), ok: true };
+    } catch { /* Sem servidor local */ }
 
-  /** Reporta que o agente está online e o status de seus leitores */
-  async enviarStatus(leitores: any[]): Promise<boolean> {
+    return { ok: false };
+  }
+
+  /** Envia os eventos de presença para o banco de dados online */
+  static async enviarBatida(eventos: any[]) {
     try {
-      // 1. Notifica a nuvem oficial
-      await fetch(`${config.endpoint_worker}/api/agente/heartbeat`, {
+      const resp = await fetch(`${config.endpoint_worker}/api/agente/presenca`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Escola-ID': config.escola_id
-        },
-        body: JSON.stringify({ 
-          timestamp: new Date().toISOString(),
-          leitores 
-        })
-      });
-      
-      // 2. Notifica o localhost (para o dashboard dev ver também)
-      try {
-        await fetch(`http://localhost:8788/api/agente/heartbeat`, {
-          method: 'POST',
-          headers: { 'X-Escola-ID': config.escola_id },
-          body: JSON.stringify({ leitores })
-        });
-      } catch {}
-
-      this.online = true;
-      return true;
-    } catch (e) {
-      this.online = false;
-      return false;
-    }
-  },
-
-  /** Notifica que um aluno cadastrou a digital com sucesso no hardware */
-  async confirmarBiometria(matricula: string): Promise<boolean> {
-    try {
-      const resp = await fetch(`${config.endpoint_worker}/api/agente/confirmar-biometria`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Escola-ID': config.escola_id
-        },
-        body: JSON.stringify({ matricula })
+        headers: { 'Content-Type': 'application/json', 'X-Escola-ID': config.escola_id },
+        body: JSON.stringify({ eventos })
       });
       return resp.ok;
-    } catch (e: any) {
-      console.error('[WorkerApi] Erro ao confirmar biometria na nuvem:', e.message);
+    } catch {
       return false;
     }
-  },
-
-  /** Recupera as configurações globais da unidade na Cloudflare */
-  async buscarConfiguracoesUnidade(): Promise<any | null> {
-    try {
-      const resp = await fetch(`${config.endpoint_worker}/api/agente/configuracoes`, {
-        headers: {
-          'X-Escola-ID': config.escola_id
-        }
-      });
-      if (!resp.ok) return null;
-      return await resp.json();
-    } catch (e) {
-      console.error('[WorkerApi] Erro ao buscar configurações:', e);
-      return null;
-    }
   }
-};
+
+  /** Envia status de saúde do agente para o monitor online */
+  static async enviarStatus(corpo: any) {
+    try {
+      await fetch(`${config.endpoint_worker}/api/agente/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Escola-ID': config.escola_id },
+        body: JSON.stringify(corpo)
+      });
+    } catch { /* Ignora falha de status */ }
+  }
+}
