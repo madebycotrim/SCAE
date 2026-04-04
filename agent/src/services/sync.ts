@@ -110,6 +110,7 @@ export async function sincronizarCacheAlunos() {
     }
 
     console.log(`[Sync] Cache local sincronizado para ${alunosServidor.length} alunos.`);
+    console.log(`[Sync] Configuração final cem03:`, JSON.stringify(configs, null, 2));
   } catch (e) {
     console.error('[Sync] Falha grave na sincronização:', e);
   } finally {
