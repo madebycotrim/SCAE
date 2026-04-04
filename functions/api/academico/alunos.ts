@@ -63,7 +63,7 @@ async function processarCriacaoAluno(contexto: ContextoCatraki): Promise<Respons
             throw new ErroValidacao('Dados do aluno inválidos', 'ALUNO_VALIDACAO_001', { detalhes: resultadoZod.error.format() });
         }
 
-        const { matricula, nome_completo, turma_id, data_nascimento, ativo } = resultadoZod.data;
+        const { matricula, nome_completo, data_nascimento, ativo } = resultadoZod.data;
 
         // 1. Verificar se a MATRÍCULA já existe nesta escola
         const alunoExistente = await contexto.env.DB_SCAE.prepare(
@@ -85,11 +85,36 @@ async function processarCriacaoAluno(contexto: ContextoCatraki): Promise<Respons
             }
         }
 
+        // Normalização: Trata turma_id vazio como NULL físico no SQLite (Evita FK Error)
+        const turma_id = (resultadoZod.data.turma_id && String(resultadoZod.data.turma_id).trim() !== "") 
+            ? resultadoZod.data.turma_id 
+            : null;
+
+        // DEBUG: Verificar se a turma existe
+        console.log(`[D1] Criando Aluno: matricula=${matricula}, idEscola=${idEscola}, turma_id=${turma_id || 'NULL'}`);
+
+        // 3. Validar se a TURMA existe e pertence a esta escola (Apenas se informada/não nula)
+        if (turma_id) {
+            const turmaExiste = await contexto.env.DB_SCAE.prepare(
+                "SELECT id FROM turmas WHERE id = ? AND escola_id = ?"
+            ).bind(turma_id, idEscola).first();
+            
+            if (!turmaExiste) {
+                console.warn(`[D1] Turma ${turma_id} NÃO encontrada na escola ${idEscola}`);
+                return Response.json({ 
+                    ok: false, 
+                    erro: `A turma '${turma_id}' não foi encontrada na sua unidade. Deixe o campo em branco ou crie a turma em Configurações.`,
+                    codigo: 'TURMA_NAO_ENCONTRADA'
+                }, { status: 400 });
+            }
+            console.log(`[D1] Turma validada com sucesso.`);
+        }
+
         try {
-            // Inserção simples (sem UPSERT para garantir unicidade controlada pelo app)
+            // Tentando Inserção (turma_id pode ser null, o que ignora o check de FK no SQLite)
             await contexto.env.DB_SCAE.prepare(
                 `INSERT INTO alunos (matricula, escola_id, nome_completo, turma_id, data_nascimento, ativo) VALUES (?, ?, ?, ?, ?, ?)`
-            ).bind(matricula, idEscola, nome_completo, turma_id ?? null, data_nascimento ?? null, ativo ? 1 : 0).run();
+            ).bind(matricula, idEscola, nome_completo, turma_id, data_nascimento ?? null, ativo ? 1 : 0).run();
         } catch (dbError: any) {
             if (dbError.message?.includes('UNIQUE')) {
                 throw new ErroValidacao('Esta matrícula já está em uso.', 'DB_UNIQUE_CONSTRAINT');
@@ -164,7 +189,26 @@ async function processarEdicaoAluno(contexto: ContextoCatraki): Promise<Response
             throw new ErroValidacao('Dados para edição inválidos', 'ALUNO_PATCH_ERRO', { detalhes: resultadoZod.error.format() });
         }
 
-        const { matricula, nome_completo, turma_id, data_nascimento, ativo } = resultadoZod.data;
+        const { matricula, nome_completo, data_nascimento, ativo } = resultadoZod.data;
+        
+        // Normalização: Trata turma_id vazio como NULL físico no SQLite (Evita FK Error)
+        const turma_id = (resultadoZod.data.turma_id && String(resultadoZod.data.turma_id).trim() !== "") 
+            ? resultadoZod.data.turma_id 
+            : null;
+
+        if (turma_id) {
+            const turmaExiste = await contexto.env.DB_SCAE.prepare(
+                "SELECT id FROM turmas WHERE id = ? AND escola_id = ?"
+            ).bind(turma_id, idEscola).first();
+            
+            if (!turmaExiste) {
+                return Response.json({ 
+                    ok: false, 
+                    erro: `A turma '${turma_id}' não existe.`,
+                    codigo: 'TURMA_NAO_ENCONTRADA'
+                }, { status: 400 });
+            }
+        }
 
         try {
             const resultado = await contexto.env.DB_SCAE.prepare(
@@ -175,7 +219,7 @@ async function processarEdicaoAluno(contexto: ContextoCatraki): Promise<Response
                     ativo = ?,
                     atualizado_em = CURRENT_TIMESTAMP
                  WHERE matricula = ? AND escola_id = ?`
-            ).bind(nome_completo, turma_id ?? null, data_nascimento ?? null, ativo ? 1 : 0, matricula, idEscola).run();
+            ).bind(nome_completo, turma_id, data_nascimento ?? null, ativo ? 1 : 0, matricula, idEscola).run();
 
             if (resultado.meta.changes === 0) {
                 throw new ErroNaoEncontrado('Aluno não encontrado para atualização.');

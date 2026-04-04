@@ -164,40 +164,39 @@ export class IdflexLeitor implements ILeitor {
       // 2. Verificar se já existe aluno com esta matrícula OU com este ID no hardware
       let idExistente: number | undefined;
       try {
+        // iDFlex (load_objects): Onde 'where' deve ser PLANO (campos diretos)
         const buscaReg = await this.requisitarComToken('load_objects.fcgi', {
           object: 'users',
-          where: { registration: aluno.matricula }
+          where: { users: { registration: aluno.matricula } }
         });
         
         if (buscaReg?.users?.length > 0) {
           idExistente = buscaReg.users[0].id;
         } else {
-          // Se não achou por matrícula, verifica se o ID que queremos usar já está ocupado
+          // Se não achou por matrícula, verifica se o ID que queremos usar (o numérico) já está ocupado
           const buscaId = await this.requisitarComToken('load_objects.fcgi', {
             object: 'users',
-            where: { id: idPretendido }
+            where: { users: { id: idPretendido } }
           });
           if (buscaId?.users?.length > 0) idExistente = idPretendido;
         }
       } catch (e) {
-        // Se falhar a busca (ex: hardware não suporta where), prossegue com tentativa de criação
+        // Se falhar a busca (ex: hardware não suporta where), prossegue e o create_objects retornará erro se existir
       }
 
       if (idExistente) {
-        // 3. JÁ EXISTE: Apenas atualiza o registro (evita erro UNIQUE)
+        // 3. JÁ EXISTE: Apenas atualiza o registro (Sintaxe 'modify' exige aninhamento no where)
         await this.requisitarComToken('modify_objects.fcgi', {
           object: 'users',
           where: { users: { id: idExistente } },
           values: { 
-            id: idPretendido, // Garante que o ID final seja o determinístico (numérico)
             name: aluno.nomeCompleto, 
-            registration: aluno.matricula // MANTÉM STRING ORIGINAL (Preserva zeros à esquerda)
+            registration: aluno.matricula 
           }
         });
 
         // Atualiza digitais se fornecidas (sobrescreve antigas do usuário)
         if (aluno.templates && aluno.templates.length > 0) {
-          // Remove templates antigos primeiro para evitar erro de limite
           try {
             await this.requisitarComToken('destroy_objects.fcgi', {
               object: 'fingerprints',
@@ -341,7 +340,7 @@ export class IdflexLeitor implements ILeitor {
       // 1. Busca o ID técnico do hardware através da matrícula (registration)
       const resp = await this.requisitarComToken('load_objects.fcgi', { 
         object: 'users',
-        where: { users: { registration: matricula } }
+        where: { registration: matricula }
       });
 
       if (!resp.users || resp.users.length === 0) return false;
@@ -414,16 +413,13 @@ export class IdflexLeitor implements ILeitor {
       await this.sincronizarHorario();
       
       // Configura o Monitor (HTTP Push)
-      // O hardware enviará um POST para este Agente sempre que um acesso ocorrer
+      // O hardware enviará um POST para este Agente sempre que um acesso ocorrer.
+      // IMPORTANTE: Alguns hardwares iDFlex esperam a porta como STRING.
       await this.requisitarComToken('set_configuration.fcgi', {
         monitor: {
           hostname: ipAgente,
-          port: portaAgente,
+          port: String(portaAgente),
           path: '/idflex-push'
-        },
-        general: {
-           button_timeout: 5000,
-           door_timeout: 3000
         }
       });
       console.log(`[iDFlex][${this.id}] Modo Tempo Real (Push) ativado para http://${ipAgente}:${portaAgente}/idflex-push`);
@@ -446,16 +442,19 @@ export class IdflexLeitor implements ILeitor {
       if (isNaN(idLimpo)) return false;
 
       // Consulta o objeto 'templates' (onde ficam as digitais)
+      // iDFlex (load_objects): para 'templates', o firmware exige o where aninhado por padrão.
       const res = await this.requisitarComToken('load_objects.fcgi', {
         object: "templates",
-        where: { user_id: idLimpo }
+        where: {
+            templates: { user_id: idLimpo }
+        }
       });
 
       // Se retornou algum template, a biometria existe fisicamente
       return res && res.templates && res.templates.length > 0;
     } catch (e: any) {
-      console.error(`[iDFlex][${this.id}] Erro ao verificar biometria física para ${userId}: ${e.message}`);
-      return false;
+        console.error(`[iDFlex][${this.id}][Re] Erro ao verificar biometria física para ${userId}: ${e.message}`);
+        return false;
     }
   }
 }

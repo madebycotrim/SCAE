@@ -64,6 +64,22 @@ export const alunoServico = {
             );
             
             log.info(`Aluno ${ehEdicao ? 'atualizado' : 'cadastrado'} online com sucesso`);
+
+            // --- Integração Hardware Local (Tempo Real) ---
+            // Se for um novo aluno e o agente estiver aberto, cadastra no hardware IMEDIATAMENTE.
+            // Nota: Se o método de reconhecimento for PIN ou Cartão, o Agente decidirá se ignora ou apenas cacheia.
+            if (!ehEdicao) {
+                fetch('http://127.0.0.1:1912/sync-one', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        matricula: alunoFinal.matricula,
+                        nome: alunoFinal.nome_completo
+                    })
+                }).catch(() => {
+                    // Agente offline ou erro, a sincronização periódica cuidará depois.
+                });
+            }
         } catch (erro) {
             log.error('Falha ao salvar aluno online', erro);
             throw erro;

@@ -23,14 +23,14 @@ export function iniciarSync() {
     }
   }, config.intervalo_sync_ms);
 
-  // Sincronização de entrada (Cache de Alunos - a cada 30 minutos)
+  // Sincronização de entrada (Cache de Alunos - a cada 2 minutos em fase de ativação)
   setInterval(async () => {
     try {
       await sincronizarCacheAlunos();
     } catch (e) {
       console.error('[Sync] Falha na atualização do cache de alunos:', e);
     }
-  }, 30 * 60 * 1000);
+  }, 2 * 60 * 1000);
 
   // Heartbeat de status (A cada 1 minuto)
   setInterval(() => WorkerApi.enviarStatus([]), 60 * 1000);

@@ -115,6 +115,39 @@ const iniciarServidorDescoberta = () => {
              
              res.writeHead(200); res.end();
         });
+    } else if (req.url === '/sync-one' && req.method === 'POST') {
+        // --- SINCRONIZAÇÃO IMEDIATA DE NOVO ALUNO ---
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+             try {
+                const { matricula, nome } = JSON.parse(body);
+                console.log(`[Agente] Sincronização imediata recebida: ${nome} (${matricula})`);
+                
+                // 1. Salvar no Cache Local (SQLite)
+                await runSql(
+                    `INSERT OR REPLACE INTO alunos_cache (matricula, nome, escola_id, ativo) VALUES (?, ?, ?, 1)`,
+                    [matricula, nome, config.escola_id]
+                );
+
+                // 2. Tentar cadastrar em todos os leitores biométricos ativos
+                for (const leitor of leitoresAtivos) {
+                    if ((leitor as any).cadastrarAluno) {
+                        try {
+                            console.log(`[Agente][${leitor.id}] Cadastrando ${nome} no hardware...`);
+                            await (leitor as any).cadastrarAluno({ matricula, nomeCompleto: nome });
+                        } catch (err: any) {
+                            console.warn(`[Agente][${leitor.id}] Falha no cadastro imediato: ${err.message}`);
+                        }
+                    }
+                }
+                
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: true }));
+             } catch (e: any) {
+                res.writeHead(500); res.end(e.message);
+             }
+        });
     } else if (req.url === '/delete-user' && req.method === 'POST') {
         // --- EXCLUSÃO IMEDIATA VIA COMANDO DASHBOARD ---
         let body = '';
