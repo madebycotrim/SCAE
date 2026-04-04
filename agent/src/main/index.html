@@ -352,6 +352,17 @@
         </div>
     </div>
 
+    <!-- MODAL DE USUÁRIOS NO DISPOSITIVO -->
+    <div id="users-screen" class="modal-bg hidden">
+        <div class="modal" style="width: 500px;">
+            <div class="modal-head">
+                <span class="modal-title" id="users-modal-title">USUÁRIOS NO DISPOSITIVO</span>
+                <button onclick="closeUsers()" style="background:none; border:none; color:var(--t3); cursor:pointer">✕</button>
+            </div>
+            <div id="users-modal-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
+        </div>
+    </div>
+
     <script>
         let configAtiva = [];
         let uptime = 0;
@@ -372,7 +383,7 @@
             t.className = `toast ${type === 'ok' ? 'ok' : 'err'}`;
             t.textContent = msg;
             area.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
+            setTimeout(() => { if(t.parentNode) t.remove(); }, 3000);
         }
 
         function pushLog(msg, type='info') {
@@ -396,7 +407,7 @@
                             <span class="sb-dot ${l.online ? 'ok' : 'err'}"></span>
                             <span style="font-weight:700; font-size:0.8rem">${l.nome}</span>
                         </div>
-                        <button onclick="verUsuarios('${l.id}', '${l.nome}')" style="background:var(--s3); border:none; color:var(--info); font-size:10px; padding:2px 6px; border-radius:4px; cursor:pointer">VER</button>
+                        <button onclick="verUsuarios('${l.id}', '${l.nome}')" style="background:var(--s3); border:none; color:var(--info); font-size:10px; padding:2px 6px; border-radius:4px; cursor:pointer">PESSOAS</button>
                     </div>
                     <div style="font-size:0.65rem; color:var(--t3); margin-top:4px">
                         ${l.ip}:${l.porta} · ${l.totalUsuarios || 0} USUÁRIOS
@@ -406,35 +417,35 @@
         });
 
         async function verUsuarios(leitorId, leitorNome) {
-            pushLog(`Lendo banco de dados em tempo real de: ${leitorNome}...`, 'info');
-            try {
-                const users = await window.scaeApi.listarAlunos(leitorId);
-                const listHtml = users.length > 0 
-                  ? users.map(u => `<div style="padding:4px; font-family:var(--mono); font-size:11px; border-bottom:1px solid var(--b1)">[${u.id}] ${u.name}</div>`).join('')
-                  : '<div style="color:var(--t3); padding:20px; text-align:center">Ninguém cadastrado neste leitor.</div>';
-                
-                // Abre o modal de listagem
-                const modal = document.getElementById('settings-screen');
-                const listArea = document.getElementById('settings-list');
-                document.querySelector('.modal-title').textContent = `USUÁRIOS NO DISPOSITIVO: ${leitorNome}`;
-                listArea.innerHTML = `<div style="max-height:400px; overflow-y:auto">${listHtml}</div>`;
-                
-                // Esconde botão de adicionar no modal de visualização
-                document.querySelector('button[onclick="addNewHardware()"]').classList.add('hidden');
-                document.getElementById('btn-save').classList.add('hidden');
+            pushLog(`Consultando usuários de: ${leitorNome}...`, 'info');
+            const modal = document.getElementById('users-screen');
+            const listArea = document.getElementById('users-modal-list');
+            document.getElementById('users-modal-title').textContent = `HARDWARE: ${leitorNome}`;
+            
+            listArea.innerHTML = '<div style="color:var(--t3); padding:40px; text-align:center; font-family:var(--mono)">LENDO BANCO DE DADOS...</div>';
+            modal.classList.remove('hidden');
 
-                modal.classList.remove('hidden');
+            try {
+                const users = await window.scaeApi.listarAlunos({ leitorId });
+                console.log('Usuários recebidos:', users);
+                
+                if (users.length > 0) {
+                   listArea.innerHTML = users.map(u => `
+                        <div style="padding:8px 4px; font-family:var(--mono); font-size:11px; border-bottom:1px solid var(--b1); display:flex; justify-content:space-between">
+                            <span><span style="color:var(--t3)">[${u.id}]</span> ${u.name}</span>
+                            <span style="color:var(--t3); font-size:9px">${u.registration || '—'}</span>
+                        </div>
+                   `).join('');
+                } else {
+                   listArea.innerHTML = '<div style="color:var(--t3); padding:40px; text-align:center">Ninguém cadastrado neste leitor físico.</div>';
+                }
             } catch (e) {
-                showToast('Erro ao ler hardware.', 'err');
+                listArea.innerHTML = '<div style="color:var(--err); padding:40px; text-align:center">Falha ao comunicar com equipamento.</div>';
             }
         }
 
-        function closeSettings() {
-            document.getElementById('settings-screen').classList.add('hidden');
-            // Restaura botões para quando abrir configurações reais
-            document.querySelector('button[onclick="addNewHardware()"]').classList.remove('hidden');
-            document.getElementById('btn-save').classList.remove('hidden');
-            document.querySelector('.modal-title').textContent = 'GESTOR DE HARDWARE LOCAL';
+        function closeUsers() {
+            document.getElementById('users-screen').classList.add('hidden');
         }
 
         window.scaeApi.onNewLog(log => pushLog(log));

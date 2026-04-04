@@ -52,6 +52,12 @@ async function monitorarLeitor(leitor: ILeitor) {
   try {
     // 1. Verificar/Reativar Integridade do Modo Escola (Watchdog) a cada 5 min
     const tagCheck = `last_watchdog_${leitor.id}`;
+    
+    // Atualiza o estado vivo do leitor a cada ciclo (Isso aparece na UI)
+    const st = await leitor.status();
+    (leitor as any).online = st.online;
+    (leitor as any).totalUsuarios = st.totalUsuarios;
+
     if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000)) {
         const ipLocal = buscarIpLocal();
         if (ipLocal) {

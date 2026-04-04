@@ -145,6 +145,7 @@ app.whenReady().then(async () => {
   try {
     console.log('[Agente] Iniciando Polling dos equipamentos...');
     iniciarPolling(notificador);
+    enviarStatusHardware();
     
     console.log('[Agente] Iniciando Sincronizador de Nuvem...');
     iniciarSync();
@@ -164,6 +165,27 @@ app.whenReady().then(async () => {
       repassarAoLogVisual(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
   };
 });
+
+/** Envia o status atual dos leitores para o Renderer (Vite/React) */
+function enviarStatusHardware() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+
+  const status = {
+    leitores: leitoresAtivos.map(l => ({
+      id: l.id,
+      nome: l.nome,
+      ip: l.ip,
+      porta: l.porta,
+      online: (l as any).online || false, // Esse campo 'online' é gerenciado pelo status() do leitor
+      totalUsuarios: (l as any).totalUsuarios || 0
+    }))
+  };
+
+  mainWindow.webContents.send('hardware-status', status);
+}
+
+// Atualização de Status de Hardware (A cada 10 segundos)
+setInterval(enviarStatusHardware, 10000);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

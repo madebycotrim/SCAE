@@ -80,7 +80,8 @@ export const WorkerApi = {
   /** Reporta que o agente está online e o status de seus leitores */
   async enviarStatus(leitores: any[]): Promise<boolean> {
     try {
-      const resp = await fetch(`${config.endpoint_worker}/api/agente/heartbeat`, {
+      // 1. Notifica a nuvem oficial
+      await fetch(`${config.endpoint_worker}/api/agente/heartbeat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,11 +93,21 @@ export const WorkerApi = {
           leitores 
         })
       });
-      this.online = resp.ok;
-      return resp.ok;
-    } catch { 
+      
+      // 2. Notifica o localhost (para o dashboard dev ver também)
+      try {
+        await fetch(`http://localhost:8788/api/agente/heartbeat`, {
+          method: 'POST',
+          headers: { 'X-Escola-ID': config.escola_id, 'Authorization': `Bearer ${config.agente_token}` },
+          body: JSON.stringify({ leitores })
+        });
+      } catch {}
+
+      this.online = true;
+      return true;
+    } catch (e) {
       this.online = false;
-      return false; 
+      return false;
     }
   },
 

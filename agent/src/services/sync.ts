@@ -15,16 +15,23 @@ export function iniciarSync() {
   // Sincroniza logo no boot
   sincronizarCacheAlunos();
   sincronizarRegistrosPendentes();
-  WorkerApi.enviarStatus([]);
   
-  // Tenta sincronizar a cada 1 minuto (O Dashboard também força via /sync-now ao salvar)
+  // Envia o primeiro sinal de vida imediatamente
+  const statusBoot = leitoresAtivos.map(l => ({
+      id: l.id,
+      nome: l.nome,
+      online: (l as any).online || false
+  }));
+  WorkerApi.enviarStatus(statusBoot);
+  
+  // Tenta sincronizar a cada 15 segundos (O Dashboard também força via /sync-now ao salvar)
   setInterval(async () => {
     try {
       await sincronizarCacheAlunos();
     } catch (e) {
       console.error('[Sync] Falha na atualização do cache/configurações:', e);
     }
-  }, 60 * 1000);
+  }, 15 * 1000);
 
   // Sincronização de saída (Registros de acesso - a cada 5 segundos)
   setInterval(async () => {
@@ -43,13 +50,19 @@ export function iniciarSync() {
     }
   }, 10 * 1000);
 
-  // Heartbeat de status (A cada 1 minuto)
-  setInterval(() => WorkerApi.enviarStatus([]), 60 * 1000);
+  // Heartbeat de status (A cada 30 segundos) informado à nuvem quais sensores estão online
+  setInterval(() => {
+    const statusLimpo = leitoresAtivos.map(l => ({
+        id: l.id,
+        nome: l.nome,
+        online: (l as any).online || false
+    }));
+    WorkerApi.enviarStatus(statusLimpo);
+  }, 30 * 1000);
 
   // Execução inicial
   sincronizarRegistrosPendentes();
   sincronizarCacheAlunos();
-  WorkerApi.enviarStatus([]);
 }
 
 /** Sincroniza as preferências globais da escola para o Agente Local */
