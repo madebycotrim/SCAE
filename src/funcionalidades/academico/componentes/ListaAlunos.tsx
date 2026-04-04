@@ -1,4 +1,4 @@
-import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { QrCode, Edit2, Trash2, ChevronLeft, ChevronRight, Users, Fingerprint } from 'lucide-react';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { Aluno } from '../tipos/academico';
 import { CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
@@ -136,13 +136,13 @@ export default function ListaAlunos({
                                     </td>
                                     <td className="py-4 px-8 text-right">
                                         <div className="flex items-center justify-end gap-1">
-                                            {temQR && (
+                                             {escola.metodosAcesso.length > 0 && (
                                                 <button
                                                     onClick={() => aoVerQRCode(aluno.matricula)}
                                                     className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
-                                                    title="Visualizar Credencial"
+                                                    title={escola.metodosAcesso.includes('DIGITAL') ? "Gerenciar Biometria" : "Visualizar Credencial"}
                                                 >
-                                                    <QrCode size={16} />
+                                                    {escola.metodosAcesso.includes('DIGITAL') ? <Fingerprint size={16} /> : <QrCode size={16} />}
                                                 </button>
                                             )}
 
