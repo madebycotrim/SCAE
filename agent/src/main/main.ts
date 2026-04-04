@@ -15,7 +15,7 @@ import { WorkerApi } from '../services/worker-endpoint';
 import { stats } from '../infra/stats';
 import http from 'http';
 import { buscarIpLocal } from '../utils/rede';
-import { runSql } from '../infra/db';
+import { runSql, getSql } from '../infra/db';
 
 // --- Servidor de Descoberta Local ---
 // Permite que o Dashboard Web saiba se este agente está rodando nesta máquina.
@@ -59,12 +59,22 @@ const iniciarServidorDescoberta = () => {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
-            try {
+             try {
                 const { aluno_id } = JSON.parse(body);
                 const leitor = leitoresAtivos.find(l => (l as any).iniciarCaptura);
                 if (!leitor) throw new Error('Hardware biométrico não encontrado.');
                 
-                // Enroll no iDFlex via driver
+                // 1. GARANTE QUE O USUÁRIO EXISTE NO HARDWARE (Segurança anti "Inexistente")
+                const alunoCache = await getSql(`SELECT matricula, nome_completo FROM alunos_cache WHERE matricula = ?`, [aluno_id]);
+                if (alunoCache && (leitor as any).cadastrarAluno) {
+                    console.log(`[Agente][${leitor.id}] Certificando que o usuário ${aluno_id} existe antes do Enroll...`);
+                    await (leitor as any).cadastrarAluno({ 
+                        matricula: alunoCache.matricula, 
+                        nomeCompleto: alunoCache.nome_completo 
+                    });
+                }
+
+                // 2. Enroll no iDFlex via driver
                 const ok = await (leitor as any).iniciarCaptura(parseInt(aluno_id, 10));
                 
                 if (ok) {
@@ -74,10 +84,11 @@ const iniciarServidorDescoberta = () => {
 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok }));
-            } catch (e: any) {
+             } catch (e: any) {
+                console.error('[Agente] Falha no Enroll:', e.message);
                 res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok: false, mensagem: e.message }));
-            }
+             }
         });
     } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {
         // --- ENDPOINT DE PUSH (REAL-TIME) DO IDFLEX ---
@@ -126,7 +137,7 @@ const iniciarServidorDescoberta = () => {
                 
                 // 1. Salvar no Cache Local (SQLite)
                 await runSql(
-                    `INSERT OR REPLACE INTO alunos_cache (matricula, nome, escola_id, ativo) VALUES (?, ?, ?, 1)`,
+                    `INSERT OR REPLACE INTO alunos_cache (matricula, nome_completo, escola_id, ativo) VALUES (?, ?, ?, 1)`,
                     [matricula, nome, config.escola_id]
                 );
 
@@ -134,10 +145,20 @@ const iniciarServidorDescoberta = () => {
                 for (const leitor of leitoresAtivos) {
                     if ((leitor as any).cadastrarAluno) {
                         try {
-                            console.log(`[Agente][${leitor.id}] Cadastrando ${nome} no hardware...`);
-                            await (leitor as any).cadastrarAluno({ matricula, nomeCompleto: nome });
+                            const res = await (leitor as any).cadastrarAluno({ 
+                                matricula, 
+                                nomeCompleto: nome,
+                                // Envia templates se vierem no payload (Sincronização total)
+                                templates: (JSON.parse(body) as any).templates || []
+                            });
+                            
+                            if (res.ok) {
+                                console.log(`[Agente][${leitor.id}] Aluno ${nome} injetado com sucesso no hardware.`);
+                            } else {
+                                console.warn(`[Agente][${leitor.id}] Hardware recusou cadastro: ${res.erro}`);
+                            }
                         } catch (err: any) {
-                            console.warn(`[Agente][${leitor.id}] Falha no cadastro imediato: ${err.message}`);
+                            console.error(`[Agente][${leitor.id}] Falha crítica no cadastro imediato: ${err.message}`);
                         }
                     }
                 }
@@ -145,6 +166,7 @@ const iniciarServidorDescoberta = () => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok: true }));
              } catch (e: any) {
+                console.error('[Agente] Falha ao processar sync-one:', e.message);
                 res.writeHead(500); res.end(e.message);
              }
         });

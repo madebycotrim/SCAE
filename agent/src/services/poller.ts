@@ -6,6 +6,7 @@
 
 import { config } from '../infra/config';
 import { getSql, runSql } from '../infra/db';
+import { buscarIpLocal } from '../utils/rede';
 import { LeitorFactory } from '../drivers/LeitorFactory';
 import { ILeitor } from '../drivers/ILeitor';
 import { NotificadorVoz } from './notificador-voz';
@@ -133,7 +134,27 @@ async function executarCicloColeta() {
           atualizado_em = datetime('now', 'localtime')
       `, [leitor.id, maxId]);
 
-    } catch (e: any) {
+      // 4. Inteligência Autônoma: Watchdog de Configuração (A cada X ciclos)
+    // Se o hardware perder o modo Push (ex: restart), o Agente Local o reconfigura automaticamente.
+    try {
+        const agora = Date.now();
+        for (const leitor of leitoresAtivos) {
+            // A cada 5 minutos, ou se perder conexão, força a reaplicação do Modo Escola
+            if ((leitor as any).configurarModoEscola) {
+                const tagCheck = `last_watchdog_${leitor.id}`;
+                if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000)) {
+                    const ipLocal = buscarIpLocal();
+                    if (ipLocal) {
+                        console.log(`[Watchdog][${leitor.id}] Verificando/Reativando integridade do Modo Escola...`);
+                        await (leitor as any).configurarModoEscola(ipLocal);
+                        (global as any)[tagCheck] = agora;
+                    }
+                }
+            }
+        }
+    } catch (e) { /* Watchdog silencioso */ }
+
+  } catch (e: any) {
       // Registra a falha e calcula o backoff (ex: 5s, 10s, 20s... até 1 minuto)
       const falhaAtual = falhasLeitores.get(leitor.id) || { contador: 0, proximaTentativa: 0 };
       const novoContador = falhaAtual.contador + 1;
