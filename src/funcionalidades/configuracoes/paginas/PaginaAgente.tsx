@@ -320,7 +320,9 @@ export default function PaginaAgente() {
                                                         <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center gap-2">
                                                             <span>{leitor.tipo}</span>
                                                             <span className="w-1 h-1 rounded-full bg-slate-200" />
-                                                            <span className="font-mono">{leitor.ip}:{leitor.porta}</span>
+                                                            <span className="font-mono">
+                                                                {leitor.ip}{leitor.ip?.includes(':') ? '' : `:${leitor.porta}`}
+                                                            </span>
                                                             <button 
                                                                 onClick={() => {
                                                                     setEditandoLeitor(leitor.id);

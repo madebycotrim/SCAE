@@ -37,11 +37,14 @@ const iniciarServidorDescoberta = () => {
       // Coletar status dos leitores instantaneamente (Nomes dinâmicos resolvidos pelos drivers)
       const leitores = leitoresAtivos.map(l => {
         const configRaw = (l as any).cfg || {};
+        // Limpa o IP garantindo que não venha com porta grudada (ex: 1.1.1.1:8080 -> 1.1.1.1)
+        const ipLimpo = String(configRaw.ip || '0.0.0.0').split(':')[0];
+        
         return {
           id: l.id,
           nome: l.nome,
           tipo: l.tipo,
-          ip: configRaw.ip || '0.0.0.0',
+          ip: ipLimpo,
           porta: configRaw.porta || 80,
           online: true, 
         };
@@ -81,9 +84,12 @@ const iniciarServidorDescoberta = () => {
         req.on('end', async () => {
             try {
                 const { id, ip, porta } = JSON.parse(body);
+                // Limpa o IP se o usuário digitou com porta (ex: 192.168.1.34:8080 -> 192.168.1.34)
+                const ipNormalizado = String(ip).split(':')[0];
+
                 // Atualiza a config em disco
                 const novosLeitores = config.leitores.map((l: any) => {
-                    if (l.id === id) return { ...l, ip, porta: parseInt(porta, 10) };
+                    if (l.id === id) return { ...l, ip: ipNormalizado, porta: parseInt(String(porta), 10) };
                     return l;
                 });
                 
