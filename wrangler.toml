@@ -10,6 +10,3 @@ database_id = "6c8d714d-582a-4452-880d-e2ee35c12b15"
 binding = "KV_SCAE"
 id = "3203ff248cf646eb9537afc473dec4ee"
 
-[vars]
-CATRAKI_AGENTE_TOKEN = "catraki_dev_token"
-DEV_AUTH_BYPASS = "1"

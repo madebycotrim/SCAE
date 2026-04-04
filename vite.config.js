@@ -108,7 +108,7 @@ export default defineConfig(({ mode }) => {
       },
       proxy: {
         '/api': {
-          target: env.VITE_PROXY_TARGET,
+          target: env.VITE_PROXY_TARGET || 'https://catraki.com.br/',
           changeOrigin: true,
           secure: false,
         },
