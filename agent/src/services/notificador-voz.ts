@@ -39,22 +39,29 @@ export class NotificadorVoz {
   /** Anuncia acesso com base na configuração personalizada da nuvem */
   async anunciarAcesso(nome: string, tipo: string = 'ENTRADA') {
     try {
-      // 1. Busca se o TTS está ativado e qual a frase
+      // 1. Busca se o TTS está ativado
       const configAtivo = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsAtivado']);
-      
-      // Se não houver config ou for false, não fala
       if (configAtivo && configAtivo.valor === 'false') return;
 
-      const configFrase = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsFrase']);
+      // 2. Decide qual frase usar com base no tipo de acesso
+      // Se for NEGADO ou algo que indique falha, usamos a frase de erro
+      const ehSucesso = tipo === 'ENTRADA' || tipo === 'SAIDA';
+      const chaveFrase = ehSucesso ? 'ttsFraseSucesso' : 'ttsFraseErro';
       
-      // 2. Monta a mensagem (Fallback se não houver frase configurada)
-      let msg = configFrase?.valor || 'Bem-vindo, {nome}!';
+      const configFrase = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', [chaveFrase]);
       
-      // 3. Substitui placeholders dinâmicos
-      const primeiroNome = nome.split(' ')[0];
+      // 3. Monta a mensagem final (com fallbacks)
+      let msg = configFrase?.valor;
+      
+      if (!msg) {
+          msg = ehSucesso ? 'Bem-vindo, {nome}!' : 'Acesso negado.';
+      }
+      
+      // 4. Substitui placeholders dinâmicos (apenas se for sucesso ou tiver nome)
+      const primeiroNome = nome ? nome.split(' ')[0] : 'colega';
       msg = msg.replace(/\{nome\}/g, primeiroNome);
       
-      // 4. Se for SAÍDA e não tiver frase personalizada, usa adeus padrão
+      // 5. Caso especial: SAÍDA sem frase personalizada usa despedida padrão
       if (tipo === 'SAIDA' && (!configFrase || configFrase.valor === 'Bem-vindo, {nome}!')) {
           msg = `Até logo, ${primeiroNome}!`;
       }

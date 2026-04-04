@@ -20,7 +20,7 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
 
         // 3. Busca configurações da unidade
         const configs = await db.prepare(`
-            SELECT config_metodo_acesso, config_qr_dinamico, config_tts_ativado, config_tts_frase
+            SELECT config_metodo_acesso, config_qr_dinamico, config_tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro
             FROM escolas
             WHERE slug = ?
         `).bind(escolaId).first();
@@ -32,7 +32,8 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
                 metodoAcesso: configs?.config_metodo_acesso,
                 qrDinamico: !!configs?.config_qr_dinamico,
                 ttsAtivado: !!configs?.config_tts_ativado,
-                ttsFrase: configs?.config_tts_frase
+                ttsFraseSucesso: configs?.config_tts_frase_sucesso || 'Bem-vindo, {nome}!',
+                ttsFraseErro: configs?.config_tts_frase_erro || 'Acesso negado.'
             },
             total: alunos.results.length,
             timestamp_servidor: new Date().toISOString()

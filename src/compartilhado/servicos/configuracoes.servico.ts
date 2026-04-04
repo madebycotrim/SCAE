@@ -9,7 +9,8 @@ export const ConfiguracoesServico = {
     async atualizarConfiguracoes(dados: { 
         qrDinamico?: boolean; 
         ttsAtivado?: boolean; 
-        ttsFrase?: string;
+        ttsFraseSucesso?: string;
+        ttsFraseErro?: string;
         saidaObrigatoria?: boolean; 
         metodoAcesso?: 'QRCODE' | 'DIGITAL' 
     }) {
