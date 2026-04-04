@@ -35,12 +35,17 @@ const iniciarServidorDescoberta = () => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       
       // Coletar status dos leitores instantaneamente (Nomes dinâmicos resolvidos pelos drivers)
-      const leitores = leitoresAtivos.map(l => ({
-        id: l.id,
-        nome: l.nome,
-        tipo: l.tipo,
-        online: true, // Se está na lista oficial de ativos, o front trata status individual
-      }));
+      const leitores = leitoresAtivos.map(l => {
+        const configRaw = (l as any).cfg || {};
+        return {
+          id: l.id,
+          nome: l.nome,
+          tipo: l.tipo,
+          ip: configRaw.ip || '0.0.0.0',
+          porta: configRaw.porta || 80,
+          online: true, 
+        };
+      });
 
       res.end(JSON.stringify({ 
         ok: true, 
@@ -65,6 +70,27 @@ const iniciarServidorDescoberta = () => {
                 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok }));
+            } catch (e: any) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, mensagem: e.message }));
+            }
+        });
+    } else if (req.url === '/config/leitor' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const { id, ip, porta } = JSON.parse(body);
+                // Atualiza a config em disco
+                const novosLeitores = config.leitores.map((l: any) => {
+                    if (l.id === id) return { ...l, ip, porta: parseInt(porta, 10) };
+                    return l;
+                });
+                
+                salvarLeitoresNoDisco(novosLeitores);
+                
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: true, mensagem: 'Configuração atualizada. Reinicie o Agente para aplicar.' }));
             } catch (e: any) {
                 res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ ok: false, mensagem: e.message }));

@@ -2,17 +2,10 @@ import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { CartaoConteudo, Botao } from '@/compartilhado/componentes/UI';
 import { 
-    Fingerprint,
-    Search,
-    User,
-    CheckCircle2,
-    XCircle,
-    Activity,
-    ShieldCheck,
-    ArrowUp,
-    Radio,
-    Clock,
-    RefreshCw
+    Users, Activity, Signal, AlertTriangle, 
+    ArrowUp, XCircle, Clock, RefreshCw,
+    Shield, CheckCircle2, Search, Fingerprint, Trash2,
+    Settings, Save, X, User, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usarEscola } from '@/escola/ProvedorEscola';
@@ -42,6 +35,8 @@ interface StatusAgente {
         nome: string;
         tipo: string;
         online: boolean;
+        ip?: string;
+        porta?: string;
     }>;
 }
 
@@ -53,6 +48,8 @@ export default function PaginaAgente() {
 
     // Estado para Busca de Alunos
     const [termoBusca, setTermoBusca] = useState('');
+    const [editandoLeitor, setEditandoLeitor] = useState<any>(null);
+    const [formLeitor, setFormLeitor] = useState({ ip: '', porta: '' });
     const [cadastrandoPara, setCadastrandoPara] = useState<string | null>(null);
 
     const { dados: dataAlunos, recarregar: atualizarAlunos } = usarConsulta(
@@ -85,6 +82,29 @@ export default function PaginaAgente() {
         }
     };
 
+    /**
+     * Salva as configurações de IP/Porta no Agente Local
+     */
+    const salvarConfigLeitor = async (id: string) => {
+        try {
+            const res = await fetch('http://localhost:1912/config/leitor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, ...formLeitor })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                toast.success('Configuração salva! Reinicie o Agente.');
+                setEditandoLeitor(null);
+            } else throw new Error(data.mensagem);
+        } catch (e: any) {
+            toast.error('Erro ao configurar Agente: ' + e.message);
+        }
+    };
+
+    /**
+     * Solicita ao agente local que inicie a captura biométrica
+     */
     const iniciarCadastroBiometrico = async (matricula: string, nome: string) => {
         if (!status?.ok) {
             toast.error('Agente offline. Certifique-se que o app Catraki está aberto.');
@@ -268,7 +288,51 @@ export default function PaginaAgente() {
                                                 <div className={`w-2.5 h-2.5 rounded-full ${leitor.online ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]' : 'bg-rose-500'}`} />
                                                 <div>
                                                     <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-tight leading-none">{leitor.nome}</h5>
-                                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">{leitor.tipo}</p>
+                                                    
+                                                    {editandoLeitor === leitor.id ? (
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            <input 
+                                                                value={formLeitor.ip}
+                                                                onChange={e => setFormLeitor({...formLeitor, ip: e.target.value})}
+                                                                className="text-[8px] bg-slate-50 border border-slate-200 rounded px-1 w-24 h-5 font-mono"
+                                                                placeholder="IP"
+                                                            />
+                                                            <input 
+                                                                value={formLeitor.porta}
+                                                                onChange={e => setFormLeitor({...formLeitor, porta: e.target.value})}
+                                                                className="text-[8px] bg-slate-50 border border-slate-200 rounded px-1 w-10 h-5 font-mono"
+                                                                placeholder="14"
+                                                            />
+                                                            <button 
+                                                                onClick={() => salvarConfigLeitor(leitor.id)}
+                                                                className="p-1 bg-emerald-500 text-white rounded hover:bg-emerald-600"
+                                                            >
+                                                                <Save size={8} />
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => setEditandoLeitor(null)}
+                                                                className="p-1 bg-slate-200 text-slate-600 rounded hover:bg-slate-300"
+                                                            >
+                                                                <X size={8} />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center gap-2">
+                                                            <span>{leitor.tipo}</span>
+                                                            <span className="w-1 h-1 rounded-full bg-slate-200" />
+                                                            <span className="font-mono">{leitor.ip}:{leitor.porta}</span>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setEditandoLeitor(leitor.id);
+                                                                    setFormLeitor({ ip: leitor.ip, porta: String(leitor.porta) });
+                                                                }}
+                                                                className="p-1 hover:text-indigo-600 transition-colors"
+                                                                title="Configurar Rede"
+                                                            >
+                                                                <Settings size={10} />
+                                                            </button>
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                             <span className={`text-[9px] font-black uppercase tracking-widest ${leitor.online ? 'text-emerald-500' : 'text-rose-500'}`}>
