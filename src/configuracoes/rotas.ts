@@ -22,6 +22,7 @@ export const PaginaUsuarios = lazy(() => import('@/funcionalidades/usuarios/comp
 export const PaginaConfiguracaoHorarios = lazy(() => import('@/funcionalidades/configuracao-horarios/componentes/FormHorariosAcesso'));
 export const PaginaRiscoAbandono = lazy(() => import('@/funcionalidades/risco-abandono/componentes/PainelRiscoAbandono'));
 export const PaginaConfiguracoes = lazy(() => import('@/funcionalidades/configuracoes/componentes/PaginaConfiguracoes'));
+export const PaginaAgente = lazy(() => import('@/funcionalidades/configuracoes/paginas/PaginaAgente'));
 export const PaginaCartaoDigital = lazy(() => import('@/funcionalidades/academico/componentes/CartaoDigital'));
 export const PaginaCalendario = lazy(() => import('@/funcionalidades/academico/componentes/CalendarioLetivo'));
 export const PaginaTermosUso = lazy(() => import('@/compartilhado/paginas/TermosUso'));
@@ -105,6 +106,12 @@ export const ROTAS_ADMIN: RotaAplicacao[] = [
         componente: PaginaCalendario,
         protegida: true,
         papeis: ['ADMIN', 'COORDENACAO'],
+    },
+    {
+        caminho: '/agente',
+        componente: PaginaAgente,
+        protegida: true,
+        papeis: ['ADMIN'],
     }
 ];
 

@@ -123,6 +123,35 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         }
     }, [localizacao, navegar]);
 
+    // Status do Agente Local
+    const [agenteOnline, definirAgenteOnline] = useState(false);
+
+    useEffect(() => {
+        const checkAgente = async () => {
+            try {
+                // Timeout curto para não travar a UI se o agente não estiver rodando
+                const controlador = new AbortController();
+                const timeoutId = setTimeout(() => controlador.abort(), 1500);
+                
+                const res = await fetch('http://127.0.0.1:1912/ping', { signal: controlador.signal });
+                clearTimeout(timeoutId);
+                
+                if (res.ok) {
+                    const dados = await res.json();
+                    definirAgenteOnline(dados.ok === true);
+                } else {
+                    definirAgenteOnline(false);
+                }
+            } catch (e) {
+                definirAgenteOnline(false);
+            }
+        };
+
+        checkAgente();
+        const interval = setInterval(checkAgente, 15000); // Checa a cada 15s
+        return () => clearInterval(interval);
+    }, []);
+
     const gruposMenu = [
         {
             titulo: 'Visão Estratégica',
@@ -151,6 +180,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
                 ...(pode('visualizar', 'auditoria') ? [{ icone: Activity, texto: 'Logs', rota: '/logs' }] : []),
+                ...(agenteOnline ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
                 ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
             ]
         }
