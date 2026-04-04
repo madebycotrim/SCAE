@@ -131,7 +131,8 @@ export default function PaginaAgente() {
             <div className="space-y-6">
                 {/* 1. MÉTRICAS DE FLUXO (CABEÇALHO) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <CartaoConteudo className="p-5 border-l-4 border-l-emerald-500">
+                    <CartaoConteudo className="relative p-5 overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                                 <ArrowUp size={24} />
@@ -143,7 +144,8 @@ export default function PaginaAgente() {
                         </div>
                     </CartaoConteudo>
 
-                    <CartaoConteudo className="p-5 border-l-4 border-l-rose-500">
+                    <CartaoConteudo className="relative p-5 overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500" />
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
                                 <XCircle size={24} />
@@ -155,7 +157,8 @@ export default function PaginaAgente() {
                         </div>
                     </CartaoConteudo>
 
-                    <CartaoConteudo className="p-5 border-l-4 border-l-amber-500">
+                    <CartaoConteudo className="relative p-5 overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-500" />
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
                                 <Clock size={24} />
@@ -167,7 +170,8 @@ export default function PaginaAgente() {
                         </div>
                     </CartaoConteudo>
 
-                    <CartaoConteudo className="p-5 border-l-4 border-l-indigo-500">
+                    <CartaoConteudo className="relative p-5 overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500" />
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                                 <Activity size={24} />
