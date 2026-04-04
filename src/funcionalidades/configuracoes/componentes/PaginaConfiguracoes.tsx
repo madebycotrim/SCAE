@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { Botao, CartaoConteudo } from '@/compartilhado/componentes/UI';
-import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorClosed, Fingerprint, Smartphone, Cpu, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorClosed, Fingerprint, Smartphone, Cpu, CheckCircle2, AlertCircle, Settings, Plus, Search, Trash2, Signal } from 'lucide-react';
+import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 
 import { usarConfiguracoesEscola } from '@/compartilhado/hooks/usarConfiguracoesEscola';
 import { createPortal } from 'react-dom';
@@ -18,6 +19,9 @@ export function PaginaConfiguracoes() {
     // --- ESTADO DO AGENTE LOCAL ---
     const [statusAgente, setStatusAgente] = useState<'DESCONHECIDO' | 'RODANDO' | 'AUSENTE'>('DESCONHECIDO');
     const [infoAgente, setInfoAgente] = useState<any>(null);
+    const [modalHardwareAberto, setModalHardwareAberto] = useState(false);
+    const [novoHardware, setNovoHardware] = useState({ id: '', ip: '', porta: '14' });
+    const [adicionando, setAdicionando] = useState(false);
 
     const verificarAgente = async () => {
         try {
@@ -324,8 +328,117 @@ export function PaginaConfiguracoes() {
                         <Botao variante="ghost" tamanho="sm" onClick={verificarAgente} className="border-slate-200">
                             Atualizar Status
                         </Botao>
+                        {statusAgente === 'RODANDO' && (
+                            <Botao variante="primario" tamanho="sm" onClick={() => setModalHardwareAberto(true)}>
+                                Gerenciar Hardware
+                            </Botao>
+                        )}
                     </div>
                 </CartaoConteudo>
+
+                {/* MODAL DE CONFIGURAÇÃO DE HARDWARE LOCAL */}
+                {modalHardwareAberto && (
+                    <ModalUniversal 
+                        titulo="Configurações de Hardware"
+                        subtitulo="Gerencie equipamentos conectados ao seu Agente Local"
+                        icone={Cpu}
+                        aoFechar={() => setModalHardwareAberto(false)}
+                        tamanho="lg"
+                    >
+                        <div className="space-y-6">
+                            <div className="grid gap-3">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dispositivos Ativos</h4>
+                                {infoAgente?.leitores && infoAgente.leitores.length > 0 ? infoAgente.leitores.map((l: any) => (
+                                    <div key={l.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                            <div>
+                                                <p className="text-[11px] font-black text-slate-800 uppercase tracking-tight leading-none">{l.nome}</p>
+                                                <p className="text-[9px] font-mono font-bold text-slate-400 mt-1">{l.ip}:{l.porta}</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{l.tipo}</span>
+                                    </div>
+                                )) : (
+                                    <div className="p-12 border-2 border-dashed border-slate-100 rounded-3xl flex flex-col items-center justify-center text-center">
+                                        <Signal size={32} className="text-slate-200 mb-3" />
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nenhum leitor configurado.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="h-px bg-slate-100" />
+
+                            <div className="bg-indigo-50/40 border border-indigo-100 rounded-3xl p-6 space-y-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Plus size={16} className="text-indigo-600" />
+                                    <h4 className="text-[11px] font-black text-indigo-700 uppercase tracking-widest">Adicionar Novo Hardware</h4>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Identificador (Ex: Portaria)</label>
+                                        <input 
+                                            value={novoHardware.id}
+                                            onChange={e => setNovoHardware({...novoHardware, id: e.target.value})}
+                                            className="w-full px-4 h-10 bg-white border border-indigo-100 rounded-xl text-[11px] font-bold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                                            placeholder="Nome do dispositivo"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Endereço IP Local</label>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                value={novoHardware.ip}
+                                                onChange={e => setNovoHardware({...novoHardware, ip: e.target.value})}
+                                                className="flex-1 px-4 h-10 bg-white border border-indigo-100 rounded-xl text-[11px] font-mono text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                                                placeholder="192.168.1.34"
+                                            />
+                                            <input 
+                                                value={novoHardware.porta}
+                                                onChange={e => setNovoHardware({...novoHardware, porta: e.target.value})}
+                                                className="w-16 px-3 h-10 bg-white border border-indigo-100 rounded-xl text-[11px] font-mono text-slate-800 focus:outline-none"
+                                                placeholder="14"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <Botao 
+                                    variante="primario" 
+                                    className="w-full h-11"
+                                    icone={Search}
+                                    loading={adicionando}
+                                    onClick={async () => {
+                                        if (!novoHardware.id || !novoHardware.ip) return toast.error('Dados incompletos');
+                                        setAdicionando(true);
+                                        try {
+                                            const res = await fetch('http://localhost:1912/config/adicionar', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(novoHardware)
+                                            });
+                                            const data = await res.json();
+                                            if (data.ok) {
+                                                toast.success('Dispositivo adicionado ao Agente!');
+                                                setNovoHardware({ id: '', ip: '', porta: '14' });
+                                                verificarAgente(); // Recarregar lista
+                                            } else throw new Error(data.mensagem);
+                                        } catch (e: any) {
+                                            toast.error('Falha: ' + e.message);
+                                        } finally {
+                                            setAdicionando(false);
+                                        }
+                                    }}
+                                >
+                                    Procurar / Adicionar Dispositivo
+                                </Botao>
+                            </div>
+
+                            <Botao variante="secundario" className="w-full" onClick={() => setModalHardwareAberto(false)}>
+                                Salvar Configurações
+                            </Botao>
+                        </div>
+                    </ModalUniversal>
+                )}
 
 
             </div>
