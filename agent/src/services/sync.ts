@@ -68,7 +68,8 @@ export async function sincronizarCacheAlunos() {
   estaSincronizando = true;
   
   try {
-    console.log('[Sync] Atualizando cache local de alunos e biometria...');
+    const urlSync = `${config.endpoint_worker}/api/agente/download-alunos`;
+    console.log(`[Sync] Conectando ao servidor: ${urlSync}`);
     const resposta = await WorkerApi.buscarSincronizacaoAlunos();
     
     if (!resposta || !resposta.ok) {
@@ -88,9 +89,8 @@ export async function sincronizarCacheAlunos() {
             console.log(`[Sync][Config] Gravando DB local: ${chave} = ${valor}`);
 
             await runSql(`
-                INSERT INTO configuracoes_unidade (chave, valor)
-                VALUES (?, ?)
-                ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = datetime('now', 'localtime')
+                REPLACE INTO configuracoes_unidade (chave, valor, atualizado_em)
+                VALUES (?, ?, datetime('now', 'localtime'))
             `, [chave, valor]);
         }
         console.log('[Sync] Configurações de unidade atualizadas ✓');

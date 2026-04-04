@@ -84,8 +84,10 @@ export function runSql(sql: string, params: any[] = []): Promise<void> {
   const db = getDb();
   return new Promise((resolve, reject) => {
     db.run(sql, params, (err: Error | null) => {
-      if (err) reject(err);
-      else resolve();
+      if (err) {
+        console.error(`[SQLite Error] Query: ${sql} | Erro:`, err.message);
+        reject(err);
+      } else resolve();
     });
   });
 }
