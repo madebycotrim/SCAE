@@ -204,42 +204,40 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                 )}
 
                 <div className="flex gap-4 pt-8 mt-4 border-t border-slate-100 justify-end">
-                    {(ehEdicao || passo === 2 || !temQR) ? (
-                        <>
-                            <Botao variante="secundario" tamanho="lg" onClick={aoFechar} disabled={carregando}>
-                                {(ehEdicao || !temQR) ? 'Cancelar' : 'Voltar'}
-                            </Botao>
-                            {passo === 2 && !ehEdicao && temQR && (
-                                <Botao variante="secundario" tamanho="lg" icone={ArrowLeft} onClick={() => definirPasso(1)} disabled={carregando}>
-                                    Voltar
-                                </Botao>
-                            )}
-                            <Botao
-                                variante="primario"
-                                tamanho="lg"
-                                icone={CheckCircle}
-                                onClick={manipularSalvar}
-                                loading={carregando}
-                                disabled={!dadosFormulario.nome_completo || !dadosFormulario.matricula}
-                            >
-                                {aluno ? 'Salvar Alterações' : 'Finalizar Matrícula'}
-                            </Botao>
-                        </>
+                    {/* Botão de Fechar/Cancelar (Lado Esquerdo) */}
+                    <Botao variante="secundario" tamanho="lg" onClick={aoFechar} disabled={carregando}>
+                        Cancelar
+                    </Botao>
+
+                    {/* Botão de Voltar (Apenas se estiver no Passo 2) */}
+                    {passo === 2 && !ehEdicao && temQR && (
+                        <Botao variante="secundario" tamanho="lg" icone={ArrowLeft} onClick={() => definirPasso(1)} disabled={carregando}>
+                            Anterior
+                        </Botao>
+                    )}
+
+                    {/* Botão de Ação Principal (Seguir ou Salvar) */}
+                    {(!ehEdicao && passo === 1 && temQR) ? (
+                        <Botao 
+                            variante="primario" 
+                            tamanho="lg" 
+                            icone={ArrowRight} 
+                            disabled={!dadosFormulario.nome_completo || !dadosFormulario.matricula}
+                            onClick={() => definirPasso(2)}
+                        >
+                            Segurança
+                        </Botao>
                     ) : (
-                        <>
-                            <Botao variante="secundario" tamanho="lg" onClick={aoFechar} disabled={carregando}>
-                                Cancelar
-                            </Botao>
-                            <Botao 
-                                variante="primario" 
-                                tamanho="lg" 
-                                icone={ArrowRight} 
-                                disabled={!dadosFormulario.nome_completo || !dadosFormulario.matricula}
-                                onClick={() => definirPasso(2)}
-                            >
-                                Segurança
-                            </Botao>
-                        </>
+                        <Botao
+                            variante="primario"
+                            tamanho="lg"
+                            icone={CheckCircle}
+                            onClick={manipularSalvar}
+                            loading={carregando}
+                            disabled={!dadosFormulario.nome_completo || !dadosFormulario.matricula}
+                        >
+                            {aluno ? 'Salvar Alterações' : 'Finalizar Matrícula'}
+                        </Botao>
                     )}
                 </div>
             </div>

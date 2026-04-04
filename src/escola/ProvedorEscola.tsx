@@ -52,7 +52,7 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                     ttsAtivado: dados.tts_ativado ?? dados.ttsAtivado,
                     qrDinamico: dados.config_qr_dinamico ?? dados.qrDinamico,
                     saidaObrigatoria: dados.saida_obrigatoria ?? true,
-                    metodosAcesso: (dados.metodo_acesso || 'QRCODE').split(',').filter(Boolean),
+                    metodosAcesso: (dados.metodo_acesso || 'QRCODE').split(',').map((s: string) => s.trim()).filter(Boolean),
                     logoUrl: dados.logo_url || dados.logoUrl,
                     provedorAuth: dados.provedorAuth || 'google',
                 };
