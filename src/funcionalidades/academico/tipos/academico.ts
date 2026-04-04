@@ -13,6 +13,10 @@ export interface Aluno {
     criado_em: string;
     atualizado_em?: string;
     sincronizado?: number; // 0 para pendente offline, 1 para sincronizado
+    
+    // Biometria Digital
+    biometria_cadastrada?: boolean;
+    biometria_pendente_enroll?: boolean;
 }
 
 /** Interface para Turma (Baseado no IndexedDB) */

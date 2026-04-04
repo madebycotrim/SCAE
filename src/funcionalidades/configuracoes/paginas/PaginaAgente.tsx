@@ -11,9 +11,18 @@ import {
     Terminal,
     Power,
     CheckCircle2,
-    XCircle
+    XCircle,
+    Fingerprint,
+    Search,
+    User,
+    ChevronRight,
+    Loader2
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { usarEscola } from '@/escola/ProvedorEscola';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
+import { alunoServico } from '@/funcionalidades/academico/servicos/aluno.servico';
+import toast from 'react-hot-toast';
 
 interface StatusAgente {
     ok: boolean;
@@ -24,9 +33,58 @@ interface StatusAgente {
 }
 
 export default function PaginaAgente() {
+    const { id: slugEscola } = usarEscola();
     const [status, setStatus] = useState<StatusAgente | null>(null);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
+
+    // Estado para Busca de Alunos
+    const [termoBusca, setTermoBusca] = useState('');
+    const [cadastrandoPara, setCadastrandoPara] = useState<string | null>(null);
+
+    const { dados: dataAlunos } = usarConsulta(
+        ['alunos-agente-busca', slugEscola],
+        () => alunoServico.carregarOnline(),
+        { enabled: !!slugEscola }
+    );
+
+    const alunos = dataAlunos?.alunos || [];
+
+    const alunosFiltrados = termoBusca.length >= 2 
+        ? alunos.filter(a => 
+            a.nome_completo.toLowerCase().includes(termoBusca.toLowerCase()) || 
+            a.matricula.includes(termoBusca)
+          ).slice(0, 5)
+        : [];
+
+    const iniciarCadastroBiometrico = async (matricula: string, nome: string) => {
+        if (!status?.ok) {
+            toast.error('Agente offline. Não é possível iniciar cadastro.');
+            return;
+        }
+
+        setCadastrandoPara(matricula);
+        toast.loading(`Aguardando digital de ${nome.split(' ')[0]}...`, { id: 'enroll-toast' });
+
+        try {
+            const res = await fetch('http://127.0.0.1:1912/enroll', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ aluno_id: matricula })
+            });
+
+            const data = await res.json();
+            if (data.ok) {
+                toast.success('Biometria cadastrada com sucesso!', { id: 'enroll-toast' });
+            } else {
+                toast.error(data.mensagem || 'Falha ao cadastrar biometria.', { id: 'enroll-toast' });
+            }
+        } catch (e) {
+            toast.error('Erro de comunicação com o Agente local.', { id: 'enroll-toast' });
+        } finally {
+            setCadastrandoPara(null);
+        }
+    };
 
     const verificarAgente = async () => {
         setCarregando(true);
@@ -123,6 +181,79 @@ export default function PaginaAgente() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* BUSCA E CADASTRO BIOMÉTRICO */}
+                    <CartaoConteudo className="p-6 border border-slate-200">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                <Fingerprint size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Cadastro Biométrico</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vincular digital ao aluno</p>
+                            </div>
+                        </div>
+
+                        <div className="relative mb-6">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                            <input 
+                                type="text"
+                                placeholder="Busque por nome ou matrícula..."
+                                value={termoBusca}
+                                onChange={(e) => setTermoBusca(e.target.value)}
+                                className="w-full pl-12 pr-4 h-12 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <AnimatePresence>
+                                {alunosFiltrados.length > 0 ? (
+                                    alunosFiltrados.map((aluno) => (
+                                        <motion.div
+                                            key={aluno.matricula}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            className="p-3 bg-white border border-slate-100 rounded-2xl flex items-center justify-between group hover:border-indigo-200 hover:shadow-media-suave transition-all"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                                    <User size={16} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[11px] font-black text-slate-700 uppercase tracking-tight truncate max-w-[150px]">
+                                                        {aluno.nome_completo}
+                                                    </p>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                                        MAT: {aluno.matricula} • {aluno.turma_id || 'SEM TURMA'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <Botao 
+                                                variante={aluno.biometria_cadastrada ? 'secundario' : 'primario'}
+                                                tamanho="sm"
+                                                onClick={() => iniciarCadastroBiometrico(aluno.matricula, aluno.nome_completo)}
+                                                carregando={cadastrandoPara === aluno.matricula}
+                                                disabled={!status?.ok}
+                                            >
+                                                {aluno.biometria_cadastrada ? 'Atualizar Digital' : 'Cadastrar Digital'}
+                                            </Botao>
+                                        </motion.div>
+                                    ))
+                                ) : termoBusca.length >= 2 ? (
+                                    <div className="py-10 text-center opacity-40">
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nenhum aluno encontrado</p>
+                                    </div>
+                                ) : (
+                                    <div className="py-10 text-center opacity-30">
+                                        <Search size={32} className="mx-auto mb-3 text-slate-300" strokeWidth={1} />
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Digite para pesquisar alunos</p>
+                                    </div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </CartaoConteudo>
+
                     {/* Log de Eventos Local */}
                     <CartaoConteudo className="p-0 overflow-hidden border border-slate-200">
                         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
