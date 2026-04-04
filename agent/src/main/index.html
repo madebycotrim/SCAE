@@ -489,12 +489,12 @@
                     const portaFinal = l.porta || 80;
                     return {
                         ...l,
-                        ip: `${ipBase}:${portaFinal}`,
+                        ip: ipBase, 
                         porta: parseInt(portaFinal)
                     };
                 });
 
-                await window.scaeApi.saveConfig({ configHardware: hardwareFormatado });
+                await window.scaeApi.salvarLeitores(hardwareFormatado);
                 showToast('Hardware sincronizado!', 'ok');
                 closeSettings();
             } catch (e) {

@@ -114,6 +114,20 @@ async function createWindow() {
     return false;
   });
 
+  ipcMain.handle('salvar-leitores', async (_event, { leitores }) => {
+    try {
+        console.log('[Agente] Salvando nova configuração de hardware...');
+        const { salvarLeitoresNoDisco } = require('../infra/config');
+        salvarLeitoresNoDisco(leitores);
+        
+        await recarregarLeitores(); // Reinicia conexões no Poller
+        return { ok: true };
+    } catch (e: any) {
+        console.error('[Agente] Falha ao salvar hardware:', e.message);
+        return { ok: false, erro: e.message };
+    }
+  });
+
   ipcMain.handle('listar-alunos', async (_event, { leitorId }) => {
     const leitor = leitoresAtivos.find(l => l.id === leitorId);
     if (leitor && (leitor as any).listarAlunos) return await (leitor as any).listarAlunos();

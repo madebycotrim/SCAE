@@ -48,8 +48,8 @@ let configBase: AgenteConfig = {
 
   ],
   intervalo_polling_ms: 1000,
-  intervalo_sync_ms: 5000,
-  endpoint_worker: process.env.CATRAKI_TUNNEL_URL || process.env.CATRAKI_API_URL || 'https://scae.pages.dev',
+  intervalo_sync_ms: 10000,
+  endpoint_worker: process.env.CATRAKI_API_URL || 'http://localhost:8788',
 
   agente_token: process.env.CATRAKI_AGENTE_TOKEN || 'catraki_dev_token',
   admin_pin: process.env.CATRAKI_ADMIN_PIN || '123456'
