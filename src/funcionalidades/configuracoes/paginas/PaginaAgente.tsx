@@ -55,7 +55,7 @@ export default function PaginaAgente() {
     const [termoBusca, setTermoBusca] = useState('');
     const [cadastrandoPara, setCadastrandoPara] = useState<string | null>(null);
 
-    const { dados: dataAlunos, refetch: atualizarAlunos } = usarConsulta(
+    const { dados: dataAlunos, recarregar: atualizarAlunos } = usarConsulta(
         ['alunos-agente-busca', slugEscola],
         () => alunoServico.carregarOnline(),
         { enabled: !!slugEscola }
@@ -125,46 +125,66 @@ export default function PaginaAgente() {
 
     return (
         <LayoutAdministrativo
-            titulo="Controle de Biometria"
-            subtitulo="Gerencie os leitores e o cadastro de digitais"
+            titulo="Gestão de Biometria"
+            subtitulo="Controle de acesso e cadastro de digitais em tempo real"
         >
             <div className="space-y-6">
-                {/* 1. BARRA DE STATUS RAPIDA */}
-                <div className="flex flex-col md:flex-row gap-4 items-stretch">
-                    <CartaoConteudo className={`flex-1 p-4 border-l-4 transition-colors ${status?.ok ? 'border-emerald-500' : 'border-rose-500'}`}>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-3 h-3 rounded-full ${status?.ok ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                                <div>
-                                    <h3 className="text-xs font-black uppercase text-slate-800 tracking-tight">
-                                        {status?.ok ? 'SISTEMA DE BIOMETRIA ATIVO' : 'SISTEMA LOCAL OFF-LINE'}
-                                    </h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                        {status?.ok ? `Pronto para uso na porta 1912` : 'Abra o app Catraki no computador da portaria'}
-                                    </p>
-                                </div>
+                {/* 1. MÉTRICAS DE FLUXO (CABEÇALHO) */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <CartaoConteudo className="p-4 bg-slate-900 text-white border-none shadow-lg">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                                <ArrowUp size={20} />
                             </div>
-                            {status?.ok && (
-                                <div className="flex gap-4">
-                                    <div className="text-right">
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">ENTRADAS HOJE</p>
-                                        <p className="text-lg font-black text-indigo-600 leading-none">{status?.stats?.entradas || 0}</p>
-                                    </div>
-                                    <div className="text-right border-l border-slate-100 pl-4">
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight">NEGADOS</p>
-                                        <p className="text-lg font-black text-rose-500 leading-none">{status?.stats?.negados || 0}</p>
-                                    </div>
-                                </div>
-                            )}
+                            <div>
+                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Entradas</p>
+                                <h4 className="text-xl font-black leading-none">{status?.stats?.entradas || 0}</h4>
+                            </div>
+                        </div>
+                    </CartaoConteudo>
+
+                    <CartaoConteudo className="p-4 bg-slate-900 text-white border-none shadow-lg">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                                <XCircle size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Negados</p>
+                                <h4 className="text-xl font-black leading-none">{status?.stats?.negados || 0}</h4>
+                            </div>
+                        </div>
+                    </CartaoConteudo>
+
+                    <CartaoConteudo className="p-4 bg-slate-900 text-white border-none shadow-lg">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                                <Clock size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Pico</p>
+                                <h4 className="text-xl font-black leading-none text-slate-300">--:--</h4>
+                            </div>
+                        </div>
+                    </CartaoConteudo>
+
+                    <CartaoConteudo className="p-4 bg-slate-900 text-white border-none shadow-lg">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                                <Activity size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Último</p>
+                                <h4 className="text-xl font-black leading-none">{status?.stats?.ultimoAcesso || '--:--'}</h4>
+                            </div>
                         </div>
                     </CartaoConteudo>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* 2. AREA DE CADASTRO (PRINCIPAL) */}
+                    {/* 2. ÁREA DE CADASTRO (PRINCIPAL) */}
                     <div className="lg:col-span-2 space-y-4">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] px-2">Vincular Digitais de Alunos</h4>
-                        <CartaoConteudo className="p-6">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] px-2 text-center md:text-left">Pesquisar Aluno para Cadastro</h4>
+                        <CartaoConteudo className="p-6 border-slate-200">
                             <div className="relative mb-6">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                 <input 
