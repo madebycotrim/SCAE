@@ -150,8 +150,7 @@ CREATE TABLE registros_acesso (
     timestamp DATETIME,                
     sincronizado INTEGER DEFAULT 1,
     PRIMARY KEY (id, escola_id),
-    FOREIGN KEY (escola_id) REFERENCES escolas(id),
-    FOREIGN KEY (aluno_matricula, escola_id) REFERENCES alunos(matricula, escola_id) ON DELETE CASCADE
+    FOREIGN KEY (escola_id) REFERENCES escolas(id)
 );
 CREATE INDEX idx_registros_acesso_data ON registros_acesso(timestamp_acesso DESC, escola_id);
 

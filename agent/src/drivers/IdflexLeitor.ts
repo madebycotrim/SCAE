@@ -50,16 +50,24 @@ export class IdflexLeitor implements ILeitor {
 
   /** Busca o nome configurado na interface web do iDFlex */
   async getNomeDispositivo(): Promise<string | undefined> {
+    console.log(`[iDFlex][${this.id}] Verificando identidade real no hardware...`);
+
     // Tentativa 1: Formato padrão 5.x
     try {
       const r = await this.requisitarComToken('get_configuration.fcgi', { general: ["name"] });
-      if (r?.general?.name) return r.general.name;
+      if (r?.general?.name) {
+          console.log(`[iDFlex][${this.id}] Nome real encontrado: ${r.general.name}`);
+          return r.general.name;
+      }
     } catch {}
 
     // Tentativa 2: Hostname nas informações de sistema
     try {
       const r = await this.requisitarComToken('system_information.fcgi');
-      if (r?.hostname && r.hostname !== 'idflex') return r.hostname;
+      if (r?.hostname && r.hostname !== 'idflex') {
+          console.log(`[iDFlex][${this.id}] Hostname encontrado: ${r.hostname}`);
+          return r.hostname;
+      }
     } catch {}
 
     // Tentativa 3: Objeto General completo
@@ -74,6 +82,7 @@ export class IdflexLeitor implements ILeitor {
       if (r?.general?.name) return r.general.name;
     } catch {}
 
+    console.warn(`[iDFlex][${this.id}] Hardware não possui nome customizado. Usando nome local.`);
     return undefined;
   }
 
