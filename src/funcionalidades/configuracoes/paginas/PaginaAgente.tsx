@@ -41,7 +41,8 @@ interface StatusAgente {
 }
 
 export default function PaginaAgente() {
-    const { id: slugEscola } = usarEscola();
+    const escola = usarEscola();
+    const slugEscola = escola.id;
     const [status, setStatus] = useState<StatusAgente | null>(null);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
@@ -51,6 +52,48 @@ export default function PaginaAgente() {
     const [cadastrandoPara, setCadastrandoPara] = useState<string | null>(null);
     // Estado para "enganar" o cache até o servidor atualizar (Melhoria de Cache UI)
     const [biometriasConfirmadas, setBiometriasConfirmadas] = useState<Set<string>>(new Set());
+
+    // --- ESTADOS DE CONFIGURAÇÃO DE VOZ ---
+    const [ttsAtivado, setTtsAtivado] = useState(escola?.ttsAtivado || false);
+    const [ttsFraseSucesso, setTtsFraseSucesso] = useState(escola?.ttsFraseSucesso || 'Bem-vindo, {nome}!');
+    const [ttsFraseErro, setTtsFraseErro] = useState(escola?.ttsFraseErro || 'Acesso negado.');
+    const [salvandoConfig, setSalvandoConfig] = useState(false);
+
+    /**
+     * Salva as preferências de voz no servidor (D1 + KV)
+     */
+    const salvarPreferenciasVoz = async () => {
+        setSalvandoConfig(true);
+        const toastId = toast.loading('Gravando configurações na nuvem...');
+
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || '/api';
+            // ⚡ PATCH /api/central/escolas/[id]
+            const res = await fetch(`${apiUrl}/central/escolas/${escola.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tts_ativado: ttsAtivado,
+                    config_tts_frase_sucesso: ttsFraseSucesso,
+                    config_tts_frase_erro: ttsFraseErro
+                })
+            });
+
+            if (!res.ok) throw new Error('Falha ao salvar no servidor central');
+
+            toast.success('Configurações salvas!', { id: toastId });
+
+            // ⚡ Avisa o Agente Local para sincronizar AGORA (Force Sync)
+            try {
+                await fetch('http://127.0.0.1:1912/sync-now', { method: 'POST' });
+            } catch { /* Agente local offline */ }
+
+        } catch (e) {
+            toast.error('Erro ao salvar no servidor.', { id: toastId });
+        } finally {
+            setSalvandoConfig(false);
+        }
+    };
 
     const { dados: dataAlunos, recarregar: atualizarAlunos } = usarConsulta(
         ['alunos-agente-busca', slugEscola],
@@ -379,6 +422,79 @@ export default function PaginaAgente() {
                                     )}
                                 </AnimatePresence>
                             </div>
+                        </div>
+
+                        {/* CONFIGURAÇÕES DE VOZ (NOVO QUADRO) */}
+                        <div className="space-y-4">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] px-2 flex items-center gap-2">
+                                <Settings size={12} className="text-slate-400" />
+                                Saudação por Voz (TTS)
+                            </h4>
+                            <CartaoConteudo className="p-5 border-slate-200">
+                                <div className="space-y-5">
+                                    {/* Toggle Geral */}
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-800 uppercase tracking-tight">Voz do Sistema</p>
+                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ativar anúncios por voz no hardware</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => setTtsAtivado(!ttsAtivado)}
+                                            className={`w-12 h-6 rounded-full transition-all relative ${ttsAtivado ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${ttsAtivado ? 'left-7' : 'left-1'}`} />
+                                        </button>
+                                    </div>
+
+                                    {/* Inputs de Texto */}
+                                    <AnimatePresence>
+                                        {ttsAtivado && (
+                                            <motion.div 
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="space-y-3 overflow-hidden"
+                                            >
+                                                <div>
+                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Frase de Sucesso</label>
+                                                    <input 
+                                                        type="text"
+                                                        value={ttsFraseSucesso}
+                                                        onChange={(e) => setTtsFraseSucesso(e.target.value)}
+                                                        placeholder="Ex: Bem-vindo, {nome}!"
+                                                        className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-[11px] font-bold focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Frase de Erro</label>
+                                                    <input 
+                                                        type="text"
+                                                        value={ttsFraseErro}
+                                                        onChange={(e) => setTtsFraseErro(e.target.value)}
+                                                        placeholder="Ex: Acesso Negado."
+                                                        className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-[11px] font-bold focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300"
+                                                    />
+                                                </div>
+                                                <div className="p-2 bg-indigo-50 rounded-lg">
+                                                    <p className="text-[8px] font-bold text-indigo-500 leading-relaxed uppercase">
+                                                        <span className="font-black">Dica:</span> Use <span className="text-indigo-800 bg-white px-1 rounded">{`{nome}`}</span> para no local do nome do aluno.
+                                                    </p>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    <Botao 
+                                        onClick={salvarPreferenciasVoz}
+                                        carregando={salvandoConfig}
+                                        variante="primario" 
+                                        icone={Save}
+                                        className="w-full"
+                                    >
+                                        Salvar Configurações
+                                    </Botao>
+                                </div>
+                            </CartaoConteudo>
                         </div>
                     </div>
                 </div>

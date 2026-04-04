@@ -24,8 +24,7 @@ export const WorkerApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Escola-ID': config.escola_id,
-          'Authorization': `Bearer ${config.agente_token}`
+          'X-Escola-ID': config.escola_id
         },
         body: JSON.stringify({ registros })
       });
@@ -50,8 +49,7 @@ export const WorkerApi = {
       const url = `${config.endpoint_worker}/api/agente/download-alunos?t=${Date.now()}`;
       const resp = await fetch(url, {
         headers: {
-          'X-Escola-ID': config.escola_id,
-          'Authorization': `Bearer ${config.agente_token}`
+          'X-Escola-ID': config.escola_id
         }
       });
       
@@ -65,7 +63,7 @@ export const WorkerApi = {
       console.warn('[WorkerApi] Tentando fallback para servidor local (8788)...');
       try {
         const localResp = await fetch(`http://localhost:8788/api/agente/download-alunos`, {
-          headers: { 'X-Escola-ID': config.escola_id, 'Authorization': `Bearer ${config.agente_token}` }
+          headers: { 'X-Escola-ID': config.escola_id }
         });
         if (localResp.ok) {
            const localData = await localResp.json();
@@ -85,8 +83,7 @@ export const WorkerApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Escola-ID': config.escola_id,
-          'Authorization': `Bearer ${config.agente_token}`
+          'X-Escola-ID': config.escola_id
         },
         body: JSON.stringify({ 
           timestamp: new Date().toISOString(),
@@ -98,7 +95,7 @@ export const WorkerApi = {
       try {
         await fetch(`http://localhost:8788/api/agente/heartbeat`, {
           method: 'POST',
-          headers: { 'X-Escola-ID': config.escola_id, 'Authorization': `Bearer ${config.agente_token}` },
+          headers: { 'X-Escola-ID': config.escola_id },
           body: JSON.stringify({ leitores })
         });
       } catch {}
@@ -118,8 +115,7 @@ export const WorkerApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Escola-ID': config.escola_id,
-          'Authorization': `Bearer ${config.agente_token}`
+          'X-Escola-ID': config.escola_id
         },
         body: JSON.stringify({ matricula })
       });
@@ -135,8 +131,7 @@ export const WorkerApi = {
     try {
       const resp = await fetch(`${config.endpoint_worker}/api/agente/configuracoes`, {
         headers: {
-          'X-Escola-ID': config.escola_id,
-          'Authorization': `Bearer ${config.agente_token}`
+          'X-Escola-ID': config.escola_id
         }
       });
       if (!resp.ok) return null;

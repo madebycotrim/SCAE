@@ -18,6 +18,8 @@ export interface PerfilEscola {
     nomeDPO?: string;
     qrDinamico: boolean;
     saidaObrigatoria: boolean;
+    ttsFraseSucesso?: string;
+    ttsFraseErro?: string;
     metodosAcesso: string[];  // ['QRCODE', 'DIGITAL']
     provedorAuth: 'google' | 'microsoft';
 }
@@ -51,6 +53,8 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                     corSecundaria: dados.cor_secundaria || dados.corSecundaria,
                     ttsAtivado: dados.tts_ativado ?? dados.ttsAtivado,
                     qrDinamico: dados.config_qr_dinamico ?? dados.qrDinamico,
+                    ttsFraseSucesso: dados.config_tts_frase_sucesso || dados.ttsFraseSucesso,
+                    ttsFraseErro: dados.config_tts_frase_erro || dados.ttsFraseErro,
                     saidaObrigatoria: dados.saida_obrigatoria ?? true,
                     metodosAcesso: (dados.metodoAcesso || dados.metodo_acesso || 'QRCODE').split(',').map((s: string) => s.trim()).filter(Boolean),
                     logoUrl: dados.logo_url || dados.logoUrl,

@@ -1,22 +1,21 @@
 /**
  * services/sync.ts
  * Orquestrador de Sincronização Bidirecional (Local <-> Cloudflare).
- * Versão Assíncrona (SQLite3).
  */
 
 import { config } from '../infra/config';
 import { runSql, allSql } from '../infra/db';
 import { WorkerApi } from './worker-endpoint';
 import { leitoresAtivos } from './poller';
-import { DadosAluno } from '../drivers/ILeitor';
+
+let estaSincronizando = false;
 
 /** Ciclo principal de sincronização periódica (Background Polling) */
 export function iniciarSync() {
-  // Sincroniza logo no boot
   sincronizarCacheAlunos();
   sincronizarRegistrosPendentes();
   
-  // Envia o primeiro sinal de vida imediatamente
+  // Heartbeat inicial
   const statusBoot = leitoresAtivos.map(l => ({
       id: l.id,
       nome: l.nome,
@@ -24,33 +23,17 @@ export function iniciarSync() {
   }));
   WorkerApi.enviarStatus(statusBoot);
   
-  // Tenta sincronizar a cada 15 segundos (O Dashboard também força via /sync-now ao salvar)
+  // Cache de Alunos (15s)
   setInterval(async () => {
-    try {
-      await sincronizarCacheAlunos();
-    } catch (e) {
-      console.error('[Sync] Falha na atualização do cache/configurações:', e);
-    }
+    try { await sincronizarCacheAlunos(); } catch (e) { console.error('[Sync] Falha cache:', e); }
   }, 15 * 1000);
 
-  // Sincronização de saída (Registros de acesso - a cada 5 segundos)
+  // Batidas Pendentes (10s)
   setInterval(async () => {
-    try {
-      await sincronizarRegistrosPendentes();
-    } catch (e) {
-      console.error('[Sync] Falha na sincronização de saída:', e);
-    }
-  }, config.intervalo_sync_ms);
-
-  setInterval(async () => {
-    try {
-      await sincronizarCacheAlunos();
-    } catch (e) {
-      console.error('[Sync] Falha na atualização do cache/configurações:', e);
-    }
+    try { await sincronizarRegistrosPendentes(); } catch (e) { console.error('[Sync] Falha registros:', e); }
   }, 10 * 1000);
 
-  // Heartbeat de status (A cada 30 segundos) informado à nuvem quais sensores estão online
+  // Status/Heartbeat (30s)
   setInterval(() => {
     const statusLimpo = leitoresAtivos.map(l => ({
         id: l.id,
@@ -60,57 +43,24 @@ export function iniciarSync() {
     WorkerApi.enviarStatus(statusLimpo);
   }, 30 * 1000);
 
-  // Execução inicial
   sincronizarRegistrosPendentes();
   sincronizarCacheAlunos();
 }
 
-/** Sincroniza as preferências globais da escola para o Agente Local */
-async function sincronizarConfiguracoesUnidade() {
-  console.log('[Sync] Sincronizando configurações da escola...');
-  const configs = await WorkerApi.buscarConfiguracoesUnidade();
-  
-  if (configs) {
-    // Salva cada chave no SQLite local
-    const chaves = Object.keys(configs);
-    for (const chave of chaves) {
-        const valor = typeof configs[chave] === 'object' ? JSON.stringify(configs[chave]) : String(configs[chave]);
-        await runSql(`
-            INSERT INTO configuracoes_unidade (chave, valor)
-            VALUES (?, ?)
-            ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = datetime('now', 'localtime')
-        `, [chave, valor]);
-    }
-    console.log('[Sync] Configurações atualizadas ✓');
-  }
-}
-
-/** Varre o SQLite local em busca de batidas ainda não enviadas para a nuvem */
+/** Envia batidas offline para a nuvem */
 async function sincronizarRegistrosPendentes() {
-  const pendentes = await allSql(`
-    SELECT * FROM registros_acesso 
-    WHERE sincronizado = 0 
-    ORDER BY timestamp_acesso ASC 
-    LIMIT 100
-  `);
-
+  const pendentes = await allSql(`SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 100`);
   if (pendentes.length === 0) return;
 
-  console.log(`[Sync] Enviando lote de ${pendentes.length} registros para a Cloudflare...`);
-
-  // Enviar para o Worker API
+  console.log(`[Sync] Enviando ${pendentes.length} registros offline...`);
   const ok = await WorkerApi.enviarBatida(pendentes);
 
   if (ok) {
-    // Marcar como sincronizados para não enviar novamente
     for (const p of pendentes) {
       await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
     }
-    console.log('[Sync] Lote sincronizado com sucesso ✓');
   }
 }
-
-let estaSincronizando = false;
 
 /** Baixa novos alunos e biometria da nuvem para o cache local */
 export async function sincronizarCacheAlunos() {
@@ -119,137 +69,49 @@ export async function sincronizarCacheAlunos() {
   
   try {
     console.log('[Sync] Atualizando cache local de alunos e biometria...');
-    console.log(`[Sync] Iniciando requisição para: ${config.endpoint_worker}/api/agente/download-alunos ...`);
     const resposta = await WorkerApi.buscarSincronizacaoAlunos();
     
-    if (!resposta) {
-        console.warn('[Sync] Falha CRÍTICA: Resposta do WorkerApi foi NULA (Possível erro de conexão/DNS)');
-        return;
-    }
-    
-    if (!resposta.ok) {
-        console.warn(`[Sync] O Worker respondeu, mas com ERRO. Status OK: ${resposta.ok}`);
+    if (!resposta || !resposta.ok) {
+        console.warn('[Sync] Falha ao contatar servidor de sincronização.');
         return;
     }
 
     const { alunos: alunosServidor, configuracoes: configs } = resposta;
-    console.log(`[Sync] Resposta recebida! Alunos: ${alunosServidor?.length || 0} | Configurações:`, JSON.stringify(configs, null, 2));
+    console.log(`[Sync] Configurações recebidas:`, JSON.stringify(configs));
 
-  // 1. Atualizar Configurações da Unidade (Dessa forma unificamos o tráfego)
-  if (configs) {
-    const chaves = Object.keys(configs);
-    for (const chave of chaves) {
-        let rawValor = (configs as any)[chave];
-        
-        // --- 🛡️ TRATAMENTO DE VALOR NULO/UNDEFINED ---
-        if (rawValor === undefined || rawValor === null) {
-            console.log(`[Sync] Pulando chave ${chave} (Valor Nulo/Undefined)`);
-            continue;
+    // 1. Atualizar Configurações da Unidade
+    if (configs) {
+        for (const [chave, rawValor] of Object.entries(configs)) {
+            if (rawValor === undefined || rawValor === null) continue;
+            
+            const valor = typeof rawValor === 'object' ? JSON.stringify(rawValor) : String(rawValor);
+            console.log(`[Sync][Config] Gravando DB local: ${chave} = ${valor}`);
+
+            await runSql(`
+                INSERT INTO configuracoes_unidade (chave, valor)
+                VALUES (?, ?)
+                ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = datetime('now', 'localtime')
+            `, [chave, valor]);
         }
+        console.log('[Sync] Configurações de unidade atualizadas ✓');
+    }
 
-        const valor = typeof rawValor === 'object' ? JSON.stringify(rawValor) : String(rawValor);
-        
-        console.log(`[Sync] Chave: ${chave} | Valor Destino: "${valor}"`);
-
+    // 2. Atualizar cache de alunos
+    for (const a of (alunosServidor as any[])) {
         await runSql(`
-            INSERT INTO configuracoes_unidade (chave, valor)
-            VALUES (?, ?)
-            ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = datetime('now', 'localtime')
-        `, [chave, valor]);
+            INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(matricula, escola_id) DO UPDATE SET
+                nome_completo = excluded.nome_completo,
+                turma_id = excluded.turma_id,
+                ativo = excluded.ativo,
+                atualizado_em = datetime('now', 'localtime')
+        `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo]);
     }
-    console.log('[Sync] Configurações de unidade atualizadas via Sync Alunos ✓');
-  }
 
-  // 2. Atualizar cache de alunos via Upsert
-  for (const a of (alunosServidor as any[])) {
-    await runSql(`
-      INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(matricula, escola_id) DO UPDATE SET
-        nome_completo = excluded.nome_completo,
-        turma_id = excluded.turma_id,
-        ativo = excluded.ativo,
-        atualizado_em = datetime('now', 'localtime')
-    `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo]);
-
-    // Injetar nos leitores físicos se o aluno estiver ativo
-    if (a.ativo && leitoresAtivos.length > 0) {
-      
-      // --- Auditoria de Biometria (Hardware -> Cloud) ---
-      // Se a nuvem diz que não tem biometria, mas o hardware diz que tem, sincronizamos.
-      if (!a.biometria_cadastrada) {
-        for (const leitor of leitoresAtivos) {
-          if ((leitor as any).verificarBiometriaNoHardware) {
-            try {
-              const temFisica = await (leitor as any).verificarBiometriaNoHardware(a.matricula);
-              if (temFisica) {
-                console.log(`[Sync] Auditoria: Aluno ${a.matricula} tem digital no hardware mas não no cloud. Corrigindo...`);
-                await WorkerApi.confirmarBiometria(a.matricula);
-                break; // Um leitor confirmou, já podemos atualizar o cloud
-              }
-            } catch (err) { /* Falha na checagem silenciosa */ }
-          }
-        }
-      }
-
-      const dados: DadosAluno = { matricula: a.matricula, nomeCompleto: a.nome_completo };
-      for (const leitor of leitoresAtivos) {
-        try {
-          await leitor.cadastrarAluno(dados);
-        } catch (e) {
-          console.error(`[Sync] Erro ao cadastrar aluno ${a.matricula} no leitor ${leitor.id}:`, e);
-        }
-      }
-    } else if (!a.ativo && leitoresAtivos.length > 0) {
-       // Remover do hardware se inativado na nuvem
-       for (const leitor of leitoresAtivos) {
-         try { await leitor.removerAluno(a.matricula); } catch {}
-       }
-    }
-  }
-
-  // --- Limpeza de Alunos Deletados na Nuvem (Faxina de Cache/Hardware) ---
-  const matriculasNuvem = new Set((alunosServidor as any[]).map((a: any) => a.matricula));
-  const cacheLocal = await allSql(`SELECT matricula FROM alunos_cache WHERE escola_id = ?`, [config.escola_id]);
-  
-  for (const local of cacheLocal) {
-    if (!matriculasNuvem.has(local.matricula)) {
-       console.log(`[Sync] Aluno ${local.matricula} removido na nuvem. Limpando hardware e cache local...`);
-       
-       for (const leitor of leitoresAtivos) {
-         try { await leitor.removerAluno(local.matricula); } catch {}
-       }
-
-       await runSql(`DELETE FROM alunos_cache WHERE matricula = ? AND escola_id = ?`, [local.matricula, config.escola_id]);
-    }
-  }
-
-  // --- 3. Auditoria de Saneamento (Inteligência Autônoma) ---
-  if (leitoresAtivos.length > 0) {
-      for (const leitor of leitoresAtivos) {
-          if ((leitor as any).obterMapaBiometriaHardware) {
-              // 1. Carrega todos os IDs que têm biometria no hardware (D1 CALL UNIFICADA)
-              const idsHardware = await (leitor as any).obterMapaBiometriaHardware();
-              
-              const enviando = [];
-              for (const u of (alunosServidor as any[])) {
-                  const idNum = parseInt(u.matricula, 10);
-                  const temNoHardware = idsHardware.has(idNum);
-                  
-                  if (temNoHardware && !u.biometria_cadastrada) {
-                      console.log(`[Sync][Auditoria] Corrigindo status de ${u.matricula} (Confirmando biometria física)...`);
-                      enviando.push(WorkerApi.confirmarBiometria(u.matricula));
-                  }
-              }
-              // Resolve em lotes se necessário (pode crescer depois)
-              if (enviando.length > 0) await Promise.all(enviando);
-          }
-      }
-  }
-
-  console.log(`[Sync] Cache local sincronizado e injetado no hardware para ${alunosServidor.length} alunos.`);
+    console.log(`[Sync] Cache local sincronizado para ${alunosServidor.length} alunos.`);
   } catch (e) {
-    console.error('[Sync] Falha na sincronização:', e);
+    console.error('[Sync] Falha grave na sincronização:', e);
   } finally {
     estaSincronizando = false;
   }

@@ -14,12 +14,13 @@ export class NotificadorVoz {
    * Enuncia uma mensagem para o ambiente escolar.
    */
   async falar(mensagem: string, prioridade: boolean = true) {
-    if (!this.window) return;
-
+    if (!this.window || this.window.isDestroyed()) return;
+    const safeMsg = mensagem.replace(/"/g, "'").replace(/(\r\n|\n|\r)/gm, "");
+    
     const script = `
       if (window.speechSynthesis) {
         if (${prioridade}) window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance("${mensagem}");
+        const utterance = new SpeechSynthesisUtterance("${safeMsg}");
         utterance.lang = 'pt-BR';
         utterance.rate = 1.0;
         utterance.pitch = 1.1;
@@ -53,9 +54,10 @@ export class NotificadorVoz {
       // 2. Decide qual frase usar com base no tipo de acesso
       const chaveFrase = ehSucesso ? 'ttsFraseSucesso' : 'ttsFraseErro';
       const configFrase = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', [chaveFrase]);
+      console.log(`[TTS Check] Chave: ${chaveFrase} | Valor Banco: "${configFrase?.valor}"`);
       
       // 3. Monta a mensagem final (com fallbacks)
-      let msg = configFrase?.valor;
+      let msg = configFrase?.valor || '';
       
       if (!msg || msg === 'undefined') {
           msg = ehSucesso ? 'Bem-vindo, {nome}!' : 'Acesso negado.';

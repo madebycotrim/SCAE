@@ -29,7 +29,6 @@ export interface AgenteConfig {
   intervalo_polling_ms: number;
   intervalo_sync_ms: number;
   endpoint_worker: string;
-  agente_token: string;
   admin_pin: string; // Senha mestre para acesso local/configuração
 }
 
@@ -51,7 +50,6 @@ let configBase: AgenteConfig = {
   intervalo_sync_ms: 10000,
   endpoint_worker: process.env.CATRAKI_API_URL || 'http://localhost:8788',
 
-  agente_token: process.env.CATRAKI_AGENTE_TOKEN || 'catraki_dev_token',
   admin_pin: process.env.CATRAKI_ADMIN_PIN || '123456'
 };
 

@@ -1,22 +1,11 @@
-import { ErroPermissao } from '../erros';
 import { extrairEscolaId } from '../_seguranca';
 
 /**
- * Valida se a requisição veio de um Agente Local autorizado.
- * Usa um token fixo compartilhado definido no Environment.
+ * Valida se a requisição veio de um Agente Local.
+ * Simplificado: Identifica apenas pelo Header X-Escola-ID.
  */
-export function validarAgente(request: Request, env: any) {
-    const authHeader = request.headers.get('Authorization');
-    const tokenEsperado = env.CATRAKI_AGENTE_TOKEN;
-
-    if (!tokenEsperado) {
-        console.error('[Agente] Erro de Servidor: CATRAKI_AGENTE_TOKEN não está configurado na Cloudflare.');
-        throw new Error('Erro de configuração de segurança central.');
-    }
-
-    if (!authHeader || authHeader !== `Bearer ${tokenEsperado}`) {
-        throw new ErroPermissao('Token de Agente inválido ou ausente.');
-    }
-
+export function validarAgente(request: Request, _env: any) {
+    // Por enquanto, apenas extraímos o ID da escola do header.
+    // Como é ambiente de dev/solo, removemos a validação de Bearer Token.
     return extrairEscolaId(request);
 }

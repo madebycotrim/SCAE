@@ -14,6 +14,8 @@ const esquemaUpdateEscola = z.object({
     logo_url: z.string().nullable().optional(),
     config_qr_dinamico: z.boolean().optional(),
     tts_ativado: z.boolean().optional(),
+    config_tts_frase_sucesso: z.string().optional(),
+    config_tts_frase_erro: z.string().optional(),
     saida_obrigatoria: z.boolean().optional(),
     metodo_acesso: z.string().optional(),
     limite_alunos: z.number().int().positive().optional(),
@@ -35,6 +37,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         const escola = await contexto.env.DB_SCAE.prepare(`
             SELECT id, nome_escola, dominio_email, provedor_auth, cor_primaria, cor_secundaria, logo_url,
                    chave_publica_ecdsa, config_qr_dinamico, tts_ativado, saida_obrigatoria,
+                   config_tts_frase_sucesso, config_tts_frase_erro,
                    metodo_acesso, limite_alunos, limite_terminais, retencao_dados,
                    contato_suporte, status, janelas, criado_em
             FROM escolas WHERE id = ?
@@ -93,6 +96,8 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
         if (dados.logo_url !== undefined) { campos.push('logo_url = ?'); valores.push(dados.logo_url); }
         if (dados.config_qr_dinamico !== undefined) { campos.push('config_qr_dinamico = ?'); valores.push(dados.config_qr_dinamico ? 1 : 0); }
         if (dados.tts_ativado !== undefined) { campos.push('tts_ativado = ?'); valores.push(dados.tts_ativado ? 1 : 0); }
+        if (dados.config_tts_frase_sucesso !== undefined) { campos.push('config_tts_frase_sucesso = ?'); valores.push(dados.config_tts_frase_sucesso); }
+        if (dados.config_tts_frase_erro !== undefined) { campos.push('config_tts_frase_erro = ?'); valores.push(dados.config_tts_frase_erro); }
         if (dados.saida_obrigatoria !== undefined) { campos.push('saida_obrigatoria = ?'); valores.push(dados.saida_obrigatoria ? 1 : 0); }
         if (dados.metodo_acesso !== undefined) { campos.push('metodo_acesso = ?'); valores.push(dados.metodo_acesso); }
         if (dados.limite_alunos !== undefined) { campos.push('limite_alunos = ?'); valores.push(dados.limite_alunos); }
