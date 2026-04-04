@@ -7,11 +7,11 @@ import { iniciarSync, sincronizarCacheAlunos } from '../services/sync';
 import { runSql, getSql } from '../infra/db';
 import { config } from '../infra/config';
 import { stats } from '../infra/stats';
-import { NotificadorVoz } from '../services/notificador-voz';
+
 import { buscarIpLocal } from '../utils/rede';
 
 let mainWindow: BrowserWindow | null = null;
-let notificador: NotificadorVoz | null = null;
+
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
@@ -58,10 +58,7 @@ async function createWindow() {
             console.log('[Agente] Sincronização em tempo real solicitada pelo Dashboard!');
             await sincronizarCacheAlunos();
             
-            // 🎙️ Feedback Vocal de Teste (Confirma que o TTS está OK e sincronizado)
-            if (notificador) {
-                await notificador.falar('Configurações atualizadas!');
-            }
+
 
             res.writeHead(200); res.end(JSON.stringify({ ok: true }));
         } catch (e) {
@@ -127,11 +124,9 @@ async function createWindow() {
 
                     if (statusAcesso === 'ENTRADA') {
                         leitor.emitirBeep();
-                        if (notificador) notificador.anunciarAcesso(nomeParaExibir, 'ENTRADA');
                     } else {
                         if (leitor.emitirBeepErro) leitor.emitirBeepErro();
                         else leitor.emitirBeep();
-                        if (notificador) notificador.anunciarAcesso(nomeParaExibir, 'NEGADO');
                     }
 
                     if (mainWindow) {
@@ -188,17 +183,13 @@ app.whenReady().then(async () => {
   console.log('[Agente] Aplicação Electron pronta!');
   await createWindow();
   
-  notificador = new NotificadorVoz(mainWindow);
-  console.log('[Agente] Motor de Voz (TTS) inicializado.');
+
   
-  // 🔊 TESTE DE VOZ NO BOOT (Para diagnosticar se o Windows/Electron está OK)
-  setTimeout(() => {
-    notificador?.falar('Sistema de voz ativo');
-  }, 3000);
+
 
   try {
     console.log('[Agente] Iniciando Polling dos equipamentos...');
-    iniciarPolling(notificador);
+    iniciarPolling(null);
     enviarStatusHardware();
     
     console.log('[Agente] Iniciando Sincronizador de Nuvem...');

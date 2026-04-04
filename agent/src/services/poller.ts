@@ -7,7 +7,7 @@
 import { ILeitor, EventoAcesso } from '../drivers/ILeitor';
 import { runSql, getSql } from '../infra/db';
 import { stats } from '../infra/stats';
-import { NotificadorVoz } from './notificador-voz';
+
 import { buscarIpLocal } from '../utils/rede';
 import { IdflexLeitor } from '../drivers/IdflexLeitor';
 import { config } from '../infra/config';
@@ -85,12 +85,10 @@ async function monitorarLeitor(leitor: ILeitor) {
           const aluno = await getSql('SELECT nome_completo FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
           
           if (aluno?.nome_completo) {
-            notificadorGlobal.anunciarAcesso(`${aluno.nome_completo}`, ev.tipo);
             stats.registrarAcesso(aluno.nome_completo, String(matriculaParaBusca), ev.tipo);
           } else {
             const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';
             const nomeExibicao = ev.nomeHardware || `DESCONHECIDO (${ev.idUsuario})`;
-            notificadorGlobal.anunciarAcesso(nomeExibicao, statusAcesso);
             stats.registrarAcesso(nomeExibicao, String(ev.idUsuario), statusAcesso);
           }
         }

@@ -1,52 +1,68 @@
 /**
  * services/worker-endpoint.ts
- * Driver de Comunicação Online do Agente (Cloudflare Worker Real).
- * Mantém o Agente sincronizado com o Dashboard em agente.catraki.com.br.
+ * Driver de Comunicação Híbrido (Cloud-First com Fallback Local Inteligente).
+ * Prioriza a nuvem, mas muda para o banco local em 1.5s se houver lentidão ou queda.
  */
 import { config } from '../infra/config';
 
 export class WorkerApi {
   /**
-   * Busca a base de alunos e configurações do D1 Online.
-   * Implementa retries exponenciais para garantir funcionamento em redes instáveis.
+   * Busca a base de alunos e configurações.
+   * Prioriza 'agente.catraki.com.br' (Cloud), mas usa 'localhost:8788' (Local)
+   * se a internet estiver lenta (Timeout > 1.5s) ou offline.
    */
   static async buscarSincronizacaoAlunos() {
-    const url = `${config.endpoint_worker}/api/agente/download-alunos`;
+    const urlCloud = `${config.endpoint_worker}/api/agente/download-alunos`;
+    const urlLocal = `http://localhost:8788/api/agente/download-alunos`;
     
-    // Tenta até 3 vezes com backoff
-    for (let i = 0; i < 3; i++) {
-        try {
-            const resp = await fetch(url, {
-                headers: { 'X-Escola-ID': config.escola_id }
-            });
-
-            if (resp.ok) {
-                const data = await resp.json();
-                return { ...data, ok: true };
-            }
-
-            console.error(`[WorkerApi] Erro na nuvem (${resp.status}):`, await resp.text());
-        } catch (e: any) {
-            console.warn(`[WorkerApi] Falha na conexão online (Tentativa ${i+1}):`, e.message);
-        }
+    // 1. TENTA A NUVEM (CLOUD) com Timeout Curto para evitar filas em pico
+    try {
+        console.log(`[WorkerApi] Tentando Cloud: ${urlCloud}`);
         
-        // Espera um pouco antes de tentar de novo (1s, 2s, 4s...)
-        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s de tolerância
+
+        const resp = await fetch(urlCloud, {
+            headers: { 'X-Escola-ID': config.escola_id },
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+
+        if (resp.ok) {
+            const data = await resp.json();
+            console.log('[WorkerApi] ✓ Conectado à Nuvem (Online)');
+            return { ...data, ok: true };
+        }
+    } catch (e: any) {
+        if (e.name === 'AbortError') {
+            console.warn('[WorkerApi] ! Lentidão detectada na Nuvem (Timeout 1.5s).');
+        } else {
+            console.warn('[WorkerApi] ! Nuvem indisponível (Offline).');
+        }
     }
 
-    // Se falhar de vez na internet, tenta o servidor local de segurança (se estiver rodando)
-    console.warn('[WorkerApi] Mudando para modo offline/local temporário...');
+    // 2. FALLBACK PARA O BANCO LOCAL (LOCAL D1)
+    // Se a nuvem falhou ou demorou, usamos o servidor local que está no seu computador.
     try {
-        const localResp = await fetch(`http://localhost:8788/api/agente/download-alunos`, {
+        console.log(`[WorkerApi] → Mudando para Banco LOCAL: ${urlLocal}`);
+        const localResp = await fetch(urlLocal, {
           headers: { 'X-Escola-ID': config.escola_id }
         });
-        if (localResp.ok) return { ...(await localResp.json()), ok: true };
-    } catch { /* Sem servidor local */ }
+        
+        if (localResp.ok) {
+            const localData = await localResp.json();
+            console.info('[WorkerApi] ✓ Usando Banco Local (Modo de Segurança)');
+            return { ...localData, ok: true };
+        }
+    } catch {
+        console.error('[WorkerApi] ✗ Nenhuma conexão disponível (Nuvem ou Local).');
+    }
 
     return { ok: false };
   }
 
-  /** Envia os eventos de presença para o banco de dados online */
+  /** Envia os eventos de presença (Prioridade Cloud) */
   static async enviarBatida(eventos: any[]) {
     try {
       const resp = await fetch(`${config.endpoint_worker}/api/agente/presenca`, {
@@ -56,11 +72,12 @@ export class WorkerApi {
       });
       return resp.ok;
     } catch {
+      // Se a nuvem falhar, o Agente guarda no SQLite local (gerenciado pelo sync.ts)
       return false;
     }
   }
 
-  /** Envia status de saúde do agente para o monitor online */
+  /** Envia status de saúde do agente */
   static async enviarStatus(corpo: any) {
     try {
       await fetch(`${config.endpoint_worker}/api/agente/status`, {
