@@ -35,6 +35,16 @@ async function createWindow() {
 
     if (req.url === '/ping') {
         res.writeHead(200); res.end(JSON.stringify({ ok: true, versao: '1.2.0' }));
+    } else if (req.url === '/sync-now' && req.method === 'POST') {
+        // --- GATILHO DE SINCRONIZAÇÃO INSTANTÂNEA ---
+        try {
+            console.log('[Agente] Sincronização em tempo real solicitada pelo Dashboard!');
+            const { sincronizarCacheAlunos } = require('../services/sync');
+            await sincronizarCacheAlunos();
+            res.writeHead(200); res.end(JSON.stringify({ ok: true }));
+        } catch (e) {
+            res.writeHead(500); res.end(JSON.stringify({ error: 'Erro no trigger de sync' }));
+        }
     } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {
         // --- ENDPOINT DE PUSH (REAL-TIME) DO IDFLEX ---
         let body = '';
