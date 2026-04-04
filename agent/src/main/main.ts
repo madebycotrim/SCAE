@@ -102,6 +102,37 @@ const iniciarServidorDescoberta = () => {
                 res.end(JSON.stringify({ ok: false, mensagem: e.message }));
             }
         });
+    } else if (req.url === '/config/adicionar' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const { id, ip, porta } = JSON.parse(body);
+                // Verifica se já existe
+                if (config.leitores.find((l: any) => l.id === id)) {
+                    throw new Error('Já existe um equipamento com esse ID.');
+                }
+
+                const novosLeitores = [
+                    ...config.leitores,
+                    { 
+                        id, 
+                        nome: id, 
+                        tipo: 'ID_FLEX', 
+                        ip: String(ip).split(':')[0], 
+                        porta: parseInt(String(porta), 10) 
+                    }
+                ];
+                
+                salvarLeitoresNoDisco(novosLeitores);
+                
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: true, mensagem: 'Equipamento adicionado com sucesso!' }));
+            } catch (e: any) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, mensagem: e.message }));
+            }
+        });
     } else {
       res.writeHead(404);
       res.end();

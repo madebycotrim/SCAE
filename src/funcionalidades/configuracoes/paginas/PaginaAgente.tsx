@@ -5,7 +5,7 @@ import {
     Users, Activity, Signal, AlertTriangle, 
     ArrowUp, XCircle, Clock, RefreshCw,
     Shield, CheckCircle2, Search, Fingerprint, Trash2,
-    Settings, Save, X, User, ShieldCheck
+    Settings, Save, X, User, ShieldCheck, Plus, SearchCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usarEscola } from '@/escola/ProvedorEscola';
@@ -50,6 +50,8 @@ export default function PaginaAgente() {
     const [termoBusca, setTermoBusca] = useState('');
     const [editandoLeitor, setEditandoLeitor] = useState<any>(null);
     const [formLeitor, setFormLeitor] = useState({ ip: '', porta: '' });
+    const [showAddHardware, setShowAddHardware] = useState(false);
+    const [formNovo, setFormNovo] = useState({ id: '', ip: '', porta: '14' });
     const [cadastrandoPara, setCadastrandoPara] = useState<string | null>(null);
 
     const { dados: dataAlunos, recarregar: atualizarAlunos } = usarConsulta(
@@ -99,6 +101,28 @@ export default function PaginaAgente() {
             } else throw new Error(data.mensagem);
         } catch (e: any) {
             toast.error('Erro ao configurar Agente: ' + e.message);
+        }
+    };
+
+    /**
+     * Adiciona um novo leitor à config do Agente
+     */
+    const adicionarHardware = async () => {
+        if (!formNovo.id || !formNovo.ip) return toast.error('Preencha o ID e o IP');
+        try {
+            const res = await fetch('http://localhost:1912/config/adicionar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formNovo)
+            });
+            const data = await res.json();
+            if (data.ok) {
+                toast.success('Equipamento adicionado!');
+                setShowAddHardware(false);
+                setFormNovo({ id: '', ip: '', porta: '14' });
+            } else throw new Error(data.mensagem);
+        } catch (e: any) {
+            toast.error('Erro: ' + e.message);
         }
     };
 
@@ -348,6 +372,49 @@ export default function PaginaAgente() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Botão de Adicionar ou Formulário de Adição */}
+                            {!showAddHardware ? (
+                                <button 
+                                    onClick={() => setShowAddHardware(true)}
+                                    className="w-full h-11 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50/50 transition-all mt-4"
+                                >
+                                    <Plus size={16} /> Adicionar Equipamento
+                                </button>
+                            ) : (
+                                <div className="p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl mt-4 space-y-3">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <h5 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">Novo Hardware</h5>
+                                        <button onClick={() => setShowAddHardware(false)} className="text-slate-400 hover:text-rose-500"><X size={14} /></button>
+                                    </div>
+                                    <input 
+                                        placeholder="ID do Hardware (ex: iDFlex Entrada)" 
+                                        value={formNovo.id}
+                                        onChange={e => setFormNovo({...formNovo, id: e.target.value})}
+                                        className="w-full px-3 h-9 bg-white border border-indigo-100 rounded-lg text-[11px] font-bold text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all uppercase"
+                                    />
+                                    <div className="flex gap-2">
+                                        <input 
+                                            placeholder="Endereço IP (ex: 192.168.1.34)" 
+                                            value={formNovo.ip}
+                                            onChange={e => setFormNovo({...formNovo, ip: e.target.value})}
+                                            className="flex-1 px-3 h-9 bg-white border border-indigo-100 rounded-lg text-[11px] font-mono text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all"
+                                        />
+                                        <input 
+                                            placeholder="Porta" 
+                                            value={formNovo.porta}
+                                            onChange={e => setFormNovo({...formNovo, porta: e.target.value})}
+                                            className="w-16 px-3 h-9 bg-white border border-indigo-100 rounded-lg text-[11px] font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 transition-all"
+                                        />
+                                    </div>
+                                    <button 
+                                        onClick={adicionarHardware}
+                                        className="w-full h-9 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-900 transition-all"
+                                    >
+                                        <SearchCheck size={14} /> Registrar Dispositivo
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* MINI FEED DE ACESSOS */}
