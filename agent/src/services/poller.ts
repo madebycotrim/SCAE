@@ -80,7 +80,6 @@ async function monitorarLeitor(leitor: ILeitor) {
           
           if (aluno?.nome_completo) {
             notificadorGlobal.notificarAcessoVisual(`${aluno.nome_completo} (${matriculaParaBusca})`, ev.tipo);
-            notificadorGlobal.anunciarAcesso(aluno.nome_completo, ev.tipo);
             stats.registrarAcesso(aluno.nome_completo, String(matriculaParaBusca), ev.tipo);
           } else {
             const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';

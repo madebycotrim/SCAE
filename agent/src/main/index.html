@@ -477,7 +477,7 @@
         window.updateH = (i, k, v) => { configAtiva[i][k] = v; };
         window.removeHardware = (i) => { configAtiva.splice(i, 1); renderSettings(); };
         window.addNewHardware = () => {
-            configAtiva.push({ nome: 'Novo Leitor', ip: '', porta: 14, tipo: 'ID_FLEX' });
+            configAtiva.push({ id: `idflex-${Date.now()}`, nome: 'Novo Leitor', ip: '', porta: 80, tipo: 'ID_FLEX' });
             renderSettings();
         };
 

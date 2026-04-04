@@ -59,7 +59,12 @@ let configBase: AgenteConfig = {
 try {
   if (fs.existsSync(CONFIG_LOCAL_PATH)) {
     const data = JSON.parse(fs.readFileSync(CONFIG_LOCAL_PATH, 'utf-8'));
-    if (data.leitores) configBase.leitores = data.leitores;
+    if (data.leitores) {
+        configBase.leitores = data.leitores.map((l: any) => ({
+            ...l,
+            id: l.id || `idflex-${l.ip?.replace(/\W/g, '') || Date.now()}`
+        }));
+    }
     console.log('[Config] Hardware carregado do disco com sucesso.');
   }
 } catch (e) {

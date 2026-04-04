@@ -10,9 +10,21 @@ import { WorkerApi } from './worker-endpoint';
 import { leitoresAtivos } from './poller';
 import { DadosAluno } from '../drivers/ILeitor';
 
-/** Inicia os intervalos de sincronização */
+/** Ciclo principal de sincronização periódica (Background Polling) */
 export function iniciarSync() {
-  console.log('[Sync] Iniciando orquestrador de sincronização...');
+  // Sincroniza logo no boot
+  sincronizarCacheAlunos();
+  sincronizarRegistrosPendentes();
+  WorkerApi.enviarStatus([]);
+  
+  // Tenta sincronizar a cada 1 minuto (O Dashboard também força via /sync-now ao salvar)
+  setInterval(async () => {
+    try {
+      await sincronizarCacheAlunos();
+    } catch (e) {
+      console.error('[Sync] Falha na atualização do cache/configurações:', e);
+    }
+  }, 60 * 1000);
 
   // Sincronização de saída (Registros de acesso - a cada 5 segundos)
   setInterval(async () => {
@@ -23,7 +35,6 @@ export function iniciarSync() {
     }
   }, config.intervalo_sync_ms);
 
-  // Sincronização de entrada (Cache de Alunos + Configurações - a cada 10 segundos)
   setInterval(async () => {
     try {
       await sincronizarCacheAlunos();
@@ -86,23 +97,46 @@ async function sincronizarRegistrosPendentes() {
   }
 }
 
+let estaSincronizando = false;
+
 /** Baixa novos alunos e biometria da nuvem para o cache local */
 export async function sincronizarCacheAlunos() {
-  console.log('[Sync] Atualizando cache local de alunos e biometria...');
+  if (estaSincronizando) return;
+  estaSincronizando = true;
   
-  const resposta = await WorkerApi.buscarSincronizacaoAlunos();
-  if (!resposta || !resposta.alunos) return;
+  try {
+    console.log('[Sync] Atualizando cache local de alunos e biometria...');
+    console.log(`[Sync] Iniciando requisição para: ${config.endpoint_worker}/api/agente/download-alunos ...`);
+    const resposta = await WorkerApi.buscarSincronizacaoAlunos();
+    
+    if (!resposta) {
+        console.warn('[Sync] Falha CRÍTICA: Resposta do WorkerApi foi NULA (Possível erro de conexão/DNS)');
+        return;
+    }
+    
+    if (!resposta.ok) {
+        console.warn(`[Sync] O Worker respondeu, mas com ERRO. Status OK: ${resposta.ok}`);
+        return;
+    }
 
-  const { alunos: alunosServidor, configuracoes: configs } = resposta;
+    const { alunos: alunosServidor, configuracoes: configs } = resposta;
+    console.log(`[Sync] Resposta recebida com sucesso! Configurações: ${configs ? 'SIM' : 'NÃO'}`);
 
   // 1. Atualizar Configurações da Unidade (Dessa forma unificamos o tráfego)
   if (configs) {
     const chaves = Object.keys(configs);
     for (const chave of chaves) {
-        const rawValor = (configs as any)[chave];
+        let rawValor = (configs as any)[chave];
+        
+        // --- 🛡️ TRATAMENTO DE VALOR NULO/UNDEFINED ---
+        if (rawValor === undefined || rawValor === null) {
+            console.log(`[Sync] Pulando chave ${chave} (Valor Nulo/Undefined)`);
+            continue;
+        }
+
         const valor = typeof rawValor === 'object' ? JSON.stringify(rawValor) : String(rawValor);
         
-        console.log(`[Sync] Chave: ${chave} | Valor: "${valor}" (Tipo: ${typeof rawValor})`);
+        console.log(`[Sync] Chave: ${chave} | Valor Destino: "${valor}"`);
 
         await runSql(`
             INSERT INTO configuracoes_unidade (chave, valor)
@@ -201,4 +235,9 @@ export async function sincronizarCacheAlunos() {
   }
 
   console.log(`[Sync] Cache local sincronizado e injetado no hardware para ${alunosServidor.length} alunos.`);
+  } catch (e) {
+    console.error('[Sync] Falha na sincronização:', e);
+  } finally {
+    estaSincronizando = false;
+  }
 }

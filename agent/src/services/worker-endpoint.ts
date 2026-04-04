@@ -47,7 +47,8 @@ export const WorkerApi = {
   /** Busca atualizações de alunos do servidor para o cache local */
   async buscarSincronizacaoAlunos(): Promise<any> {
     try {
-      const resp = await fetch(`${config.endpoint_worker}/api/agente/download-alunos`, {
+      const url = `${config.endpoint_worker}/api/agente/download-alunos?t=${Date.now()}`;
+      const resp = await fetch(url, {
         headers: {
           'X-Escola-ID': config.escola_id,
           'Authorization': `Bearer ${config.agente_token}`
@@ -57,10 +58,21 @@ export const WorkerApi = {
       this.online = resp.ok;
       if (!resp.ok) return null;
 
-      return await resp.json();
+      const data = await resp.json();
+      return { ...data, ok: true }; 
     } catch (e) {
       this.online = false;
-      console.error('[WorkerApi] Erro ao sincronizar alunos:', e);
+      console.warn('[WorkerApi] Tentando fallback para servidor local (8788)...');
+      try {
+        const localResp = await fetch(`http://localhost:8788/api/agente/download-alunos`, {
+          headers: { 'X-Escola-ID': config.escola_id, 'Authorization': `Bearer ${config.agente_token}` }
+        });
+        if (localResp.ok) {
+           const localData = await localResp.json();
+           return { ...localData, ok: true };
+        }
+      } catch {}
+      console.error('[WorkerApi] Erro total de sincronização:', e);
       return null;
     }
   },
