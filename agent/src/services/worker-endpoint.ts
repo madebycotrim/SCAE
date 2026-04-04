@@ -45,7 +45,7 @@ export const WorkerApi = {
   },
 
   /** Busca atualizações de alunos do servidor para o cache local */
-  async buscarSincronizacaoAlunos(): Promise<any[]> {
+  async buscarSincronizacaoAlunos(): Promise<any> {
     try {
       const resp = await fetch(`${config.endpoint_worker}/api/agente/download-alunos`, {
         headers: {
@@ -55,14 +55,13 @@ export const WorkerApi = {
       });
       
       this.online = resp.ok;
-      if (!resp.ok) return [];
+      if (!resp.ok) return null;
 
-      const dados = await resp.json() as any;
-      return dados.alunos || [];
+      return await resp.json();
     } catch (e) {
       this.online = false;
       console.error('[WorkerApi] Erro ao sincronizar alunos:', e);
-      return [];
+      return null;
     }
   },
 
@@ -105,6 +104,23 @@ export const WorkerApi = {
     } catch (e: any) {
       console.error('[WorkerApi] Erro ao confirmar biometria na nuvem:', e.message);
       return false;
+    }
+  },
+
+  /** Recupera as configurações globais da unidade na Cloudflare */
+  async buscarConfiguracoesUnidade(): Promise<any | null> {
+    try {
+      const resp = await fetch(`${config.endpoint_worker}/api/agente/configuracoes`, {
+        headers: {
+          'X-Escola-ID': config.escola_id,
+          'Authorization': `Bearer ${config.agente_token}`
+        }
+      });
+      if (!resp.ok) return null;
+      return await resp.json();
+    } catch (e) {
+      console.error('[WorkerApi] Erro ao buscar configurações:', e);
+      return null;
     }
   }
 };

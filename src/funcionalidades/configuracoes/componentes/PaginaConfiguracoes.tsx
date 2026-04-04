@@ -15,6 +15,7 @@ export function PaginaConfiguracoes() {
     const [tts, definirTts] = useState<boolean>(false);
     const [saidaObrigatoria, definirSaidaObrigatoria] = useState<boolean>(true);
     const [metodo, definirMetodo] = useState<'QRCODE' | 'DIGITAL'>('QRCODE');
+    const [fraseTts, definirFraseTts] = useState<string>('Bem-vindo, {nome}!');
     
     // --- ESTADO DO AGENTE LOCAL ---
     const [statusAgente, setStatusAgente] = useState<'DESCONHECIDO' | 'RODANDO' | 'AUSENTE'>('DESCONHECIDO');
@@ -54,6 +55,7 @@ export function PaginaConfiguracoes() {
             definirTts(configs.ttsAtivado ?? true);
             definirSaidaObrigatoria(configs.saidaObrigatoria ?? true);
             definirMetodo(configs.metodoAcesso || 'QRCODE');
+            definirFraseTts(configs.ttsFrase || 'Bem-vindo, {nome}!');
         }
     }, [configs]);
 
@@ -62,6 +64,7 @@ export function PaginaConfiguracoes() {
             await salvar({
                 qrDinamico: protocolo,
                 ttsAtivado: tts,
+                ttsFrase: fraseTts,
                 saidaObrigatoria,
                 metodoAcesso: metodo
             });
@@ -82,7 +85,7 @@ export function PaginaConfiguracoes() {
         );
     }
 
-    const alterou = configs?.qrDinamico !== protocolo || configs?.ttsAtivado !== tts || configs?.saidaObrigatoria !== saidaObrigatoria || (configs?.metodoAcesso || 'QRCODE') !== metodo;
+    const alterou = configs?.qrDinamico !== protocolo || configs?.ttsAtivado !== tts || configs?.ttsFrase !== fraseTts || configs?.saidaObrigatoria !== saidaObrigatoria || (configs?.metodoAcesso || 'QRCODE') !== metodo;
 
     return (
         <LayoutAdministrativo
@@ -151,8 +154,8 @@ export function PaginaConfiguracoes() {
                     </CartaoConteudo>
                 )}
 
-                {metodo === 'QRCODE' && (
-                    <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
+                <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl overflow-hidden">
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
                         {/* Left Info Section */}
                         <div className="flex gap-6 items-start">
                             <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all ${tts ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
@@ -161,7 +164,7 @@ export function PaginaConfiguracoes() {
                             <div className="flex flex-col gap-1.5 mt-1">
                                 <div className="flex items-center gap-3">
                                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">
-                                        Leitura Falada (TTS)
+                                        Notificação por Voz (TTS)
                                     </h3>
                                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest leading-none h-4 border ${tts ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'text-slate-500 bg-slate-100 border-slate-200/60'}`}>
                                         {tts ? 'Sistemático' : 'Silêncioso'}
@@ -183,7 +186,7 @@ export function PaginaConfiguracoes() {
                                     }`}
                             >
                                 <VolumeX size={14} className={!tts ? 'text-slate-500' : 'text-slate-400'} strokeWidth={2.5} />
-                                Desligado
+                                Desativado
                             </button>
                             <button
                                 onClick={() => definirTts(true)}
@@ -193,11 +196,41 @@ export function PaginaConfiguracoes() {
                                     }`}
                             >
                                 <Volume2 size={14} className={tts ? 'text-white' : 'text-slate-400'} strokeWidth={2.5} />
-                                Ligado
+                                Ativado
                             </button>
                         </div>
-                    </CartaoConteudo>
-                )}
+                    </div>
+
+                    {tts && (
+                        <div className="px-6 md:px-8 pb-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-indigo-500">
+                                        <Settings size={16} />
+                                    </div>
+                                    <h4 className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Personalizar Mensagem</h4>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <input 
+                                            type="text"
+                                            value={fraseTts}
+                                            onChange={(e) => definirFraseTts(e.target.value)}
+                                            placeholder="Ex: Bem-vindo, {nome}!"
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-4 h-12 text-xs font-bold focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300 pr-32"
+                                        />
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                            <span className="text-[8px] font-bold text-slate-300 bg-slate-50 px-2 py-1 rounded border border-slate-100 uppercase tracking-widest">Variável: {'{nome}'}</span>
+                                        </div>
+                                    </div>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                                        DICA: Use <code className="text-indigo-500 bg-indigo-50 px-1 rounded">{'{nome}'}</code> no texto para que o sistema diga o nome do aluno automaticamente.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </CartaoConteudo>
 
                 <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
                     <div className="flex gap-6 items-start">

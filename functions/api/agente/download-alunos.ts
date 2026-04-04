@@ -11,16 +11,29 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
     const { DB_SCAE: db } = env;
 
     try {
-        // Selecionar alunos ativos (Removido JOIN com descritores faciais — Purga Facial)
+        // 2. Busca alunos ativos
         const alunos = await db.prepare(`
-            SELECT a.matricula, a.nome_completo, a.turma_id, a.ativo
+            SELECT a.matricula, a.nome_completo, a.turma_id, a.ativo, a.biometria_cadastrada
             FROM alunos a
             WHERE a.escola_id = ? AND a.ativo = 1
         `).bind(escolaId).all();
 
+        // 3. Busca configurações da unidade
+        const configs = await db.prepare(`
+            SELECT config_metodo_acesso, config_qr_dinamico, config_tts_ativado, config_tts_frase
+            FROM escolas
+            WHERE slug = ?
+        `).bind(escolaId).first();
+
         return Response.json({
             ok: true,
             alunos: alunos.results,
+            configuracoes: {
+                metodoAcesso: configs?.config_metodo_acesso,
+                qrDinamico: !!configs?.config_qr_dinamico,
+                ttsAtivado: !!configs?.config_tts_ativado,
+                ttsFrase: configs?.config_tts_frase
+            },
             total: alunos.results.length,
             timestamp_servidor: new Date().toISOString()
         });

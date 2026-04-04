@@ -65,6 +65,15 @@ export function getDb(): sqlite3.Database {
         PRIMARY KEY (matricula, escola_id)
       )
     `);
+
+    // Configurações da Unidade (Sincronizadas da Nuvem)
+    database?.run(`
+      CREATE TABLE IF NOT EXISTS configuracoes_unidade (
+        chave TEXT PRIMARY KEY,
+        valor TEXT,
+        atualizado_em DATETIME DEFAULT (datetime('now', 'localtime'))
+      )
+    `);
   });
 
   return database;

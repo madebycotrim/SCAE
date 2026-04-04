@@ -6,7 +6,13 @@ export const ConfiguracoesServico = {
         return res;
     },
 
-    async atualizarConfiguracoes(dados: { qrDinamico?: boolean; ttsAtivado?: boolean; saidaObrigatoria?: boolean; metodoAcesso?: 'QRCODE' | 'DIGITAL' }) {
+    async atualizarConfiguracoes(dados: { 
+        qrDinamico?: boolean; 
+        ttsAtivado?: boolean; 
+        ttsFrase?: string;
+        saidaObrigatoria?: boolean; 
+        metodoAcesso?: 'QRCODE' | 'DIGITAL' 
+    }) {
         const res = await api.atualizar<any>('/admin/configuracoes', dados);
         return res;
     }

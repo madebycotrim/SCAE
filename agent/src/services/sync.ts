@@ -23,12 +23,12 @@ export function iniciarSync() {
     }
   }, config.intervalo_sync_ms);
 
-  // Sincronização de entrada (Cache de Alunos - a cada 2 minutos em fase de ativação)
+  // Sincronização de entrada (Cache de Alunos + Configurações - a cada 2 minutos)
   setInterval(async () => {
     try {
       await sincronizarCacheAlunos();
     } catch (e) {
-      console.error('[Sync] Falha na atualização do cache de alunos:', e);
+      console.error('[Sync] Falha na atualização do cache/configurações:', e);
     }
   }, 2 * 60 * 1000);
 
@@ -39,6 +39,26 @@ export function iniciarSync() {
   sincronizarRegistrosPendentes();
   sincronizarCacheAlunos();
   WorkerApi.enviarStatus([]);
+}
+
+/** Sincroniza as preferências globais da escola para o Agente Local */
+async function sincronizarConfiguracoesUnidade() {
+  console.log('[Sync] Sincronizando configurações da escola...');
+  const configs = await WorkerApi.buscarConfiguracoesUnidade();
+  
+  if (configs) {
+    // Salva cada chave no SQLite local
+    const chaves = Object.keys(configs);
+    for (const chave of chaves) {
+        const valor = typeof configs[chave] === 'object' ? JSON.stringify(configs[chave]) : String(configs[chave]);
+        await runSql(`
+            INSERT INTO configuracoes_unidade (chave, valor)
+            VALUES (?, ?)
+            ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = datetime('now', 'localtime')
+        `, [chave, valor]);
+    }
+    console.log('[Sync] Configurações atualizadas ✓');
+  }
 }
 
 /** Varre o SQLite local em busca de batidas ainda não enviadas para a nuvem */
@@ -70,11 +90,27 @@ async function sincronizarRegistrosPendentes() {
 async function sincronizarCacheAlunos() {
   console.log('[Sync] Atualizando cache local de alunos e biometria...');
   
-  const alunosServidor = await WorkerApi.buscarSincronizacaoAlunos();
-  if (!alunosServidor || alunosServidor.length === 0) return;
+  const resposta = await WorkerApi.buscarSincronizacaoAlunos();
+  if (!resposta || !resposta.alunos) return;
 
-  // Atualizar cache via Upsert e injetar no Hardware
-  for (const a of alunosServidor) {
+  const { alunos: alunosServidor, configuracoes: configs } = resposta;
+
+  // 1. Atualizar Configurações da Unidade (Dessa forma unificamos o tráfego)
+  if (configs) {
+    const chaves = Object.keys(configs);
+    for (const chave of chaves) {
+        const valor = typeof (configs as any)[chave] === 'object' ? JSON.stringify((configs as any)[chave]) : String((configs as any)[chave]);
+        await runSql(`
+            INSERT INTO configuracoes_unidade (chave, valor)
+            VALUES (?, ?)
+            ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = datetime('now', 'localtime')
+        `, [chave, valor]);
+    }
+    console.log('[Sync] Configurações de unidade atualizadas via Sync Alunos ✓');
+  }
+
+  // 2. Atualizar cache de alunos via Upsert
+  for (const a of (alunosServidor as any[])) {
     await runSql(`
       INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo)
       VALUES (?, ?, ?, ?, ?)
@@ -122,7 +158,7 @@ async function sincronizarCacheAlunos() {
   }
 
   // --- Limpeza de Alunos Deletados na Nuvem (Faxina de Cache/Hardware) ---
-  const matriculasNuvem = new Set(alunosServidor.map(a => a.matricula));
+  const matriculasNuvem = new Set((alunosServidor as any[]).map((a: any) => a.matricula));
   const cacheLocal = await allSql(`SELECT matricula FROM alunos_cache WHERE escola_id = ?`, [config.escola_id]);
   
   for (const local of cacheLocal) {
