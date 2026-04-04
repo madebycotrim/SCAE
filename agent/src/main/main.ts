@@ -122,14 +122,22 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  console.log('[Agente] Aplicação Electron pronta!');
   await createWindow();
+  
   notificador = new NotificadorVoz(mainWindow);
+  console.log('[Agente] Motor de Voz (TTS) inicializado.');
 
   try {
+    console.log('[Agente] Iniciando Polling dos equipamentos...');
     iniciarPolling(notificador);
+    
+    console.log('[Agente] Iniciando Sincronizador de Nuvem...');
     iniciarSync();
-  } catch (e) {
-    console.warn('[Agent] Erro na inicialização:', e);
+
+    console.log('[Agente] Sistema totalmente operacional ✓');
+  } catch (e: any) {
+    console.error('[Agent] Erro FATAL na inicialização:', e.message);
   }
 
   // Monitor de Logs para UI

@@ -98,9 +98,12 @@ export async function sincronizarCacheAlunos() {
   // 1. Atualizar Configurações da Unidade (Dessa forma unificamos o tráfego)
   if (configs) {
     const chaves = Object.keys(configs);
-    console.log(`[Sync] Recebidas ${chaves.length} chaves de configuração: ${chaves.join(', ')}`);
     for (const chave of chaves) {
-        const valor = typeof (configs as any)[chave] === 'object' ? JSON.stringify((configs as any)[chave]) : String((configs as any)[chave]);
+        const rawValor = (configs as any)[chave];
+        const valor = typeof rawValor === 'object' ? JSON.stringify(rawValor) : String(rawValor);
+        
+        console.log(`[Sync] Chave: ${chave} | Valor: "${valor}" (Tipo: ${typeof rawValor})`);
+
         await runSql(`
             INSERT INTO configuracoes_unidade (chave, valor)
             VALUES (?, ?)
