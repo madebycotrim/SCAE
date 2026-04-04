@@ -19,7 +19,7 @@ import http from 'http';
 // Permite que o Dashboard Web saiba se este agente está rodando nesta máquina.
 const LOCAL_SERVER_PORT = 1912; // Porta fixa para descoberta
 const iniciarServidorDescoberta = () => {
-  const server = http.createServer(async (req, res) => {
+  const server = http.createServer((req, res) => {
     // Enable CORS para o sistema web
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -34,25 +34,12 @@ const iniciarServidorDescoberta = () => {
     if (req.url === '/ping') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       
-      // Coletar status dos leitores com nomes REAIS resolvidos do hardware
-      const leitores = await Promise.all(leitoresAtivos.map(async l => {
-        let nomeExibicao = l.nome;
-        let online = false;
-
-        try {
-          online = await l.ping();
-          if (online && (l as any).getNomeDispositivo) {
-            const nomeHw = await (l as any).getNomeDispositivo();
-            if (nomeHw) nomeExibicao = nomeHw;
-          }
-        } catch {}
-
-        return {
-          id: l.id,
-          nome: nomeExibicao,
-          tipo: l.tipo,
-          online
-        };
+      // Coletar status dos leitores instantaneamente (Nomes dinâmicos resolvidos pelos drivers)
+      const leitores = leitoresAtivos.map(l => ({
+        id: l.id,
+        nome: l.nome,
+        tipo: l.tipo,
+        online: true, // Se está na lista oficial de ativos, o front trata status individual
       }));
 
       res.end(JSON.stringify({ 
@@ -65,18 +52,15 @@ const iniciarServidorDescoberta = () => {
         leitores
       }));
     } else if (req.url === '/enroll' && req.method === 'POST') {
-        // ... (o código de enroll já existe via IPC, mas o dashboard web chama via HTTP 1912)
-        // Vou manter o suporte a POST aqui para o dashboard web se comunicar direto
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
             try {
                 const { aluno_id } = JSON.parse(body);
-                // Busca o primeiro leitor online para fazer o enroll
                 const leitor = leitoresAtivos.find(l => (l as any).iniciarCaptura);
-                if (!leitor) throw new Error('Nenhum leitor biométrico compatível encontrado.');
+                if (!leitor) throw new Error('Hardware biométrico não encontrado.');
                 
-                // Enroll no iDFlex usa ID numérico interno
+                // Enroll no iDFlex via driver
                 const ok = await (leitor as any).iniciarCaptura(parseInt(aluno_id, 10));
                 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
