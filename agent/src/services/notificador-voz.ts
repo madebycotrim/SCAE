@@ -43,7 +43,7 @@ export class NotificadorVoz {
     try {
       // 1. Busca se o TTS está ativado
       const configAtivo = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsAtivado']);
-      if (configAtivo && configAtivo.valor === 'false') return;
+      if (!configAtivo || configAtivo.valor !== 'true') return;
 
       // 2. Decide qual frase usar com base no tipo de acesso
       // Se for NEGADO ou algo que indique falha, usamos a frase de erro
@@ -79,6 +79,13 @@ export class NotificadorVoz {
       const msgFallback = ehSucesso ? `${saudacao}, ${primeiroNome}!` : 'Acesso negado.';
       
       console.log(`[TTS] Info! Recorrendo a fallback de voz: "${msgFallback}" (Erro SQL: ${e.message})`);
+      
+      // Mesmo no fallback, tentamos checar o status de ativação se possível
+      try {
+          const configAtivo = await getSql('SELECT valor FROM configuracoes_unidade WHERE chave = ?', ['ttsAtivado']);
+          if (!configAtivo || configAtivo.valor !== 'true') return; 
+      } catch { /* por segurança silencioso */ return; }
+
       await this.falar(msgFallback);
     }
   }
