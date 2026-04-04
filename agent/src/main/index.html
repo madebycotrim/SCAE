@@ -438,7 +438,11 @@
         }
 
         window.scaeApi.onNewLog(log => pushLog(log));
-        window.scaeApi.onNewAccess(data => showToast(`ACESSO: ${data.nome}`, 'ok'));
+        window.scaeApi.onNewAccess(data => {
+            const status = data.sucesso ? 'ok' : 'err';
+            const prefixo = data.sucesso ? 'ACESSO' : 'NEGADO';
+            showToast(`${prefixo}: ${data.nome}`, status);
+        });
 
         // --- SETTINGS ---
         document.getElementById('btn-settings-open').onclick = () => {

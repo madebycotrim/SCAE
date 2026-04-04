@@ -8,20 +8,23 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         const escolaId = extrairEscolaId(contexto.request);
         verificarPermissao(contexto, ['ADMIN', 'COORDENACAO']);
 
-        const escola = await contexto.env.DB_SCAE.prepare(`
-            SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url, config_tts_frase_sucesso, config_tts_frase_erro
-            FROM escolas WHERE id = ?
-        `).bind(escolaId).first<{
-            config_qr_dinamico: number;
-            tts_ativado: number;
-            saida_obrigatoria: number;
-            metodo_acesso: string;
-            cor_primaria: string;
-            cor_secundaria: string;
-            logo_url: string;
-            config_tts_frase_sucesso: string;
-            config_tts_frase_erro: string;
-        }>();
+        let escola: any;
+        try {
+            escola = await contexto.env.DB_SCAE.prepare(`
+                SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url, config_tts_frase_sucesso, config_tts_frase_erro
+                FROM escolas WHERE id = ?
+            `).bind(escolaId).first();
+        } catch (e: any) {
+            // Fallback se as colunas de TTS ainda não existirem no D1
+            if (e.message.includes('no such column')) {
+                escola = await contexto.env.DB_SCAE.prepare(`
+                    SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url
+                    FROM escolas WHERE id = ?
+                `).bind(escolaId).first();
+            } else {
+                throw e;
+            }
+        }
 
         if (!escola) {
             throw new ErroNaoEncontrado('Escola não encontrada.');
@@ -106,10 +109,16 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
         
         const sql = `UPDATE escolas SET ${queryParts.join(', ')} WHERE id = ?`;
 
-        const resultado = await contexto.env.DB_SCAE.prepare(sql).bind(...binds).run();
-
-        if (resultado.meta.changes === 0) {
-            throw new ErroNaoEncontrado('Escola não encontrada para atualizar.');
+        try {
+            const resultado = await contexto.env.DB_SCAE.prepare(sql).bind(...binds).run();
+            if (resultado.meta.changes === 0) {
+                throw new ErroNaoEncontrado('Escola não encontrada para atualizar.');
+            }
+        } catch (e: any) {
+            if (e.message.includes('no such column')) {
+                throw new ErroValidacao('O banco de dados ainda não suporta frases personalizadas. Execute a migração do D1.', 'MIGRACAO_PENDENTE');
+            }
+            throw e;
         }
 
         await ServicoCache.limparCacheEscola(escolaId, contexto.env);

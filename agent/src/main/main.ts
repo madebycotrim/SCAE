@@ -140,6 +140,7 @@ const iniciarServidorDescoberta = () => {
                 const leitor = leitoresAtivos.find(l => l.ip === clientIp) as any;
 
                 if (leitor && ev.user_id && ev.user_id !== 0 && ev.user_id !== '0') {
+                    console.log(`[Push] Evento recebido no leitor ${leitor.id}: código ${ev.event} para usuário ${ev.user_id}`);
                     // 1. Busca dados amigáveis no cache do driver
                     let info = leitor.obterDadosUsuarioHardware(String(ev.user_id));
                     
@@ -152,7 +153,7 @@ const iniciarServidorDescoberta = () => {
                     }
                     
                     // 2. Feedback Físico e Voz (Beep, Mensagem e TTS)
-                    const statusAcesso = [7, 10, 11, 12, 15].includes(ev.event) ? 'ENTRADA' : 'NEGADO';
+                    const statusAcesso = [1, 2, 6, 7, 10, 11, 12, 15, 31].includes(ev.event) ? 'ENTRADA' : 'NEGADO';
                     
                     if (statusAcesso === 'ENTRADA') {
                         leitor.emitirBeep();
@@ -165,7 +166,15 @@ const iniciarServidorDescoberta = () => {
                         if (notificador) notificador.anunciarAcesso(info.nome, 'NEGADO');
                     }
 
-                    // 3. Registrar nos Stats para o Dashboard Web ver na hora
+                    // 3. Notificar UI Local (Toast)
+                    if (mainWindow) {
+                        mainWindow.webContents.send('new-access', { 
+                            nome: info.nome, 
+                            sucesso: statusAcesso === 'ENTRADA' 
+                        });
+                    }
+
+                    // 4. Registrar nos Stats para o Dashboard Web ver na hora
                     stats.registrarAcesso(info.nome, info.matricula, statusAcesso);
                 }
              } catch (e) { console.error('[Push] Erro ao processar evento:', e); }
@@ -398,20 +407,7 @@ app.whenReady().then(async () => {
   iniciarServidorDescoberta();
   await createWindow();
   
-  // Ativação automática do Modo Escola (Push Real-Time + Sync Hora) em todos os iDFlex
-  setTimeout(async () => {
-    const ipLocal = buscarIpLocal();
-    if (ipLocal) {
-        console.log(`[Agente] Iniciando ativação do modo Real-Time para IP local: ${ipLocal}`);
-        for (const leitor of leitoresAtivos) {
-            if ((leitor as any).configurarModoEscola) {
-                (leitor as any).configurarModoEscola(ipLocal).catch((e: any) => 
-                   console.warn(`[Hardware][${leitor.id}] Falha ao ativar Push: ${e.message}`)
-                );
-            }
-        }
-    }
-  }, 8000); // Aguarda 8s para garantir que os hardwares e rede estejam estáveis
+  // O Poller/Watchdog se encarregará de ativar o modo Escola automaticamente no primeiro ciclo
 
   // Interceptar logs do terminal para exibir na Janela Visual
   const originalLog = console.log;
@@ -448,7 +444,7 @@ app.whenReady().then(async () => {
 
   // Background Services — não devem impedir a abertura da janela
   try {
-    iniciarPolling(leitoresAtivos, notificador);
+    iniciarPolling(notificador);
   } catch (e) {
     console.warn('[Agent] Poller de hardware falhou na inicialização (sem hardware conectado?):', e);
   }

@@ -130,7 +130,8 @@ export class IdflexLeitor implements ILeitor {
           nomeHardware: info.nome,   // Novo campo habilitado
           timestamp: new Date(l.time * 1000),
           tipo: 'ENTRADA',
-          autorizado: [7, 10, 11, 12, 15].includes(l.event),
+          // Aceita qualquer código de sucesso do ecossistema ControlID (geralmente 1-31 são informativos/OK)
+          autorizado: (l.event >= 1 && l.event <= 31),
           leitorId: this.id
         };
       }));

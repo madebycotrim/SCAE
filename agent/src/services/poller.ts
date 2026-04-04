@@ -9,6 +9,8 @@ import { runSql, getSql } from '../infra/db';
 import { stats } from '../infra/stats';
 import { NotificadorVoz } from './notificador-voz';
 import { buscarIpLocal } from '../utils/rede';
+import { IdflexLeitor } from '../drivers/IdflexLeitor';
+import { config } from '../infra/config';
 
 // Lista de leitores em monitoramento
 export let leitoresAtivos: ILeitor[] = [];
@@ -18,8 +20,12 @@ let notificadorGlobal: any = null;
 const falhasLeitores = new Map<string, { contador: number, proximaTentativa: number }>();
 
 /** Inicializa o monitoramento de todos os leitores configurados */
-export function iniciarPolling(insLeitores: ILeitor[], notificador: any) {
-  leitoresAtivos = insLeitores;
+export function iniciarPolling(notificador: any) {
+  // ⚡ Carrega os leitores da config se a lista estiver vazia
+  if (leitoresAtivos.length === 0 && config.leitores) {
+     leitoresAtivos = (config.leitores as any[]).map(c => new IdflexLeitor(c));
+  }
+
   notificadorGlobal = notificador;
   
   console.log(`[Poller] Iniciando monitoramento para ${leitoresAtivos.length} equipamentos.`);
@@ -49,14 +55,10 @@ async function monitorarLeitor(leitor: ILeitor) {
     if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000)) {
         const ipLocal = buscarIpLocal();
         if (ipLocal) {
-            console.log(`[Watchdog][${leitor.id}] Sincronizando Modo Push + Log Negado...`);
-            // Ativa o Push
+            console.log(`[Watchdog][${leitor.id}] Sincronizando Modo Push (Real-Time)...`);
+            // Ativa o Push (Modo Escola)
             await (leitor as any).configurarModoEscola(ipLocal);
-            // ⚡ NOVO: Garante que o iDFlex gere logs de acesso NEGADO (para o push detectar erro)
-            await (leitor as any).requisitarComToken('set_configuration.fcgi', {
-                general: { send_identity: "1" },
-                access_control: { generate_logs_for_denied_access: "1" }
-            });
+            // Sincroniza Marca de Watchdog
             (global as any)[tagCheck] = agora;
         }
     }
