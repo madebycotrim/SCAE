@@ -49,6 +49,8 @@ export default function PaginaAgente() {
     // Estado para Busca de Alunos
     const [termoBusca, setTermoBusca] = useState('');
     const [cadastrandoPara, setCadastrandoPara] = useState<string | null>(null);
+    // Estado para "enganar" o cache até o servidor atualizar (Melhoria de Cache UI)
+    const [biometriasConfirmadas, setBiometriasConfirmadas] = useState<Set<string>>(new Set());
 
     const { dados: dataAlunos, recarregar: atualizarAlunos } = usarConsulta(
         ['alunos-agente-busca', slugEscola],
@@ -56,7 +58,11 @@ export default function PaginaAgente() {
         { enabled: !!slugEscola }
     );
 
-    const alunos = dataAlunos?.alunos || [];
+    // ⚡ Normalização de Cache: Une os dados do servidor com os confirmados nesta sessão
+    const alunos = (dataAlunos?.alunos || []).map(a => ({
+        ...a,
+        biometria_cadastrada: biometriasConfirmadas.has(a.matricula) ? 1 : a.biometria_cadastrada
+    }));
 
     const alunosFiltrados = termoBusca.length >= 2 
         ? alunos.filter(a => 
@@ -106,7 +112,12 @@ export default function PaginaAgente() {
             const data = await res.json();
             if (data.ok) {
                 toast.success('Digital vinculada com sucesso!', { id: toastId });
-                atualizarAlunos(); // Atualiza a lista para mostrar o novo status
+                
+                // ⚡ MELHORIA DE CACHE UI: Marca como confirmado nesta sessão
+                setBiometriasConfirmadas(prev => new Set(prev).add(matricula));
+
+                // Revalida os dados reais do servidor em background
+                setTimeout(atualizarAlunos, 2000);
             } else {
                 toast.error(data.mensagem || 'Falha na captura.', { id: toastId });
             }
