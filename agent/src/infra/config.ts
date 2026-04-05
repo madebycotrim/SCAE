@@ -33,24 +33,22 @@ export interface AgenteConfig {
 }
 
 
-// Configuração padrão in-memory
+// Configuração padrão em memória - FORÇADO PARA NUVEM (SEM LOCALHOST)
 let configBase: AgenteConfig = {
-  escola_id: process.env.CATRAKI_ESCOLA_ID || 'cem03-taguatinga',
+  escola_id: 'cem03-taguatinga', // Fixado para garantir o ID correto
   leitores: [
     {
       id: 'idflex-real',
-      nome: 'iDFlex Portaria (Físico)',
+      nome: 'IDFLEX - CATRAKI',
       tipo: TipoLeitor.ID_FLEX,
-      ip: '192.168.1.34:8080',
-      porta: 8080
+      ip: '192.168.1.34',
+      porta: 80
     } as LeitorTcpConfig
-
   ],
-  intervalo_polling_ms: 1000,
+  intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,
-  endpoint_worker: process.env.CATRAKI_API_URL || 'http://localhost:8788',
-
-  admin_pin: process.env.CATRAKI_ADMIN_PIN || '123456'
+  endpoint_worker: 'https://agente.catraki.com.br', // FIXADO PARA NUVEM
+  admin_pin: '123456'
 };
 
 // Tenta carregar persistência do disco para o hardware

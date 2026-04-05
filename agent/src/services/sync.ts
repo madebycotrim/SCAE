@@ -1,7 +1,6 @@
 /**
  * services/sync.ts
  * Orquestrador de Sincronização Bidirecional (Local <-> Cloudflare).
- * Lógica Simplificada: Foco apenas em Alunos e Presença.
  */
 
 import { config } from '../infra/config';
@@ -40,14 +39,25 @@ export function iniciarSync() {
   }, 30 * 1000);
 }
 
+/**
+ * Envia as presenças coletadas localmente para o sistema web (Cloudflare)
+ */
 async function sincronizarRegistrosPendentes() {
-  const pendentes = await allSql(`SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 100`);
-  if (pendentes.length === 0) return;
-
-  const ok = await WorkerApi.enviarBatida(pendentes);
-  if (ok) {
-    for (const p of pendentes) {
-      await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
+  const pendentes = await allSql(`SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 50`);
+  
+  if (pendentes.length > 0) {
+    console.log(`[Sync] Detectado ${pendentes.length} batidas pendentes. Enviando para Cloudflare...`);
+    
+    // Tenta enviar para a Nuvem através do WorkerApi
+    const ok = await WorkerApi.enviarBatida(pendentes);
+    
+    if (ok) {
+      console.log(`[Sync] ✓ SUCESSO: ${pendentes.length} batidas enviadas aos sistema web.`);
+      for (const p of pendentes) {
+        await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
+      }
+    } else {
+      console.warn(`[Sync] ! FALHA: Erro ao enviar batidas para a rede. Tentando novamente em breve...`);
     }
   }
 }
@@ -58,7 +68,7 @@ export async function sincronizarCacheAlunos() {
   
   try {
     const urlSync = `${config.endpoint_worker}/api/agente/download-alunos`;
-    console.log(`[Sync] Sincronizando: ${urlSync}`);
+    console.log(`[Sync] Verificando nuvem: ${urlSync}`);
     const resposta = await WorkerApi.buscarSincronizacaoAlunos();
     
     if (!resposta || !resposta.ok) return;

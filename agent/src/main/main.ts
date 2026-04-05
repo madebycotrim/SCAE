@@ -36,10 +36,8 @@ async function createWindow() {
     if (req.url === '/ping') {
         const statsObj = {
             ok: true,
-            agente: 'SCAE Edge Agent',
-            versao: '1.6.0',
-            escola: config.escola_id,
-            status: 'OPERACIONAL',
+            escola: config.escola_id, // Exibe o slug/ID da escola configurada
+            status: 'CONECTADO À NUVEM',
             stats: stats.obterSnapshot(),
             leitores: leitoresAtivos.map(l => ({
                 id: l.id,

@@ -80,18 +80,26 @@ async function monitorarLeitor(leitor: ILeitor) {
       console.log(`[Poller] ${leitor.nome}: Coletou ${eventos.length} novas presenças.`);
       
       for (const ev of eventos) {
-        if (notificadorGlobal) {
-          const matriculaParaBusca = ev.matricula || ev.idUsuario;
-          const aluno = await getSql('SELECT nome_completo FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
-          
-          if (aluno?.nome_completo) {
-            stats.registrarAcesso(aluno.nome_completo, String(matriculaParaBusca), ev.tipo);
-          } else {
-            const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';
-            const nomeExibicao = ev.nomeHardware || `DESCONHECIDO (${ev.idUsuario})`;
-            stats.registrarAcesso(nomeExibicao, String(ev.idUsuario), statusAcesso);
-          }
-        }
+        const matriculaParaBusca = ev.matricula || ev.idUsuario;
+        const aluno = await getSql('SELECT nome_completo FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
+        const nomeAcesso = aluno?.nome_completo || ev.nomeHardware || `DESCONHECIDO (${ev.idUsuario})`;
+        const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';
+
+        // 1. Atualiza estatísticas em memória do Agente (Para aparecer na telinha local)
+        stats.registrarAcesso(nomeAcesso, String(matriculaParaBusca), statusAcesso);
+
+        // 2. GRAVA A BATIDA FISICAMENTE NO BANCO (Para que o Sync possa enviar para a Cloudflare)
+        await runSql(`
+            INSERT INTO registros_acesso (id, leitor_id, matricula, nome, tipo, autorizado, sincronizado)
+            VALUES (?, ?, ?, ?, ?, ?, 0)
+        `, [
+            `EV-${ev.id}-${Date.now()}`, // ID único da batida
+            leitor.id,
+            String(matriculaParaBusca),
+            nomeAcesso,
+            statusAcesso,
+            ev.autorizado ? 1 : 0
+        ]);
         
         const idNum = parseInt(ev.id, 10);
         if (!isNaN(idNum) && idNum > parseInt(maxId, 10)) maxId = ev.id;

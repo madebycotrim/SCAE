@@ -1,7 +1,6 @@
 /**
  * infra/db.ts
  * Persistência local do Agente SCAE - Versão Assíncrona (SQLite3).
- * Garante funcionamento offline e cache seguro de biometria.
  */
 
 import * as sqlite3 from 'sqlite3';
@@ -11,40 +10,51 @@ import fs from 'fs';
 
 let database: sqlite3.Database | null = null;
 
-/** Inicializa e retorna a conexão com o banco de dados local */
 export function getDb(): sqlite3.Database {
   if (database) return database;
 
-  // No Windows, salva em %AppData%/scae-agent/data/scae-agent-v2.db
   const dbDir = path.join(app.getPath('userData'), 'data');
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
   const dbPath = path.join(dbDir, 'scae-agent-v2.db');
+  console.log(`[DB] Banco de dados localizado em: ${dbPath}`);
+  
   database = new sqlite3.Database(dbPath);
 
-  // Ativar WAL mode para alta performance e concorrência (se suportado pelo driver local)
   database.serialize(() => {
     database?.run('PRAGMA journal_mode = WAL');
     database?.run('PRAGMA synchronous = NORMAL');
 
-    // Tabela de Registros de Acesso (Buffer Local para Sincronização)
+    // 1. Cria a tabela se não existir (ESTRUTURA COMPLETA V3)
     database?.run(`
       CREATE TABLE IF NOT EXISTS registros_acesso (
         id TEXT PRIMARY KEY,
-        escola_id TEXT NOT NULL,
-        aluno_matricula TEXT NOT NULL,
-        tipo_movimentacao TEXT NOT NULL,
-        metodo_leitura TEXT,
-        timestamp_acesso DATETIME NOT NULL,
         leitor_id TEXT,
-        id_evento_hardware TEXT,
+        matricula TEXT NOT NULL DEFAULT '---',
+        nome TEXT,
+        tipo TEXT NOT NULL DEFAULT 'ENTRADA',
+        autorizado INTEGER DEFAULT 1,
+        timestamp_acesso DATETIME DEFAULT (datetime('now', 'localtime')),
         sincronizado INTEGER DEFAULT 0
       )
     `);
 
-    // Tabela de Cursores (Onde paramos a leitura em cada equipamento)
+    // ⚡ AUTO-REPAIR: Se a tabela existir mas faltar a coluna 'matricula', adiciona agora.
+    database?.run("ALTER TABLE registros_acesso ADD COLUMN matricula TEXT NOT NULL DEFAULT '---'", (err) => {
+        if (!err) console.log('[DB] SQL Fix: Coluna "matricula" adicionada com sucesso.');
+    });
+
+    database?.run("ALTER TABLE registros_acesso ADD COLUMN nome TEXT", (err) => {
+        if (!err) console.log('[DB] SQL Fix: Coluna "nome" adicionada com sucesso.');
+    });
+
+    database?.run("ALTER TABLE registros_acesso ADD COLUMN tipo TEXT NOT NULL DEFAULT 'ENTRADA'", (err) => {
+        if (!err) console.log('[DB] SQL Fix: Coluna "tipo" adicionada com sucesso.');
+    });
+
+    // Outras tabelas essenciais
     database?.run(`
       CREATE TABLE IF NOT EXISTS cursores_leitura (
         leitor_id TEXT PRIMARY KEY,
@@ -53,7 +63,6 @@ export function getDb(): sqlite3.Database {
       )
     `);
 
-    // Cache de Alunos (Sincronizado da Nuvem para funcionamento offline)
     database?.run(`
       CREATE TABLE IF NOT EXISTS alunos_cache (
         matricula TEXT NOT NULL,
@@ -65,26 +74,21 @@ export function getDb(): sqlite3.Database {
         PRIMARY KEY (matricula, escola_id)
       )
     `);
-
-    // Configurações da Unidade (Sincronizadas da Nuvem)
-    database?.run(`
-      CREATE TABLE IF NOT EXISTS configuracoes_unidade (
-        chave TEXT PRIMARY KEY,
-        valor TEXT,
-        atualizado_em DATETIME DEFAULT (datetime('now', 'localtime'))
-      )
-    `);
   });
 
   return database;
 }
 
-/** Wrapper para executar comandos com Promises */
 export function runSql(sql: string, params: any[] = []): Promise<void> {
   const db = getDb();
   return new Promise((resolve, reject) => {
     db.run(sql, params, (err: Error | null) => {
       if (err) {
+        // Ignora erro de "coluna já existe" durante o auto-repair inicial
+        if (err.message.includes('duplicate column name')) {
+            resolve();
+            return;
+        }
         console.error(`[SQLite Error] Query: ${sql} | Erro:`, err.message);
         reject(err);
       } else resolve();
@@ -92,7 +96,6 @@ export function runSql(sql: string, params: any[] = []): Promise<void> {
   });
 }
 
-/** Wrapper para buscar um único registro */
 export function getSql<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
   const db = getDb();
   return new Promise((resolve, reject) => {
@@ -103,7 +106,6 @@ export function getSql<T = any>(sql: string, params: any[] = []): Promise<T | un
   });
 }
 
-/** Wrapper para buscar múltiplos registros */
 export function allSql<T = any>(sql: string, params: any[] = []): Promise<T[]> {
   const db = getDb();
   return new Promise((resolve, reject) => {
