@@ -1,6 +1,7 @@
 /**
  * infra/db.ts
  * Persistência local do Agente SCAE - Versão Assíncrona (SQLite3).
+ * VERSÃO 3.1: Suporte a Reset de Emergência.
  */
 
 import * as sqlite3 from 'sqlite3';
@@ -10,6 +11,31 @@ import fs from 'fs';
 
 let database: sqlite3.Database | null = null;
 
+/**
+ * Fecha o banco e deleta o arquivo físico se solicitado
+ */
+export async function resetarBancoLocal() {
+    if (database) {
+        return new Promise<void>((resolve) => {
+            database?.close((err) => {
+                if (err) console.error('[DB] Erro ao fechar para reset:', err.message);
+                database = null;
+                
+                const dbDir = path.join(app.getPath('userData'), 'data');
+                const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
+                
+                try {
+                    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+                    console.log('[DB] !!! BANCO DELETADO COM SUCESSO !!!');
+                } catch (e: any) {
+                    console.error('[DB] Erro ao deletar arquivo:', e.message);
+                }
+                resolve();
+            });
+        });
+    }
+}
+
 export function getDb(): sqlite3.Database {
   if (database) return database;
 
@@ -18,70 +44,29 @@ export function getDb(): sqlite3.Database {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  const dbPath = path.join(dbDir, 'scae-agent-v2.db');
-  console.log(`[DB] Banco de dados localizado em: ${dbPath}`);
-  
+  const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
   database = new sqlite3.Database(dbPath);
 
   database.serialize(() => {
     database?.run('PRAGMA journal_mode = WAL');
     database?.run('PRAGMA synchronous = NORMAL');
 
-    // 1. Cria a tabela se não existir (ESTRUTURA COMPLETA V3)
     database?.run(`
       CREATE TABLE IF NOT EXISTS registros_acesso (
         id TEXT PRIMARY KEY,
         leitor_id TEXT,
-        matricula TEXT NOT NULL DEFAULT '---',
+        escola_id TEXT NOT NULL,
+        matricula TEXT NOT NULL,
         nome TEXT,
-        tipo TEXT NOT NULL DEFAULT 'ENTRADA',
+        tipo TEXT DEFAULT 'ENTRADA',
         autorizado INTEGER DEFAULT 1,
         timestamp_acesso DATETIME DEFAULT (datetime('now', 'localtime')),
         sincronizado INTEGER DEFAULT 0
       )
     `);
 
-    // ⚡ AUTO-REPAIR: Se a tabela existir mas faltar a coluna 'matricula', adiciona agora.
-    database?.run("ALTER TABLE registros_acesso ADD COLUMN matricula TEXT NOT NULL DEFAULT '---'", (err) => {
-        if (!err) console.log('[DB] SQL Fix: Coluna "matricula" adicionada com sucesso.');
-    });
-
-    database?.run("ALTER TABLE registros_acesso ADD COLUMN nome TEXT", (err) => {
-        if (!err) console.log('[DB] SQL Fix: Coluna "nome" adicionada com sucesso.');
-    });
-
-    database?.run("ALTER TABLE registros_acesso ADD COLUMN tipo TEXT NOT NULL DEFAULT 'ENTRADA'", (err) => {
-        if (!err) console.log('[DB] SQL Fix: Coluna "tipo" adicionada com sucesso.');
-    });
-
-    database?.run("ALTER TABLE registros_acesso ADD COLUMN autorizado INTEGER DEFAULT 1", (err) => {
-        if (!err) console.log('[DB] SQL Fix: Coluna "autorizado" adicionada com sucesso.');
-    });
-
-    database?.run("ALTER TABLE registros_acesso ADD COLUMN leitor_id TEXT", (err) => {
-        if (!err) console.log('[DB] SQL Fix: Coluna "leitor_id" adicionada com sucesso.');
-    });
-
-    // Outras tabelas essenciais
-    database?.run(`
-      CREATE TABLE IF NOT EXISTS cursores_leitura (
-        leitor_id TEXT PRIMARY KEY,
-        ultimo_evento_id TEXT,
-        atualizado_em DATETIME DEFAULT (datetime('now', 'localtime'))
-      )
-    `);
-
-    database?.run(`
-      CREATE TABLE IF NOT EXISTS alunos_cache (
-        matricula TEXT NOT NULL,
-        escola_id TEXT NOT NULL,
-        nome_completo TEXT,
-        turma_id TEXT,
-        ativo INTEGER DEFAULT 1,
-        atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')),
-        PRIMARY KEY (matricula, escola_id)
-      )
-    `);
+    database?.run(`CREATE TABLE IF NOT EXISTS cursores_leitura (leitor_id TEXT PRIMARY KEY, ultimo_evento_id TEXT, atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')))`);
+    database?.run(`CREATE TABLE IF NOT EXISTS alunos_cache (matricula TEXT NOT NULL, escola_id TEXT NOT NULL, nome_completo TEXT, turma_id TEXT, ativo INTEGER DEFAULT 1, atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')), PRIMARY KEY (matricula, escola_id))`);
   });
 
   return database;
@@ -91,15 +76,8 @@ export function runSql(sql: string, params: any[] = []): Promise<void> {
   const db = getDb();
   return new Promise((resolve, reject) => {
     db.run(sql, params, (err: Error | null) => {
-      if (err) {
-        // Ignora erro de "coluna já existe" durante o auto-repair inicial
-        if (err.message.includes('duplicate column name')) {
-            resolve();
-            return;
-        }
-        console.error(`[SQLite Error] Query: ${sql} | Erro:`, err.message);
-        reject(err);
-      } else resolve();
+      if (err) reject(err);
+      else resolve();
     });
   });
 }

@@ -1,27 +1,20 @@
+/**
+ * infra/config.ts
+ * Central de Configuração do Agente com Persistência Definitiva.
+ */
 import fs from 'fs';
 import path from 'path';
 import { TipoLeitor, LeitorConfig, LeitorTcpConfig } from '../drivers/ILeitor';
+import { app } from 'electron';
 
-// Caminho para o arquivo de persistência local das configurações de hardware
-const CONFIG_LOCAL_PATH = path.resolve(__dirname, '../../local-config.json');
-
-
-// Carregar variáveis de ambiente do .env na raiz do SCAE
-try {
-  const dotenv = require('dotenv');
-  // Procura no diretório raiz do projeto (../../../.env porque estamos em dist/infra/)
-  const rootEnv = path.resolve(__dirname, '../../../.env');
-  const agentEnv = path.resolve(__dirname, '../../.env');
-  
-  if (fs.existsSync(rootEnv)) {
-    dotenv.config({ path: rootEnv });
-  } else {
-    dotenv.config({ path: agentEnv });
-  }
-} catch {
-  console.warn('[Config] dotenv não encontrado, usando variáveis de ambiente do sistema.');
-}
-
+// ⚡ LOCALIZADOR DE CONFIGURAÇÃO PERSISTENTE
+const getLocalConfigPath = () => {
+    // No Windows: C:\Users\nome\AppData\Roaming\catraki-agent\data\local-config.json
+    const userData = app.getPath('userData');
+    const dataDir = path.join(userData, 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    return path.join(dataDir, 'local-config.json');
+};
 
 export interface AgenteConfig {
   escola_id: string;
@@ -29,56 +22,65 @@ export interface AgenteConfig {
   intervalo_polling_ms: number;
   intervalo_sync_ms: number;
   endpoint_worker: string;
-  admin_pin: string; // Senha mestre para acesso local/configuração
+  admin_pin: string;
 }
 
-
-// Configuração padrão em memória - FORÇADO PARA NUVEM (SEM LOCALHOST)
-let configBase: AgenteConfig = {
-  escola_id: 'cem03-taguatinga', // Fixado para garantir o ID correto
-  leitores: [
-    {
-      id: 'idflex-real',
-      nome: 'IDFLEX - CATRAKI',
-      tipo: TipoLeitor.ID_FLEX,
-      ip: '192.168.1.34',
-      porta: 80
-    } as LeitorTcpConfig
-  ],
+// Configuração padrão de fábrica
+const configPadrao: AgenteConfig = {
+  escola_id: 'cem03-taguatinga',
+  leitores: [],
   intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,
-  endpoint_worker: 'https://agente.catraki.com.br', // FIXADO PARA NUVEM
+  endpoint_worker: 'https://agente.catraki.com.br',
   admin_pin: '123456'
 };
 
-// Tenta carregar persistência do disco para o hardware
-try {
-  if (fs.existsSync(CONFIG_LOCAL_PATH)) {
-    const data = JSON.parse(fs.readFileSync(CONFIG_LOCAL_PATH, 'utf-8'));
-    if (data.leitores) {
-        configBase.leitores = data.leitores.map((l: any) => ({
-            ...l,
-            id: l.id || `idflex-${l.ip?.replace(/\W/g, '') || Date.now()}`
-        }));
+// Singleton em memória
+export let config: AgenteConfig = { ...configPadrao };
+
+/**
+ * Lê o arquivo do disco e atualiza a variável global 'config'
+ */
+export function carregarConfiguracaoHardware() {
+    try {
+        const configPath = getLocalConfigPath();
+        if (fs.existsSync(configPath)) {
+            const raw = fs.readFileSync(configPath, 'utf-8');
+            const data = JSON.parse(raw);
+            if (data.leitores) {
+                config.leitores = data.leitores.map((l: any) => ({
+                    ...l,
+                    id: l.id || `idflex-${l.ip?.replace(/\W/g, '') || Date.now()}`
+                }));
+                console.log(`[Config] ${config.leitores.length} leitores carregados de: ${configPath}`);
+            }
+        } else {
+            console.log('[Config] local-config.json não existe. Usando padrão.');
+        }
+    } catch (e: any) {
+        console.error('[Config] Erro ao carregar hardware:', e.message);
     }
-    console.log('[Config] Hardware carregado do disco com sucesso.');
-  }
-} catch (e) {
-  console.log('[Config] Usando configurações padrão (disco não encontrado).');
 }
 
-// Exporta a config e função para salvar fisicamente
-export const config = configBase;
-
-export const salvarLeitoresNoDisco = (leitores: any[]) => {
+/**
+ * Grava a lista de leitores fisicamente no disco e atualiza a memória
+ */
+export function salvarLeitoresNoDisco(leitores: any[]) {
   try {
+    const configPath = getLocalConfigPath();
     const data = { leitores };
-    fs.writeFileSync(CONFIG_LOCAL_PATH, JSON.stringify(data, null, 2));
-    config.leitores = leitores; // Atualiza em memória também
-    console.log('[Config] Novas configurações de hardware salvas no disco.');
+    fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
+    
+    // Atualiza a referência global
+    config.leitores = leitores;
+    
+    console.log(`[Config] CONFIGURAÇÃO SALVA COM SUCESSO EM: ${configPath}`);
+    return true;
   } catch (e) {
-    console.error('[Config] Erro ao persistir no disco:', e);
+    console.error('[Config] Falha crítica ao salvar no disco:', e);
+    return false;
   }
-};
+}
 
-
+// Carga Inicial Automática
+carregarConfiguracaoHardware();

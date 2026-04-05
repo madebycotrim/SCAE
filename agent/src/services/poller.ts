@@ -21,24 +21,43 @@ const falhasLeitores = new Map<string, { contador: number, proximaTentativa: num
 
 /** Inicializa o monitoramento de todos os leitores configurados */
 export function iniciarPolling(notificador: any) {
-  // ⚡ Carrega os leitores da config se a lista estiver vazia
-  if (leitoresAtivos.length === 0 && config.leitores) {
-     leitoresAtivos = (config.leitores as any[]).map(c => new IdflexLeitor(c));
-  }
+  // ⚡ SEGURO: Garante que os leitores estejam carregados se ainda não estiverem
+  verificarEInicializarLeitores();
 
   notificadorGlobal = notificador;
-  
-  console.log(`[Poller] Iniciando monitoramento para ${leitoresAtivos.length} equipamentos.`);
-  
-  // Ciclo Principal de Polling (Frequência: 2s)
-  setInterval(() => {
-    leitoresAtivos.forEach(leitor => monitorarLeitor(leitor));
-  }, 2000);
+  console.log(`[Poller] Motores de coleta (Polling) ATIVADOS para ${leitoresAtivos.length} equipamentos.`);
 }
+
+/** 
+ * Garante que a lista de equipamentos configurados esteja na memória.
+ * Chamado pelo monitor de status antes mesmo da ativação total do sistema.
+ */
+export function verificarEInicializarLeitores() {
+  if (leitoresAtivos.length === 0 && config.leitores) {
+    const list = (config.leitores as any[]).map(c => new IdflexLeitor(c));
+    leitoresAtivos = list;
+    console.log(`[Poller] Hardware carregado: ${leitoresAtivos.length} equipamentos em radar.`);
+  }
+}
+
+// Ciclo Principal de Monitoramento (WATCHDOG) - Roda SEMPRE
+setInterval(() => {
+    // Carrega se sumir
+    verificarEInicializarLeitores();
+    // Monitora individualmente cada leitor
+    leitoresAtivos.forEach(leitor => monitorarLeitor(leitor));
+}, 2000);
 
 /** Recarrega a lista de leitores (Ex: mudança de IP no dashboard) */
 export function recarregarLeitores(novaLista: ILeitor[] = []) {
-    if (novaLista.length > 0) leitoresAtivos = novaLista;
+    if (novaLista.length > 0) {
+        leitoresAtivos = novaLista;
+    } else {
+        // Se chamado sem lista, força a reconstrução a partir da config global atualizada
+        const { IdflexLeitor } = require('../drivers/IdflexLeitor');
+        const { config } = require('../infra/config');
+        leitoresAtivos = (config.leitores as any[]).map(c => new IdflexLeitor(c));
+    }
     console.log(`[Poller] Lista de leitores atualizada (${leitoresAtivos.length} ativos).`);
 }
 
@@ -71,15 +90,18 @@ async function monitorarLeitor(leitor: ILeitor) {
 
     // 2. Buscar último ID lido para este leitor
     const cursor = await getSql(`SELECT ultimo_evento_id FROM cursores_leitura WHERE leitor_id = ?`, [leitor.id]);
-    let maxId = cursor?.ultimo_evento_id;
-
-    // ⚡ FIRST BOOT: Se não existe cursor, pergunta ao leitor qual o ID atual e marca como início
-    if (maxId === undefined) {
-        console.log(`[Poller] Inicializando leitura para ${leitor.id}. Marcando ponto de partida atual...`);
-        const novoMax = await (leitor as any).buscarUltimoIdLog();
+    
+    // ⚡ FIRST BOOT: Se não existe cursor no banco, pergunta ao hardware qual o ID de log mais recente
+    // e salva como o nosso ponto de partida. Não coletamos nada que veio antes disso.
+    if (!cursor) {
+        console.log(`[Poller] Banco novo detectado. Inicializando cursor para ${leitor.id}...`);
+        const novoMax = await leitor.buscarUltimoIdLog();
         await runSql(`INSERT INTO cursores_leitura (leitor_id, ultimo_evento_id) VALUES (?, ?)`, [leitor.id, String(novoMax)]);
-        return; // Pula a coleta neste ciclo para começar do zero no próximo
+        console.log(`[Poller] Ponto Zero definido no ID: ${novoMax}. Ignorando histórico anterior.`);
+        return; // IMPORTANTE: Encerra aqui para garantir que o próximo ciclo use este ID como base
     }
+
+    let maxId = cursor.ultimo_evento_id;
 
     // 3. Buscar novos eventos (Fallback se o Push falhar ou rede oscilar)
     const eventos: EventoAcesso[] = await leitor.buscarEventos(maxId);

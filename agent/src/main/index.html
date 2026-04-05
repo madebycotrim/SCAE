@@ -167,6 +167,12 @@
             background: var(--s2);
         }
 
+        .icon-btn.danger:hover {
+            color: #ff5f5f;
+            border-color: rgba(255, 95, 95, 0.4);
+            background: rgba(255, 95, 95, 0.05);
+        }
+
         /* ── LAYOUT ─────────────────────────────────────── */
         .layout {
             flex: 1;
@@ -307,6 +313,9 @@
             <span class="h-school" id="school-badge">MODO LOCAL</span>
         </div>
         <div class="header-right">
+            <button class="icon-btn danger" id="btn-reset-db" title="LIMPEZA NUCLEAR: Resetar Banco Local">
+                🗑️
+            </button>
             <button class="icon-btn" id="btn-settings-open" title="Configurar IPs">
                 ⚙️
             </button>
@@ -379,6 +388,7 @@
 
         function showToast(msg, type='info') {
             const area = document.getElementById('toast-area');
+            if(!area) return;
             const t = document.createElement('div');
             t.className = `toast ${type === 'ok' ? 'ok' : 'err'}`;
             t.textContent = msg;
@@ -388,6 +398,7 @@
 
         function pushLog(msg, type='info') {
             const container = document.getElementById('log-container');
+            if(!container) return;
             const entry = document.createElement('div');
             entry.className = 'log-entry';
             const time = new Date().toLocaleTimeString('pt-BR');
@@ -400,6 +411,13 @@
         window.scaeApi.onHardwareStatus(status => {
             configAtiva = status.leitores || [];
             const list = document.getElementById('hardware-list');
+            if(!list) return;
+            
+            if(configAtiva.length === 0) {
+                list.innerHTML = '<div style="color: var(--t3); font-size: 0.7rem; padding: 10px;">Nenhum hardware no radar.</div>';
+                return;
+            }
+
             list.innerHTML = configAtiva.map(l => `
                 <div style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.05)">
                     <div style="display:flex; align-items:center; justify-content:space-between">
@@ -427,9 +445,7 @@
 
             try {
                 const users = await window.scaeApi.listarAlunos({ leitorId });
-                console.log('Usuários recebidos:', users);
-                
-                if (users.length > 0) {
+                if (users && users.length > 0) {
                    listArea.innerHTML = users.map(u => `
                         <div style="padding:8px 4px; font-family:var(--mono); font-size:11px; border-bottom:1px solid var(--b1); display:flex; justify-content:space-between">
                             <span><span style="color:var(--t3)">[${u.id}]</span> ${u.name}</span>
@@ -461,6 +477,15 @@
             document.getElementById('settings-screen').classList.remove('hidden');
         };
 
+        // Reset DB Local
+        document.getElementById('btn-reset-db').onclick = async () => {
+            if (!confirm('!!! ATENÇÃO !!!\n\nIsso vai APAGAR o banco de dados local e reiniciar o Agente.\nTodas as presenças não sincronizadas serão perdidas.\n\nDeseja continuar?')) return;
+            try {
+                fetch('http://127.0.0.1:1912/reset-db', { method: 'POST' });
+                showToast('Resetando motores...', 'ok');
+            } catch (e) { showToast('Falha ao enviar comando.', 'err'); }
+        };
+
         function closeSettings() {
             document.getElementById('settings-screen').classList.add('hidden');
         }
@@ -470,47 +495,60 @@
             list.innerHTML = configAtiva.map((l, i) => `
                 <div class="settings-item">
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items: center;">
-                        <input type="text" 
-                            style="background:none; border:none; color:var(--t2); font-size:0.65rem; font-weight:700; width: 70%; outline: none;" 
-                            value="${l.nome}" 
-                            onchange="updateH(${i}, 'nome', this.value)"
-                            placeholder="Nome do Leitor">
-                        <button onclick="removeHardware(${i})" style="background:none; border:none; color:var(--err); cursor:pointer; font-size: 0.65rem;">excluir</button>
+                        <input type="text" class="f-name" style="background:none; border:none; color:var(--t2); font-size:0.65rem; font-weight:700; width: 70%; outline: none;" value="${l.nome}" placeholder="Nome do Leitor">
+                        <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size: 0.65rem;">excluir</button>
                     </div>
                     <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
-                        <input type="text" class="f-input" value="${l.ip}" onchange="updateH(${i}, 'ip', this.value)" placeholder="IP">
-                        <input type="number" class="f-input" value="${l.porta}" onchange="updateH(${i}, 'porta', this.value)" placeholder="Porta">
+                        <input type="text" class="f-input f-ip" value="${l.ip}" placeholder="IP">
+                        <input type="number" class="f-input f-porta" value="${l.porta}" placeholder="Porta">
+                        <input type="hidden" class="f-id" value="${l.id}">
                     </div>
                 </div>
             `).join('');
         }
-
-        window.updateH = (i, k, v) => { configAtiva[i][k] = v; };
-        window.removeHardware = (i) => { configAtiva.splice(i, 1); renderSettings(); };
+        
         window.addNewHardware = () => {
-            configAtiva.push({ id: `idflex-${Date.now()}`, nome: 'Novo Leitor', ip: '', porta: 80, tipo: 'ID_FLEX' });
-            renderSettings();
+            const list = document.getElementById('settings-list');
+            const placeholderId = `idflex-${Date.now()}`;
+            const item = document.createElement('div');
+            item.className = 'settings-item';
+            item.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items: center;">
+                    <input type="text" class="f-name" style="background:none; border:none; color:var(--t2); font-size:0.65rem; font-weight:700; width: 70%; outline: none;" value="Novo Leitor" placeholder="Nome do Leitor">
+                    <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size: 0.65rem;">excluir</button>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
+                    <input type="text" class="f-input f-ip" value="" placeholder="IP">
+                    <input type="number" class="f-input f-porta" value="80" placeholder="Porta">
+                    <input type="hidden" class="f-id" value="${placeholderId}">
+                </div>
+            `;
+            list.appendChild(item);
         };
 
         async function saveHardware() {
             try {
-                // Junta IP e Porta antes de salvar (ex: 192.168.1.34 + 80 -> 192.168.1.34:80)
-                const hardwareFormatado = configAtiva.map(l => {
-                    const ipBase = String(l.ip).split(':')[0];
-                    const portaFinal = l.porta || 80;
-                    return {
-                        ...l,
-                        ip: ipBase, 
-                        porta: parseInt(portaFinal)
-                    };
+                const items = document.querySelectorAll('.settings-item');
+                const novosLeitores = [];
+                items.forEach(el => {
+                    const nome = el.querySelector('.f-name').value;
+                    const ip = el.querySelector('.f-ip').value;
+                    const porta = el.querySelector('.f-porta').value;
+                    const id = el.querySelector('.f-id')?.value || `idflex-${Date.now()}`;
+                    if (ip.trim() !== '') {
+                        novosLeitores.push({ id, nome: nome || 'Leitor Catraki', ip: ip.trim(), porta: parseInt(porta) || 80, tipo: 'ID_FLEX' });
+                    }
                 });
-
-                await window.scaeApi.salvarLeitores(hardwareFormatado);
-                showToast('Hardware sincronizado!', 'ok');
-                closeSettings();
-            } catch (e) {
-                showToast('Erro ao salvar.', 'err');
-            }
+                
+                // --- FORMATO CORRETO: O preload.ts já embrulha como { leitores } ---
+                const res = await window.scaeApi.salvarLeitores(novosLeitores);
+                if (res.ok) {
+                   showToast('Configuração salva!', 'ok');
+                   closeSettings();
+                } else {
+                   showToast('Erro ao salvar.', 'err');
+                }
+            } catch (e) { showToast('Falha na operação.', 'err'); }
         }
     </script>
 </body>

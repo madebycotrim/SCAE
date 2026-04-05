@@ -1,18 +1,22 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import * as http from 'http';
+
+// Importações Dinâmicas (Para Eventos)
 import { leitoresAtivos, iniciarPolling, recarregarLeitores } from '../services/poller';
-import { IdflexLeitor } from '../drivers/IdflexLeitor';
 import { iniciarSync, sincronizarCacheAlunos } from '../services/sync';
 import { runSql, getSql } from '../infra/db';
-import { config } from '../infra/config';
+import { config, salvarLeitoresNoDisco, carregarConfiguracaoHardware } from '../infra/config';
 import { stats } from '../infra/stats';
 import dns from 'dns';
 
 import { buscarIpLocal } from '../utils/rede';
 
 let mainWindow: BrowserWindow | null = null;
+let sistemaAtivado = false;
 
+// Garante carregamento de IP no Radar
+carregarConfiguracaoHardware();
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
@@ -37,8 +41,8 @@ async function createWindow() {
     if (req.url === '/ping') {
         const statsObj = {
             ok: true,
-            escola: config.escola_id, // Exibe o slug/ID da escola configurada
-            status: 'CONECTADO À NUVEM',
+            escola: config.escola_id, 
+            status: sistemaAtivado ? 'CONECTADO À NUVEM' : 'AGUARDANDO HARDWARE',
             stats: stats.obterSnapshot(),
             leitores: leitoresAtivos.map(l => ({
                 id: l.id,
@@ -52,35 +56,27 @@ async function createWindow() {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(statsObj));
     } else if (req.url === '/sync-now' && req.method === 'POST') {
-        // --- GATILHO DE SINCRONIZAÇÃO INSTANTÂNEA ---
         try {
-            console.log('[Agente] Sincronização em tempo real solicitada pelo Dashboard!');
             await sincronizarCacheAlunos();
-            
-
-
             res.writeHead(200); res.end(JSON.stringify({ ok: true }));
         } catch (e) {
-            console.error('[Sync Now Error]', e);
             res.writeHead(500); res.end(JSON.stringify({ error: 'Erro no trigger de sync' }));
         }
     } else if (req.url === '/enroll' && req.method === 'POST') {
-        // --- GATILHO DE CADASTRO REMOTO VIA DASHBOARD ---
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
              try {
                 const { aluno_id, leitor_id } = JSON.parse(body);
-                // Busca o leitor ativo (se não informado, pega o primeiro)
                 const leitor = leitor_id 
                     ? leitoresAtivos.find(l => l.id === leitor_id)
                     : leitoresAtivos[0];
 
                 if (leitor && (leitor as any).iniciarCaptura) {
-                    console.log(`[Enroll] Iniciando captura para aluno ${aluno_id} no leitor ${leitor.id}`);
+                    console.log(`[Enroll] Captura para aluno ${aluno_id} no leitor ${leitor.id}`);
                     const ok = await (leitor as any).iniciarCaptura(parseInt(aluno_id, 10));
                     res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ ok, mensagem: ok ? 'Captura iniciada' : 'Leitor ocupado ou erro' }));
+                    res.end(JSON.stringify({ ok, mensagem: ok ? 'Captura iniciada' : 'Erro' }));
                 } else {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ ok: false, mensagem: 'Hardware não disponível' }));
@@ -90,17 +86,13 @@ async function createWindow() {
              }
         });
     } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {
-        // --- 📡 DEBUG DE RECEBIMENTO DE PUSH (REAL-TIME) ---
-        console.log(`[Push] Conexão recebida de ${req.socket.remoteAddress}`);
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
-             console.log(`[Push] Body recebido: ${body}`);
              try {
                 const ev = JSON.parse(body);
-                const clientIp = req.socket.remoteAddress?.replace('::ffff:', '').split(':')[0]; // Pega só o IP, sem subporta IPv6
+                const clientIp = req.socket.remoteAddress?.replace('::ffff:', '').split(':')[0];
                 
-                // Busca o leitor cujo IP (contido na string IP:PORTA) bata com o IP do cliente
                 const leitor = leitoresAtivos.find(l => {
                     const leitorBaseIp = l.ip.split(':')[0];
                     return leitorBaseIp === clientIp;
@@ -109,9 +101,6 @@ async function createWindow() {
                 if (leitor && ev.event !== undefined) {
                     const idUsuario = ev.user_id || 0;
                     const statusAcesso = [6, 7, 10, 11, 12, 14, 15, 16, 31].includes(ev.event) ? 'ENTRADA' : 'NEGADO';
-                    
-                    console.log(`[Push] Evento ${ev.event} (Status: ${statusAcesso}) no Leitor ${leitor.id}`);
-
                     let nomeParaExibir = 'ACESSO NÃO RECONHECIDO';
                     let matriculaParaExibir = '—';
 
@@ -121,12 +110,8 @@ async function createWindow() {
                         matriculaParaExibir = info.matricula;
                     }
 
-                    if (statusAcesso === 'ENTRADA') {
-                        leitor.emitirBeep();
-                    } else {
-                        if (leitor.emitirBeepErro) leitor.emitirBeepErro();
-                        else leitor.emitirBeep();
-                    }
+                    if (statusAcesso === 'ENTRADA') leitor.emitirBeep();
+                    else (leitor.emitirBeepErro ? leitor.emitirBeepErro() : leitor.emitirBeep());
 
                     if (mainWindow) {
                         mainWindow.webContents.send('new-access', { 
@@ -134,12 +119,20 @@ async function createWindow() {
                             sucesso: statusAcesso === 'ENTRADA' 
                         });
                     }
-
                     stats.registrarAcesso(nomeParaExibir, matriculaParaExibir, statusAcesso);
                 }
              } catch (e) { console.error('[Push] Erro:', e); }
              res.writeHead(200); res.end();
         });
+    } else if (req.url === '/reset-db' && req.method === 'POST') {
+        // --- 💣 RESET SEGURO ---
+        try {
+            const { resetarBancoLocal } = require('../infra/db');
+            resetarBancoLocal().then(() => {
+                setTimeout(() => { app.relaunch(); app.exit(0); }, 500);
+            });
+            res.writeHead(200); res.end(JSON.stringify({ ok: true }));
+        } catch (e) { res.writeHead(500); res.end(JSON.stringify({ ok: false })); }
     }
   });
 
@@ -149,22 +142,17 @@ async function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
-  ipcMain.handle('cadastrar-aluno', async (_event, { leitorId, alunoId }) => {
-    const leitor = leitoresAtivos.find(l => l.id === leitorId);
-    if (leitor && (leitor as any).iniciarCaptura) {
-        return await (leitor as any).iniciarCaptura(parseInt(alunoId, 10));
-    }
-    return false;
-  });
-
   ipcMain.handle('salvar-leitores', async (_event, { leitores }) => {
     try {
-        console.log('[Agente] Salvando nova configuração de hardware...');
-        const { salvarLeitoresNoDisco } = await import('../infra/config');
-        salvarLeitoresNoDisco(leitores);
-        
-        await recarregarLeitores(); // Reinicia conexões no Poller
-        return { ok: true };
+        console.warn(`[Agente] Salvando ${leitores.length} leitores no disco...`);
+        const ok = salvarLeitoresNoDisco(leitores);
+        if (ok) {
+            // ESSENCIAL: Recarregar a config do disco ANTES de inicializar os leitores no poller
+            carregarConfiguracaoHardware();
+            await recarregarLeitores(); // Agora o recarregar verá a config atualizada no disco
+            return { ok: true };
+        }
+        return { ok: false, erro: 'Falha durante escrita de arquivo' };
     } catch (e: any) {
         console.error('[Agente] Falha ao salvar hardware:', e.message);
         return { ok: false, erro: e.message };
@@ -179,56 +167,61 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
-  console.log('[Agente] Aplicação Electron pronta!');
-  await createWindow();
-  
-
-  
-
-
-  try {
-    console.log('[Agente] Iniciando Polling dos equipamentos...');
-    iniciarPolling(null);
-    enviarStatusHardware();
+    console.log('[Agente] Aplicação Electron pronta!');
+    await createWindow();
     
-    console.log('[Agente] Iniciando Sincronizador de Nuvem...');
-    iniciarSync();
+    /**
+     * Ciclo de Ativação Inteligente: Só liga o Sync e o Polling Real
+     * se houver pelo menos um equipamento respondendo.
+     */
+    const tentarAtivacaoSistemas = async () => {
+      if (sistemaAtivado) return;
 
-    console.log('[Agente] Sistema totalmente operacional ✓');
-  } catch (e: any) {
-    console.error('[Agent] Erro FATAL na inicialização:', e.message);
-  }
+      const temAlguemOnline = leitoresAtivos.some(l => (l as any).online === true);
+      
+      if (temAlguemOnline) {
+        console.log('[Agente] 🟢 HARDWARE ONLINE! Ativando motores do sistema...');
+        sistemaAtivado = true;
+        
+        iniciarPolling(null);
+        iniciarSync();
 
-  // Monitor de Logs para UI
-  const repassarAoLogVisual = (msg: string) => {
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('new-log', msg);
-  };
+        console.log('[Agente] Sistema totalmente operacional ✓');
+      } else {
+        console.log('[Agente] ⏳ Standby: Aguardando sinal de vida dos equipamentos...');
+      }
+    };
+  
+    try {
+      enviarStatusHardware();
+      setInterval(tentarAtivacaoSistemas, 5000);
+      setTimeout(tentarAtivacaoSistemas, 1500);
+  
+    } catch (e: any) {
+      console.error('[Agent] Erro na inicialização:', e.message);
+    }
+
+  // Logs Visuais
   const originalLog = console.log;
   console.log = (...args) => {
       originalLog(...args);
-      repassarAoLogVisual(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('new-log', args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+      }
   };
 });
 
-/** Envia o status atual dos leitores para o Renderer (Vite/React) */
 function enviarStatusHardware() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
-
-  const status = {
+  mainWindow.webContents.send('hardware-status', {
     leitores: leitoresAtivos.map(l => ({
-      id: l.id,
-      nome: l.nome,
-      ip: l.ip,
-      porta: l.porta,
-      online: (l as any).online || false, // Esse campo 'online' é gerenciado pelo status() do leitor
+      id: l.id, nome: l.nome, ip: l.ip, porta: l.porta,
+      online: (l as any).online || false, 
       totalUsuarios: (l as any).totalUsuarios || 0
     }))
-  };
-
-  mainWindow.webContents.send('hardware-status', status);
+  });
 }
 
-// Atualização de Status de Hardware (A cada 10 segundos)
 setInterval(enviarStatusHardware, 10000);
 
 app.on('window-all-closed', () => {
