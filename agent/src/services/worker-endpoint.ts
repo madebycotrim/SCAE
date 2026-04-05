@@ -15,9 +15,6 @@ export class WorkerApi {
     console.log(`[WorkerApi] >>> TENTANDO NUVEM: ${urlCloud}`);
 
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s para garantir
-
         const resp = await fetch(urlCloud, {
             method: 'GET',
             headers: { 
@@ -25,11 +22,8 @@ export class WorkerApi {
                 'Content-Type': 'application/json',
                 // User-Agent real para não ser bloqueado como BOT pela Cloudflare
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SCAE-Agent/1.6.0'
-            },
-            signal: controller.signal
+            }
         });
-        
-        clearTimeout(timeoutId);
 
         if (resp.ok) {
             const data = await resp.json();

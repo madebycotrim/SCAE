@@ -54,6 +54,14 @@ export function getDb(): sqlite3.Database {
         if (!err) console.log('[DB] SQL Fix: Coluna "tipo" adicionada com sucesso.');
     });
 
+    database?.run("ALTER TABLE registros_acesso ADD COLUMN autorizado INTEGER DEFAULT 1", (err) => {
+        if (!err) console.log('[DB] SQL Fix: Coluna "autorizado" adicionada com sucesso.');
+    });
+
+    database?.run("ALTER TABLE registros_acesso ADD COLUMN leitor_id TEXT", (err) => {
+        if (!err) console.log('[DB] SQL Fix: Coluna "leitor_id" adicionada com sucesso.');
+    });
+
     // Outras tabelas essenciais
     database?.run(`
       CREATE TABLE IF NOT EXISTS cursores_leitura (

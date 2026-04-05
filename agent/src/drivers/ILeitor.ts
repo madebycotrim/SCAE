@@ -70,6 +70,9 @@ export interface ILeitor {
   /** Busca novos registros de acesso desde o último ID processado */
   buscarEventos(ultimoId?: string): Promise<EventoAcesso[]>;
 
+  /** Busca o ID do último registro de log (cursor) no hardware */
+  buscarUltimoIdLog(): Promise<number>;
+
   /** Cadastra um novo usuário no hardware */
   cadastrarAluno(aluno: DadosAluno): Promise<ResultadoCadastro>;
 

@@ -7,6 +7,7 @@ import { iniciarSync, sincronizarCacheAlunos } from '../services/sync';
 import { runSql, getSql } from '../infra/db';
 import { config } from '../infra/config';
 import { stats } from '../infra/stats';
+import dns from 'dns';
 
 import { buscarIpLocal } from '../utils/rede';
 

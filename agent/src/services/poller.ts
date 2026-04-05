@@ -71,7 +71,15 @@ async function monitorarLeitor(leitor: ILeitor) {
 
     // 2. Buscar último ID lido para este leitor
     const cursor = await getSql(`SELECT ultimo_evento_id FROM cursores_leitura WHERE leitor_id = ?`, [leitor.id]);
-    let maxId = cursor?.ultimo_evento_id || '0';
+    let maxId = cursor?.ultimo_evento_id;
+
+    // ⚡ FIRST BOOT: Se não existe cursor, pergunta ao leitor qual o ID atual e marca como início
+    if (maxId === undefined) {
+        console.log(`[Poller] Inicializando leitura para ${leitor.id}. Marcando ponto de partida atual...`);
+        const novoMax = await (leitor as any).buscarUltimoIdLog();
+        await runSql(`INSERT INTO cursores_leitura (leitor_id, ultimo_evento_id) VALUES (?, ?)`, [leitor.id, String(novoMax)]);
+        return; // Pula a coleta neste ciclo para começar do zero no próximo
+    }
 
     // 3. Buscar novos eventos (Fallback se o Push falhar ou rede oscilar)
     const eventos: EventoAcesso[] = await leitor.buscarEventos(maxId);
@@ -90,11 +98,12 @@ async function monitorarLeitor(leitor: ILeitor) {
 
         // 2. GRAVA A BATIDA FISICAMENTE NO BANCO (Para que o Sync possa enviar para a Cloudflare)
         await runSql(`
-            INSERT INTO registros_acesso (id, leitor_id, matricula, nome, tipo, autorizado, sincronizado)
-            VALUES (?, ?, ?, ?, ?, ?, 0)
+            INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, sincronizado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 0)
         `, [
             `EV-${ev.id}-${Date.now()}`, // ID único da batida
             leitor.id,
+            config.escola_id,
             String(matriculaParaBusca),
             nomeAcesso,
             statusAcesso,

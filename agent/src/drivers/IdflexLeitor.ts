@@ -150,6 +150,27 @@ export class IdflexLeitor implements ILeitor {
 
 
   /**
+   * Consulta o equipamento para saber qual o ID do último registro de log (access_logs)
+   * criado. Usado para inicializar o cursor de leitura em bancos novos.
+   */
+  async buscarUltimoIdLog(): Promise<number> {
+    try {
+      const resp = await this.requisitarComToken('load_objects.fcgi', {
+        object: 'access_logs',
+        order: { access_logs: { id: 'DESC' } },
+        count: 1
+      });
+      
+      const logs = resp.access_logs || [];
+      if (logs.length > 0) return parseInt(logs[0].id, 10);
+      return 0;
+    } catch (e: any) {
+      console.warn(`[iDFlex][${this.id}] Falha ao buscar último ID de log: ${e.message}`);
+      return 0;
+    }
+  }
+
+  /**
    * Cadastra aluno no iDFlex com inteligência de UPSERT.
    * Evita duplicar registros com a mesma matrícula.
    */
