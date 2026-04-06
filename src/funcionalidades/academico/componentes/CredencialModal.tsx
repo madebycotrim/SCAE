@@ -51,6 +51,8 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                 if (resultado.sucesso) {
                     toast.success('Biometria cadastrada com sucesso!');
                     verificarBiometria();
+                    // Pequeno delay para o usuário ver o feedback antes de fechar
+                    setTimeout(aoFechar, 500);
                 }
             } else {
                 toast.error('O leitor não respondeu.');
