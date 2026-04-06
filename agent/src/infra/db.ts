@@ -108,3 +108,38 @@ export function allSql<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     });
   });
 }
+
+/**
+ * Gari Digital: Limpa registros com mais de 30 dias que já foram sincronizados.
+ * Também executa o comando VACUUM para otimizar o espaço físico em disco.
+ */
+export async function limparRegistrosAntigos() {
+  console.log('[Gari Digital] Iniciando varredura de manutenção...');
+  try {
+      const db = getDb();
+      return new Promise<void>((resolve, reject) => {
+          // 1. Remove apenas o que já está na nuvem e tem mais de 30 dias
+          db.run(`
+              DELETE FROM registros_acesso 
+              WHERE sincronizado = 1 
+              AND timestamp_acesso < datetime('now', '-30 days', 'localtime')
+          `, (err) => {
+              if (err) {
+                  console.error('[Gari Digital] ✗ Erro ao limpar registros antigos:', err.message);
+                  reject(err);
+              } else {
+                  console.log('[Gari Digital] 🧹 Registros antigos removidos com sucesso.');
+                  
+                  // 2. Otimiza o banco (libera espaço físico)
+                  db.run('VACUUM', (vErr) => {
+                      if (vErr) console.warn('[Gari Digital] Otimização VACUUM falhou:', vErr.message);
+                      else console.log('[Gari Digital] ✓ Banco de dados otimizado (VACUUM).');
+                      resolve();
+                  });
+              }
+          });
+      });
+  } catch (e: any) {
+      console.error('[Gari Digital] Falha crítica no ciclo de limpeza:', e.message);
+  }
+}

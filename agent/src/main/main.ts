@@ -148,6 +148,15 @@ async function createWindow() {
                             }
                         });
                     }
+
+                    // --- PERSISTÊNCIA: Salva no banco local para o Sync enviar para a nuvem ---
+                    const { runSql } = require('../infra/db');
+                    const uuid = require('crypto').randomUUID();
+                    runSql(`
+                        INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+                    `, [uuid, leitor.id, config.escola_id, matriculaParaExibir, nomeParaExibir, statusAcesso, 1]);
+
                     stats.registrarAcesso(nomeParaExibir, matriculaParaExibir, statusAcesso);
                 }
              } catch (e) { console.error('[Push] Erro:', e); }
@@ -236,6 +245,11 @@ app.whenReady().then(async () => {
   
     try {
       enviarStatusHardware();
+      
+      const { limparRegistrosAntigos } = require('../infra/db');
+      limparRegistrosAntigos(); // Roda 1 vez no boot
+      setInterval(limparRegistrosAntigos, 12 * 60 * 60 * 1000); // Roda a cada 12h
+
       setInterval(tentarAtivacaoSistemas, 5000);
       setTimeout(tentarAtivacaoSistemas, 1500);
   
