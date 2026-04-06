@@ -133,18 +133,20 @@ export async function sincronizarCacheAlunos() {
             console.log(` -> Msg Erro (Web): "${escola_config.config_tts_frase_erro || 'Acesso negado.'}"`);
             console.log("--------------------------------------------------");
 
-            // Sincronização de Atributos com o Global Config
+            // Sincronização de Atributos com o Global Config (Verdade Absoluta da Nuvem)
             const ttsAntes = config.tts_ativado;
             const sucessoAntes = config.tts_sucesso;
             const erroAntes = config.tts_erro;
 
-            config.nome_escola = escola_config.nome_escola || config.nome_escola;
+            config.nome_escola = escola_config.nome_escola;
             config.tts_ativado = Number(escola_config.tts_ativado) === 1;
-            config.tts_sucesso = escola_config.config_tts_frase_sucesso || config.tts_sucesso;
-            config.tts_erro = escola_config.config_tts_frase_erro || config.tts_erro;
+            config.tts_sucesso = escola_config.config_tts_frase_sucesso;
+            config.tts_erro = escola_config.config_tts_frase_erro;
             
             if (ttsAntes !== config.tts_ativado || sucessoAntes !== config.tts_sucesso || erroAntes !== config.tts_erro) {
                 console.log(`[Sync] 🔗 CONVERGÊNCIA: Divergência detectada! O Agente Local foi atualizado para os padrões WEB.`);
+                console.log(` -> Sucesso: "${config.tts_sucesso}"`);
+                console.log(` -> Erro: "${config.tts_erro}"`);
             }
 
             ultimaConfigHash = configHash;

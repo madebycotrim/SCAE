@@ -432,8 +432,8 @@
                 spTts.style.color = status.tts_ativado ? 'var(--ok)' : 'var(--t2)';
                 
                 // Mensagens Reais (Web)
-                document.getElementById('c-msg-ok').textContent = status.tts_sucesso || 'Padrão do Sistema';
-                document.getElementById('c-msg-err').textContent = status.tts_erro || 'Acesso Negado';
+                document.getElementById('c-msg-ok').textContent = status.tts_sucesso || '(SILÊNCIO)';
+                document.getElementById('c-msg-err').textContent = status.tts_erro || '(SILÊNCIO)';
             }
 
             configAtiva = status.leitores || [];
