@@ -17,8 +17,15 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
             WHERE a.escola_id = ? AND a.ativo = 1
         `).bind(escolaId).all();
 
+        const escolaInfo = await db.prepare(`
+            SELECT nome_escola, tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro
+            FROM escolas
+            WHERE id = ?
+        `).bind(escolaId).first();
+
         return Response.json({
             ok: true,
+            escola_config: escolaInfo || {},
             alunos: alunos.results,
             total: alunos.results.length,
             timestamp_servidor: new Date().toISOString()

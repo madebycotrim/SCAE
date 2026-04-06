@@ -23,10 +23,17 @@ export async function resetarBancoLocal() {
                 
                 const dbDir = path.join(app.getPath('userData'), 'data');
                 const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
+                const dbWal = dbPath + '-wal';
+                const dbShm = dbPath + '-shm';
                 
                 try {
-                    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
-                    console.log('[DB] !!! BANCO DELETADO COM SUCESSO !!!');
+                    // Espera 100ms para o SQLite soltar os arquivos reais antes de deletar
+                    setTimeout(() => {
+                        if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+                        if (fs.existsSync(dbWal)) fs.unlinkSync(dbWal);
+                        if (fs.existsSync(dbShm)) fs.unlinkSync(dbShm);
+                        console.log('[DB] !!! BANCO DELETADO COM SUCESSO (INCLUINDO WAL) !!!');
+                    }, 100);
                 } catch (e: any) {
                     console.error('[DB] Erro ao deletar arquivo:', e.message);
                 }

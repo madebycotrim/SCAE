@@ -9,6 +9,7 @@ import { WorkerApi } from './worker-endpoint';
 import { leitoresAtivos } from './poller';
 
 let estaSincronizando = false;
+let estaSincronizandoBatidas = false; // Bloqueio para evitar acúmulo se a internet/nuvem estiver lenta
 
 export function iniciarSync() {
   sincronizarCacheAlunos();
@@ -43,9 +44,12 @@ export function iniciarSync() {
  * Envia as presenças coletadas localmente para o sistema web (Cloudflare)
  */
 async function sincronizarRegistrosPendentes() {
+  if (estaSincronizandoBatidas) return; // Se a última ainda não terminou, aborta essa tentativa silenciosamente
+  
   const pendentes = await allSql(`SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 50`);
   
   if (pendentes.length > 0) {
+    estaSincronizandoBatidas = true;
     console.log(`[Sync] Detectado ${pendentes.length} batidas pendentes. Enviando para Cloudflare...`);
     
     // Tenta enviar para a Nuvem através do WorkerApi
@@ -57,8 +61,10 @@ async function sincronizarRegistrosPendentes() {
         await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
       }
     } else {
-      console.warn(`[Sync] ! FALHA: Erro ao enviar batidas para a rede. Tentando novamente em breve...`);
+      console.warn(`[Sync] ! FALHA: Erro ao enviar batidas para a rede. Tentando novamente em 10s...`);
     }
+    
+    estaSincronizandoBatidas = false;
   }
 }
 
@@ -73,7 +79,14 @@ export async function sincronizarCacheAlunos() {
     
     if (!resposta || !resposta.ok) return;
 
-    const { alunos: alunosServidor } = resposta;
+    const { alunos: alunosServidor, escola_config } = resposta;
+
+    if (escola_config) {
+        config.nome_escola = escola_config.nome_escola || config.nome_escola;
+        config.tts_ativado = escola_config.tts_ativado === 1 || escola_config.tts_ativado === true;
+        config.tts_sucesso = escola_config.config_tts_frase_sucesso || config.tts_sucesso;
+        config.tts_erro = escola_config.config_tts_frase_erro || config.tts_erro;
+    }
 
     // Atualizar cache de alunos
     for (const a of (alunosServidor as any[])) {
@@ -89,6 +102,7 @@ export async function sincronizarCacheAlunos() {
     }
 
     console.log(`[Sync] Cache local sincronizado (${alunosServidor.length} alunos).`);
+    config.total_alunos = alunosServidor.length;
   } catch (e) {
     console.error('[Sync] Falha:', e);
   } finally {

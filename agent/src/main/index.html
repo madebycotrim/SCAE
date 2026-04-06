@@ -324,6 +324,13 @@
 
     <div class="layout">
         <div class="sidebar">
+            <div class="section-title">SISTEMA WEB (NUVEM)</div>
+            <div id="cloud-info" style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05)">
+                <div style="font-size:0.7rem; color:var(--t1); margin-bottom:6px">ESCOLA: <span id="c-escola" style="font-weight:700; color:var(--ok)">NÃO SINCRONIZADA</span></div>
+                <div style="font-size:0.65rem; color:var(--t3); margin-bottom:4px">ALUNOS OFFLINE: <span id="c-alunos" style="color:var(--t2)">0</span></div>
+                <div style="font-size:0.65rem; color:var(--t3)">VOZ (TTS): <span id="c-tts" style="color:var(--t2)">DESATIVADO</span></div>
+            </div>
+
             <div class="section-title">Equipamentos Conectados</div>
             <div id="hardware-list">
                 <div style="color: var(--t3); font-size: 0.7rem;">Buscando leitores...</div>
@@ -409,6 +416,19 @@
 
         // --- HARDWARE ---
         window.scaeApi.onHardwareStatus(status => {
+            if (status.nome_escola) {
+                document.getElementById('school-badge').textContent = status.nome_escola.toUpperCase();
+                document.getElementById('c-escola').textContent = status.nome_escola.toUpperCase();
+            }
+            if (status.total_alunos !== undefined) {
+                document.getElementById('c-alunos').textContent = status.total_alunos;
+            }
+            if (status.tts_ativado !== undefined) {
+                const spTts = document.getElementById('c-tts');
+                spTts.textContent = status.tts_ativado ? 'ATIVADO' : 'INATIVO';
+                spTts.style.color = status.tts_ativado ? 'var(--info)' : 'var(--t2)';
+            }
+
             configAtiva = status.leitores || [];
             const list = document.getElementById('hardware-list');
             if(!list) return;
@@ -469,6 +489,19 @@
             const status = data.sucesso ? 'ok' : 'err';
             const prefixo = data.sucesso ? 'ACESSO' : 'NEGADO';
             showToast(`${prefixo}: ${data.nome}`, status);
+            
+            // --- SÍNTESE DE VOZ (TTS) ---
+            if (data.ttsAtivo) {
+                 const fraseTemplate = data.sucesso ? data.ttsParams.sucesso : data.ttsParams.erro;
+                 const fraseFinal = fraseTemplate.replace('{nome}', data.nomePuro || '');
+                 
+                 const synth = window.speechSynthesis;
+                 const uttering = new SpeechSynthesisUtterance(fraseFinal);
+                 uttering.lang = 'pt-BR';
+                 // Cancela a fala anterior para não enfileirar se muitas pessoas passarem rápido
+                 synth.cancel();
+                 synth.speak(uttering);
+            }
         });
 
         // --- SETTINGS ---

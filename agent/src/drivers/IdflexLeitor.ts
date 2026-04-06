@@ -155,17 +155,21 @@ export class IdflexLeitor implements ILeitor {
    */
   async buscarUltimoIdLog(): Promise<number> {
     try {
+      // O iDFlex frequentemente rejeita comandos complexos de 'order' e 'limit'.
+      // Portanto, buscamos os logs (o hardware internaliza limites razoáveis de página)
+      // e pegamos o ID do último elemento retornado pela API.
       const resp = await this.requisitarComToken('load_objects.fcgi', {
-        object: 'access_logs',
-        order: { access_logs: { id: 'DESC' } },
-        count: 1
+        object: 'access_logs'
       });
       
       const logs = resp.access_logs || [];
-      if (logs.length > 0) return parseInt(logs[0].id, 10);
+      if (logs.length > 0) {
+          const ultimoLog = logs[logs.length - 1]; // Array vem em ordem cronológica
+          return parseInt(ultimoLog.id, 10);
+      }
       return 0;
     } catch (e: any) {
-      console.warn(`[iDFlex][${this.id}] Falha ao buscar último ID de log: ${e.message}`);
+      console.warn(`[iDFlex][${this.id}] Falha ao buscar último ID de log. Usando zero. Erro: ${e.message}`);
       return 0;
     }
   }

@@ -116,7 +116,13 @@ async function createWindow() {
                     if (mainWindow) {
                         mainWindow.webContents.send('new-access', { 
                             nome: (idUsuario === 0) ? nomeParaExibir : `${nomeParaExibir} (${matriculaParaExibir})`, 
-                            sucesso: statusAcesso === 'ENTRADA' 
+                            nomePuro: nomeParaExibir,
+                            sucesso: statusAcesso === 'ENTRADA',
+                            ttsAtivo: config.tts_ativado,
+                            ttsParams: {
+                                sucesso: config.tts_sucesso || 'Bem-vindo, {nome}!',
+                                erro: config.tts_erro || 'Acesso negado, {nome}!'
+                            }
                         });
                     }
                     stats.registrarAcesso(nomeParaExibir, matriculaParaExibir, statusAcesso);
@@ -183,7 +189,7 @@ app.whenReady().then(async () => {
         console.log('[Agente] 🟢 HARDWARE ONLINE! Ativando motores do sistema...');
         sistemaAtivado = true;
         
-        iniciarPolling(null);
+        iniciarPolling(mainWindow);
         iniciarSync();
 
         console.log('[Agente] Sistema totalmente operacional ✓');
@@ -214,6 +220,9 @@ app.whenReady().then(async () => {
 function enviarStatusHardware() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.webContents.send('hardware-status', {
+    nome_escola: config.nome_escola,
+    total_alunos: config.total_alunos || 0,
+    tts_ativado: config.tts_ativado,
     leitores: leitoresAtivos.map(l => ({
       id: l.id, nome: l.nome, ip: l.ip, porta: l.porta,
       online: (l as any).online || false, 

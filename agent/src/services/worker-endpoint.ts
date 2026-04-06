@@ -14,15 +14,17 @@ export class WorkerApi {
     
     console.log(`[WorkerApi] >>> TENTANDO NUVEM: ${urlCloud}`);
 
+    const options = {
+        headers: { 
+            'X-Escola-ID': config.escola_id,
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SCAE-Agent/1.6.0'
+        },
+        signal: AbortSignal.timeout(10000)
+    };
+
     try {
-        const resp = await fetch(urlCloud, {
-            method: 'GET',
-            headers: { 
-                'X-Escola-ID': config.escola_id,
-                'Content-Type': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SCAE-Agent/1.6.0'
-            }
-        });
+        const resp = await fetch(urlCloud, options as any);
         
         if (resp.ok) {
             const data = await resp.json();
@@ -37,11 +39,11 @@ export class WorkerApi {
 
     console.info(`[WorkerApi] → Mudando para banco LOCAL de emergência...`);
     try {
-        const localResp = await fetch(urlLocal, {
-          headers: { 'X-Escola-ID': config.escola_id }
-        });
-        const localData = await localResp.json();
-        return { ...localData, ok: true };
+        const localResp = await fetch(urlLocal, options as any);
+        if (localResp.ok) {
+           const localData = await localResp.json();
+           return { ...localData, ok: true };
+        }
     } catch { }
 
     return { ok: false };
@@ -51,7 +53,8 @@ export class WorkerApi {
    * Envia as presenças coletadas localmente para o sistema web (Cloudflare)
    */
   static async enviarBatida(eventos: any[]) {
-    const urlBatch = `${config.endpoint_worker}/api/agente/sync-ponto`;
+    const urlCloud = `${config.endpoint_worker}/api/agente/sync-ponto`;
+    const urlLocal = `http://localhost:8788/api/agente/sync-ponto`;
     
     // ⚡ MAPEAMENTO DE CAMPOS: O Servidor Cloudflare espera nomes de colunas do D1
     // Registros no banco local v3 -> Objetos esperados pelo sync-ponto.ts
@@ -66,28 +69,39 @@ export class WorkerApi {
         id_evento_hardware: e.id.split('-')[1] || '0'
     }));
 
-    try {
-      const resp = await fetch(urlBatch, {
+    const options = {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json', 
             'X-Escola-ID': config.escola_id,
             'User-Agent': 'SCAE-Agent/1.6.0'
         },
-        // O servidor espera a chave 'registros', não 'eventos'
-        body: JSON.stringify({ registros: registrosCloud })
-      });
+        body: JSON.stringify({ registros: registrosCloud }),
+        signal: AbortSignal.timeout(10000)
+    };
 
-      if (resp.ok) {
-        return true;
-      } else {
-        const textoErro = await resp.text();
-        console.error(`[WorkerApi] ! SITE RECUSOU AS BATIDAS (Status ${resp.status}): ${textoErro.substring(0, 150)}`);
-        return false;
-      }
+    try {
+      const resp = await fetch(urlCloud, options as any);
+      if (resp.ok) return true;
+      console.warn(`[WorkerApi] Site recusou as batidas (Status ${resp.status}). Tentando banco local...`);
     } catch (e: any) { 
-      console.error(`[WorkerApi] ✗ ERRO DE CONEXÃO AO ENVIAR BATIDAS:`, e.message);
-      return false; 
+      console.warn(`[WorkerApi] Falha na Nuvem (${e.message}). Tentando localhost...`);
+    }
+
+    // Fallback: Tentativa via localhost (wrangler)
+    try {
+        const localResp = await fetch(urlLocal, options as any);
+        if (localResp.ok) {
+            console.log(`[WorkerApi] ✓ Batidas enviadas via Localhost de emergência.`);
+            return true;
+        } else {
+            const erroLocal = await localResp.text();
+            console.error(`[WorkerApi] ! Localhost recusou (Status ${localResp.status}): ${erroLocal.substring(0, 150)}`);
+            return false;
+        }
+    } catch (err: any) {
+        console.error(`[WorkerApi] ✗ ERRO FATAL: Nuvem e Localhost falharam. (${err.message})`);
+        return false;
     }
   }
 

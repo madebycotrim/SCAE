@@ -18,6 +18,11 @@ const getLocalConfigPath = () => {
 
 export interface AgenteConfig {
   escola_id: string;
+  nome_escola?: string;
+  total_alunos?: number;
+  tts_ativado?: boolean;
+  tts_sucesso?: string;
+  tts_erro?: string;
   leitores: (LeitorConfig | LeitorTcpConfig)[];
   intervalo_polling_ms: number;
   intervalo_sync_ms: number;
@@ -28,6 +33,11 @@ export interface AgenteConfig {
 // Configuração padrão de fábrica
 const configPadrao: AgenteConfig = {
   escola_id: 'cem03-taguatinga',
+  nome_escola: 'Escola Padrão',
+  total_alunos: 0,
+  tts_ativado: false,
+  tts_sucesso: 'Acesso liberado',
+  tts_erro: 'Acesso negado',
   leitores: [],
   intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,

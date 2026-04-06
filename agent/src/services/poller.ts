@@ -118,6 +118,20 @@ async function monitorarLeitor(leitor: ILeitor) {
         // 1. Atualiza estatísticas em memória do Agente (Para aparecer na telinha local)
         stats.registrarAcesso(nomeAcesso, String(matriculaParaBusca), statusAcesso);
 
+        // Notifica o Front-End para atualizar a UI e tocar o TTS
+        if (notificadorGlobal) {
+            notificadorGlobal.webContents.send('new-access', {
+                nome: matriculaParaBusca === '0' ? nomeAcesso : `${nomeAcesso} (${matriculaParaBusca})`,
+                nomePuro: nomeAcesso,
+                sucesso: statusAcesso === 'ENTRADA',
+                ttsAtivo: config.tts_ativado,
+                ttsParams: {
+                    sucesso: config.tts_sucesso || 'Bem-vindo, {nome}!',
+                    erro: config.tts_erro || 'Acesso negado, {nome}!'
+                }
+            });
+        }
+
         // 2. GRAVA A BATIDA FISICAMENTE NO BANCO (Para que o Sync possa enviar para a Cloudflare)
         await runSql(`
             INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, sincronizado)
