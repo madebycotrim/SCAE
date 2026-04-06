@@ -41,7 +41,7 @@ const configPadrao: AgenteConfig = {
   leitores: [],
   intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,
-  endpoint_worker: 'https://agente.catraki.com.br',
+  endpoint_worker: 'https://catraki.com.br',
   admin_pin: '123456'
 };
 

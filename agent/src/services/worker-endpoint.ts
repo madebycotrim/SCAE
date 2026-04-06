@@ -37,26 +37,29 @@ export class WorkerApi {
   /**
    * Tenta buscar os dados da Nuvem com Headers robustos.
    */
-  static async buscarSincronizacaoAlunos() {
+  static async buscarSincronizacaoAlunos(lastEtag?: string) {
     const urlCloud = `${config.endpoint_worker}/api/agente/download-alunos`;
     const urlLocal = `http://localhost:8788/api/agente/download-alunos`;
     
-    const options = {
-        headers: { 
-            'X-Escola-ID': config.escola_id,
-            'Content-Type': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SCAE-Agent/1.6.0'
-        },
-        signal: AbortSignal.timeout(10000)
+    const headers: any = { 
+        'X-Escola-ID': config.escola_id,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SCAE-Agent/1.6.0'
     };
+
+    if (lastEtag) headers['If-None-Match'] = lastEtag;
+
+    const options = { headers, signal: AbortSignal.timeout(10000) };
 
     try {
         const resp = await fetch(urlCloud, options as any);
         
+        if (resp.status === 304) return { ok: true, mudou: false };
+
         if (resp.ok) {
             const data = await resp.json();
-            console.log(`[WorkerApi] ✓ SUCESSO NUVEM: Dados da Cloudflare carregados.`);
-            return { ...data, ok: true };
+            const etag = resp.headers.get('ETag');
+            return { ...data, ok: true, mudou: true, etag };
         } else {
             console.error(`[WorkerApi] ! SITE RESPONDEU MAS DEU ERRO (${resp.status})`);
         }

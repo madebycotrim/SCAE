@@ -12,14 +12,14 @@ export function PaginaConfiguracoes() {
     const [tts, definirTts] = useState<boolean>(false);
     const [saidaObrigatoria, definirSaidaObrigatoria] = useState<boolean>(true);
     const [metodo, definirMetodo] = useState<'QRCODE' | 'DIGITAL'>('QRCODE');
-    const [fraseSucesso, definirFraseSucesso] = useState<string>('Bem-vindo, {nome}!');
-    const [fraseErro, definirFraseErro] = useState<string>('Acesso negado.');
+    const [fraseSucesso, definirFraseSucesso] = useState<string>('');
+    const [fraseErro, definirFraseErro] = useState<string>('');
     
     // --- ESTADO DO AGENTE LOCAL ---
     const [statusAgente, setStatusAgente] = useState<'DESCONHECIDO' | 'RODANDO' | 'AUSENTE'>('DESCONHECIDO');
     const [infoAgente, setInfoAgente] = useState<any>(null);
 
-    const verificarAgente = async () => {
+    const verificarAgente = async (comSync = false) => {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 2000);
@@ -33,8 +33,10 @@ export function PaginaConfiguracoes() {
                 setStatusAgente('RODANDO');
                 setInfoAgente(dados);
 
-                // 2. Comanda um Sync IMEDIATO (Silencioso) para garantir sincronia do túnel
-                fetch('http://127.0.0.1:1912/sync-now', { method: 'POST', mode: 'no-cors' }).catch(() => {});
+                // 2. Comanda um Sync IMEDIATO apenas se solicitado MANUALMENTE
+                if (comSync) {
+                    fetch('http://127.0.0.1:1912/sync-now', { method: 'POST', mode: 'no-cors' }).catch(() => {});
+                }
             } else { throw new Error(); }
         } catch (e) {
             setStatusAgente('AUSENTE');
@@ -43,8 +45,8 @@ export function PaginaConfiguracoes() {
     };
 
     useEffect(() => {
-        verificarAgente();
-        const interval = setInterval(verificarAgente, 10000);
+        verificarAgente(false); // Só o ping no boot
+        const interval = setInterval(() => verificarAgente(false), 10000); // Polling silencioso
         return () => clearInterval(interval);
     }, []);
 
@@ -54,8 +56,8 @@ export function PaginaConfiguracoes() {
             definirTts(configs.ttsAtivado ?? true);
             definirSaidaObrigatoria(configs.saidaObrigatoria ?? true);
             definirMetodo(configs.metodoAcesso || 'QRCODE');
-            definirFraseSucesso(configs.ttsFraseSucesso || 'Bem-vindo, {nome}!');
-            definirFraseErro(configs.ttsFraseErro || 'Acesso negado.');
+            definirFraseSucesso(configs.ttsFraseSucesso ?? '');
+            definirFraseErro(configs.ttsFraseErro ?? '');
         }
     }, [configs]);
 
@@ -259,7 +261,7 @@ export function PaginaConfiguracoes() {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Botao variante="ghost" tamanho="sm" onClick={verificarAgente} className="border-slate-200 text-[10px] font-black uppercase tracking-widest">Atualizar Status</Botao>
+                        <Botao variante="ghost" tamanho="sm" onClick={() => verificarAgente(true)} className="border-slate-200 text-[10px] font-black uppercase tracking-widest">Atualizar Status</Botao>
                     </div>
                 </CartaoConteudo>
             </div>

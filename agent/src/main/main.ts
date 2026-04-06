@@ -63,7 +63,7 @@ async function createWindow() {
         res.end(JSON.stringify(statsObj));
     } else if (req.url === '/sync-now' && req.method === 'POST') {
         try {
-            await sincronizarCacheAlunos();
+            await sincronizarCacheAlunos(true); // Força o Sync (Zera o Hash)
             res.writeHead(200); res.end(JSON.stringify({ ok: true }));
         } catch (e) {
             res.writeHead(500); res.end(JSON.stringify({ error: 'Erro no trigger de sync' }));

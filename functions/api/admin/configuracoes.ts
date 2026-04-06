@@ -11,7 +11,9 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         let escola: any;
         try {
             escola = await contexto.env.DB_SCAE.prepare(`
-                SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url, config_tts_frase_sucesso, config_tts_frase_erro
+                SELECT config_qr_dinamico, tts_ativado, saida_obrigatoria, metodo_acesso, cor_primaria, cor_secundaria, logo_url, 
+                       COALESCE(config_tts_frase_sucesso, '') as config_tts_frase_sucesso, 
+                       COALESCE(config_tts_frase_erro, '') as config_tts_frase_erro
                 FROM escolas WHERE id = ?
             `).bind(escolaId).first();
         } catch (e: any) {
@@ -39,8 +41,8 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
                 corPrimaria: escola.cor_primaria,
                 corSecundaria: escola.cor_secundaria,
                 logoUrl: escola.logo_url,
-                ttsFraseSucesso: escola.config_tts_frase_sucesso || 'Bem-vindo, {nome}!',
-                ttsFraseErro: escola.config_tts_frase_erro || 'Acesso negado.'
+                ttsFraseSucesso: escola.config_tts_frase_sucesso ?? '',
+                ttsFraseErro: escola.config_tts_frase_erro ?? ''
             },
             mensagem: 'Configurações carregadas.'
         });
@@ -106,8 +108,9 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
         }
 
         binds.push(escolaId);
-        
         const sql = `UPDATE escolas SET ${queryParts.join(', ')} WHERE id = ?`;
+        
+        console.log(`[Config] Salvando no Banco:`, { sql, binds });
 
         try {
             const resultado = await contexto.env.DB_SCAE.prepare(sql).bind(...binds).run();

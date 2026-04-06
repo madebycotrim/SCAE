@@ -82,18 +82,17 @@ async function sincronizarRegistrosPendentes() {
   
   if (pendentes.length > 0) {
     estaSincronizandoBatidas = true;
-    console.log(`[Sync] Detectado ${pendentes.length} batidas pendentes. Enviando para Cloudflare...`);
     
     // Tenta enviar para a Nuvem através do WorkerApi
     const ok = await WorkerApi.enviarBatida(pendentes);
     
     if (ok) {
-      console.log(`[Sync] ✓ SUCESSO: ${pendentes.length} batidas enviadas aos sistema web.`);
       for (const p of pendentes) {
         await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
       }
+      console.log(`[Sync] ✓ ENVIADOS: ${pendentes.length} registros de acesso para o sistema web.`);
     } else {
-      console.warn(`[Sync] ! FALHA: Erro ao enviar batidas para a rede. Tentando novamente em 10s...`);
+      console.warn(`[Sync] ! FALHA: Erro ao enviar ${pendentes.length} batidas para a rede. Tentando novamente em 10s...`);
     }
     
     estaSincronizandoBatidas = false;
@@ -101,42 +100,63 @@ async function sincronizarRegistrosPendentes() {
 }
 
 let ultimaConfigHash = '';
+let ultimaEtag = '';
 
-export async function sincronizarCacheAlunos() {
+export async function sincronizarCacheAlunos(forcar = false) {
   if (estaSincronizando) return;
+  
+  if (forcar) {
+      console.log(`[Sync] 🚀 FORÇANDO ATUALIZAÇÃO TOTAL (Ignorando Cache de Hash)...`);
+      ultimaConfigHash = ''; 
+      ultimaEtag = '';
+  }
   
   // 🛡️ PROTEÇÃO: Não tenta baixar nada se não souber quem é (ID Padrão)
   if (!config.escola_id || config.escola_id === 'aguardando-identidade') {
     return;
   }
-
+ 
   estaSincronizando = true;
   
   try {
-    const resposta = await WorkerApi.buscarSincronizacaoAlunos();
+    const resposta = await WorkerApi.buscarSincronizacaoAlunos(ultimaEtag);
     if (!resposta || !resposta.ok) return;
 
-    const { alunos: alunosServidor, escola_config } = resposta;
+    // Inteligência: Se a rede disse que não mudou nada, não gasta CPU
+    if (resposta.mudou === false) {
+        estaSincronizando = false;
+        return;
+    }
+
+    const { alunos: alunosServidor, escola_config, etag } = resposta;
+    if (etag) ultimaEtag = etag;
 
     // Atualiza Configurações Globais (Nome, TTS, etc)
     if (escola_config) {
         const configHash = JSON.stringify(escola_config);
         
-        // Log Detalhado do que foi recebido (Sempre que houver mudança ou Sync-Now)
-        if (configHash !== ultimaConfigHash) {
+        // Log Detalhado APENAS se for disparado MANUALMENTE pelo Site
+        if (forcar) {
             console.log("--------------------------------------------------");
-            console.log("[Sync] 🌐 PACOTE DE DADOS RECEBIDO DA NUVEM:");
+            console.log("[Sync] 🌐 PACOTE DE DADOS RECEBIDO DA NUVEM (MANUAL):");
             console.log(` -> Escola: ${escola_config.nome_escola}`);
             console.log(` -> Alunos na Nuvem: ${alunosServidor?.length || 0}`);
             console.log(` -> Voz (TTS): ${Number(escola_config.tts_ativado) === 1 ? 'LIGADO' : 'DESLIGADO'}`);
-            console.log(` -> Msg Sucesso (Web): "${escola_config.config_tts_frase_sucesso || 'Padrão'}"`);
-            console.log(` -> Msg Erro (Web): "${escola_config.config_tts_frase_erro || 'Acesso negado.'}"`);
+            console.log(` -> Msg Sucesso (Web): "${escola_config.config_tts_frase_sucesso ?? ''}"`);
+            console.log(` -> Msg Erro (Web): "${escola_config.config_tts_frase_erro ?? ''}"`);
             console.log("--------------------------------------------------");
+        }
 
+        // Execução do Sync de Config se o Hash mudou (Background Silencioso se forcar=false)
+        if (configHash !== ultimaConfigHash) {
             // Sincronização de Atributos com o Global Config (Verdade Absoluta da Nuvem)
             const ttsAntes = config.tts_ativado;
             const sucessoAntes = config.tts_sucesso;
             const erroAntes = config.tts_erro;
+
+            if (!forcar) {
+                console.log(`[Sync] 🔗 ATUALIZAÇÃO AUTOMÁTICA: Novas configurações detectadas via nuvem.`);
+            }
 
             config.nome_escola = escola_config.nome_escola;
             config.tts_ativado = Number(escola_config.tts_ativado) === 1;

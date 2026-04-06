@@ -330,8 +330,8 @@
                 <div style="font-size:0.65rem; color:var(--t3); margin-bottom:4px">ALUNOS OFFLINE: <span id="c-alunos" style="color:var(--t2)">0</span></div>
                 <div style="font-size:0.65rem; color:var(--t3); margin-bottom:4px">VOZ (TTS): <span id="c-tts" style="color:var(--t2)">DESATIVADO</span></div>
                 
-                <div style="font-size:0.6rem; color:var(--t3); margin-top:8px; border-top:1px solid var(--b1); padding-top:8px">MSG SUCESSO: <span id="c-msg-ok" style="color:var(--t2); font-style:italic">AGUARDANDO...</span></div>
-                <div style="font-size:0.6rem; color:var(--t3); margin-top:4px">MSG ERRO: <span id="c-msg-err" style="color:var(--t2); font-style:italic">AGUARDANDO...</span></div>
+                <div id="c-msg-ok-area" style="font-size:0.6rem; color:var(--t3); margin-top:8px; border-top:1px solid var(--b1); padding-top:8px">MSG SUCESSO: <span id="c-msg-ok" style="color:var(--t2); font-style:italic">AGUARDANDO...</span></div>
+                <div id="c-msg-err-area" style="font-size:0.6rem; color:var(--t3); margin-top:4px">MSG ERRO: <span id="c-msg-err" style="color:var(--t2); font-style:italic">AGUARDANDO...</span></div>
             </div>
 
             <div class="section-title">Equipamentos Conectados</div>
@@ -434,6 +434,11 @@
                 // Mensagens Reais (Web)
                 document.getElementById('c-msg-ok').textContent = status.tts_sucesso || '(SILÊNCIO)';
                 document.getElementById('c-msg-err').textContent = status.tts_erro || '(SILÊNCIO)';
+
+                // Oculta se estiver inativo
+                const display = status.tts_ativado ? 'block' : 'none';
+                document.getElementById('c-msg-ok-area').style.display = display;
+                document.getElementById('c-msg-err-area').style.display = display;
             }
 
             configAtiva = status.leitores || [];
