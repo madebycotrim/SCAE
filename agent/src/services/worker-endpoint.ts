@@ -148,4 +148,28 @@ export class WorkerApi {
       });
     } catch { }
   }
+
+  /**
+   * Telemetria de Erros (Item 4): Envia alertas de falhas críticas para o dashboard.
+   */
+  static async reportarErroCritico(detalhes: string, contexto: string = 'GERAL') {
+    try {
+      const payload = {
+          escola_id: config.escola_id,
+          escola_nome: config.nome_escola,
+          contexto,
+          erro: detalhes,
+          timestamp: new Date().toISOString(),
+          versao: '1.1.0'
+      };
+      
+      console.warn(`[WorkerApi] 🚩 AGENTE EMITINDO SINAL DE FUMAÇA (ERRO CRÍTICO): ${detalhes}`);
+      await fetch(`${config.endpoint_worker}/api/agente/reportar-erro`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(5000)
+      });
+    } catch { /* Telemetria nunca pode travar o Agente */ }
+  }
 }

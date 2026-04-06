@@ -232,6 +232,8 @@ export async function sincronizarCacheAlunos(forcar = false) {
 
   } catch (e: any) {
     if (forcar) console.error(`[Sync] ✗ ERRO NA ATUALIZAÇÃO FORÇADA:`, e.message);
+    // Telemetria (Item 4)
+    WorkerApi.reportarErroCritico(`Erro de Sincronização: ${e.message}`, 'SYNC');
   } finally {
       estaSincronizando = false;
   }
@@ -313,6 +315,12 @@ async function sincronizarHardware(alunosNuvem: any[]) {
 
         } catch (e: any) {
             console.error(`[Sync] 🛡️ Falha na convergência de ${leitor.id}: ${e.message}`);
+            if (e.code !== 'ECONNREFUSED' && e.code !== 'ETIMEDOUT') {
+                console.error(`[Poller] Falha no leitor ${leitor.id}:`, e.message);
+                // Telemetria (Item 4): Reporta se for um erro de software/banco e não apenas rede offline
+                const { WorkerApi } = require('./worker-endpoint');
+                WorkerApi.reportarErroCritico(`Falha Poller [${leitor.id}]: ${e.message}`, 'HARDWARE');
+            }
         }
     }
 }

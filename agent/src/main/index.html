@@ -720,8 +720,28 @@
         }
 
         .log-txt {
+            flex: 1;
+            line-height: normal;
+        }
+
+        /* Cores Semânticas para Tags de Log */
+        .tag-sync { color: #3b82f6; font-weight: 600; }
+        .tag-idflex { color: #10b981; font-weight: 600; }
+        .tag-watchdog { color: #f59e0b; font-weight: 600; }
+        .tag-hardware { color: #8b5cf6; font-weight: 600; }
+        .tag-worker { color: #6366f1; font-weight: 600; }
+        .tag-config { color: #94a3b8; font-weight: 600; }
+        .tag-enroll { color: #ec4899; font-weight: 600; }
+        .tag-beep { color: #06b6d4; font-weight: 600; }
+        .log-counter {
+            margin-left: 8px;
+            background: var(--b1);
             color: var(--t2);
-            word-break: break-all;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-family: var(--mono);
+            border: 1px solid var(--b2);
         }
 
         /* ── MODAL BASE ─── */
@@ -1523,6 +1543,21 @@
             }
         }, 1000);
 
+        // --- SISTEMA DE GROUPING DE LOGS ---
+        let ultimoLogInfo = { msg: '', el: null, count: 1 };
+
+        function colorizarTags(txt) {
+            return txt
+                .replace(/\[Sync\]/g, '<span class="tag-sync">[Sync]</span>')
+                .replace(/\[iDFlex\]/g, '<span class="tag-idflex">[iDFlex]</span>')
+                .replace(/\[Watchdog\]/g, '<span class="tag-watchdog">[Watchdog]</span>')
+                .replace(/\[Hardware\]/g, '<span class="tag-hardware">[Hardware]</span>')
+                .replace(/\[WorkerApi\]/g, '<span class="tag-worker">[WorkerApi]</span>')
+                .replace(/\[Config\]/g, '<span class="tag-config">[Config]</span>')
+                .replace(/\[Enroll\]/g, '<span class="tag-enroll">[Enroll]</span>')
+                .replace(/\[Beep\]/g, '<span class="tag-beep">[Beep]</span>');
+        }
+
         // ══════════════════════════════════════
         //  TOAST
         // ══════════════════════════════════════
@@ -1545,6 +1580,22 @@
             const container = document.getElementById('log-container');
             if (!container) return;
 
+            // ⚡ AGRUPAMENTO (ITEM 2): Evita spam de logs idênticos (Repetição consecutiva)
+            if (msg === ultimoLogInfo.msg && ultimoLogInfo.el) {
+                ultimoLogInfo.count++;
+                const countBadge = ultimoLogInfo.el.querySelector('.log-counter');
+                if (countBadge) {
+                    countBadge.textContent = `x${ultimoLogInfo.count}`;
+                } else {
+                    const badge = document.createElement('span');
+                    badge.className = 'log-counter';
+                    badge.textContent = `x${ultimoLogInfo.count}`;
+                    ultimoLogInfo.el.appendChild(badge);
+                }
+                container.scrollTop = container.scrollHeight;
+                return;
+            }
+
             const now = new Date();
             const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
@@ -1552,16 +1603,21 @@
             entry.className = 'log-entry';
             entry.dataset.lv = type;
             entry.dataset.txt = msg.toLowerCase();
-            entry.innerHTML = `<span class="log-ts">${ts}</span><span class="log-lv lv-${type}">${type.toUpperCase().padEnd(4)}</span><span class="log-txt">${escapeHtml(msg)}</span>`;
+            
+            const htmlColorizado = colorizarTags(escapeHtml(msg));
+            entry.innerHTML = `<span class="log-ts">${ts}</span><span class="log-lv lv-${type}">${type.toUpperCase().padEnd(4)}</span><span class="log-txt">${htmlColorizado}</span>`;
 
             // Virtualização: manter no máximo MAX_LOG entradas
             if (logEntries.length >= MAX_LOG) {
                 const oldest = logEntries.shift();
-                if (oldest.el.parentNode) oldest.el.remove();
+                if (oldest && oldest.el && oldest.el.parentNode) oldest.el.remove();
             }
 
             logEntries.push({ el: entry, ts, lv: type, txt: msg });
             container.appendChild(entry);
+            
+            // Atualiza o rastreio do último log para o próximo ciclo de agrupamento
+            ultimoLogInfo = { msg, el: entry, count: 1 };
 
             applyVisibility(entry);
             updateLogCount();
