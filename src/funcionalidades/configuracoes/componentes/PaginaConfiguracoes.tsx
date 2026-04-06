@@ -23,12 +23,18 @@ export function PaginaConfiguracoes() {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 2000);
+            
+            // 1. Pega status básico (v1.6.2+)
             const res = await fetch('http://127.0.0.1:1912/ping', { signal: controller.signal });
             clearTimeout(timeoutId);
+            
             if (res.ok) {
                 const dados = await res.json();
                 setStatusAgente('RODANDO');
                 setInfoAgente(dados);
+
+                // 2. Comanda um Sync IMEDIATO (Silencioso) para garantir sincronia do túnel
+                fetch('http://127.0.0.1:1912/sync-now', { method: 'POST', mode: 'no-cors' }).catch(() => {});
             } else { throw new Error(); }
         } catch (e) {
             setStatusAgente('AUSENTE');

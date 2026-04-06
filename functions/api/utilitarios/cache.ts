@@ -58,13 +58,10 @@ export class ServicoCache {
     /**
      * 2. Branding e Identidade Visual (UI Instantânea)
      * Cores, logos e nomes para o frontend não "piscar" com cores erradas.
+     * 🛡️ REMOVIDO CACHE KV: Configurações agora são lidas 100% do D1 para evitar dessincronização (OFF/ON).
      */
     static async buscarConfiguracoes(escolaId: string, env: AmbienteCatraki): Promise<ConfiguracoesEscola | null> {
-        const chave = `${this.PREFIXO_CONFIG}${escolaId}`;
-        
-        const configs = await env.KV_SCAE.get(chave, 'json') as ConfiguracoesEscola | null;
-        if (configs) return configs;
-
+        // Ignoramos o KV propositalmente para garantir consistência real (Admin vs Agente)
         const escola = await env.DB_SCAE.prepare(
             "SELECT nome_escola, cor_primaria, cor_secundaria, logo_url, tts_ativado, dominio_email, provedor_auth, config_qr_dinamico, metodo_acesso FROM escolas WHERE id = ?"
         ).bind(escolaId).first<{ 
@@ -80,7 +77,7 @@ export class ServicoCache {
         }>();
 
         if (escola) {
-            const dadosCache = {
+            return {
                 id: escolaId,
                 nomeEscola: escola.nome_escola,
                 corPrimaria: escola.cor_primaria,
@@ -92,8 +89,6 @@ export class ServicoCache {
                 qrDinamico: Boolean(escola.config_qr_dinamico),
                 metodoAcesso: escola.metodo_acesso || 'QRCODE'
             };
-            await env.KV_SCAE.put(chave, JSON.stringify(dadosCache), { expirationTtl: 86400 });
-            return dadosCache;
         }
 
         return null;

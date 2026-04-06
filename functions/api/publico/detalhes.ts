@@ -45,8 +45,8 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
                 mensagem: 'Perfil da escola carregado'
             }, {
                 headers: {
-                    'Cache-Control': 'public, max-age=3600',
-                    'X-SCAE-Cache': 'HIT',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'X-SCAE-Cache': 'MISS',
                     'Content-Type': 'application/json'
                 }
             });

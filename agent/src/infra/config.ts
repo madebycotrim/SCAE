@@ -33,11 +33,11 @@ export interface AgenteConfig {
 // Configuração padrão de fábrica
 const configPadrao: AgenteConfig = {
   escola_id: 'aguardando-identidade',
-  nome_escola: 'BUSCANDO NOME...',
+  nome_escola: 'STANDBY (SINAL RESTRITO)',
   total_alunos: 0,
   tts_ativado: false,
-  tts_sucesso: 'Acesso liberado',
-  tts_erro: 'Acesso negado',
+  tts_sucesso: '',
+  tts_erro: '',
   leitores: [],
   intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,

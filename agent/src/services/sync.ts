@@ -104,6 +104,12 @@ let ultimaConfigHash = '';
 
 export async function sincronizarCacheAlunos() {
   if (estaSincronizando) return;
+  
+  // 🛡️ PROTEÇÃO: Não tenta baixar nada se não souber quem é (ID Padrão)
+  if (!config.escola_id || config.escola_id === 'aguardando-identidade') {
+    return;
+  }
+
   estaSincronizando = true;
   
   try {
@@ -116,15 +122,32 @@ export async function sincronizarCacheAlunos() {
     if (escola_config) {
         const configHash = JSON.stringify(escola_config);
         
-        // Só atualiza e loga se algo realmente mudou no servidor
+        // Log Detalhado do que foi recebido (Sempre que houver mudança ou Sync-Now)
         if (configHash !== ultimaConfigHash) {
+            console.log("--------------------------------------------------");
+            console.log("[Sync] 🌐 PACOTE DE DADOS RECEBIDO DA NUVEM:");
+            console.log(` -> Escola: ${escola_config.nome_escola}`);
+            console.log(` -> Alunos na Nuvem: ${alunosServidor?.length || 0}`);
+            console.log(` -> Voz (TTS): ${Number(escola_config.tts_ativado) === 1 ? 'LIGADO' : 'DESLIGADO'}`);
+            console.log(` -> Msg Sucesso (Web): "${escola_config.config_tts_frase_sucesso || 'Padrão'}"`);
+            console.log(` -> Msg Erro (Web): "${escola_config.config_tts_frase_erro || 'Acesso negado.'}"`);
+            console.log("--------------------------------------------------");
+
+            // Sincronização de Atributos com o Global Config
+            const ttsAntes = config.tts_ativado;
+            const sucessoAntes = config.tts_sucesso;
+            const erroAntes = config.tts_erro;
+
             config.nome_escola = escola_config.nome_escola || config.nome_escola;
             config.tts_ativado = Number(escola_config.tts_ativado) === 1;
             config.tts_sucesso = escola_config.config_tts_frase_sucesso || config.tts_sucesso;
             config.tts_erro = escola_config.config_tts_frase_erro || config.tts_erro;
             
+            if (ttsAntes !== config.tts_ativado || sucessoAntes !== config.tts_sucesso || erroAntes !== config.tts_erro) {
+                console.log(`[Sync] 🔗 CONVERGÊNCIA: Divergência detectada! O Agente Local foi atualizado para os padrões WEB.`);
+            }
+
             ultimaConfigHash = configHash;
-            console.log(`[Sync] ⚙️ CONFIGURAÇÕES ATUALIZADAS: TTS=${config.tts_ativado ? 'ATIVADO' : 'INATIVO'}`);
 
             // Avisa a UI (Frontend) sobre a mudança
             const { avisarMudancaConfig } = require('../main/main');
@@ -132,9 +155,10 @@ export async function sincronizarCacheAlunos() {
         }
     }
 
-    // Só processa cache de alunos e loga se o número de alunos mudou (otimização de performance/log)
-    if (alunosServidor.length !== config.total_alunos) {
-        console.log(`[Sync] 👥 Atualizando base de alunos offline (${alunosServidor.length} cadastrados)...`);
+    // 2. Sincronização de Alunos (Log só se houver mudança)
+    if (alunosServidor && alunosServidor.length !== config.total_alunos) {
+        console.log(`[Sync] 📥 MUDANÇA DETECTADA: Sincronizando ${alunosServidor.length} alunos com o cache local.`);
+        
         for (const a of (alunosServidor as any[])) {
             await runSql(`
                 INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo)
@@ -144,13 +168,14 @@ export async function sincronizarCacheAlunos() {
                     turma_id = excluded.turma_id,
                     ativo = excluded.ativo,
                     atualizado_em = datetime('now', 'localtime')
-            `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo]);
+            `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo === 1 ? 1 : 0]);
         }
+
         config.total_alunos = alunosServidor.length;
-        console.log(`[Sync] ✓ Base de alunos sincronizada.`);
+        console.log(`[Sync] 🏁 CACHE DE ALUNOS ATUALIZADO (Total: ${config.total_alunos})`);
     }
 
-  } catch (e) {
+  } catch (e: any) {
     console.error('[Sync] Falha crítica na sincronização:', e);
   } finally {
     estaSincronizando = false;

@@ -41,9 +41,15 @@ async function createWindow() {
     if (req.url === '/ping') {
         const statsObj = {
             ok: true,
-            escola: config.escola_id, 
-            status: sistemaAtivado ? 'CONECTADO À NUVEM' : 'AGUARDANDO HARDWARE',
+            agente: 'Catraki Edge Agent',
+            versao: '1.6.2-FINAL', // Versão atualizada
+            escola: config.nome_escola || config.escola_id, 
+            status: sistemaAtivado ? 'ONLINE (TÚNEL ATIVO)' : 'STANDBY (SINAL RESTRITO)',
             stats: stats.obterSnapshot(),
+            config: {
+                tts: config.tts_ativado,
+                frase_sucesso: config.tts_sucesso
+            },
             leitores: leitoresAtivos.map(l => ({
                 id: l.id,
                 nome: l.nome,
@@ -53,7 +59,7 @@ async function createWindow() {
                 porta: l.porta
             }))
         };
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify(statsObj));
     } else if (req.url === '/sync-now' && req.method === 'POST') {
         try {
