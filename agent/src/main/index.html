@@ -328,7 +328,10 @@
             <div id="cloud-info" style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05)">
                 <div style="font-size:0.7rem; color:var(--t1); margin-bottom:6px">ESCOLA: <span id="c-escola" style="font-weight:700; color:var(--ok)">NÃO SINCRONIZADA</span></div>
                 <div style="font-size:0.65rem; color:var(--t3); margin-bottom:4px">ALUNOS OFFLINE: <span id="c-alunos" style="color:var(--t2)">0</span></div>
-                <div style="font-size:0.65rem; color:var(--t3)">VOZ (TTS): <span id="c-tts" style="color:var(--t2)">DESATIVADO</span></div>
+                <div style="font-size:0.65rem; color:var(--t3); margin-bottom:4px">VOZ (TTS): <span id="c-tts" style="color:var(--t2)">DESATIVADO</span></div>
+                
+                <div style="font-size:0.6rem; color:var(--t3); margin-top:8px; border-top:1px solid var(--b1); padding-top:8px">MSG SUCESSO: <span id="c-msg-ok" style="color:var(--t2); font-style:italic">AGUARDANDO...</span></div>
+                <div style="font-size:0.6rem; color:var(--t3); margin-top:4px">MSG ERRO: <span id="c-msg-err" style="color:var(--t2); font-style:italic">AGUARDANDO...</span></div>
             </div>
 
             <div class="section-title">Equipamentos Conectados</div>
@@ -426,7 +429,11 @@
             if (status.tts_ativado !== undefined) {
                 const spTts = document.getElementById('c-tts');
                 spTts.textContent = status.tts_ativado ? 'ATIVADO' : 'INATIVO';
-                spTts.style.color = status.tts_ativado ? 'var(--info)' : 'var(--t2)';
+                spTts.style.color = status.tts_ativado ? 'var(--ok)' : 'var(--t2)';
+                
+                // Mensagens Reais (Web)
+                document.getElementById('c-msg-ok').textContent = status.tts_sucesso || 'Padrão do Sistema';
+                document.getElementById('c-msg-err').textContent = status.tts_erro || 'Acesso Negado';
             }
 
             configAtiva = status.leitores || [];

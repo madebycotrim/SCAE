@@ -229,6 +229,8 @@ function enviarStatusHardware() {
     nome_escola: config.nome_escola,
     total_alunos: config.total_alunos || 0,
     tts_ativado: config.tts_ativado,
+    tts_sucesso: config.tts_sucesso,
+    tts_erro: config.tts_erro,
     leitores: leitoresAtivos.map(l => ({
       id: l.id, nome: l.nome, ip: l.ip, porta: l.porta,
       online: (l as any).online || false, 
@@ -251,6 +253,8 @@ export function avisarMudancaConfig() {
         nome_escola: config.nome_escola,
         total_alunos: config.total_alunos,
         tts_ativado: config.tts_ativado,
+        tts_sucesso: config.tts_sucesso,
+        tts_erro: config.tts_erro,
         leitores: leitoresAtivos.map(l => ({
             id: l.id,
             nome: l.nome,
