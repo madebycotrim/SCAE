@@ -136,7 +136,7 @@
 
         /* ── HEADER ─── */
         .header {
-            height: 46px;
+            height: 64px;
             background: var(--s1);
             border-bottom: 1px solid var(--b1);
             display: flex;
@@ -1120,6 +1120,12 @@
                 EXPORTAR LOG
             </button>
 
+            <button class="icon-btn accent" id="btn-backup-db" title="Salvar cópia do banco">
+                <svg viewBox="0 0 16 16">
+                    <path d="M4 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4 6h8M4 10h8" />
+                </svg>
+                BACKUP DB
+            </button>
             <button class="icon-btn danger" id="btn-reset-db" title="Resetar banco local">
                 <svg viewBox="0 0 16 16">
                     <path d="M3 5h10M6 5V3h4v2M5 5l.5 8h5L11 5" />
@@ -1143,7 +1149,7 @@
 
             <!-- MÉTRICAS DO DIA -->
             <div class="sb-block">
-                <div class="section-title">Métricas de hoje</div>
+                <div class="section-title">Métricas (24h)</div>
                 <div class="metrics-grid">
                     <div class="metric-card">
                         <div class="metric-n green" id="m-ok">0</div>
@@ -1161,7 +1167,7 @@
                     </div>
                     <div class="metric-card">
                         <div class="metric-n acc" id="m-total">0</div>
-                        <div class="metric-l">TOTAL HOJE</div>
+                        <div class="metric-l">TOTAL (24H)</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-n blue" id="m-pico">—</div>
@@ -1312,6 +1318,20 @@
         </div>
     </div>
 
+    <!-- MODAL: PIN DE SEGURANÇA -->
+    <div id="pin-screen" class="modal-bg hidden">
+        <div class="modal" style="width:340px; text-align:center;">
+            <div class="section-title" style="margin-bottom:20px;">Acesso Restrito</div>
+            <div class="confirm-desc">Digite o PIN de administrador para continuar.</div>
+            <input type="password" class="confirm-input" id="pin-input" placeholder="••••••" maxlength="6"
+                style="text-align:center; font-size:1.5rem; letter-spacing:4px;">
+            <div class="confirm-actions">
+                <button class="btn" onclick="closePin()" style="flex:1">CANCELAR</button>
+                <button class="btn primary" id="btn-confirm-pin" onclick="verifyPinAction()" style="flex:1">ENTRAR</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ══════════════════════════════════════
         //  ESTADO GLOBAL
@@ -1354,12 +1374,8 @@
             const s = pad(uptime % 60);
             document.getElementById('uptime-val').textContent = `uptime: ${h}:${m}:${s}`;
 
-            // Reset métricas à meia-noite
-            if (now.getDate() !== metricsDay) {
-                metricsDay = now.getDate();
-                metrics.ok = 0; metrics.err = 0; metrics.horas.fill(0);
-                updateMetricsUI();
-            }
+            // MANTIDO: O Agente (backend) agora gerencia a janela deslizante de 24h
+            // a sincronização ocorre via evento status-hardware.
         }, 1000);
 
         // --- SISTEMA DE GROUPING DE LOGS ---
@@ -1781,9 +1797,57 @@
         // ══════════════════════════════════════
         //  SETTINGS
         // ══════════════════════════════════════
+        // ══════════════════════════════════════
+        //  SETTINGS & PIN
+        // ══════════════════════════════════════
+        let pendingAction = null;
+
         document.getElementById('btn-settings-open').onclick = () => {
-            renderSettings();
-            document.getElementById('settings-screen').classList.remove('hidden');
+            askForPin(() => {
+                renderSettings();
+                document.getElementById('settings-screen').classList.remove('hidden');
+            });
+        };
+
+        function askForPin(onSuccess) {
+            pendingAction = onSuccess;
+            document.getElementById('pin-input').value = '';
+            document.getElementById('pin-screen').classList.remove('hidden');
+            setTimeout(() => document.getElementById('pin-input').focus(), 100);
+        }
+
+        window.closePin = () => document.getElementById('pin-screen').classList.add('hidden');
+
+        window.verifyPinAction = async () => {
+            const pin = document.getElementById('pin-input').value;
+            if (!window.scaeApi) return;
+            
+            const res = await window.scaeApi.verificarPin(pin);
+            if (res && res.ok) {
+                closePin();
+                if (pendingAction) pendingAction();
+            } else {
+                showToast('PIN Incorreto!', 'err');
+                document.getElementById('pin-input').value = '';
+                document.getElementById('pin-input').focus();
+            }
+        };
+
+        // Atalho de Enter no PIN
+        document.getElementById('pin-input').onkeydown = e => { if (e.key === 'Enter') verifyPinAction(); };
+
+        // ══════════════════════════════════════
+        //  BACKUP DB
+        // ══════════════════════════════════════
+        document.getElementById('btn-backup-db').onclick = async () => {
+            if (!window.scaeApi) return;
+            const res = await window.scaeApi.backupDb();
+            if (res.ok) {
+                showToast(`Backup salvo em: ${res.path.split('\\').pop()}`, 'ok');
+                pushLog(`Backup do banco exportado para: ${res.path}`, 'info');
+            } else if (res.erro) {
+                showToast(`Erro no backup: ${res.erro}`, 'err');
+            }
         };
 
         function closeSettings() {
@@ -1853,10 +1917,12 @@
         //  CONFIRM RESET MODAL
         // ══════════════════════════════════════
         document.getElementById('btn-reset-db').onclick = () => {
-            document.getElementById('confirm-text').value = '';
-            document.getElementById('btn-confirm-reset').disabled = true;
-            document.getElementById('confirm-screen').classList.remove('hidden');
-            setTimeout(() => document.getElementById('confirm-text').focus(), 100);
+            askForPin(() => {
+                document.getElementById('confirm-text').value = '';
+                document.getElementById('btn-confirm-reset').disabled = true;
+                document.getElementById('confirm-screen').classList.remove('hidden');
+                setTimeout(() => document.getElementById('confirm-text').focus(), 100);
+            });
         };
 
         document.getElementById('confirm-text').addEventListener('input', e => {

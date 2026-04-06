@@ -40,21 +40,21 @@ class StatsManager {
     }
 
     /**
-     * Sincroniza métricas com os registros físicos do banco de dados (Hoje)
-     * Garante que o histrograma funcione mesmo após reboot do Agente Local.
+     * Sincroniza métricas com os registros físicos do banco de dados (Últimas 24 Horas)
+     * Garante que o histrograma e contadores funcionem mesmo após reboot.
      */
     async sincronizarComBanco() {
         try {
             const { allSql, getSql } = require('./db');
             
-            // 1. Totais do dia
+            // 1. Totais das últimas 24 horas
             const totais = await getSql(`
                 SELECT 
                     SUM(CASE WHEN tipo = 'ENTRADA' THEN 1 ELSE 0 END) as ent,
                     SUM(CASE WHEN tipo = 'SAIDA' THEN 1 ELSE 0 END) as sai,
                     SUM(CASE WHEN tipo = 'NEGADO' THEN 1 ELSE 0 END) as neg
                 FROM registros_acesso 
-                WHERE date(timestamp_acesso) = date('now', 'localtime')
+                WHERE timestamp_acesso >= datetime('now', '-24 hours', 'localtime')
             `);
 
             if (totais) {
@@ -63,11 +63,11 @@ class StatsManager {
                 this.negados = totais.neg || 0;
             }
 
-            // 2. Distribuição por hora
+            // 2. Distribuição por hora (Últimas 24h)
             const dist: any[] = await allSql(`
                 SELECT CAST(strftime('%H', timestamp_acesso) AS INTEGER) as hora, count(*) as total 
                 FROM registros_acesso 
-                WHERE date(timestamp_acesso) = date('now', 'localtime') 
+                WHERE timestamp_acesso >= datetime('now', '-24 hours', 'localtime') 
                 GROUP BY hora
             `);
 
@@ -76,7 +76,7 @@ class StatsManager {
                 if (d.hora >= 0 && d.hora < 24) this.horas[d.hora] = d.total;
             });
 
-            console.log(`[Stats] Métricas sincronizadas com o banco físico (Total Hoje: ${this.entradas + this.saidas + this.negados})`);
+            console.log(`[Stats] Métricas sincronizadas (Janela 24h | Total: ${this.entradas + this.saidas + this.negados})`);
         } catch (e) {
             console.error('[Stats] Falha ao sincronizar com banco:', e);
         }

@@ -18,6 +18,8 @@ contextBridge.exposeInMainWorld('scaeApi', {
   salvarLeitores: (leitores: any[], ipAgente?: string) => ipcRenderer.invoke('salvar-leitores', { leitores, ipAgente }),
   reconectar: (leitorId: string) => ipcRenderer.invoke('reconectar-leitor', { leitorId }),
   resetDb: () => ipcRenderer.invoke('reset-db'),
+  verificarPin: (pin: string) => ipcRenderer.invoke('verificar-pin', { pin }),
+  backupDb: () => ipcRenderer.invoke('backup-db'),
   cadastrarAluno: (dados: any) => ipcRenderer.invoke('cadastrar-aluno', dados),
   iniciarCaptura: (dados: any) => ipcRenderer.invoke('iniciar-captura', dados),
   excluirAluno: (dados: any) => ipcRenderer.invoke('excluir-aluno', dados)

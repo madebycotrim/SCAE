@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
 
@@ -8,13 +9,7 @@ import { iniciarSync, sincronizarCacheAlunos } from '../services/sync';
 import { runSql, getSql } from '../infra/db';
 import { config, salvarLeitoresNoDisco, carregarConfiguracaoHardware } from '../infra/config';
 import { stats } from '../infra/stats';
-import dns from 'dns';
-
 import { buscarIpLocal } from '../utils/rede';
-import os from 'os';
-import { exec } from 'child_process';
-import util from 'util';
-const execute = util.promisify(exec);
 
 let mainWindow: BrowserWindow | null = null;
 let sistemaAtivado = false;
@@ -214,6 +209,33 @@ async function createWindow() {
     setTimeout(() => { app.relaunch(); app.exit(0); }, 500);
     return { ok: true };
   });
+
+  ipcMain.handle('verificar-pin', async (_event, { pin }) => {
+    return { ok: pin === config.admin_pin };
+  });
+
+  ipcMain.handle('backup-db', async () => {
+    try {
+        const dbDir = path.join(app.getPath('userData'), 'data');
+        const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
+
+        if (!fs.existsSync(dbPath)) return { ok: false, erro: 'Banco não encontrado' };
+
+        const { filePath } = await dialog.showSaveDialog({
+            title: 'Salvar Cópia do Banco de Dados',
+            defaultPath: path.join(app.getPath('desktop'), `backup-catraki-${new Date().toISOString().slice(0, 10)}.db`),
+            filters: [{ name: 'SQLite Database', extensions: ['db'] }]
+        });
+
+        if (filePath) {
+            fs.copyFileSync(dbPath, filePath);
+            return { ok: true, path: filePath };
+        }
+        return { ok: false };
+    } catch (e: any) {
+        return { ok: false, erro: e.message };
+    }
+  });
 }
 
 app.whenReady().then(async () => {
@@ -249,6 +271,7 @@ app.whenReady().then(async () => {
       const { limparRegistrosAntigos } = require('../infra/db');
       limparRegistrosAntigos(); // Roda 1 vez no boot
       setInterval(limparRegistrosAntigos, 12 * 60 * 60 * 1000); // Roda a cada 12h
+      setInterval(() => stats.sincronizarComBanco(), 30 * 60 * 1000); // Recalcula a janela 24h a cada 30min
 
       setInterval(tentarAtivacaoSistemas, 5000);
       setTimeout(tentarAtivacaoSistemas, 1500);
@@ -267,32 +290,8 @@ app.whenReady().then(async () => {
   };
 });
 
-async function obterSnapshotTelemetria() {
-  const ramTotal = Math.round(os.totalmem() / 1024 / 1024 / 1024); // GB
-  const ramLivre = Math.round(os.freemem() / 1024 / 1024 / 1024); // GB
-  const cpuUso = Math.round((os.loadavg()[0] || 0) * 100); // % simples
-  
-  let discoStatus = "N/A";
-  try {
-    if (process.platform === 'win32') {
-      const { stdout } = await execute('wmic logicaldisk where "DeviceID=\'C:\'" get size,freespace /format:list');
-      const lines = stdout.split('\n').filter(l => l.includes('='));
-      const info: any = {};
-      lines.forEach(l => { const [k, v] = l.split('='); info[k.trim()] = parseInt(v.trim()); });
-      if (info.FreeSpace && info.Size) {
-        const livre = Math.round(info.FreeSpace / 1024 / 1024 / 1024);
-        const total = Math.round(info.Size / 1024 / 1024 / 1024);
-        discoStatus = `${livre}GB livres de ${total}GB`;
-      }
-    }
-  } catch (e) {}
-
-  return { ram: `${ramLivre}GB / ${ramTotal}GB`, cpu: `${cpuUso}%`, disco: discoStatus };
-}
-
 async function enviarStatusHardware() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  const telemetria = await obterSnapshotTelemetria();
 
   mainWindow.webContents.send('hardware-status', {
     nome_escola: config.nome_escola,
@@ -300,7 +299,6 @@ async function enviarStatusHardware() {
     tts_ativado: config.tts_ativado,
     tts_sucesso: config.tts_sucesso,
     tts_erro: config.tts_erro,
-    telemetria,
     stats: stats.obterSnapshot(),
     ip_agente_config: config.ip_agente,
     leitores: leitoresAtivos.map(l => ({

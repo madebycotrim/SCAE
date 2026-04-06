@@ -56,12 +56,35 @@ export async function iniciarSync() {
     } catch (e) { console.error('[Sync] Falha cache:', e); }
   }, 15 * 1000);
 
-  setInterval(async () => {
-    try { 
-        if (config.escola_id === 'aguardando-identidade') return;
-        await sincronizarRegistrosPendentes(); 
-    } catch (e) { console.error('[Sync] Falha registros:', e); }
-  }, 10 * 1000);
+  // Ciclo de Sincronização com Backoff Exponencial (Proteção de Rede)
+  let falhasConsecutivas = 0;
+  const loopSincronizacao = async () => {
+    try {
+        if (config.escola_id !== 'aguardando-identidade') {
+            const ok = await sincronizarRegistrosPendentes();
+            if (ok) {
+                falhasConsecutivas = 0;
+            } else {
+                falhasConsecutivas++;
+            }
+        }
+    } catch (e) {
+        falhasConsecutivas++;
+        console.error('[Sync] Falha registros:', e);
+    }
+
+    // Calcula o próximo delay (Base: 10s | Max: 5min)
+    const delayBase = 10 * 1000;
+    const multiplicador = Math.min(Math.pow(2, falhasConsecutivas), 30); // Max 300s (5min)
+    const proximoDelay = (falhasConsecutivas === 0) ? delayBase : delayBase * multiplicador;
+
+    if (falhasConsecutivas > 0) {
+        console.log(`[Sync] ⏳ Modo Resiliência: Tentando novamente em ${proximoDelay / 1000}s (Falhas: ${falhasConsecutivas})`);
+    }
+
+    setTimeout(loopSincronizacao, proximoDelay);
+  };
+  setTimeout(loopSincronizacao, 10000);
 
   // Ciclo de 24h para o Gari Digital
   setInterval(() => {
@@ -100,27 +123,36 @@ async function realizarLimpezaGariDigital() {
 /**
  * Envia as presenças coletadas localmente para o sistema web (Cloudflare)
  */
-async function sincronizarRegistrosPendentes() {
-  if (estaSincronizandoBatidas) return; // Se a última ainda não terminou, aborta essa tentativa silenciosamente
+async function sincronizarRegistrosPendentes(): Promise<boolean> {
+  if (estaSincronizandoBatidas) return true; // Se a última ainda não terminou, aborta essa tentativa silenciosamente
   
-  const pendentes = await allSql(`SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 50`);
-  
-  if (pendentes.length > 0) {
-    estaSincronizandoBatidas = true;
+  try {
+    const pendentes = await allSql(`SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 50`);
     
-    // Tenta enviar para a Nuvem através do WorkerApi
-    const ok = await WorkerApi.enviarBatida(pendentes);
-    
-    if (ok) {
-      for (const p of pendentes) {
-        await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
-      }
-      console.log(`[Sync] ✓ ENVIADOS: ${pendentes.length} registros de acesso para o sistema web.`);
-    } else {
-      console.warn(`[Sync] ! FALHA: Erro ao enviar ${pendentes.length} batidas para a rede. Tentando novamente em 10s...`);
+    if (pendentes.length > 0) {
+        estaSincronizandoBatidas = true;
+        
+        // Tenta enviar para a Nuvem através do WorkerApi
+        const ok = await WorkerApi.enviarBatida(pendentes);
+        
+        if (ok) {
+        for (const p of pendentes) {
+            await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
+        }
+        console.log(`[Sync] ✓ ENVIADOS: ${pendentes.length} registros de acesso para o sistema web.`);
+        estaSincronizandoBatidas = false;
+        return true;
+        } else {
+        console.warn(`[Sync] ! FALHA: Erro ao enviar ${pendentes.length} batidas para a rede.`);
+        estaSincronizandoBatidas = false;
+        return false;
+        }
     }
-    
-    estaSincronizandoBatidas = false;
+    return true; // Nada pendente é um "sucesso"
+  } catch (e) {
+      console.error('[Sync] Erro crítico na sincronização:', e);
+      estaSincronizandoBatidas = false;
+      return false;
   }
 }
 
