@@ -32,8 +32,8 @@ export interface AgenteConfig {
 
 // Configuração padrão de fábrica
 const configPadrao: AgenteConfig = {
-  escola_id: 'cem03-taguatinga',
-  nome_escola: 'Escola Padrão',
+  escola_id: 'aguardando-identidade',
+  nome_escola: 'BUSCANDO NOME...',
   total_alunos: 0,
   tts_ativado: false,
   tts_sucesso: 'Acesso liberado',

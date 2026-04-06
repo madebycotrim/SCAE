@@ -11,7 +11,29 @@ import { leitoresAtivos } from './poller';
 let estaSincronizando = false;
 let estaSincronizandoBatidas = false; // Bloqueio para evitar acúmulo se a internet/nuvem estiver lenta
 
-export function iniciarSync() {
+export async function iniciarSync() {
+  console.log('[Sync] Iniciando motores de sincronização...');
+
+  // 1. Handshake de Identidade (Auto-Discovery)
+  try {
+      const resp = await WorkerApi.descobrirIdentidade();
+      if (resp && resp.ok && resp.identidade) {
+          const { id, nome_escola, tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro } = resp.identidade;
+          
+          config.escola_id = id;
+          config.nome_escola = nome_escola;
+          config.tts_ativado = tts_ativado === 1;
+          config.tts_sucesso = config_tts_frase_sucesso;
+          config.tts_erro = config_tts_frase_erro;
+
+          console.log(`[Sync] IDENTIDADE REAL RECONHECIDA: ${nome_escola.toUpperCase()}`);
+      } else {
+          console.warn(`[Sync] AVISO: Identidade da nuvem não reconhecida. Operando em modo seguro.`);
+      }
+  } catch (e) {
+      console.error('[Sync] Falha no Handshake de identidade:', e);
+  }
+
   sincronizarCacheAlunos();
   sincronizarRegistrosPendentes();
   
@@ -23,11 +45,20 @@ export function iniciarSync() {
   WorkerApi.enviarStatus(statusBoot);
   
   setInterval(async () => {
-    try { await sincronizarCacheAlunos(); } catch (e) { console.error('[Sync] Falha cache:', e); }
+    try { 
+        if (config.escola_id === 'aguardando-identidade') {
+            await iniciarSync(); // Tenta o Handshake novamente
+            return;
+        }
+        await sincronizarCacheAlunos(); 
+    } catch (e) { console.error('[Sync] Falha cache:', e); }
   }, 15 * 1000);
 
   setInterval(async () => {
-    try { await sincronizarRegistrosPendentes(); } catch (e) { console.error('[Sync] Falha registros:', e); }
+    try { 
+        if (config.escola_id === 'aguardando-identidade') return;
+        await sincronizarRegistrosPendentes(); 
+    } catch (e) { console.error('[Sync] Falha registros:', e); }
   }, 10 * 1000);
 
   setInterval(() => {

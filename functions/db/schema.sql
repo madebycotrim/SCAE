@@ -195,10 +195,3 @@ CREATE TABLE calendario_letivo (
 );
 
 PRAGMA foreign_keys = ON;
-
--- DADOS INICIAIS (SEED)
-INSERT OR IGNORE INTO escolas (id, nome_escola, status)
-VALUES ('cem03-taguatinga', 'Unidade de Teste CATRAKI', 'ATIVA');
-
-INSERT OR IGNORE INTO usuarios (email, escola_id, nome_completo, papel, ativo)
-VALUES ('madebycotrim@gmail.com', 'cem03-taguatinga', 'Desenvolvedor Root', 'CENTRAL', 1);

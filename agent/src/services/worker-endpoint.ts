@@ -6,6 +6,35 @@ import { config } from '../infra/config';
 
 export class WorkerApi {
   /**
+   * Pergunta na nuvem quem é a escola de verdade que ele deve operar.
+   * Usado no boot para não precisar de IDs chumbados (MOCK).
+   */
+  static async descobrirIdentidade() {
+      const urlCloud = `${config.endpoint_worker}/api/agente/quem-sou-eu`;
+      const urlLocal = `http://localhost:8788/api/agente/quem-sou-eu`;
+      
+      const options = {
+          headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(10000)
+      };
+
+      try {
+          console.log(`[WorkerApi] >>> DESCUBRINDO IDENTIDADE ATRAVÉS DO TÚNEL: ${urlCloud}`);
+          const resp = await fetch(urlCloud, options as any);
+          if (resp.ok) return await resp.json();
+      } catch (e) {
+          console.warn(`[WorkerApi] Falha no Túnel Identity. Tentando Localhost...`);
+      }
+
+      try {
+          const localResp = await fetch(urlLocal, options as any);
+          if (localResp.ok) return await localResp.json();
+      } catch {}
+
+      return { ok: false };
+  }
+
+  /**
    * Tenta buscar os dados da Nuvem com Headers robustos.
    */
   static async buscarSincronizacaoAlunos() {

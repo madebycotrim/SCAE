@@ -190,7 +190,7 @@ app.whenReady().then(async () => {
         sistemaAtivado = true;
         
         iniciarPolling(mainWindow);
-        iniciarSync();
+        await iniciarSync();
 
         console.log('[Agente] Sistema totalmente operacional ✓');
       } else {
