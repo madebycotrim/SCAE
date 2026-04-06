@@ -277,7 +277,7 @@
             letter-spacing: 0.12em;
             color: var(--t1);
             text-transform: uppercase;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             font-weight: 600;
             opacity: 0.8;
         }
@@ -400,7 +400,6 @@
             border: 1px solid var(--b1);
             border-radius: var(--r);
             padding: 10px 12px;
-            margin-bottom: 7px;
             transition: all 0.2s;
         }
 
@@ -1342,7 +1341,6 @@
             <!-- SISTEMA CLOUD -->
             <div class="sb-block">
                 <div class="section-title">Sistema Web (Nuvem)</div>
-                <div id="offline-banners"></div>
                 <div
                     style="background:var(--s2); border:1px solid var(--b1); border-radius:var(--r); padding:10px 12px;">
                     <div class="cloud-row">
@@ -1372,29 +1370,12 @@
                 </div>
             </div>
 
-            <!-- SAÚDE DO SISTEMA (TELEMETRIA) -->
-            <div class="sb-block">
-                <div class="section-title">Saúde do Agente</div>
-                <div
-                    style="background:var(--s2); border:1px solid var(--b1); border-radius:var(--r); padding:10px 12px;">
-                    <div class="cloud-row">
-                        <span class="cloud-key">CPU</span>
-                        <span class="cloud-val" id="t-cpu">0%</span>
-                    </div>
-                    <div class="cloud-row">
-                        <span class="cloud-key">MEMÓRIA RAM</span>
-                        <span class="cloud-val" id="t-ram">0GB / 0GB</span>
-                    </div>
-                    <div class="cloud-row">
-                        <span class="cloud-key">DISCO (C:)</span>
-                        <span class="cloud-val" id="t-disco">...</span>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- HARDWARE -->
             <div class="sb-block" style="flex:1; min-height:0;">
                 <div class="section-title">Equipamentos Conectados</div>
+                <div id="offline-banners"></div>
                 <div id="hardware-list">
                     <div class="empty-state">
                         <span>⬡</span>
@@ -1791,11 +1772,7 @@
                     msgsDiv.classList.add('hidden');
                 }
             }
-            if (status.telemetria) {
-                document.getElementById('t-cpu').textContent = status.telemetria.cpu;
-                document.getElementById('t-ram').textContent = status.telemetria.ram;
-                document.getElementById('t-disco').textContent = status.telemetria.disco;
-            }
+
             if (status.stats) {
                 // Sincroniza métricas locais com o que o Agente reportou no boot
                 metrics.ok = (status.stats.entradas || 0) + (status.stats.saidas || 0);
