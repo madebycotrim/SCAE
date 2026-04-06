@@ -5,7 +5,7 @@
   "main": "dist/main/main.js",
   "scripts": {
     "dev": "npm run build && npx electron .",
-    "build": "tsc && copy src\\main\\index.html dist\\main\\index.html",
+    "build": "tsc && copy src\\main\\index.html dist\\main\\index.html && copy src\\CATRAKI.ico dist\\main\\CATRAKI.ico",
     "package": "npm run build && electron-builder"
   },
   "dependencies": {

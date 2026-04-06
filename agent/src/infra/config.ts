@@ -24,6 +24,7 @@ export interface AgenteConfig {
   tts_sucesso?: string;
   tts_erro?: string;
   leitores: (LeitorConfig | LeitorTcpConfig)[];
+  ip_agente?: string;
   intervalo_polling_ms: number;
   intervalo_sync_ms: number;
   endpoint_worker: string;
@@ -62,7 +63,8 @@ export function carregarConfiguracaoHardware() {
                     ...l,
                     id: l.id || `idflex-${l.ip?.replace(/\W/g, '') || Date.now()}`
                 }));
-                console.log(`[Config] ${config.leitores.length} leitores carregados de: ${configPath}`);
+                if (data.ip_agente) config.ip_agente = data.ip_agente;
+                console.log(`[Config] ${config.leitores.length} leitores e IP Configurado: ${config.ip_agente || 'Automático'}`);
             }
         } else {
             console.log('[Config] local-config.json não existe. Usando padrão.');
@@ -75,14 +77,18 @@ export function carregarConfiguracaoHardware() {
 /**
  * Grava a lista de leitores fisicamente no disco e atualiza a memória
  */
-export function salvarLeitoresNoDisco(leitores: any[]) {
+export function salvarLeitoresNoDisco(leitores: any[], ip_agente?: string) {
   try {
     const configPath = getLocalConfigPath();
-    const data = { leitores };
+    const data = { 
+        leitores, 
+        ip_agente: ip_agente || undefined 
+    };
     fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
     
     // Atualiza a referência global
     config.leitores = leitores;
+    if (ip_agente !== undefined) config.ip_agente = ip_agente;
     
     console.log(`[Config] CONFIGURAÇÃO SALVA COM SUCESSO EM: ${configPath}`);
     return true;

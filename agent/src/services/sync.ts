@@ -37,6 +37,7 @@ export async function iniciarSync() {
 
   sincronizarCacheAlunos();
   sincronizarRegistrosPendentes();
+  realizarLimpezaGariDigital(); // Limpeza no Boot
   
   const statusBoot = leitoresAtivos.map(l => ({
       id: l.id,
@@ -62,6 +63,11 @@ export async function iniciarSync() {
     } catch (e) { console.error('[Sync] Falha registros:', e); }
   }, 10 * 1000);
 
+  // Ciclo de 24h para o Gari Digital
+  setInterval(() => {
+    realizarLimpezaGariDigital();
+  }, 24 * 60 * 60 * 1000);
+
   setInterval(() => {
     const statusLimpo = leitoresAtivos.map(l => ({
         id: l.id,
@@ -70,6 +76,25 @@ export async function iniciarSync() {
     }));
     WorkerApi.enviarStatus(statusLimpo);
   }, 30 * 1000);
+}
+
+/**
+ * Gari Digital: Limpeza de registros sincronizados com mais de 30 dias.
+ * Mantém o banco local leve.
+ */
+async function realizarLimpezaGariDigital() {
+    try {
+        console.log('[Gari Digital] Iniciando varredura de manutenção...');
+        // Deleta apenas o que JÁ FOI sincronizado e tem mais de 30 dias
+        await runSql(`
+            DELETE FROM registros_acesso 
+            WHERE sincronizado = 1 
+            AND timestamp_acesso < datetime('now', '-30 days')
+        `);
+        console.log('[Gari Digital] Limpeza concluída ✔');
+    } catch (e: any) {
+        console.error('[Gari Digital] Erro na limpeza:', e.message);
+    }
 }
 
 /**
@@ -195,11 +220,99 @@ export async function sincronizarCacheAlunos(forcar = false) {
 
         config.total_alunos = alunosServidor.length;
         console.log(`[Sync] 🏁 CACHE DE ALUNOS ATUALIZADO (Total: ${config.total_alunos})`);
+
+        // --- CONVERGÊNCIA DE HARDWARE (MANTÉM O DISPOSITIVO FÍSICO ESPELHADO) ---
+        // Roda sempre que há mudança no cache ou quando o usuário força via Dashboard
+        await sincronizarHardware(alunosServidor);
+    } else if (forcar && alunosServidor) {
+        // Se o usuário clicou em "Atualizar Status" mas o ETag não mudou (304), 
+        // forçamos a convergência de hardware mesmo assim para garantir 100% de integridade física.
+        await sincronizarHardware(alunosServidor);
     }
 
   } catch (e: any) {
-    console.error('[Sync] Falha crítica na sincronização:', e);
+    if (forcar) console.error(`[Sync] ✗ ERRO NA ATUALIZAÇÃO FORÇADA:`, e.message);
   } finally {
-    estaSincronizando = false;
+      estaSincronizando = false;
   }
+}
+
+/**
+ * Motor de Integridade Física: Garante que os alunos da Nuvem existam no Hardware iDFlex.
+ * Resolve discrepâncias entre o Banco Online e a memória interna do equipamento.
+ */
+async function sincronizarHardware(alunosNuvem: any[]) {
+    if (!leitoresAtivos || leitoresAtivos.length === 0) {
+        console.warn(`[Sync][Hardware] Abortando: Nenhum leitor ativo no radar.`);
+        return;
+    }
+
+    console.log(`[Sync][Hardware] Iniciando análise de ${alunosNuvem.length} alunos da nuvem...`);
+
+    for (const leitor of leitoresAtivos) {
+        try {
+            if (!leitor.listarAlunos) {
+                console.log(`[Sync][Hardware] Leitor ${leitor.nome} não suporta listagem de alunos.`);
+                continue;
+            }
+
+            // Verifica se o leitor está marcado como online pelo poller
+            if (!(leitor as any).online) {
+                console.warn(`[Sync][Hardware] Pulando ${leitor.nome}: Equipamento em modo OFFLINE/STANDBY.`);
+                continue;
+            }
+
+            const usuariosHardware = await leitor.listarAlunos();
+            const matriculasNoHardware = new Set(usuariosHardware.map((u: any) => String(u.registration || "").trim()));
+
+            console.log(`[Sync][Hardware] Analisando ${leitor.nome} (${usuariosHardware.length} usuários detectados).`);
+            if (usuariosHardware.length > 0 && usuariosHardware.length < 10) {
+                 console.log(`[Sync][Hardware] Matrículas no hardware: [${Array.from(matriculasNoHardware).join(', ')}]`);
+            }
+
+            let cadastrosRealizados = 0;
+            let exclusoesRealizadas = 0;
+
+            // 1. Injetar Alunos que faltam no hardware
+            for (const aluno of alunosNuvem) {
+                const matriculaLimpa = String(aluno.matricula).trim();
+                // D1 retorna 0/1 para booleanos. Garantimos a conversão.
+                const deveEstarNoHardware = Number(aluno.ativo) === 1 || aluno.ativo === true;
+
+                if (deveEstarNoHardware && !matriculasNoHardware.has(matriculaLimpa)) {
+                    console.log(`[Sync][Hardware] +++ CADASTRANDO: ${aluno.nome_completo} (${matriculaLimpa}) em ${leitor.nome}`);
+                    const res = await leitor.cadastrarAluno({
+                        matricula: aluno.matricula,
+                        nomeCompleto: aluno.nome_completo
+                    });
+                    if (res.ok) cadastrosRealizados++;
+                    else console.error(`[Sync][Hardware] !!! Erro ao cadastrar ${aluno.nome_completo}: ${res.erro}`);
+                }
+            }
+
+            // 2. Expurgar Alunos inativos ou removidos
+            const matriculasAtivasNuvem = new Set(
+                alunosNuvem
+                    .filter(a => Number(a.ativo) === 1 || a.ativo === true)
+                    .map(a => String(a.matricula).trim())
+            );
+            for (const hardwareUser of usuariosHardware) {
+                const reg = String(hardwareUser.registration || "").trim();
+                if (reg && reg !== "0" && !matriculasAtivasNuvem.has(reg)) {
+                    console.log(`[Sync][Hardware] <- Removendo acesso obsoleto: Reg ${reg} de ${leitor.nome}...`);
+                    await (leitor as any).removerAluno(reg);
+                    exclusoesRealizadas++;
+                }
+            }
+
+            if (cadastrosRealizados > 0 || exclusoesRealizadas > 0) {
+                console.warn(`[Sync] 🛡️ CONVERGÊNCIA CONCLUÍDA [${leitor.nome}]: +${cadastrosRealizados} inseridos | -${exclusoesRealizadas} removidos.`);
+            } else {
+                console.log(`[Sync] 🛡️ HARDWARE [${leitor.nome}] JÁ ESTÁ 100% SINCRONIZADO.`);
+            }
+
+        } catch (e: any) {
+            console.error(`[Sync] 🛡️ Falha na convergência de ${leitor.id}: ${e.message}`);
+        }
+    }
 }

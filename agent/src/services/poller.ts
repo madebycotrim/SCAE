@@ -61,6 +61,37 @@ export function recarregarLeitores(novaLista: ILeitor[] = []) {
     console.log(`[Poller] Lista de leitores atualizada (${leitoresAtivos.length} ativos).`);
 }
 
+/** Tenta forçar a reconexão imediata de um leitor específico (Manual via UI) */
+export async function recarregarLeitorEspecifico(leitorId: string) {
+    const leitor = leitoresAtivos.find(l => l.id === leitorId);
+    if (!leitor) return { ok: false, erro: 'Leitor não encontrado no radar.' };
+    
+    // Zera o backoff de falhas para forçar a tentativa agora mesmo
+    falhasLeitores.delete(leitorId);
+    console.log(`[Poller] Forçando reconexão manual: ${leitor.nome} (${leitor.id})...`);
+    
+    try {
+        const st = await leitor.status();
+        (leitor as any).online = st.online;
+        (leitor as any).totalUsuarios = st.totalUsuarios;
+        
+        // Se estiver online, já aproveita para re-sincronizar o Modo Push imediatamente
+        if (st.online) {
+            const { buscarIpLocal } = require('../utils/rede');
+            const ipLocal = config.ip_agente || buscarIpLocal();
+            if (ipLocal) {
+                await (leitor as any).configurarModoEscola(ipLocal);
+                console.log(`[Poller] ✓ ${leitor.nome} RECONECTADO EM ${ipLocal}.`);
+            }
+        }
+        
+        return { ok: st.online };
+    } catch (e: any) {
+        console.error(`[Poller] Falha ao reconectar ${leitor.id}:`, e.message);
+        return { ok: false, erro: e.message };
+    }
+}
+
 /** Fluxo de monitoramento individual por equipamento */
 async function monitorarLeitor(leitor: ILeitor) {
   const agora = Date.now();
@@ -78,9 +109,9 @@ async function monitorarLeitor(leitor: ILeitor) {
     (leitor as any).totalUsuarios = st.totalUsuarios;
 
     if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000)) {
-        const ipLocal = buscarIpLocal();
+        const ipLocal = config.ip_agente || buscarIpLocal();
         if (ipLocal) {
-            console.log(`[Watchdog][${leitor.id}] Sincronizando Modo Push (Real-Time)...`);
+            console.log(`[Watchdog][${leitor.id}] Sincronizando Modo Push em ${ipLocal}...`);
             // Ativa o Push (Modo Escola)
             await (leitor as any).configurarModoEscola(ipLocal);
             // Sincroniza Marca de Watchdog

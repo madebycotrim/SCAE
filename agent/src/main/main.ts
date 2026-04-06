@@ -11,6 +11,10 @@ import { stats } from '../infra/stats';
 import dns from 'dns';
 
 import { buscarIpLocal } from '../utils/rede';
+import os from 'os';
+import { exec } from 'child_process';
+import util from 'util';
+const execute = util.promisify(exec);
 
 let mainWindow: BrowserWindow | null = null;
 let sistemaAtivado = false;
@@ -23,7 +27,7 @@ async function createWindow() {
     width: 1000,
     height: 700,
     title: 'SCAE - Agente de Biometria',
-    icon: path.join(__dirname, '..', '..', 'public', 'logo.png'),
+    icon: path.join(__dirname, 'CATRAKI.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -106,6 +110,19 @@ async function createWindow() {
 
                 if (leitor && ev.event !== undefined) {
                     const idUsuario = ev.user_id || 0;
+
+                    // --- TRAVA DE SEGURANÇA (DEBOUNCE) ---
+                    // Evita que 1 toque gere múltiplos logs se o aluno segurar o dedo.
+                    // Trava de 5 segundos por usuário por leitor.
+                    const chaveDebounce = `${leitor.id}-${idUsuario}`;
+                    const agora = Date.now();
+                    if (idUsuario !== 0 && (global as any)[`debounce_${chaveDebounce}`] && (agora - (global as any)[`debounce_${chaveDebounce}`] < 5000)) {
+                        res.writeHead(200); res.end();
+                        return;
+                    }
+                    if (idUsuario !== 0) (global as any)[`debounce_${chaveDebounce}`] = agora;
+
+
                     const statusAcesso = [6, 7, 10, 11, 12, 14, 15, 16, 31].includes(ev.event) ? 'ENTRADA' : 'NEGADO';
                     let nomeParaExibir = 'ACESSO NÃO RECONHECIDO';
                     let matriculaParaExibir = '—';
@@ -154,12 +171,11 @@ async function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
-  ipcMain.handle('salvar-leitores', async (_event, { leitores }) => {
+  ipcMain.handle('salvar-leitores', async (_event, { leitores, ipAgente }) => {
     try {
-        console.warn(`[Agente] Salvando ${leitores.length} leitores no disco...`);
-        const ok = salvarLeitoresNoDisco(leitores);
+        console.warn(`[Agente] Salvando ${leitores.length} leitores e IP do Agente (${ipAgente || 'Automático'})...`);
+        const ok = salvarLeitoresNoDisco(leitores, ipAgente);
         if (ok) {
-            // ESSENCIAL: Recarregar a config do disco ANTES de inicializar os leitores no poller
             carregarConfiguracaoHardware();
             await recarregarLeitores(); // Agora o recarregar verá a config atualizada no disco
             return { ok: true };
@@ -175,6 +191,18 @@ async function createWindow() {
     const leitor = leitoresAtivos.find(l => l.id === leitorId);
     if (leitor && (leitor as any).listarAlunos) return await (leitor as any).listarAlunos();
     return [];
+  });
+  
+  ipcMain.handle('reconectar-leitor', async (_event, { leitorId }) => {
+    const { recarregarLeitorEspecifico } = require('../services/poller');
+    return await recarregarLeitorEspecifico(leitorId);
+  });
+
+  ipcMain.handle('reset-db', async () => {
+    const { resetarBancoLocal } = require('../infra/db');
+    await resetarBancoLocal();
+    setTimeout(() => { app.relaunch(); app.exit(0); }, 500);
+    return { ok: true };
   });
 }
 
@@ -223,14 +251,42 @@ app.whenReady().then(async () => {
   };
 });
 
-function enviarStatusHardware() {
+async function obterSnapshotTelemetria() {
+  const ramTotal = Math.round(os.totalmem() / 1024 / 1024 / 1024); // GB
+  const ramLivre = Math.round(os.freemem() / 1024 / 1024 / 1024); // GB
+  const cpuUso = Math.round((os.loadavg()[0] || 0) * 100); // % simples
+  
+  let discoStatus = "N/A";
+  try {
+    if (process.platform === 'win32') {
+      const { stdout } = await execute('wmic logicaldisk where "DeviceID=\'C:\'" get size,freespace /format:list');
+      const lines = stdout.split('\n').filter(l => l.includes('='));
+      const info: any = {};
+      lines.forEach(l => { const [k, v] = l.split('='); info[k.trim()] = parseInt(v.trim()); });
+      if (info.FreeSpace && info.Size) {
+        const livre = Math.round(info.FreeSpace / 1024 / 1024 / 1024);
+        const total = Math.round(info.Size / 1024 / 1024 / 1024);
+        discoStatus = `${livre}GB livres de ${total}GB`;
+      }
+    }
+  } catch (e) {}
+
+  return { ram: `${ramLivre}GB / ${ramTotal}GB`, cpu: `${cpuUso}%`, disco: discoStatus };
+}
+
+async function enviarStatusHardware() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
+  const telemetria = await obterSnapshotTelemetria();
+
   mainWindow.webContents.send('hardware-status', {
     nome_escola: config.nome_escola,
     total_alunos: config.total_alunos || 0,
     tts_ativado: config.tts_ativado,
     tts_sucesso: config.tts_sucesso,
     tts_erro: config.tts_erro,
+    telemetria,
+    stats: stats.obterSnapshot(),
+    ip_agente_config: config.ip_agente,
     leitores: leitoresAtivos.map(l => ({
       id: l.id, nome: l.nome, ip: l.ip, porta: l.porta,
       online: (l as any).online || false, 
@@ -255,11 +311,14 @@ export function avisarMudancaConfig() {
         tts_ativado: config.tts_ativado,
         tts_sucesso: config.tts_sucesso,
         tts_erro: config.tts_erro,
+        stats: stats.obterSnapshot(),
+        ip_agente_config: config.ip_agente,
         leitores: leitoresAtivos.map(l => ({
             id: l.id,
             nome: l.nome,
             online: (l as any).online || false,
-            ip: l.ip
+            ip: l.ip,
+            porta: l.porta || 80
         }))
     });
 }

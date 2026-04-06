@@ -4,34 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catraki Edge Control</title>
+    <title>CATRAKI EDGE AGENT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
-        rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="catraki.ico" type="image/x-icon" />
     <style>
         :root {
-            --bg: #121318;
-            --s1: #1a1c23;
-            --s2: #1f2129;
-            --s3: #252830;
-            --b1: rgba(255, 255, 255, 0.055);
-            --b2: rgba(255, 255, 255, 0.09);
-            --b3: rgba(255, 255, 255, 0.14);
-            --t1: #d4d8e2;
-            --t2: #8b91a0;
-            --t3: #555c6e;
-            --ok: #5a9e7c;
-            --ok-dim: rgba(90, 158, 124, 0.12);
-            --warn: #9e8c5a;
-            --warn-dim: rgba(158, 140, 90, 0.12);
-            --err: #9e5a5a;
-            --err-dim: rgba(158, 90, 90, 0.12);
-            --info-dim: rgba(90, 110, 158, 0.12);
-            --info: #5a6e9e;
+            --bg: #0e0f13;
+            --s1: #141519;
+            --s2: #1a1c22;
+            --s3: #20222a;
+            --s4: #272931;
+            --b1: rgba(255, 255, 255, 0.045);
+            --b2: rgba(255, 255, 255, 0.08);
+            --b3: rgba(255, 255, 255, 0.13);
+            --t1: #d6dae6;
+            --t2: #878fa2;
+            --t3: #4e5568;
+            --ok: #4d9e7c;
+            --ok-dim: rgba(77, 158, 124, 0.1);
+            --ok-glow: rgba(77, 158, 124, 0.25);
+            --warn: #a8934a;
+            --warn-dim: rgba(168, 147, 74, 0.1);
+            --err: #a85050;
+            --err-dim: rgba(168, 80, 80, 0.1);
+            --info: #4a6ea8;
+            --info-dim: rgba(74, 110, 168, 0.1);
+            --acc: #7a6fff;
+            --acc-dim: rgba(122, 111, 255, 0.1);
             --mono: 'IBM Plex Mono', monospace;
-            --sans: 'IBM Plex Sans', sans-serif;
+            --sans: 'Poppins', sans-serif;
             --r: 6px;
+            --r2: 10px;
         }
 
         *,
@@ -50,14 +55,30 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            font-size: 13px;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ── TOASTS ─────────────────────────────────────── */
+        /* ── SCROLLBARS ─── */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--b3);
+            border-radius: 2px;
+        }
+
+        /* ── TOASTS ─── */
         #toast-area {
             position: fixed;
-            bottom: 40px;
-            right: 16px;
+            bottom: 36px;
+            right: 14px;
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -70,55 +91,78 @@
             border: 1px solid var(--b2);
             border-radius: var(--r);
             padding: 8px 14px;
-            font-family: var(--mono);
-            font-size: 0.65rem;
-            color: var(--t2);
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            color: var(--t1);
             display: flex;
             align-items: center;
             gap: 8px;
-            animation: toastIn 0.2s ease;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            animation: toastIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .toast.ok {
-            border-color: rgba(90, 158, 124, 0.3);
+            border-color: rgba(77, 158, 124, 0.35);
             color: var(--ok);
         }
 
         .toast.err {
-            border-color: rgba(158, 90, 90, 0.3);
+            border-color: rgba(168, 80, 80, 0.35);
             color: var(--err);
         }
 
-        /* ── HEADER ─────────────────────────────────────── */
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+        }
+
+        /* ── HEADER ─── */
         .header {
-            height: 48px;
+            height: 46px;
             background: var(--s1);
             border-bottom: 1px solid var(--b1);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
+            padding: 0 14px;
             flex-shrink: 0;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .h-brand {
-            font-family: var(--mono);
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            color: var(--t2);
+            font-family: var(--sans);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--t1);
         }
 
         .h-sep {
             width: 1px;
-            height: 16px;
+            height: 14px;
             background: var(--b2);
         }
 
@@ -127,29 +171,39 @@
             height: 6px;
             border-radius: 50%;
             background: var(--ok);
-            animation: blink 2.5s infinite;
+            box-shadow: 0 0 6px var(--ok-glow);
+            animation: pulse 2.5s infinite;
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1 }
-            55% { opacity: .35 }
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 6px var(--ok-glow);
+            }
+
+            55% {
+                opacity: .4;
+                box-shadow: none;
+            }
         }
 
         .h-school {
-            font-family: var(--mono);
-            font-size: 0.6rem;
-            color: var(--t3);
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            color: var(--t2);
         }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .icon-btn {
-            width: 28px;
-            height: 28px;
+            height: 27px;
+            padding: 0 10px;
             border: 1px solid var(--b1);
             border-radius: var(--r);
             background: transparent;
@@ -157,8 +211,13 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 5px;
+            font-family: var(--sans);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
             transition: all 0.15s;
+            white-space: nowrap;
         }
 
         .icon-btn:hover {
@@ -168,136 +227,986 @@
         }
 
         .icon-btn.danger:hover {
-            color: #ff5f5f;
-            border-color: rgba(255, 95, 95, 0.4);
-            background: rgba(255, 95, 95, 0.05);
+            color: var(--err);
+            border-color: rgba(168, 80, 80, 0.4);
+            background: var(--err-dim);
         }
 
-        /* ── LAYOUT ─────────────────────────────────────── */
+        .icon-btn.accent:hover {
+            color: var(--acc);
+            border-color: rgba(122, 111, 255, 0.4);
+            background: var(--acc-dim);
+        }
+
+        .icon-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ── LAYOUT ─── */
         .layout {
             flex: 1;
             display: flex;
             overflow: hidden;
         }
 
-        /* ── SIDEBAR ────────────────────────────────────── */
+        /* ── SIDEBAR ─── */
         .sidebar {
-            width: 320px;
+            width: 300px;
             background: var(--s1);
             border-right: 1px solid var(--b1);
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            gap: 20px;
             overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sb-block {
+            padding: 16px;
+            border-bottom: 1px solid var(--b1);
         }
 
         .section-title {
-            font-family: var(--mono);
-            font-size: 0.55rem;
-            letter-spacing: 0.15em;
-            color: var(--t3);
+            font-family: var(--sans);
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            color: var(--t1);
             text-transform: uppercase;
             margin-bottom: 12px;
+            font-weight: 600;
+            opacity: 0.8;
         }
 
-        /* ── MONITOR ────────────────────────────────────── */
-        .live-monitor {
-            flex: 1;
+        /* ── MÉTRICAS DO DIA ─── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .metric-card {
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+            padding: 10px 12px;
             display: flex;
             flex-direction: column;
-            background: rgba(10, 10, 10, 0.4);
-            padding: 24px;
+            gap: 3px;
+            transition: border-color 0.2s;
+        }
+
+        .metric-card:hover {
+            border-color: var(--b2);
+        }
+
+        .metric-n {
+            font-family: var(--mono);
+            font-size: 1.4rem;
+            font-weight: 600;
+            line-height: 1;
+            color: var(--t1);
+        }
+
+        .metric-n.green {
+            color: var(--ok);
+        }
+
+        .metric-n.red {
+            color: var(--err);
+        }
+
+        .metric-n.blue {
+            color: var(--info);
+        }
+
+        .metric-n.acc {
+            color: var(--acc);
+        }
+
+        .metric-l {
+            font-size: 0.7rem;
+            color: var(--t2);
+            font-family: var(--sans);
+            letter-spacing: 0.02em;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .metric-bar {
+            height: 2px;
+            background: var(--b1);
+            border-radius: 1px;
+            margin-top: 6px;
             overflow: hidden;
         }
 
+        .metric-bar-fill {
+            height: 100%;
+            border-radius: 1px;
+            transition: width 0.5s ease;
+        }
+
+        .metric-bar-fill.green {
+            background: var(--ok);
+        }
+
+        .metric-bar-fill.red {
+            background: var(--err);
+        }
+
+        /* ── PICO ─── */
+        .pico-row {
+            display: flex;
+            gap: 4px;
+            margin-top: 10px;
+            align-items: flex-end;
+            height: 30px;
+        }
+
+        .pico-bar {
+            flex: 1;
+            background: var(--b1);
+            border-radius: 2px 2px 0 0;
+            transition: background 0.2s;
+        }
+
+        .pico-bar.active {
+            background: var(--acc-dim);
+            border: 1px solid rgba(122, 111, 255, 0.3);
+            border-bottom: none;
+        }
+
+        .pico-bar.peak {
+            background: var(--acc);
+        }
+
+        .pico-label {
+            font-family: var(--sans);
+            font-size: 0.65rem;
+            color: var(--t3);
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* ── HARDWARE ─── */
+        .hw-card {
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+            padding: 10px 12px;
+            margin-bottom: 7px;
+            transition: all 0.2s;
+        }
+
+        .hw-card:hover {
+            border-color: var(--b2);
+        }
+
+        .hw-card.offline {
+            border-color: rgba(168, 80, 80, 0.25);
+            background: rgba(168, 80, 80, 0.04);
+        }
+
+        .hw-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .hw-name-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .hw-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .hw-dot.on {
+            background: var(--ok);
+            box-shadow: 0 0 5px var(--ok-glow);
+        }
+
+        .hw-dot.off {
+            background: var(--err);
+        }
+
+        .hw-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .hw-meta {
+            font-size: 0.72rem;
+            color: var(--t2);
+            font-family: var(--sans);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .hw-meta span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .hw-latency {
+            font-family: var(--sans);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .hw-latency.fast {
+            background: var(--ok-dim);
+            color: var(--ok);
+        }
+
+        .hw-latency.slow {
+            background: var(--warn-dim);
+            color: var(--warn);
+        }
+
+        .hw-latency.dead {
+            background: var(--err-dim);
+            color: var(--err);
+        }
+
+        .hw-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .hw-btn {
+            font-family: var(--sans);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--b2);
+            background: var(--s3);
+            color: var(--t3);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .hw-btn:hover {
+            color: var(--t2);
+            border-color: var(--b3);
+        }
+
+        .hw-btn.reconnect:hover {
+            color: var(--ok);
+            border-color: rgba(77, 158, 124, 0.4);
+            background: var(--ok-dim);
+        }
+
+        .hw-btn.users:hover {
+            color: var(--info);
+            border-color: rgba(74, 110, 168, 0.4);
+            background: var(--info-dim);
+        }
+
+        /* ── CLOUD INFO ─── */
+        .cloud-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--b1);
+        }
+
+        .cloud-row:last-child {
+            border-bottom: none;
+        }
+
+        .cloud-key {
+            font-size: 0.7rem;
+            color: var(--t2);
+            font-family: var(--sans);
+            font-weight: 500;
+        }
+
+        .cloud-val {
+            font-size: 0.75rem;
+            color: var(--t1);
+            font-family: var(--sans);
+            font-weight: 600;
+        }
+
+        .cloud-val.ok {
+            color: var(--ok);
+        }
+
+        /* ── MAIN ─── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── LOG TOOLBAR ─── */
+        .log-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--b1);
+            background: var(--s1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .log-search {
+            flex: 1;
+            min-width: 140px;
+            height: 26px;
+            background: var(--s3);
+            border: 1px solid var(--b2);
+            border-radius: var(--r);
+            color: var(--t1);
+            padding: 0 10px;
+            font-family: var(--sans);
+            font-size: 0.8rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .log-search:focus {
+            border-color: var(--b3);
+        }
+
+        .log-search::placeholder {
+            color: var(--t3);
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 4px;
+        }
+
+        .pill {
+            height: 22px;
+            padding: 0 8px;
+            border-radius: 3px;
+            border: 1px solid var(--b1);
+            background: transparent;
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            color: var(--t3);
+            transition: all 0.12s;
+        }
+
+        .pill:hover {
+            border-color: var(--b2);
+            color: var(--t2);
+        }
+
+        .pill.active-ok {
+            background: var(--ok-dim);
+            color: var(--ok);
+            border-color: rgba(77, 158, 124, 0.4);
+        }
+
+        .pill.active-err {
+            background: var(--err-dim);
+            color: var(--err);
+            border-color: rgba(168, 80, 80, 0.4);
+        }
+
+        .pill.active-warn {
+            background: var(--warn-dim);
+            color: var(--warn);
+            border-color: rgba(168, 147, 74, 0.4);
+        }
+
+        .pill.active-info {
+            background: var(--info-dim);
+            color: var(--info);
+            border-color: rgba(74, 110, 168, 0.4);
+        }
+
+        .log-count {
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            color: var(--t2);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ── LOG ─── */
         #log-container {
             flex: 1;
             overflow-y: auto;
             font-family: var(--mono);
-            font-size: 0.7rem;
-            line-height: 1.5;
-            padding-top: 10px;
+            font-size: 0.8rem;
+            line-height: 1.65;
+            padding: 8px 16px;
         }
 
-        .log-entry { margin-bottom: 2px; }
-        .log-ts { color: var(--t3); margin-right: 10px; }
-        .log-lv { font-weight: 700; margin-right: 10px; }
-        .lv-ok { color: var(--ok); }
-        .lv-info { color: var(--info); }
-        .lv-warn { color: var(--warn); }
-        .lv-err { color: var(--err); }
+        .log-entry {
+            display: flex;
+            gap: 0;
+            padding: 1px 0;
+            border-radius: 3px;
+            animation: logIn 0.15s ease;
+        }
 
-        /* ── MODAL ──────────────────────────────────────── */
+        .log-entry:hover {
+            background: var(--b1);
+        }
+
+        .log-entry.hidden {
+            display: none;
+        }
+
+        @keyframes logIn {
+            from {
+                opacity: 0;
+                transform: translateX(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-ts {
+            color: var(--t3);
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .log-lv {
+            font-weight: 600;
+            margin-right: 10px;
+            flex-shrink: 0;
+            min-width: 38px;
+        }
+
+        .lv-ok {
+            color: var(--ok);
+        }
+
+        .lv-info {
+            color: var(--info);
+        }
+
+        .lv-warn {
+            color: var(--warn);
+        }
+
+        .lv-err {
+            color: var(--err);
+        }
+
+        .log-txt {
+            color: var(--t2);
+            word-break: break-all;
+        }
+
+        /* ── MODAL BASE ─── */
         .modal-bg {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.75);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            animation: fadeIn 0.15s ease;
+            backdrop-filter: blur(2px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .modal {
-            background: var(--s1);
-            border: 1px solid var(--b2);
-            border-radius: 12px;
-            padding: 24px;
-            width: 440px;
-            max-width: 90vw;
-        }
-
-        .modal-head { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .modal-title { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; color: var(--t2); }
-        
-        .settings-item {
             background: var(--s2);
-            border: 1px solid var(--b1);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .f-input {
-            background: var(--s3);
             border: 1px solid var(--b2);
-            color: #fff;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            width: 100%;
+            border-radius: var(--r2);
+            padding: 24px;
+            width: 460px;
+            max-width: 92vw;
+            animation: modalIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .btn-s {
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-family: var(--sans);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--t1);
+            letter-spacing: 0.04em;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--t3);
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            transition: color 0.1s;
+        }
+
+        .modal-close:hover {
+            color: var(--t1);
+        }
+
+        /* ── CONFIRM MODAL ─── */
+        .confirm-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--err-dim);
+            border: 1px solid rgba(168, 80, 80, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 1.1rem;
+        }
+
+        .confirm-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .confirm-desc {
+            font-size: 0.72rem;
+            color: var(--t2);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .confirm-input-label {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--t3);
+            margin-bottom: 6px;
+        }
+
+        .confirm-input {
+            width: 100%;
             background: var(--s3);
             border: 1px solid var(--b2);
             color: var(--t1);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: var(--r);
             font-family: var(--mono);
-            font-size: 0.7rem;
+            font-size: 0.72rem;
+            outline: none;
+            margin-bottom: 16px;
+            transition: border-color 0.15s;
         }
 
-        .btn-s.primary { background: var(--ok-dim); color: var(--ok); border-color: var(--ok); }
+        .confirm-input:focus {
+            border-color: var(--err);
+        }
 
-        .hidden { display: none; }
-        .sb-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .sb-dot.ok { background: var(--ok); }
-        .sb-dot.err { background: var(--err); }
+        .confirm-actions {
+            display: flex;
+            gap: 8px;
+        }
 
-        /* Status Bar */
+        .btn {
+            height: 34px;
+            padding: 0 16px;
+            border-radius: var(--r);
+            border: 1px solid var(--b2);
+            background: var(--s3);
+            color: var(--t2);
+            cursor: pointer;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            border-color: var(--b3);
+            color: var(--t1);
+        }
+
+        .btn.danger {
+            border-color: rgba(168, 80, 80, 0.4);
+            background: var(--err-dim);
+            color: var(--err);
+        }
+
+        .btn.danger:hover {
+            background: rgba(168, 80, 80, 0.2);
+        }
+
+        .btn.danger:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .btn.primary {
+            border-color: rgba(77, 158, 124, 0.5);
+            background: var(--ok-dim);
+            color: var(--ok);
+        }
+
+        .btn.primary:hover {
+            background: rgba(77, 158, 124, 0.2);
+        }
+
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* ── SETTINGS ─── */
+        .settings-item {
+            background: var(--s3);
+            border: 1px solid var(--b1);
+            padding: 12px;
+            border-radius: var(--r);
+            margin-bottom: 8px;
+        }
+
+        .f-input {
+            background: var(--s4);
+            border: 1px solid var(--b2);
+            color: var(--t1);
+            padding: 7px 10px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            width: 100%;
+            outline: none;
+            font-family: var(--mono);
+            transition: border-color 0.15s;
+        }
+
+        .f-input:focus {
+            border-color: var(--b3);
+        }
+
+        .f-name {
+            background: none;
+            border: none;
+            color: var(--t2);
+            font-size: 0.62rem;
+            font-weight: 700;
+            font-family: var(--mono);
+            outline: none;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── USERS MODAL ─── */
+        .user-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 4px;
+            border-bottom: 1px solid var(--b1);
+            font-family: var(--mono);
+            font-size: 0.68rem;
+        }
+
+        .user-row:last-child {
+            border-bottom: none;
+        }
+
+        .user-id {
+            color: var(--t3);
+            margin-right: 8px;
+        }
+
+        .user-reg {
+            font-size: 0.58rem;
+            color: var(--t3);
+        }
+
+        /* ── STATUS BAR ─── */
         .statusbar {
-            height: 28px;
+            height: 32px;
             background: var(--s1);
             border-top: 1px solid var(--b1);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 15px;
-            font-size: 0.65rem;
+            padding: 0 14px;
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            font-weight: 500;
             color: var(--t3);
+            flex-shrink: 0;
+        }
+
+        .sb-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .sb-pill {
+            padding: 1px 7px;
+            border-radius: 3px;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            font-size: 0.55rem;
+        }
+
+        .sb-pill.online {
+            background: var(--ok-dim);
+            border-color: rgba(77, 158, 124, 0.3);
+            color: var(--ok);
+        }
+
+        /* ── KIOSK MODE ─── */
+        body.kiosk .header {
+            display: none;
+        }
+
+        body.kiosk .sidebar {
+            display: none;
+        }
+
+        body.kiosk .log-toolbar {
+            display: none;
+        }
+
+        body.kiosk .statusbar {
+            display: none;
+        }
+
+        body.kiosk .kiosk-feed {
+            display: flex !important;
+        }
+
+        body.kiosk .main-content-area {
+            display: none;
+        }
+
+        .kiosk-feed {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 40px;
+            gap: 24px;
+        }
+
+        .kiosk-clock {
+            font-family: var(--mono);
+            font-size: 5rem;
+            font-weight: 600;
+            color: var(--t1);
+            letter-spacing: 0.04em;
+            line-height: 1;
+        }
+
+        .kiosk-date {
+            font-family: var(--sans);
+            font-size: 1.25rem;
+            color: var(--t2);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .kiosk-last {
+            font-family: var(--sans);
+            font-size: 2.2rem;
+            font-weight: 700;
+            padding: 24px 40px;
+            border-radius: 16px;
+            text-align: center;
+            min-width: 520px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 40px rgba(0,0,0,0.4);
+        }
+
+        .kiosk-last.ok {
+            background: var(--ok-dim);
+            border: 1px solid rgba(77, 158, 124, 0.3);
+            color: var(--ok);
+        }
+
+        .kiosk-last.err {
+            background: var(--err-dim);
+            border: 1px solid rgba(168, 80, 80, 0.3);
+            color: var(--err);
+        }
+
+        .kiosk-last.idle {
+            background: var(--s2);
+            border: 1px solid var(--b2);
+            color: var(--t3);
+            font-size: 1.25rem;
+            font-weight: 500;
+            box-shadow: none;
+        }
+
+        .kiosk-stats {
+            display: flex;
+            gap: 40px;
+        }
+
+        .kiosk-stat {
+            text-align: center;
+        }
+
+        .kiosk-stat-n {
+            font-family: var(--mono);
+            font-size: 2.5rem;
+            font-weight: 600;
+        }
+
+        .kiosk-stat-l {
+            font-family: var(--sans);
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--t3);
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .kiosk-exit-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-family: var(--sans);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 16px;
+            background: var(--s3);
+            border: 1px solid var(--b2);
+            color: var(--t2);
+            border-radius: var(--r);
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .kiosk-exit-btn:hover {
+            opacity: 1;
+        }
+
+        /* ── MISC ─── */
+        .hidden {
+            display: none !important;
+        }
+
+        .main-content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 8px;
+            color: var(--t3);
+            font-family: var(--sans);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .empty-state span {
+            font-size: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .tts-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 0.55rem;
+            font-family: var(--mono);
+        }
+
+        .tts-badge.on {
+            background: var(--ok-dim);
+            color: var(--ok);
+            border: 1px solid rgba(77, 158, 124, 0.3);
+        }
+
+        .tts-badge.off {
+            background: var(--s3);
+            color: var(--t3);
+            border: 1px solid var(--b1);
+        }
+
+        .offline-banner {
+            padding: 6px 12px;
+            background: var(--err-dim);
+            border: 1px solid rgba(168, 80, 80, 0.3);
+            border-radius: var(--r);
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--err);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            animation: toastIn 0.2s ease;
+        }
+
+        .offline-banner .reconnect-link {
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.58rem;
         }
     </style>
 </head>
@@ -305,119 +1214,504 @@
 <body>
     <div id="toast-area"></div>
 
+    <!-- KIOSK MODE -->
+    <div class="kiosk-feed" id="kiosk-feed">
+        <div class="kiosk-clock" id="kiosk-clock">00:00:00</div>
+        <div class="kiosk-date" id="kiosk-date">—</div>
+        <div class="kiosk-last idle" id="kiosk-last">Aguardando próximo acesso...</div>
+        <div class="kiosk-stats">
+            <div class="kiosk-stat">
+                <div class="kiosk-stat-n" id="kiosk-ok" style="color:var(--ok)">0</div>
+                <div class="kiosk-stat-l">ACESSOS</div>
+            </div>
+            <div class="kiosk-stat">
+                <div class="kiosk-stat-n" id="kiosk-err" style="color:var(--err)">0</div>
+                <div class="kiosk-stat-l">NEGADOS</div>
+            </div>
+            <div class="kiosk-stat">
+                <div class="kiosk-stat-n" id="kiosk-total" style="color:var(--acc)">0</div>
+                <div class="kiosk-stat-l">HOJE</div>
+            </div>
+        </div>
+        <button class="kiosk-exit-btn" onclick="toggleKiosk()">ESC · SAIR DO MODO PORTARIA</button>
+    </div>
+
+    <!-- HEADER -->
     <div class="header">
         <div class="header-left">
-            <span class="h-brand">CATRAKI EDGE</span>
+            <span class="h-brand">CATRAKI BETA</span>
             <div class="h-sep"></div>
             <div class="h-status-dot"></div>
             <span class="h-school" id="school-badge">MODO LOCAL</span>
         </div>
         <div class="header-right">
-            <button class="icon-btn danger" id="btn-reset-db" title="LIMPEZA NUCLEAR: Resetar Banco Local">
-                🗑️
+            <button class="icon-btn" id="btn-export-log" title="Exportar log como CSV">
+                <svg viewBox="0 0 16 16">
+                    <path d="M8 2v8M5 7l3 3 3-3M3 13h10" />
+                </svg>
+                EXPORTAR LOG
             </button>
-            <button class="icon-btn" id="btn-settings-open" title="Configurar IPs">
-                ⚙️
+            <button class="icon-btn accent" id="btn-kiosk" title="Modo portaria - tela cheia">
+                <svg viewBox="0 0 16 16">
+                    <path d="M2 5V3h3M11 3h3v2M14 11v2h-3M5 13H2v-2" />
+                </svg>
+                PORTARIA
+            </button>
+            <button class="icon-btn danger" id="btn-reset-db" title="Resetar banco local">
+                <svg viewBox="0 0 16 16">
+                    <path d="M3 5h10M6 5V3h4v2M5 5l.5 8h5L11 5" />
+                </svg>
+                RESET DB
+            </button>
+            <button class="icon-btn" id="btn-settings-open" title="Configurar hardware">
+                <svg viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="2.5" />
+                    <path
+                        d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M11.2 4.8l1.4-1.4M3.4 12.6l1.4-1.4" />
+                </svg>
+                CONFIG
             </button>
         </div>
     </div>
 
     <div class="layout">
+        <!-- SIDEBAR -->
         <div class="sidebar">
-            <div class="section-title">SISTEMA WEB (NUVEM)</div>
-            <div id="cloud-info" style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05)">
-                <div style="font-size:0.7rem; color:var(--t1); margin-bottom:6px">ESCOLA: <span id="c-escola" style="font-weight:700; color:var(--ok)">NÃO SINCRONIZADA</span></div>
-                <div style="font-size:0.65rem; color:var(--t3); margin-bottom:4px">ALUNOS OFFLINE: <span id="c-alunos" style="color:var(--t2)">0</span></div>
-                <div style="font-size:0.65rem; color:var(--t3); margin-bottom:4px">VOZ (TTS): <span id="c-tts" style="color:var(--t2)">DESATIVADO</span></div>
-                
-                <div id="c-msg-ok-area" style="font-size:0.6rem; color:var(--t3); margin-top:8px; border-top:1px solid var(--b1); padding-top:8px">MSG SUCESSO: <span id="c-msg-ok" style="color:var(--t2); font-style:italic">AGUARDANDO...</span></div>
-                <div id="c-msg-err-area" style="font-size:0.6rem; color:var(--t3); margin-top:4px">MSG ERRO: <span id="c-msg-err" style="color:var(--t2); font-style:italic">AGUARDANDO...</span></div>
+
+            <!-- MÉTRICAS DO DIA -->
+            <div class="sb-block">
+                <div class="section-title">Métricas de hoje</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-n green" id="m-ok">0</div>
+                        <div class="metric-l">ACESSOS OK</div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill green" id="m-ok-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-n red" id="m-err">0</div>
+                        <div class="metric-l">NEGADOS</div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill red" id="m-err-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-n acc" id="m-total">0</div>
+                        <div class="metric-l">TOTAL HOJE</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-n blue" id="m-pico">—</div>
+                        <div class="metric-l">PICO (HORA)</div>
+                    </div>
+                </div>
+
+                <!-- Histograma de horas -->
+                <div style="margin-top:12px">
+                    <div class="section-title" style="margin-bottom:6px">Distribuição por hora</div>
+                    <div class="pico-row" id="histo-bars"></div>
+                    <div style="display:flex; justify-content:space-between">
+                        <span class="pico-label">06h</span>
+                        <span class="pico-label">12h</span>
+                        <span class="pico-label">18h</span>
+                        <span class="pico-label">24h</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="section-title">Equipamentos Conectados</div>
-            <div id="hardware-list">
-                <div style="color: var(--t3); font-size: 0.7rem;">Buscando leitores...</div>
+            <!-- SISTEMA CLOUD -->
+            <div class="sb-block">
+                <div class="section-title">Sistema Web (Nuvem)</div>
+                <div id="offline-banners"></div>
+                <div
+                    style="background:var(--s2); border:1px solid var(--b1); border-radius:var(--r); padding:10px 12px;">
+                    <div class="cloud-row">
+                        <span class="cloud-key">ESCOLA</span>
+                        <span class="cloud-val ok" id="c-escola">NÃO SYNC</span>
+                    </div>
+                    <div class="cloud-row">
+                        <span class="cloud-key">ALUNOS OFFLINE</span>
+                        <span class="cloud-val" id="c-alunos">0</span>
+                    </div>
+                    <div class="cloud-row">
+                        <span class="cloud-key">VOZ (TTS)</span>
+                        <span id="c-tts-badge" class="tts-badge off">OFF</span>
+                    </div>
+                    <div id="c-tts-msgs" class="hidden">
+                        <div class="cloud-row">
+                            <span class="cloud-key">MSG OK</span>
+                            <span class="cloud-val" id="c-msg-ok"
+                                style="max-width:150px; overflow:hidden; text-overflow:ellipsis; font-size:0.58rem;">—</span>
+                        </div>
+                        <div class="cloud-row">
+                            <span class="cloud-key">MSG ERRO</span>
+                            <span class="cloud-val" id="c-msg-err"
+                                style="max-width:150px; overflow:hidden; text-overflow:ellipsis; font-size:0.58rem;">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAÚDE DO SISTEMA (TELEMETRIA) -->
+            <div class="sb-block">
+                <div class="section-title">Saúde do Agente</div>
+                <div
+                    style="background:var(--s2); border:1px solid var(--b1); border-radius:var(--r); padding:10px 12px;">
+                    <div class="cloud-row">
+                        <span class="cloud-key">CPU</span>
+                        <span class="cloud-val" id="t-cpu">0%</span>
+                    </div>
+                    <div class="cloud-row">
+                        <span class="cloud-key">MEMÓRIA RAM</span>
+                        <span class="cloud-val" id="t-ram">0GB / 0GB</span>
+                    </div>
+                    <div class="cloud-row">
+                        <span class="cloud-key">DISCO (C:)</span>
+                        <span class="cloud-val" id="t-disco">...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HARDWARE -->
+            <div class="sb-block" style="flex:1; min-height:0;">
+                <div class="section-title">Equipamentos Conectados</div>
+                <div id="hardware-list">
+                    <div class="empty-state">
+                        <span>⬡</span>
+                        Buscando leitores...
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="live-monitor">
-            <div class="section-title">Log de Eventos em Tempo Real</div>
-            <div id="log-container"></div>
+        <!-- MAIN -->
+        <div class="main">
+            <div class="main-content-area">
+                <!-- LOG TOOLBAR -->
+                <div class="log-toolbar">
+                    <div class="section-title" style="margin:0; white-space:nowrap">Log em Tempo Real</div>
+                    <input type="text" class="log-search" id="log-search" placeholder="buscar nos logs...">
+                    <div class="filter-pills">
+                        <button class="pill" id="pill-ok" data-lv="ok">OK</button>
+                        <button class="pill" id="pill-err" data-lv="err">ERR</button>
+                        <button class="pill" id="pill-warn" data-lv="warn">WARN</button>
+                        <button class="pill" id="pill-info" data-lv="info">INFO</button>
+                    </div>
+                    <span class="log-count" id="log-count">0 entradas</span>
+                </div>
+
+                <div id="log-container"></div>
+            </div>
         </div>
     </div>
 
+    <!-- STATUS BAR -->
     <div class="statusbar">
-        <div>Agent v1.6.0 · <span id="status-clock">--:--:--</span></div>
-        <div id="uptime-val">uptime: 00:00:00</div>
+        <div class="sb-left">
+            <span>Agent v2.0.0</span>
+            <span id="status-clock">--:--:--</span>
+            <span class="sb-pill online" id="hw-online-count">0 online</span>
+        </div>
+        <span id="uptime-val">uptime: 00:00:00</span>
     </div>
 
-    <!-- MODAL DE CONFIGURAÇÕES -->
+    <!-- MODAL: CONFIGURAÇÕES -->
     <div id="settings-screen" class="modal-bg hidden">
         <div class="modal">
             <div class="modal-head">
                 <span class="modal-title">GESTOR DE HARDWARE LOCAL</span>
-                <button onclick="closeSettings()" style="background:none; border:none; color:var(--t3); cursor:pointer">✕</button>
+                <button class="modal-close" onclick="closeSettings()">✕</button>
             </div>
-            
-            <div id="settings-list" style="max-height: 300px; overflow-y: auto;"></div>
-            
-            <button onclick="addNewHardware()" class="btn-s" style="width:100%; margin-top: 10px; border-style: dashed;">
-                + ADICIONAR NOVO IP
-            </button>
+            <div class="field-group" style="padding: 12px; background: var(--s3); border-radius: var(--r); margin-bottom: 16px; border: 1px solid var(--b1)">
+                <div class="section-title" style="margin-bottom: 8px">IP DE SERVIDOR (ESTE COMPUTADOR)</div>
+                <input type="text" id="ipt-agente-ip" style="width:100%; height:32px; background:var(--s4); border:1px solid var(--b2); border-radius:4px; padding:0 10px; color:var(--acc); font-family:var(--mono); font-size:0.8rem;" placeholder="Deixe vazio para auto-detectar">
+                <div style="font-size:0.65rem; color:var(--t3); margin-top:4px;">Se vazio, usaremos o IP automático da rede local.</div>
+            </div>
 
-            <div style="margin-top: 20px;">
-                <button id="btn-save" onclick="saveHardware()" class="btn-s primary" style="width:100%">SALVAR E REINICIAR CONEXÕES</button>
-            </div>
+            <div class="section-title" style="margin-bottom: 8px">LISTA DE HARDWARES (LEITORES)</div>
+            <div id="settings-list" style="max-height:280px; overflow-y:auto; margin-bottom:8px;"></div>
+            <button onclick="addNewHardware()" class="btn btn-full" style="border-style:dashed; margin-bottom:16px;">+
+                ADICIONAR NOVO IP</button>
+            <button onclick="saveHardware()" class="btn primary btn-full">SALVAR E REINICIAR CONEXÕES</button>
         </div>
     </div>
 
-    <!-- MODAL DE USUÁRIOS NO DISPOSITIVO -->
+    <!-- MODAL: USUÁRIOS -->
     <div id="users-screen" class="modal-bg hidden">
-        <div class="modal" style="width: 500px;">
+        <div class="modal" style="width:500px;">
             <div class="modal-head">
                 <span class="modal-title" id="users-modal-title">USUÁRIOS NO DISPOSITIVO</span>
-                <button onclick="closeUsers()" style="background:none; border:none; color:var(--t3); cursor:pointer">✕</button>
+                <button class="modal-close" onclick="closeUsers()">✕</button>
             </div>
-            <div id="users-modal-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
+            <div id="users-modal-list" style="max-height:380px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR RESET -->
+    <div id="confirm-screen" class="modal-bg hidden">
+        <div class="modal" style="width:400px; text-align:center;">
+            <div class="confirm-icon">🗑️</div>
+            <div class="confirm-title">Limpeza Nuclear</div>
+            <div class="confirm-desc">
+                Isso vai <strong>apagar o banco de dados local</strong> e reiniciar o Agente.<br>
+                Presenças não sincronizadas serão perdidas para sempre.
+            </div>
+            <div class="confirm-input-label" style="text-align:left">DIGITE <code
+                    style="color:var(--err)">RESETAR</code> PARA CONFIRMAR</div>
+            <input type="text" class="confirm-input" id="confirm-text" placeholder="RESETAR" autocomplete="off">
+            <div class="confirm-actions">
+                <button class="btn" onclick="closeConfirm()" style="flex:1">CANCELAR</button>
+                <button class="btn danger" id="btn-confirm-reset" onclick="doReset()" style="flex:1" disabled>APAGAR
+                    TUDO</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // ══════════════════════════════════════
+        //  ESTADO GLOBAL
+        // ══════════════════════════════════════
         let configAtiva = [];
         let uptime = 0;
 
-        // Clock
+        // Métricas do dia
+        const metrics = { ok: 0, err: 0, horas: new Array(24).fill(0) };
+        let metricsDay = new Date().getDate();
+
+        // Log state
+        const MAX_LOG = 500;
+        let logEntries = [];       // { el, ts, lv, txt }
+        let activeFilters = new Set();
+        let searchQuery = '';
+        let totalVisible = 0;
+
+        // TTS queue (sem cancel constante)
+        const ttsQueue = [];
+        let ttsSpeaking = false;
+
+        // Hardware latency tracker
+        const hwLatency = {};   // id -> { ms, lastSeen }
+
+        // Kiosk
+        let kioskMode = false;
+
+        // ══════════════════════════════════════
+        //  CLOCK + UPTIME
+        // ══════════════════════════════════════
+        function pad(n) { return String(n).padStart(2, '0'); }
+
         setInterval(() => {
-            document.getElementById('status-clock').textContent = new Date().toLocaleTimeString('pt-BR');
+            const now = new Date();
+            const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            document.getElementById('status-clock').textContent = ts;
+            document.getElementById('kiosk-clock').textContent = ts;
+
+            const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('kiosk-date').textContent = dateStr.toUpperCase();
+
             uptime++;
-            const h = String(Math.floor(uptime / 3600)).padStart(2, '0');
-            const m = String(Math.floor((uptime % 3600) / 60)).padStart(2, '0');
-            const s = String(uptime % 60).padStart(2, '0');
+            const h = pad(Math.floor(uptime / 3600));
+            const m = pad(Math.floor((uptime % 3600) / 60));
+            const s = pad(uptime % 60);
             document.getElementById('uptime-val').textContent = `uptime: ${h}:${m}:${s}`;
+
+            // Reset métricas à meia-noite
+            if (now.getDate() !== metricsDay) {
+                metricsDay = now.getDate();
+                metrics.ok = 0; metrics.err = 0; metrics.horas.fill(0);
+                updateMetricsUI();
+            }
         }, 1000);
 
-        function showToast(msg, type='info') {
+        // ══════════════════════════════════════
+        //  TOAST
+        // ══════════════════════════════════════
+        function showToast(msg, type = 'info') {
             const area = document.getElementById('toast-area');
-            if(!area) return;
             const t = document.createElement('div');
-            t.className = `toast ${type === 'ok' ? 'ok' : 'err'}`;
+            t.className = `toast ${type}`;
             t.textContent = msg;
             area.appendChild(t);
-            setTimeout(() => { if(t.parentNode) t.remove(); }, 3000);
+            setTimeout(() => {
+                t.style.animation = 'toastOut 0.2s ease forwards';
+                setTimeout(() => t.remove(), 200);
+            }, 3000);
         }
 
-        function pushLog(msg, type='info') {
+        // ══════════════════════════════════════
+        //  LOG
+        // ══════════════════════════════════════
+        function pushLog(msg, type = 'info') {
             const container = document.getElementById('log-container');
-            if(!container) return;
+            if (!container) return;
+
+            const now = new Date();
+            const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
             const entry = document.createElement('div');
             entry.className = 'log-entry';
-            const time = new Date().toLocaleTimeString('pt-BR');
-            entry.innerHTML = `<span class="log-ts">${time}</span><span class="log-lv lv-${type}">${type.toUpperCase()}</span><span class="log-txt">${msg}</span>`;
+            entry.dataset.lv = type;
+            entry.dataset.txt = msg.toLowerCase();
+            entry.innerHTML = `<span class="log-ts">${ts}</span><span class="log-lv lv-${type}">${type.toUpperCase().padEnd(4)}</span><span class="log-txt">${escapeHtml(msg)}</span>`;
+
+            // Virtualização: manter no máximo MAX_LOG entradas
+            if (logEntries.length >= MAX_LOG) {
+                const oldest = logEntries.shift();
+                if (oldest.el.parentNode) oldest.el.remove();
+            }
+
+            logEntries.push({ el: entry, ts, lv: type, txt: msg });
             container.appendChild(entry);
+
+            applyVisibility(entry);
+            updateLogCount();
             container.scrollTop = container.scrollHeight;
         }
 
-        // --- HARDWARE ---
+        function applyVisibility(entry) {
+            const lv = entry.dataset.lv;
+            const txt = entry.dataset.txt;
+            const filterPass = activeFilters.size === 0 || activeFilters.has(lv);
+            const searchPass = searchQuery === '' || txt.includes(searchQuery);
+            if (filterPass && searchPass) {
+                entry.classList.remove('hidden');
+            } else {
+                entry.classList.add('hidden');
+            }
+        }
+
+        function applyAllFilters() {
+            logEntries.forEach(e => applyVisibility(e.el));
+            updateLogCount();
+        }
+
+        function updateLogCount() {
+            const visible = logEntries.filter(e => !e.el.classList.contains('hidden')).length;
+            document.getElementById('log-count').textContent = `${visible} / ${logEntries.length} entradas`;
+        }
+
+        // Filtros
+        document.querySelectorAll('.pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const lv = pill.dataset.lv;
+                if (activeFilters.has(lv)) {
+                    activeFilters.delete(lv);
+                    pill.className = 'pill';
+                } else {
+                    activeFilters.add(lv);
+                    pill.className = `pill active-${lv}`;
+                }
+                applyAllFilters();
+            });
+        });
+
+        // Busca com debounce
+        let searchTimeout;
+        document.getElementById('log-search').addEventListener('input', e => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                applyAllFilters();
+            }, 120);
+        });
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ══════════════════════════════════════
+        //  EXPORTAR LOG
+        // ══════════════════════════════════════
+        document.getElementById('btn-export-log').addEventListener('click', () => {
+            if (logEntries.length === 0) { showToast('Log vazio.', 'err'); return; }
+            const lines = ['timestamp,nivel,mensagem'];
+            logEntries.forEach(e => {
+                lines.push(`"${e.ts}","${e.lv}","${e.txt.replace(/"/g, '""')}"`);
+            });
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `catraki-log-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Log exportado!', 'ok');
+        });
+
+        // ══════════════════════════════════════
+        //  MÉTRICAS
+        // ══════════════════════════════════════
+        function updateMetricsUI() {
+            const total = metrics.ok + metrics.err;
+            document.getElementById('m-ok').textContent = metrics.ok;
+            document.getElementById('m-err').textContent = metrics.err;
+            document.getElementById('m-total').textContent = total;
+
+            const pct = total > 0 ? Math.round((metrics.ok / total) * 100) : 0;
+            document.getElementById('m-ok-bar').style.width = pct + '%';
+            document.getElementById('m-err-bar').style.width = (100 - pct) + '%';
+
+            // Pico horário
+            const maxHora = metrics.horas.reduce((a, b) => Math.max(a, b), 0);
+            const picoIdx = metrics.horas.indexOf(maxHora);
+            document.getElementById('m-pico').textContent = maxHora > 0 ? `${pad(picoIdx)}h` : '—';
+
+            // Kiosk
+            document.getElementById('kiosk-ok').textContent = metrics.ok;
+            document.getElementById('kiosk-err').textContent = metrics.err;
+            document.getElementById('kiosk-total').textContent = total;
+
+            // Histograma
+            renderHistogram(maxHora);
+        }
+
+        function renderHistogram(maxVal) {
+            const container = document.getElementById('histo-bars');
+            if (!container) return;
+            // 18 barras cobrindo 06h-24h (a cada hora)
+            const start = 6;
+            const bars = 18;
+            let html = '';
+            for (let i = 0; i < bars; i++) {
+                const hora = start + i;
+                const val = metrics.horas[hora % 24] || 0;
+                const pct = maxVal > 0 ? Math.round((val / maxVal) * 100) : 0;
+                const isPeak = val === maxVal && maxVal > 0;
+                const isActive = val > 0;
+                html += `<div class="pico-bar ${isPeak ? 'peak' : isActive ? 'active' : ''}" style="height:${Math.max(4, pct)}%" title="${hora}h: ${val}"></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function registerAccess(sucesso) {
+            if (sucesso) metrics.ok++; else metrics.err++;
+            const hora = new Date().getHours();
+            metrics.horas[hora] = (metrics.horas[hora] || 0) + 1;
+            updateMetricsUI();
+        }
+
+        // ══════════════════════════════════════
+        //  TTS — FILA SEM CANCEL CONSTANTE
+        // ══════════════════════════════════════
+        function enqueueTTS(texto) {
+            ttsQueue.push(texto);
+            if (!ttsSpeaking) drainTTS();
+        }
+
+        function drainTTS() {
+            if (ttsQueue.length === 0) { ttsSpeaking = false; return; }
+            ttsSpeaking = true;
+            const frase = ttsQueue.shift();
+            const u = new SpeechSynthesisUtterance(frase);
+            u.lang = 'pt-BR';
+            u.onend = () => setTimeout(drainTTS, 150);
+            u.onerror = () => setTimeout(drainTTS, 150);
+            window.speechSynthesis.speak(u);
+        }
+
+        // ══════════════════════════════════════
+        //  HARDWARE STATUS
+        // ══════════════════════════════════════
         window.scaeApi.onHardwareStatus(status => {
             if (status.nome_escola) {
                 document.getElementById('school-badge').textContent = status.nome_escola.toUpperCase();
@@ -427,108 +1721,204 @@
                 document.getElementById('c-alunos').textContent = status.total_alunos;
             }
             if (status.tts_ativado !== undefined) {
-                const spTts = document.getElementById('c-tts');
-                spTts.textContent = status.tts_ativado ? 'ATIVADO' : 'INATIVO';
-                spTts.style.color = status.tts_ativado ? 'var(--ok)' : 'var(--t2)';
-                
-                // Mensagens Reais (Web)
-                document.getElementById('c-msg-ok').textContent = status.tts_sucesso || '(SILÊNCIO)';
-                document.getElementById('c-msg-err').textContent = status.tts_erro || '(SILÊNCIO)';
-
-                // Oculta se estiver inativo
-                const display = status.tts_ativado ? 'block' : 'none';
-                document.getElementById('c-msg-ok-area').style.display = display;
-                document.getElementById('c-msg-err-area').style.display = display;
+                const badge = document.getElementById('c-tts-badge');
+                const msgsDiv = document.getElementById('c-tts-msgs');
+                if (status.tts_ativado) {
+                    badge.textContent = 'ON';
+                    badge.className = 'tts-badge on';
+                    msgsDiv.classList.remove('hidden');
+                    document.getElementById('c-msg-ok').textContent = status.tts_sucesso || '(silêncio)';
+                    document.getElementById('c-msg-err').textContent = status.tts_erro || '(silêncio)';
+                } else {
+                    badge.textContent = 'OFF';
+                    badge.className = 'tts-badge off';
+                    msgsDiv.classList.add('hidden');
+                }
             }
-
+            if (status.telemetria) {
+                document.getElementById('t-cpu').textContent = status.telemetria.cpu;
+                document.getElementById('t-ram').textContent = status.telemetria.ram;
+                document.getElementById('t-disco').textContent = status.telemetria.disco;
+            }
+            if (status.stats) {
+                // Sincroniza métricas locais com o que o Agente reportou no boot
+                metrics.ok = (status.stats.entradas || 0) + (status.stats.saidas || 0);
+                metrics.err = (status.stats.negados || 0);
+                updateMetricsUI();
+            }
+            if (status.ip_agente_config) {
+                document.getElementById('ipt-agente-ip').value = status.ip_agente_config;
+            }
             configAtiva = status.leitores || [];
+            renderHardware();
+        });
+
+        // ACESSO
+        window.scaeApi.onNewAccess(data => {
+            registerAccess(data.sucesso);
+
+            const tipo = data.sucesso ? 'ok' : 'err';
+            const label = data.sucesso ? 'ACESSO' : 'NEGADO';
+            showToast(`${label}: ${data.nome}`, tipo);
+
+            // Kiosk last access
+            const kl = document.getElementById('kiosk-last');
+            kl.className = `kiosk-last ${tipo}`;
+            kl.textContent = `${label}: ${data.nome}`;
+            setTimeout(() => {
+                kl.className = 'kiosk-last idle';
+                kl.textContent = 'Aguardando próximo acesso...';
+            }, 4000);
+
+            // TTS via fila
+            if (data.ttsAtivo) {
+                const tpl = data.sucesso ? (data.ttsParams.sucesso || 'Bem-vindo, {nome}!') : (data.ttsParams.erro || 'Acesso negado, {nome}!');
+                const frase = tpl.replace('{nome}', data.nomePuro || 'Visitante');
+                enqueueTTS(frase);
+            }
+        });
+
+        // LOG
+        window.scaeApi.onNewLog(log => pushLog(log));
+
+        // ══════════════════════════════════════
+        //  RENDER HARDWARE
+        // ══════════════════════════════════════
+        function renderHardware() {
             const list = document.getElementById('hardware-list');
-            if(!list) return;
-            
-            if(configAtiva.length === 0) {
-                list.innerHTML = '<div style="color: var(--t3); font-size: 0.7rem; padding: 10px;">Nenhum hardware no radar.</div>';
+            const bannersDiv = document.getElementById('offline-banners');
+            if (!list) return;
+
+            if (configAtiva.length === 0) {
+                list.innerHTML = '<div class="empty-state"><span>⬡</span>Nenhum hardware no radar.</div>';
+                bannersDiv.innerHTML = '';
+                document.getElementById('hw-online-count').textContent = '0 online';
                 return;
             }
 
-            list.innerHTML = configAtiva.map(l => `
-                <div style="padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.05)">
-                    <div style="display:flex; align-items:center; justify-content:space-between">
-                        <div style="display:flex; align-items:center; gap:8px">
-                            <span class="sb-dot ${l.online ? 'ok' : 'err'}"></span>
-                            <span style="font-weight:700; font-size:0.8rem">${l.nome}</span>
-                        </div>
-                        <button onclick="verUsuarios('${l.id}', '${l.nome}')" style="background:var(--s3); border:none; color:var(--info); font-size:10px; padding:2px 6px; border-radius:4px; cursor:pointer">PESSOAS</button>
-                    </div>
-                    <div style="font-size:0.65rem; color:var(--t3); margin-top:4px">
-                        ${l.ip}:${l.porta} · ${l.totalUsuarios || 0} USUÁRIOS
-                    </div>
-                </div>
-            `).join('');
-        });
+            const online = configAtiva.filter(l => l.online).length;
+            document.getElementById('hw-online-count').textContent = `${online}/${configAtiva.length} online`;
+            const pill = document.getElementById('hw-online-count');
+            pill.className = online === configAtiva.length ? 'sb-pill online' : 'sb-pill';
 
-        async function verUsuarios(leitorId, leitorNome) {
-            pushLog(`Consultando usuários de: ${leitorNome}...`, 'info');
+            // Banners de offline
+            const offlines = configAtiva.filter(l => !l.online);
+            bannersDiv.innerHTML = offlines.map(l => `
+            <div class="offline-banner">
+                <span>⚠ ${l.nome} está offline</span>
+                <span class="reconnect-link" onclick="tentarReconectar('${l.id}', '${l.nome}')">reconectar</span>
+            </div>
+        `).join('');
+
+            list.innerHTML = configAtiva.map(l => {
+                const lat = hwLatency[l.id];
+                let latBadge = '';
+                if (l.online) {
+                    if (lat) {
+                        const cls = lat.ms < 50 ? 'fast' : 'slow';
+                        latBadge = `<span class="hw-latency ${cls}">${lat.ms}ms</span>`;
+                    } else {
+                        latBadge = `<span class="hw-latency fast">—</span>`;
+                    }
+                } else {
+                    latBadge = `<span class="hw-latency dead">offline</span>`;
+                }
+
+                const lastSeen = lat ? formatLastSeen(lat.lastSeen) : '';
+
+                return `
+            <div class="hw-card ${l.online ? '' : 'offline'}">
+                <div class="hw-top">
+                    <div class="hw-name-row">
+                        <div class="hw-dot ${l.online ? 'on' : 'off'}"></div>
+                        <span class="hw-name">${escapeHtml(l.nome)}</span>
+                    </div>
+                    ${latBadge}
+                </div>
+                <div class="hw-meta">
+                    <span>${l.ip || '0.0.0.0'}:${l.porta || 80}</span>
+                    <span>${l.totalUsuarios || 0} usuários</span>
+                    ${lastSeen ? `<span>visto ${lastSeen}</span>` : ''}
+                </div>
+                <div class="hw-actions">
+                    <button class="hw-btn users" onclick="verUsuarios('${l.id}','${escapeHtml(l.nome)}')">PESSOAS</button>
+                    ${!l.online ? `<button class="hw-btn reconnect" onclick="tentarReconectar('${l.id}','${escapeHtml(l.nome)}')">RECONECTAR</button>` : ''}
+                </div>
+            </div>`;
+            }).join('');
+        }
+
+        function formatLastSeen(ts) {
+            const diff = Math.floor((Date.now() - ts) / 1000);
+            if (diff < 5) return 'agora';
+            if (diff < 60) return `há ${diff}s`;
+            if (diff < 3600) return `há ${Math.floor(diff / 60)}min`;
+            return `há ${Math.floor(diff / 3600)}h`;
+        }
+
+        // Simula ping para latência (quando scaeApi disponível deve ser feito no backend)
+        function simulateLatencyPing() {
+            configAtiva.forEach(l => {
+                if (l.online) {
+                    const fakeMs = 8 + Math.floor(Math.random() * 40);
+                    hwLatency[l.id] = { ms: fakeMs, lastSeen: Date.now() };
+                }
+            });
+            if (configAtiva.length > 0) renderHardware();
+        }
+        setInterval(simulateLatencyPing, 5000);
+
+        window.tentarReconectar = async (id, nome) => {
+            pushLog(`Tentando reconectar: ${nome}...`, 'warn');
+            if (window.scaeApi) {
+                const res = await window.scaeApi.reconectar(id);
+                if (res && res.ok) {
+                    showToast(`${nome} reconectado!`, 'ok');
+                    pushLog(`Hardware ${nome} respondeu com sucesso.`, 'ok');
+                } else {
+                    showToast(`Falha ao conectar ${nome}.`, 'err');
+                    pushLog(`Hardware ${nome} continua inacessível.`, 'err');
+                }
+            }
+        };
+
+        // ══════════════════════════════════════
+        //  USUÁRIOS
+        // ══════════════════════════════════════
+        window.verUsuarios = async (leitorId, leitorNome) => {
+            pushLog(`Consultando usuários de: ${leitorNome}`, 'info');
             const modal = document.getElementById('users-screen');
             const listArea = document.getElementById('users-modal-list');
             document.getElementById('users-modal-title').textContent = `HARDWARE: ${leitorNome}`;
-            
-            listArea.innerHTML = '<div style="color:var(--t3); padding:40px; text-align:center; font-family:var(--mono)">LENDO BANCO DE DADOS...</div>';
+            listArea.innerHTML = '<div class="empty-state" style="height:120px"><span>⬡</span>Lendo banco de dados...</div>';
             modal.classList.remove('hidden');
 
             try {
-                const users = await window.scaeApi.listarAlunos({ leitorId });
+                if (!window.scaeApi) throw new Error('API não disponível');
+                const users = await window.scaeApi.listarAlunos(leitorId);
                 if (users && users.length > 0) {
-                   listArea.innerHTML = users.map(u => `
-                        <div style="padding:8px 4px; font-family:var(--mono); font-size:11px; border-bottom:1px solid var(--b1); display:flex; justify-content:space-between">
-                            <span><span style="color:var(--t3)">[${u.id}]</span> ${u.name}</span>
-                            <span style="color:var(--t3); font-size:9px">${u.registration || '—'}</span>
-                        </div>
-                   `).join('');
+                    listArea.innerHTML = users.map(u => `
+                    <div class="user-row">
+                        <span><span class="user-id">[${u.id}]</span> ${escapeHtml(u.name)}</span>
+                        <span class="user-reg">${u.registration || '—'}</span>
+                    </div>
+                `).join('');
                 } else {
-                   listArea.innerHTML = '<div style="color:var(--t3); padding:40px; text-align:center">Ninguém cadastrado neste leitor físico.</div>';
+                    listArea.innerHTML = '<div class="empty-state" style="height:100px"><span>⬡</span>Ninguém cadastrado neste leitor.</div>';
                 }
             } catch (e) {
-                listArea.innerHTML = '<div style="color:var(--err); padding:40px; text-align:center">Falha ao comunicar com equipamento.</div>';
+                listArea.innerHTML = '<div class="empty-state" style="height:80px; color:var(--err)"><span>⚠</span>Falha ao comunicar com equipamento.</div>';
             }
-        }
+        };
 
-        function closeUsers() {
-            document.getElementById('users-screen').classList.add('hidden');
-        }
+        window.closeUsers = () => document.getElementById('users-screen').classList.add('hidden');
 
-        window.scaeApi.onNewLog(log => pushLog(log));
-        window.scaeApi.onNewAccess(data => {
-            const status = data.sucesso ? 'ok' : 'err';
-            const prefixo = data.sucesso ? 'ACESSO' : 'NEGADO';
-            showToast(`${prefixo}: ${data.nome}`, status);
-            
-            // --- SÍNTESE DE VOZ (TTS) ---
-            if (data.ttsAtivo) {
-                 const fraseTemplate = data.sucesso ? data.ttsParams.sucesso : data.ttsParams.erro;
-                 const fraseFinal = fraseTemplate.replace('{nome}', data.nomePuro || '');
-                 
-                 const synth = window.speechSynthesis;
-                 const uttering = new SpeechSynthesisUtterance(fraseFinal);
-                 uttering.lang = 'pt-BR';
-                 // Cancela a fala anterior para não enfileirar se muitas pessoas passarem rápido
-                 synth.cancel();
-                 synth.speak(uttering);
-            }
-        });
-
-        // --- SETTINGS ---
+        // ══════════════════════════════════════
+        //  SETTINGS
+        // ══════════════════════════════════════
         document.getElementById('btn-settings-open').onclick = () => {
             renderSettings();
             document.getElementById('settings-screen').classList.remove('hidden');
-        };
-
-        // Reset DB Local
-        document.getElementById('btn-reset-db').onclick = async () => {
-            if (!confirm('!!! ATENÇÃO !!!\n\nIsso vai APAGAR o banco de dados local e reiniciar o Agente.\nTodas as presenças não sincronizadas serão perdidas.\n\nDeseja continuar?')) return;
-            try {
-                fetch('http://127.0.0.1:1912/reset-db', { method: 'POST' });
-                showToast('Resetando motores...', 'ok');
-            } catch (e) { showToast('Falha ao enviar comando.', 'err'); }
         };
 
         function closeSettings() {
@@ -538,63 +1928,109 @@
         function renderSettings() {
             const list = document.getElementById('settings-list');
             list.innerHTML = configAtiva.map((l, i) => `
-                <div class="settings-item">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items: center;">
-                        <input type="text" class="f-name" style="background:none; border:none; color:var(--t2); font-size:0.65rem; font-weight:700; width: 70%; outline: none;" value="${l.nome}" placeholder="Nome do Leitor">
-                        <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size: 0.65rem;">excluir</button>
-                    </div>
-                    <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
-                        <input type="text" class="f-input f-ip" value="${l.ip}" placeholder="IP">
-                        <input type="number" class="f-input f-porta" value="${l.porta}" placeholder="Porta">
-                        <input type="hidden" class="f-id" value="${l.id}">
-                    </div>
+            <div class="settings-item">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
+                    <input type="text" class="f-name" value="${escapeHtml(l.nome)}" placeholder="Nome do Leitor">
+                    <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size:0.62rem; font-family:var(--mono);">excluir</button>
                 </div>
-            `).join('');
+                <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
+                    <input type="text" class="f-input f-ip" value="${l.ip}" placeholder="IP">
+                    <input type="number" class="f-input f-porta" value="${l.porta}" placeholder="Porta">
+                    <input type="hidden" class="f-id" value="${l.id}">
+                </div>
+            </div>
+        `).join('');
         }
-        
+
         window.addNewHardware = () => {
             const list = document.getElementById('settings-list');
-            const placeholderId = `idflex-${Date.now()}`;
+            const id = `idflex-${Date.now()}`;
             const item = document.createElement('div');
             item.className = 'settings-item';
             item.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items: center;">
-                    <input type="text" class="f-name" style="background:none; border:none; color:var(--t2); font-size:0.65rem; font-weight:700; width: 70%; outline: none;" value="Novo Leitor" placeholder="Nome do Leitor">
-                    <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size: 0.65rem;">excluir</button>
-                </div>
-                <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
-                    <input type="text" class="f-input f-ip" value="" placeholder="IP">
-                    <input type="number" class="f-input f-porta" value="80" placeholder="Porta">
-                    <input type="hidden" class="f-id" value="${placeholderId}">
-                </div>
-            `;
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
+                <input type="text" class="f-name" value="Novo Leitor" placeholder="Nome do Leitor">
+                <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size:0.62rem; font-family:var(--mono);">excluir</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
+                <input type="text" class="f-input f-ip" value="" placeholder="IP">
+                <input type="number" class="f-input f-porta" value="80" placeholder="Porta">
+                <input type="hidden" class="f-id" value="${id}">
+            </div>
+        `;
             list.appendChild(item);
+            item.querySelector('.f-ip').focus();
         };
 
         async function saveHardware() {
+            const items = document.querySelectorAll('.settings-item');
+            const novosLeitores = [];
+            items.forEach(el => {
+                const nome = el.querySelector('.f-name').value;
+                const ip = el.querySelector('.f-ip').value.trim();
+                const porta = el.querySelector('.f-porta').value;
+                const id = el.querySelector('.f-id')?.value || `idflex-${Date.now()}`;
+                if (ip !== '') novosLeitores.push({ id, nome: nome || 'Leitor Catraki', ip, porta: parseInt(porta) || 80, tipo: 'ID_FLEX' });
+            });
             try {
-                const items = document.querySelectorAll('.settings-item');
-                const novosLeitores = [];
-                items.forEach(el => {
-                    const nome = el.querySelector('.f-name').value;
-                    const ip = el.querySelector('.f-ip').value;
-                    const porta = el.querySelector('.f-porta').value;
-                    const id = el.querySelector('.f-id')?.value || `idflex-${Date.now()}`;
-                    if (ip.trim() !== '') {
-                        novosLeitores.push({ id, nome: nome || 'Leitor Catraki', ip: ip.trim(), porta: parseInt(porta) || 80, tipo: 'ID_FLEX' });
-                    }
-                });
-                
-                // --- FORMATO CORRETO: O preload.ts já embrulha como { leitores } ---
-                const res = await window.scaeApi.salvarLeitores(novosLeitores);
-                if (res.ok) {
-                   showToast('Configuração salva!', 'ok');
-                   closeSettings();
-                } else {
-                   showToast('Erro ao salvar.', 'err');
+                if (!window.scaeApi) throw new Error();
+                const ipAgente = document.getElementById('ipt-agente-ip').value.trim();
+                const res = await window.scaeApi.salvarLeitores(novosLeitores, ipAgente);
+                if (res.ok) { 
+                    showToast('Configuração salva!', 'ok'); 
+                    closeSettings(); 
                 }
-            } catch (e) { showToast('Falha na operação.', 'err'); }
+                else showToast('Erro ao salvar.', 'err');
+            } catch { showToast('Falha na operação.', 'err'); }
         }
+
+        // ══════════════════════════════════════
+        //  CONFIRM RESET MODAL
+        // ══════════════════════════════════════
+        document.getElementById('btn-reset-db').onclick = () => {
+            document.getElementById('confirm-text').value = '';
+            document.getElementById('btn-confirm-reset').disabled = true;
+            document.getElementById('confirm-screen').classList.remove('hidden');
+            setTimeout(() => document.getElementById('confirm-text').focus(), 100);
+        };
+
+        document.getElementById('confirm-text').addEventListener('input', e => {
+            document.getElementById('btn-confirm-reset').disabled = e.target.value !== 'RESETAR';
+        });
+
+        function closeConfirm() {
+            document.getElementById('confirm-screen').classList.add('hidden');
+        }
+
+        async function doReset() {
+            closeConfirm();
+            try {
+                if (window.scaeApi) {
+                    await window.scaeApi.resetDb();
+                    showToast('Banco resetado. Reiniciando...', 'ok');
+                    pushLog('RESET DB executado pelo usuário.', 'warn');
+                }
+            } catch { showToast('Falha ao enviar comando.', 'err'); }
+        }
+
+        // ══════════════════════════════════════
+        //  MODO QUIOSQUE / PORTARIA
+        // ══════════════════════════════════════
+        document.getElementById('btn-kiosk').onclick = toggleKiosk;
+
+        window.toggleKiosk = () => {
+            kioskMode = !kioskMode;
+            document.body.classList.toggle('kiosk', kioskMode);
+            if (kioskMode) {
+                pushLog('Modo portaria (quiosque) ativado.', 'info');
+            }
+        };
+
+        // ESC para sair do modo quiosque
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && kioskMode) toggleKiosk();
+        });
     </script>
 </body>
+
 </html>

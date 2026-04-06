@@ -15,7 +15,9 @@ contextBridge.exposeInMainWorld('scaeApi', {
   
   // Gestão de Usuários no Hardware
   listarAlunos: (leitorId: string) => ipcRenderer.invoke('listar-alunos', leitorId),
-  salvarLeitores: (leitores: any[]) => ipcRenderer.invoke('salvar-leitores', { leitores }),
+  salvarLeitores: (leitores: any[], ipAgente?: string) => ipcRenderer.invoke('salvar-leitores', { leitores, ipAgente }),
+  reconectar: (leitorId: string) => ipcRenderer.invoke('reconectar-leitor', { leitorId }),
+  resetDb: () => ipcRenderer.invoke('reset-db'),
   cadastrarAluno: (dados: any) => ipcRenderer.invoke('cadastrar-aluno', dados),
   iniciarCaptura: (dados: any) => ipcRenderer.invoke('iniciar-captura', dados),
   excluirAluno: (dados: any) => ipcRenderer.invoke('excluir-aluno', dados)
