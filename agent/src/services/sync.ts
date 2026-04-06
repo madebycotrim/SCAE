@@ -15,23 +15,24 @@ export async function iniciarSync() {
   console.log('[Sync] Iniciando motores de sincronização...');
 
   // 1. Handshake de Identidade (Auto-Discovery)
-  try {
-      const resp = await WorkerApi.descobrirIdentidade();
-      if (resp && resp.ok && resp.identidade) {
-          const { id, nome_escola, tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro } = resp.identidade;
-          
-          config.escola_id = id;
-          config.nome_escola = nome_escola;
-          config.tts_ativado = tts_ativado === 1;
-          config.tts_sucesso = config_tts_frase_sucesso;
-          config.tts_erro = config_tts_frase_erro;
+  if (config.escola_id === 'aguardando-identidade') {
+    try {
+        const resp = await WorkerApi.descobrirIdentidade();
+        if (resp && resp.ok && resp.identidade) {
+            const { id, nome_escola, tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro } = resp.identidade;
+            
+            config.escola_id = id;
+            config.nome_escola = nome_escola;
+            config.tts_ativado = Number(tts_ativado) === 1;
+            config.tts_sucesso = config_tts_frase_sucesso;
+            config.tts_erro = config_tts_frase_erro;
 
-          console.log(`[Sync] IDENTIDADE REAL RECONHECIDA: ${nome_escola.toUpperCase()}`);
-      } else {
-          console.warn(`[Sync] AVISO: Identidade da nuvem não reconhecida. Operando em modo seguro.`);
-      }
-  } catch (e) {
-      console.error('[Sync] Falha no Handshake de identidade:', e);
+            console.log(`[Sync] 🔑 IDENTIDADE CONECTADA: ${nome_escola.toUpperCase()}`);
+            console.log(`[Sync] 🔊 TTS INICIAL: ${config.tts_ativado ? 'ATIVADO' : 'DESATIVADO'}`);
+        }
+    } catch (e) {
+        console.error('[Sync] Falha no Handshake de identidade:', e);
+    }
   }
 
   sincronizarCacheAlunos();
@@ -99,43 +100,58 @@ async function sincronizarRegistrosPendentes() {
   }
 }
 
+let ultimaConfigHash = '';
+
 export async function sincronizarCacheAlunos() {
   if (estaSincronizando) return;
   estaSincronizando = true;
   
   try {
-    const urlSync = `${config.endpoint_worker}/api/agente/download-alunos`;
-    console.log(`[Sync] Verificando nuvem: ${urlSync}`);
     const resposta = await WorkerApi.buscarSincronizacaoAlunos();
-    
     if (!resposta || !resposta.ok) return;
 
     const { alunos: alunosServidor, escola_config } = resposta;
 
+    // Atualiza Configurações Globais (Nome, TTS, etc)
     if (escola_config) {
-        config.nome_escola = escola_config.nome_escola || config.nome_escola;
-        config.tts_ativado = escola_config.tts_ativado === 1 || escola_config.tts_ativado === true;
-        config.tts_sucesso = escola_config.config_tts_frase_sucesso || config.tts_sucesso;
-        config.tts_erro = escola_config.config_tts_frase_erro || config.tts_erro;
+        const configHash = JSON.stringify(escola_config);
+        
+        // Só atualiza e loga se algo realmente mudou no servidor
+        if (configHash !== ultimaConfigHash) {
+            config.nome_escola = escola_config.nome_escola || config.nome_escola;
+            config.tts_ativado = Number(escola_config.tts_ativado) === 1;
+            config.tts_sucesso = escola_config.config_tts_frase_sucesso || config.tts_sucesso;
+            config.tts_erro = escola_config.config_tts_frase_erro || config.tts_erro;
+            
+            ultimaConfigHash = configHash;
+            console.log(`[Sync] ⚙️ CONFIGURAÇÕES ATUALIZADAS: TTS=${config.tts_ativado ? 'ATIVADO' : 'INATIVO'}`);
+
+            // Avisa a UI (Frontend) sobre a mudança
+            const { avisarMudancaConfig } = require('../main/main');
+            avisarMudancaConfig();
+        }
     }
 
-    // Atualizar cache de alunos
-    for (const a of (alunosServidor as any[])) {
-        await runSql(`
-            INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(matricula, escola_id) DO UPDATE SET
-                nome_completo = excluded.nome_completo,
-                turma_id = excluded.turma_id,
-                ativo = excluded.ativo,
-                atualizado_em = datetime('now', 'localtime')
-        `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo]);
+    // Só processa cache de alunos e loga se o número de alunos mudou (otimização de performance/log)
+    if (alunosServidor.length !== config.total_alunos) {
+        console.log(`[Sync] 👥 Atualizando base de alunos offline (${alunosServidor.length} cadastrados)...`);
+        for (const a of (alunosServidor as any[])) {
+            await runSql(`
+                INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(matricula, escola_id) DO UPDATE SET
+                    nome_completo = excluded.nome_completo,
+                    turma_id = excluded.turma_id,
+                    ativo = excluded.ativo,
+                    atualizado_em = datetime('now', 'localtime')
+            `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo]);
+        }
+        config.total_alunos = alunosServidor.length;
+        console.log(`[Sync] ✓ Base de alunos sincronizada.`);
     }
 
-    console.log(`[Sync] Cache local sincronizado (${alunosServidor.length} alunos).`);
-    config.total_alunos = alunosServidor.length;
   } catch (e) {
-    console.error('[Sync] Falha:', e);
+    console.error('[Sync] Falha crítica na sincronização:', e);
   } finally {
     estaSincronizando = false;
   }

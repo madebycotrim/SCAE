@@ -236,3 +236,20 @@ setInterval(enviarStatusHardware, 10000);
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+// --- API PARA O SERVIÇO DE SYNC ---
+export function avisarMudancaConfig() {
+    if (!mainWindow) return;
+    
+    mainWindow.webContents.send('hardware-status', {
+        ok: true,
+        nome_escola: config.nome_escola,
+        total_alunos: config.total_alunos,
+        tts_ativado: config.tts_ativado,
+        leitores: leitoresAtivos.map(l => ({
+            id: l.id,
+            nome: l.nome,
+            online: (l as any).online || false,
+            ip: l.ip
+        }))
+    });
+}

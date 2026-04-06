@@ -1,25 +1,16 @@
 /**
- * Temas por escola — configuração visual por escola.
+ * Temas por escola â€” configuraÃ§Ã£o visual por escola.
  * Cada escola pode sobrescrever cores, fontes e logo.
  *
- * Em produção, estes dados viriam da API.
- * Este arquivo serve como fallback/referência.
+ * Em produÃ§Ã£o, estes dados viriam da API.
+ * Este arquivo serve como fallback/referÃªncia.
  */
 
-export const TEMAS_PADRAO = {
-    'cem03-taguatinga': {
-        corPrimaria: '#6366f1',
-        corSecundaria: '#4f46e5',
-        corAcento: '#818cf8',
-        fonteBase: 'Outfit, sans-serif',
-        raio: '1rem',
-        nomeExibicao: 'CEM 03 de Taguatinga',
-    },
-};
+export const TEMAS_PADRAO = {};
 
 /**
  * Aplica o tema de uma escola ao documento.
- * @param {object} tema - Objeto com variáveis CSS do tema
+ * @param {object} tema - Objeto com variÃ¡veis CSS do tema
  */
 export function aplicarTema(tema) {
     const raiz = document.documentElement;

@@ -41,8 +41,6 @@ export class WorkerApi {
     const urlCloud = `${config.endpoint_worker}/api/agente/download-alunos`;
     const urlLocal = `http://localhost:8788/api/agente/download-alunos`;
     
-    console.log(`[WorkerApi] >>> TENTANDO NUVEM: ${urlCloud}`);
-
     const options = {
         headers: { 
             'X-Escola-ID': config.escola_id,
