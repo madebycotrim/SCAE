@@ -18,7 +18,9 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
         `).bind(escolaId).all();
 
         const escolaInfo = await db.prepare(`
-            SELECT nome_escola, tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro
+            SELECT nome_escola, tts_ativado, 
+                   COALESCE(config_tts_frase_sucesso, '') as config_tts_frase_sucesso, 
+                   COALESCE(config_tts_frase_erro, '') as config_tts_frase_erro
             FROM escolas
             WHERE id = ?
         `).bind(escolaId).first();

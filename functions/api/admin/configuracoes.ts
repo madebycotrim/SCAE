@@ -95,12 +95,12 @@ export async function onRequestPatch(contexto: ContextoCatraki): Promise<Respons
 
         if (corpo.ttsFraseSucesso !== undefined) {
             queryParts.push("config_tts_frase_sucesso = ?");
-            binds.push(corpo.ttsFraseSucesso);
+            binds.push(corpo.ttsFraseSucesso.trim() === "" ? null : corpo.ttsFraseSucesso);
         }
 
         if (corpo.ttsFraseErro !== undefined) {
             queryParts.push("config_tts_frase_erro = ?");
-            binds.push(corpo.ttsFraseErro);
+            binds.push(corpo.ttsFraseErro.trim() === "" ? null : corpo.ttsFraseErro);
         }
 
         if (queryParts.length === 0) {
