@@ -143,8 +143,8 @@ async function createWindow() {
                             sucesso: statusAcesso === 'ENTRADA',
                             ttsAtivo: config.tts_ativado,
                             ttsParams: {
-                                sucesso: config.tts_sucesso || 'Bem-vindo, {nome}!',
-                                erro: config.tts_erro || 'Acesso negado, {nome}!'
+                                sucesso: config.tts_sucesso ?? 'Bem-vindo, {nome}!',
+                                erro: config.tts_erro ?? 'Acesso negado, {nome}!'
                             }
                         });
                     }
@@ -177,6 +177,7 @@ async function createWindow() {
         const ok = salvarLeitoresNoDisco(leitores, ipAgente);
         if (ok) {
             carregarConfiguracaoHardware();
+            await stats.sincronizarComBanco(); // ITEM: Faz o gráfico de hora funcionar no boot
             await recarregarLeitores(); // Agora o recarregar verá a config atualizada no disco
             return { ok: true };
         }
@@ -208,6 +209,7 @@ async function createWindow() {
 
 app.whenReady().then(async () => {
     console.log('[Agente] Aplicação Electron pronta!');
+    await stats.sincronizarComBanco(); // ITEM: Faz o gráfico de hora funcionar no boot
     await createWindow();
     
     /**

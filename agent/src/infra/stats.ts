@@ -16,25 +16,69 @@ class StatsManager {
     negados = 0;
     ultimoAcesso: string | null = null;
     ultimosEventos: EventoRecente[] = [];
+    horas: number[] = new Array(24).fill(0);
 
     registrarAcesso(nome: string, matricula: string, tipo: string) {
         if (tipo === 'ENTRADA') this.entradas++;
         else if (tipo === 'SAIDA') this.saidas++;
         else if (tipo === 'NEGADO') this.negados++;
 
-        const agora = new Date().toISOString();
-        this.ultimoAcesso = new Date(agora).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+        const agoraStatus = new Date().toISOString();
+        const horaLocal = new Date().getHours();
+        this.horas[horaLocal]++;
+
+        this.ultimoAcesso = new Date(agoraStatus).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         
         this.ultimosEventos.unshift({
             nome,
             tipo,
             matricula,
-            timestamp: agora
+            timestamp: agoraStatus
         });
 
-        // Mantém apenas os últimos 5
-        if (this.ultimosEventos.length > 5) {
-            this.ultimosEventos.pop();
+        if (this.ultimosEventos.length > 5) this.ultimosEventos.pop();
+    }
+
+    /**
+     * Sincroniza métricas com os registros físicos do banco de dados (Hoje)
+     * Garante que o histrograma funcione mesmo após reboot do Agente Local.
+     */
+    async sincronizarComBanco() {
+        try {
+            const { allSql, getSql } = require('./db');
+            
+            // 1. Totais do dia
+            const totais = await getSql(`
+                SELECT 
+                    SUM(CASE WHEN tipo = 'ENTRADA' THEN 1 ELSE 0 END) as ent,
+                    SUM(CASE WHEN tipo = 'SAIDA' THEN 1 ELSE 0 END) as sai,
+                    SUM(CASE WHEN tipo = 'NEGADO' THEN 1 ELSE 0 END) as neg
+                FROM registros_acesso 
+                WHERE date(timestamp_acesso) = date('now', 'localtime')
+            `);
+
+            if (totais) {
+                this.entradas = totais.ent || 0;
+                this.saidas = totais.sai || 0;
+                this.negados = totais.neg || 0;
+            }
+
+            // 2. Distribuição por hora
+            const dist: any[] = await allSql(`
+                SELECT CAST(strftime('%H', timestamp_acesso) AS INTEGER) as hora, count(*) as total 
+                FROM registros_acesso 
+                WHERE date(timestamp_acesso) = date('now', 'localtime') 
+                GROUP BY hora
+            `);
+
+            this.horas.fill(0);
+            dist.forEach((d: any) => {
+                if (d.hora >= 0 && d.hora < 24) this.horas[d.hora] = d.total;
+            });
+
+            console.log(`[Stats] Métricas sincronizadas com o banco físico (Total Hoje: ${this.entradas + this.saidas + this.negados})`);
+        } catch (e) {
+            console.error('[Stats] Falha ao sincronizar com banco:', e);
         }
     }
 
@@ -44,7 +88,8 @@ class StatsManager {
             saidas: this.saidas,
             negados: this.negados,
             ultimoAcesso: this.ultimoAcesso,
-            ultimosEventos: this.ultimosEventos
+            ultimosEventos: this.ultimosEventos,
+            horas: this.horas
         };
     }
 }

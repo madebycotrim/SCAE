@@ -1022,138 +1022,7 @@
             color: var(--ok);
         }
 
-        /* ── KIOSK MODE ─── */
-        body.kiosk .header {
-            display: none;
-        }
 
-        body.kiosk .sidebar {
-            display: none;
-        }
-
-        body.kiosk .log-toolbar {
-            display: none;
-        }
-
-        body.kiosk .statusbar {
-            display: none;
-        }
-
-        body.kiosk .kiosk-feed {
-            display: flex !important;
-        }
-
-        body.kiosk .main-content-area {
-            display: none;
-        }
-
-        .kiosk-feed {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            padding: 40px;
-            gap: 24px;
-        }
-
-        .kiosk-clock {
-            font-family: var(--mono);
-            font-size: 5rem;
-            font-weight: 600;
-            color: var(--t1);
-            letter-spacing: 0.04em;
-            line-height: 1;
-        }
-
-        .kiosk-date {
-            font-family: var(--sans);
-            font-size: 1.25rem;
-            color: var(--t2);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .kiosk-last {
-            font-family: var(--sans);
-            font-size: 2.2rem;
-            font-weight: 700;
-            padding: 24px 40px;
-            border-radius: 16px;
-            text-align: center;
-            min-width: 520px;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 40px rgba(0,0,0,0.4);
-        }
-
-        .kiosk-last.ok {
-            background: var(--ok-dim);
-            border: 1px solid rgba(77, 158, 124, 0.3);
-            color: var(--ok);
-        }
-
-        .kiosk-last.err {
-            background: var(--err-dim);
-            border: 1px solid rgba(168, 80, 80, 0.3);
-            color: var(--err);
-        }
-
-        .kiosk-last.idle {
-            background: var(--s2);
-            border: 1px solid var(--b2);
-            color: var(--t3);
-            font-size: 1.25rem;
-            font-weight: 500;
-            box-shadow: none;
-        }
-
-        .kiosk-stats {
-            display: flex;
-            gap: 40px;
-        }
-
-        .kiosk-stat {
-            text-align: center;
-        }
-
-        .kiosk-stat-n {
-            font-family: var(--mono);
-            font-size: 2.5rem;
-            font-weight: 600;
-        }
-
-        .kiosk-stat-l {
-            font-family: var(--sans);
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--t3);
-            letter-spacing: 0.05em;
-            margin-top: 4px;
-            text-transform: uppercase;
-        }
-
-        .kiosk-exit-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            font-family: var(--sans);
-            font-size: 0.8rem;
-            font-weight: 600;
-            padding: 8px 16px;
-            background: var(--s3);
-            border: 1px solid var(--b2);
-            color: var(--t2);
-            border-radius: var(--r);
-            cursor: pointer;
-            opacity: 0.5;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-
-        .kiosk-exit-btn:hover {
-            opacity: 1;
-        }
 
         /* ── MISC ─── */
         .hidden {
@@ -1233,27 +1102,7 @@
 <body>
     <div id="toast-area"></div>
 
-    <!-- KIOSK MODE -->
-    <div class="kiosk-feed" id="kiosk-feed">
-        <div class="kiosk-clock" id="kiosk-clock">00:00:00</div>
-        <div class="kiosk-date" id="kiosk-date">—</div>
-        <div class="kiosk-last idle" id="kiosk-last">Aguardando próximo acesso...</div>
-        <div class="kiosk-stats">
-            <div class="kiosk-stat">
-                <div class="kiosk-stat-n" id="kiosk-ok" style="color:var(--ok)">0</div>
-                <div class="kiosk-stat-l">ACESSOS</div>
-            </div>
-            <div class="kiosk-stat">
-                <div class="kiosk-stat-n" id="kiosk-err" style="color:var(--err)">0</div>
-                <div class="kiosk-stat-l">NEGADOS</div>
-            </div>
-            <div class="kiosk-stat">
-                <div class="kiosk-stat-n" id="kiosk-total" style="color:var(--acc)">0</div>
-                <div class="kiosk-stat-l">HOJE</div>
-            </div>
-        </div>
-        <button class="kiosk-exit-btn" onclick="toggleKiosk()">ESC · SAIR DO MODO PORTARIA</button>
-    </div>
+
 
     <!-- HEADER -->
     <div class="header">
@@ -1270,12 +1119,7 @@
                 </svg>
                 EXPORTAR LOG
             </button>
-            <button class="icon-btn accent" id="btn-kiosk" title="Modo portaria - tela cheia">
-                <svg viewBox="0 0 16 16">
-                    <path d="M2 5V3h3M11 3h3v2M14 11v2h-3M5 13H2v-2" />
-                </svg>
-                PORTARIA
-            </button>
+
             <button class="icon-btn danger" id="btn-reset-db" title="Resetar banco local">
                 <svg viewBox="0 0 16 16">
                     <path d="M3 5h10M6 5V3h4v2M5 5l.5 8h5L11 5" />
@@ -1493,9 +1337,6 @@
         // Hardware latency tracker
         const hwLatency = {};   // id -> { ms, lastSeen }
 
-        // Kiosk
-        let kioskMode = false;
-
         // ══════════════════════════════════════
         //  CLOCK + UPTIME
         // ══════════════════════════════════════
@@ -1505,10 +1346,7 @@
             const now = new Date();
             const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
             document.getElementById('status-clock').textContent = ts;
-            document.getElementById('kiosk-clock').textContent = ts;
-
             const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-            document.getElementById('kiosk-date').textContent = dateStr.toUpperCase();
 
             uptime++;
             const h = pad(Math.floor(uptime / 3600));
@@ -1693,11 +1531,6 @@
             const picoIdx = metrics.horas.indexOf(maxHora);
             document.getElementById('m-pico').textContent = maxHora > 0 ? `${pad(picoIdx)}h` : '—';
 
-            // Kiosk
-            document.getElementById('kiosk-ok').textContent = metrics.ok;
-            document.getElementById('kiosk-err').textContent = metrics.err;
-            document.getElementById('kiosk-total').textContent = total;
-
             // Histograma
             renderHistogram(maxHora);
         }
@@ -1777,6 +1610,7 @@
                 // Sincroniza métricas locais com o que o Agente reportou no boot
                 metrics.ok = (status.stats.entradas || 0) + (status.stats.saidas || 0);
                 metrics.err = (status.stats.negados || 0);
+                if (status.stats.horas) metrics.horas = [...status.stats.horas];
                 updateMetricsUI();
             }
             if (status.ip_agente_config) {
@@ -1794,20 +1628,18 @@
             const label = data.sucesso ? 'ACESSO' : 'NEGADO';
             showToast(`${label}: ${data.nome}`, tipo);
 
-            // Kiosk last access
-            const kl = document.getElementById('kiosk-last');
-            kl.className = `kiosk-last ${tipo}`;
-            kl.textContent = `${label}: ${data.nome}`;
-            setTimeout(() => {
-                kl.className = 'kiosk-last idle';
-                kl.textContent = 'Aguardando próximo acesso...';
-            }, 4000);
-
             // TTS via fila
             if (data.ttsAtivo) {
-                const tpl = data.sucesso ? (data.ttsParams.sucesso || 'Bem-vindo, {nome}!') : (data.ttsParams.erro || 'Acesso negado, {nome}!');
-                const frase = tpl.replace('{nome}', data.nomePuro || 'Visitante');
-                enqueueTTS(frase);
+                const ttsParams = {
+                    sucesso: data.ttsParams?.sucesso ?? 'Bem-vindo, {nome}!',
+                    erro: data.ttsParams?.erro ?? 'Acesso negado, {nome}!'
+                };
+                const tpl = data.sucesso ? ttsParams.sucesso : ttsParams.erro;
+                
+                if (tpl && tpl.trim() !== '') {
+                    const frase = tpl.replace('{nome}', data.nomePuro || 'Visitante');
+                    enqueueTTS(frase);
+                }
             }
         });
 

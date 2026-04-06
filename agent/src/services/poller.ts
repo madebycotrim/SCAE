@@ -157,8 +157,8 @@ async function monitorarLeitor(leitor: ILeitor) {
                 sucesso: statusAcesso === 'ENTRADA',
                 ttsAtivo: config.tts_ativado,
                 ttsParams: {
-                    sucesso: config.tts_sucesso || 'Bem-vindo, {nome}!',
-                    erro: config.tts_erro || 'Acesso negado, {nome}!'
+                    sucesso: config.tts_sucesso ?? 'Bem-vindo, {nome}!',
+                    erro: config.tts_erro ?? 'Acesso negado, {nome}!'
                 }
             });
         }
