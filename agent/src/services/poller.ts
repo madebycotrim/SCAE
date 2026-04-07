@@ -35,19 +35,27 @@ export function iniciarPolling(notificador: any) {
  */
 export function verificarEInicializarLeitores() {
   if (leitoresAtivos.length === 0 && config.leitores) {
-    const list = (config.leitores as any[]).map(c => new IdflexLeitor(c));
+    const list = (config.leitores as any[]).map(c => {
+        const l = new IdflexLeitor(c);
+        (l as any).online = 'verificando'; // Estado inicial neutro
+        return l;
+    });
     leitoresAtivos = list;
     console.log(`[Poller] Hardware carregado: ${leitoresAtivos.length} equipamentos em radar.`);
   }
 }
 
 // Ciclo Principal de Monitoramento (WATCHDOG) - Roda SEMPRE
-setInterval(() => {
+function executarCicloMonitoramento() {
     // Carrega se sumir
     verificarEInicializarLeitores();
     // Monitora individualmente cada leitor
     leitoresAtivos.forEach(leitor => monitorarLeitor(leitor));
-}, 2000);
+}
+
+// Inicia imediatamente e depois repete
+executarCicloMonitoramento();
+setInterval(executarCicloMonitoramento, 2000);
 
 /** Recarrega a lista de leitores (Ex: mudança de IP no dashboard) */
 export function recarregarLeitores(novaLista: ILeitor[] = []) {
@@ -110,8 +118,18 @@ async function monitorarLeitor(leitor: ILeitor) {
     
     // Atualiza o estado vivo do leitor a cada ciclo (Isso aparece na UI)
     const st = await leitor.status();
-    (leitor as any).online = st.online;
-    (leitor as any).totalUsuarios = st.totalUsuarios;
+    const estadoAnterior = (leitor as any).online;
+
+    if (st.online) {
+        (leitor as any).online = true;
+        (leitor as any).totalUsuarios = st.totalUsuarios;
+    } else {
+        // Só marca como Offline (false) se ele já foi detectado alguma vez (true)
+        // Se ainda está em 'verificando', mantém lá para não disparar alerta falso
+        if (estadoAnterior === true) {
+            (leitor as any).online = false;
+        }
+    }
 
     if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000)) {
         const ipLocal = config.ip_agente || buscarIpLocal();

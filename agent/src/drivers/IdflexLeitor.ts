@@ -57,35 +57,22 @@ export class IdflexLeitor implements ILeitor {
 
   /**
    * Retorna o status detalhado do equipamento iDFlex.
-   */
-  /**
-   * Retorna o status detalhado do equipamento iDFlex.
    * Agora também sincroniza o horário do dispositivo com o do computador.
    */
   async status(): Promise<StatusLeitor> {
     try {
-      const info = await this.requisitarComToken('system_information.fcgi');
+      // Check online status with a light request
+      const info = await this.requisitarComToken('system_information.fcgi', {}, 2000);
       
-      // Sincroniza horário se estiver online
-      await this.sincronizarHorario();
-
-      // Busca dados reais (contagem manual é mais confiável em firmwares antigos)
-      const [respUsers, respLogs] = await Promise.all([
-        this.requisitarComToken('load_objects.fcgi', { object: 'users' }),
-        this.requisitarComToken('load_objects.fcgi', { object: 'access_logs', count: true })
-      ]);
-
-      const users = respUsers.users || [];
-
       return {
         online: true,
         modelo: info.model || 'iDFlex',
         serial: info.serial_number,
-        totalUsuarios: users.length,
-        totalRegistros: respLogs.count || 0
+        totalUsuarios: 0, // Will be updated by poller later
+        totalRegistros: 0
       };
     } catch (e: any) {
-      console.error(`[iDFlex][${this.id}] Erro ao buscar status: ${e.message}`);
+      // Don't log error here to avoid spamming the log window, let the poller handle it
       return { online: false };
     }
   }

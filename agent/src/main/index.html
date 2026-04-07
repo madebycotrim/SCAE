@@ -446,6 +446,16 @@
             background: var(--err);
         }
 
+        .hw-dot.verificando {
+            background: var(--t3);
+            animation: pulse-gray 2s infinite;
+        }
+
+        @keyframes pulse-gray {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
         .hw-name {
             font-weight: 600;
             font-size: 0.85rem;
@@ -1723,13 +1733,13 @@
                 return;
             }
 
-            const online = configAtiva.filter(l => l.online).length;
+            const online = configAtiva.filter(l => l.online === true).length;
             document.getElementById('hw-online-count').textContent = `${online}/${configAtiva.length} online`;
             const pill = document.getElementById('hw-online-count');
             pill.className = online === configAtiva.length ? 'sb-pill online' : 'sb-pill';
 
-            // Banners de offline
-            const offlines = configAtiva.filter(l => !l.online);
+            // Banners de offline (Apenas se online === false, ignorando 'verificando')
+            const offlines = configAtiva.filter(l => l.online === false);
             bannersDiv.innerHTML = offlines.map(l => `
             <div class="offline-banner">
                 <span>⚠ ${l.nome} está offline</span>
@@ -1740,24 +1750,34 @@
             list.innerHTML = configAtiva.map(l => {
                 const lat = hwLatency[l.id];
                 let latBadge = '';
-                if (l.online) {
+                let statusCls = '';
+                let dotCls = '';
+
+                if (l.online === true) {
+                    dotCls = 'on';
                     if (lat) {
                         const cls = lat.ms < 50 ? 'fast' : 'slow';
                         latBadge = `<span class="hw-latency ${cls}">${lat.ms}ms</span>`;
                     } else {
                         latBadge = `<span class="hw-latency fast">—</span>`;
                     }
-                } else {
+                } else if (l.online === false) {
+                    statusCls = 'offline';
+                    dotCls = 'off';
                     latBadge = `<span class="hw-latency dead">offline</span>`;
+                } else {
+                    // Estado 'verificando' (Vazio/Neutro)
+                    dotCls = 'verificando';
+                    latBadge = `<span class="hw-latency" style="opacity:0.5">conectando...</span>`;
                 }
 
                 const lastSeen = lat ? formatLastSeen(lat.lastSeen) : '';
 
                 return `
-            <div class="hw-card ${l.online ? '' : 'offline'}">
+            <div class="hw-card ${statusCls}">
                 <div class="hw-top">
                     <div class="hw-name-row">
-                        <div class="hw-dot ${l.online ? 'on' : 'off'}"></div>
+                        <div class="hw-dot ${dotCls}"></div>
                         <span class="hw-name">${escapeHtml(l.nome)}</span>
                     </div>
                     ${latBadge}
@@ -1769,7 +1789,7 @@
                 </div>
                 <div class="hw-actions">
                     <button class="hw-btn users" onclick="verUsuarios('${l.id}','${escapeHtml(l.nome)}')">PESSOAS</button>
-                    ${!l.online ? `<button class="hw-btn reconnect" onclick="tentarReconectar('${l.id}','${escapeHtml(l.nome)}')">RECONECTAR</button>` : ''}
+                    ${l.online === false ? `<button class="hw-btn reconnect" onclick="tentarReconectar('${l.id}','${escapeHtml(l.nome)}')">RECONECTAR</button>` : ''}
                 </div>
             </div>`;
             }).join('');

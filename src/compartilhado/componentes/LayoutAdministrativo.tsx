@@ -148,7 +148,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         };
 
         checkAgente();
-        const interval = setInterval(checkAgente, 15000); // Checa a cada 15s
+        const interval = setInterval(checkAgente, 2000); // Checa a cada 2s (Resposta Instantânea)
         return () => clearInterval(interval);
     }, []);
 
@@ -180,7 +180,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
                 ...(pode('visualizar', 'auditoria') ? [{ icone: Activity, texto: 'Logs', rota: '/logs' }] : []),
-                ...(ehAdmin ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
+                ...(pode('visualizar', 'configuracoes') && agenteOnline ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
                 ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
             ]
         }
