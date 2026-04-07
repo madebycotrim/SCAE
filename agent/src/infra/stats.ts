@@ -7,6 +7,7 @@ export interface EventoRecente {
     nome: string;
     tipo: string;
     matricula: string;
+    turma?: string;
     timestamp: string;
 }
 
@@ -18,7 +19,7 @@ class StatsManager {
     ultimosEventos: EventoRecente[] = [];
     horas: number[] = new Array(24).fill(0);
 
-    registrarAcesso(nome: string, matricula: string, tipo: string) {
+    registrarAcesso(nome: string, matricula: string, tipo: string, turma?: string) {
         if (tipo === 'ENTRADA') this.entradas++;
         else if (tipo === 'SAIDA') this.saidas++;
         else if (tipo === 'NEGADO') this.negados++;
@@ -33,6 +34,7 @@ class StatsManager {
             nome,
             tipo,
             matricula,
+            turma,
             timestamp: agoraStatus
         });
 

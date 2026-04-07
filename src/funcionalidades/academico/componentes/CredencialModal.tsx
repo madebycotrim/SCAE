@@ -4,6 +4,7 @@ import { Botao } from '@/compartilhado/componentes/UI';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Aluno } from '../tipos/academico';
 import { usarEscola } from '@/escola/ProvedorEscola';
+import { api } from '@/compartilhado/servicos/api';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
@@ -26,9 +27,14 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
         try {
             setStatusBio('VERIFICANDO');
             const res = await fetch(`http://127.0.0.1:1912/biometria/status?matricula=${aluno.matricula}`);
+
             if (res.ok) {
                 const dados = await res.json();
-                setStatusBio(dados.cadastrado ? 'CADASTRADO' : 'PENDENTE');
+                if (dados.ok) {
+                    setStatusBio(dados.cadastrado ? 'CADASTRADO' : 'PENDENTE');
+                } else {
+                    throw new Error();
+                }
             } else {
                 throw new Error();
             }
@@ -38,27 +44,42 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
     };
 
     const iniciarCadastro = async () => {
+        const toastId = toast.loading(`Aguardando digital de ${aluno.nome_completo.split(' ')[0]} no leitor...`);
         try {
             setCarregandoBio(true);
-            const res = await fetch(`http://127.0.0.1:1912/biometria/cadastrar?matricula=${aluno.matricula}`, { 
-                method: 'POST' 
+            const res = await fetch(`http://127.0.0.1:1912/enroll`, { 
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ aluno_id: aluno.matricula })
             });
             
-            if (res.ok) {
-                toast.success('Posicione o dedo no leitor...');
-                // O agente local normalmente segura a requisição até o fim do processo
-                const resultado = await res.json();
-                if (resultado.sucesso) {
-                    toast.success('Biometria cadastrada com sucesso!');
-                    verificarBiometria();
-                    // Pequeno delay para o usuário ver o feedback antes de fechar
-                    setTimeout(aoFechar, 500);
+            const data = await res.json();
+            
+            if (data.ok) {
+                // Notifica a Nuvem para marcar o aluno como cadastrado
+                try {
+                    await api.enviar('/agente/confirmar-biometria', { matricula: aluno.matricula });
+                    toast.success('Digital vinculada e salva na nuvem!', { id: toastId });
+                    setStatusBio('CADASTRADO');
+                    // Pequeno delay para atualizar a UI
+                    setTimeout(verificarBiometria, 1000);
+                } catch (errCloud: any) {
+                    toast.error(`Capturada, mas erro na nuvem: ${errCloud.message}`, { id: toastId });
                 }
             } else {
-                toast.error('O leitor não respondeu.');
+                // Tradução amigável
+                const erroBruto = (data.erro || data.mensagem || '').toLowerCase();
+                let msg = 'Falha na captura.';
+                if (erroBruto.includes('canceled')) msg = 'Operação cancelada no leitor.';
+                else if (erroBruto.includes('timeout')) msg = 'Tempo esgotado.';
+                else if (data.erro) msg = data.erro;
+
+                toast.error(msg, { id: toastId });
             }
         } catch (e) {
-            toast.error('Erro ao conectar com o Agente local.');
+            toast.error('Erro de conexão com o Agente local.', { id: toastId });
         } finally {
             setCarregandoBio(false);
         }
@@ -141,11 +162,11 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                                      statusBio === 'PENDENTE' ? 'Aguardando Cadastro' :
                                      'Agente não detectado'}
                                 </h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-2 max-w-[200px]">
+                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-2 max-w-[200px]">
                                     {statusBio === 'CADASTRADO' ? 'O aluno está pronto para acessar a unidade via biometria.' :
                                      statusBio === 'PENDENTE' ? 'Inicie o processo de captura para registrar este aluno.' :
                                      statusBio === 'ERRO_AGENTE' ? 'O Agente Catraki precisa estar rodando neste computador.' :
-                                     'Verificando conexão com o leitor USB...'}
+                                     'Consultando leitores locais...'}
                                 </p>
                             </div>
 

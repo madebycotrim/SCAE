@@ -11,6 +11,9 @@ import { config, salvarLeitoresNoDisco, carregarConfiguracaoHardware } from '../
 import { stats } from '../infra/stats';
 import { buscarIpLocal } from '../utils/rede';
 
+// --- LOG DE MANUTENÇÃO E INTEGRIDADE NO BOOT ---
+console.log(`[Segurança] [${new Date().toISOString()}] Monitor de Integridade Iniciado. Ativando blindagem de rede...`);
+
 let mainWindow: BrowserWindow | null = null;
 let sistemaAtivado = false;
 
@@ -19,8 +22,8 @@ carregarConfiguracaoHardware();
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 700,
+    width: 1280,
+    height: 850,
     title: 'SCAE - Agente de Biometria',
     icon: path.join(__dirname, 'CATRAKI.ico'),
     webPreferences: {
@@ -31,9 +34,9 @@ async function createWindow() {
 
   // --- SERVIDOR LOCAL PARA RECEBER PUSH DOS HARDWARES ---
   const server = http.createServer(async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', '*'); 
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Security-PIN');
 
     if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
@@ -86,8 +89,9 @@ async function createWindow() {
                     res.writeHead(404, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ ok: false, mensagem: 'Hardware não disponível' }));
                 }
-             } catch (e) {
-                res.writeHead(500); res.end(JSON.stringify({ ok: false, erro: 'Invalid Body' }));
+             } catch (e: any) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, erro: e.message || 'Falha na captura remota.' }));
              }
         });
     } else if (req.url?.startsWith('/idflex-push') && req.method === 'POST') {
@@ -131,10 +135,18 @@ async function createWindow() {
                     if (statusAcesso === 'ENTRADA') leitor.emitirBeep();
                     else (leitor.emitirBeepErro ? leitor.emitirBeepErro() : leitor.emitirBeep());
 
+                    const { getSql } = require('../infra/db');
+                    const aluno = (idUsuario !== 0 && idUsuario !== '0') 
+                        ? await getSql('SELECT turma_id FROM alunos_cache WHERE matricula = ?', [matriculaParaExibir])
+                        : null;
+                    const turmaAcesso = aluno?.turma_id || '---';
+
                     if (mainWindow) {
                         mainWindow.webContents.send('new-access', { 
                             nome: (idUsuario === 0) ? nomeParaExibir : `${nomeParaExibir} (${matriculaParaExibir})`, 
                             nomePuro: nomeParaExibir,
+                            turma: turmaAcesso,
+                            matricula: matriculaParaExibir,
                             sucesso: statusAcesso === 'ENTRADA',
                             ttsAtivo: config.tts_ativado,
                             ttsParams: {
@@ -152,20 +164,58 @@ async function createWindow() {
                         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
                     `, [uuid, leitor.id, config.escola_id, matriculaParaExibir, nomeParaExibir, statusAcesso, 1]);
 
-                    stats.registrarAcesso(nomeParaExibir, matriculaParaExibir, statusAcesso);
+                    stats.registrarAcesso(nomeParaExibir, matriculaParaExibir, statusAcesso, turmaAcesso);
                 }
              } catch (e) { console.error('[Push] Erro:', e); }
              res.writeHead(200); res.end();
         });
     } else if (req.url === '/reset-db' && req.method === 'POST') {
-        // --- 💣 RESET SEGURO ---
-        try {
-            const { resetarBancoLocal } = require('../infra/db');
-            resetarBancoLocal().then(() => {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+             try {
+                const { confirmacao } = JSON.parse(body);
+                if (confirmacao !== 'RESETAR-BANCO-CATRAKI-DF') {
+                    res.writeHead(403); res.end(JSON.stringify({ ok: false, erro: 'Confirmação Semântica Inválida.' }));
+                    return;
+                }
+
+                const { resetarBancoLocal } = require('../infra/db');
+                await resetarBancoLocal();
                 setTimeout(() => { app.relaunch(); app.exit(0); }, 500);
-            });
-            res.writeHead(200); res.end(JSON.stringify({ ok: true }));
-        } catch (e) { res.writeHead(500); res.end(JSON.stringify({ ok: false })); }
+                res.writeHead(200); res.end(JSON.stringify({ ok: true }));
+             } catch (e) { res.writeHead(500); res.end(JSON.stringify({ ok: false })); }
+        });
+    } else if (req.url?.startsWith('/biometria/status')) {
+        // --- CONSULTA STATUS BIOMÉTRICO (MODAL ALUNOS) ---
+        try {
+            const urlObj = new URL(req.url, `http://${req.headers.host}`);
+            const matricula = urlObj.searchParams.get('matricula');
+            
+            if (!matricula) {
+                res.writeHead(400); res.end(JSON.stringify({ ok: false, erro: 'Matrícula necessária' }));
+                return;
+            }
+
+            // Busca em todos os leitores se este cara tem biometria
+            let cadastrado = false;
+            for (const leitor of leitoresAtivos) {
+                if ((leitor as any).obterMapaBiometriaHardware) {
+                    const mapa = await (leitor as any).obterMapaBiometriaHardware();
+                    // Converte matricula para ID numerico como o driver faz no cadastro
+                    const matriculaNumerica = parseInt(matricula.replace(/\D/g, ''), 10);
+                    if (mapa.has(matriculaNumerica)) {
+                        cadastrado = true;
+                        break;
+                    }
+                }
+            }
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true, cadastrado }));
+        } catch (e) {
+            res.writeHead(500); res.end(JSON.stringify({ ok: false }));
+        }
     }
   });
 
@@ -192,7 +242,7 @@ async function createWindow() {
     }
   });
 
-  ipcMain.handle('listar-alunos', async (_event, { leitorId }) => {
+  ipcMain.handle('listar-alunos', async (_event, leitorId) => {
     const leitor = leitoresAtivos.find(l => l.id === leitorId);
     if (leitor && (leitor as any).listarAlunos) return await (leitor as any).listarAlunos();
     return [];

@@ -43,8 +43,9 @@ export class WorkerApi {
     
     const headers: any = { 
         'X-Escola-ID': config.escola_id,
+        'X-Agente-Token': config.agente_secret, // Segurança: Token compartilhado
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SCAE-Agent/1.6.0'
+        'User-Agent': 'SCAE-Agent/1.6.2-FINAL'
     };
 
     if (lastEtag) headers['If-None-Match'] = lastEtag;
@@ -104,7 +105,8 @@ export class WorkerApi {
         headers: { 
             'Content-Type': 'application/json', 
             'X-Escola-ID': config.escola_id,
-            'User-Agent': 'SCAE-Agent/1.6.0'
+            'X-Agente-Token': config.agente_secret,
+            'User-Agent': 'SCAE-Agent/1.6.2-FINAL'
         },
         body: JSON.stringify({ registros: registrosCloud }),
         signal: AbortSignal.timeout(10000)
@@ -142,7 +144,8 @@ export class WorkerApi {
         headers: { 
             'Content-Type': 'application/json', 
             'X-Escola-ID': config.escola_id,
-            'User-Agent': 'SCAE-Agent/1.6.0'
+            'X-Agente-Token': config.agente_secret,
+            'User-Agent': 'SCAE-Agent/1.6.2-FINAL'
         },
         body: JSON.stringify(corpo)
       });

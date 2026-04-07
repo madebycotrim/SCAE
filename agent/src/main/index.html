@@ -61,8 +61,8 @@
 
         /* ── SCROLLBARS ─── */
         ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
@@ -70,8 +70,13 @@
         }
 
         ::-webkit-scrollbar-thumb {
+            background: var(--b2);
+            border-radius: 4px;
+            border: 2px solid var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
             background: var(--b3);
-            border-radius: 2px;
         }
 
         /* ── TOASTS ─── */
@@ -651,96 +656,109 @@
             white-space: nowrap;
         }
 
-        /* ── LOG ─── */
+        /* ── LOG SYSTEM ─── */
         #log-container {
             flex: 1;
+            background: var(--bg);
+            padding: 14px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5px;
             font-family: var(--mono);
-            font-size: 0.8rem;
-            line-height: 1.65;
-            padding: 8px 16px;
+            font-size: 0.72rem;
+            line-height: 1.4;
+            letter-spacing: -0.01em;
+            scroll-behavior: smooth;
         }
 
         .log-entry {
             display: flex;
-            gap: 0;
-            padding: 1px 0;
-            border-radius: 3px;
-            animation: logIn 0.15s ease;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 2.5px 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            cursor: default;
+            white-space: pre-wrap;
+            word-break: break-all;
+            animation: logIn 0.2s ease-out;
         }
 
         .log-entry:hover {
             background: var(--b1);
         }
 
-        .log-entry.hidden {
-            display: none;
-        }
+        .log-entry.hidden { display: none; }
 
         @keyframes logIn {
-            from {
-                opacity: 0;
-                transform: translateX(-4px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-4px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .log-ts {
             color: var(--t3);
-            margin-right: 10px;
+            width: 58px;
             flex-shrink: 0;
+            user-select: none;
+            font-weight: 500;
         }
 
         .log-lv {
-            font-weight: 600;
-            margin-right: 10px;
+            width: 38px;
             flex-shrink: 0;
-            min-width: 38px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.62rem;
+            text-align: center;
+            border-radius: 3px;
+            padding: 0 4px;
+            user-select: none;
+            white-space: nowrap;
         }
 
-        .lv-ok {
-            color: var(--ok);
+        .lv-info { background: var(--info-dim); color: var(--info); }
+        .lv-warn { background: var(--warn-dim); color: var(--warn); }
+        .lv-err  { background: var(--err-dim);  color: var(--err); }
+        .lv-ok   { background: var(--ok-dim);   color: var(--ok); }
+
+        .log-txt { color: var(--t1); flex: 1; }
+
+        /* ── LOG HIGHLIGHTS ─── */
+        .tag-base {
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.68rem;
+            margin-right: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .lv-info {
-            color: var(--info);
-        }
+        .tag-sync     { background: rgba(122, 111, 255, 0.15); color: #9c92ff; border-color: rgba(122, 111, 255, 0.2); }
+        .tag-idflex   { background: rgba(255, 107, 107, 0.15); color: #ff8e8e; border-color: rgba(255, 107, 107, 0.2); }
+        .tag-hardware { background: rgba(255, 230, 0, 0.1);    color: #ffd900; border-color: rgba(255, 230, 0, 0.2); }
+        .tag-worker   { background: rgba(77, 158, 124, 0.15);  color: #72cfab; border-color: rgba(77, 158, 124, 0.2); }
+        .tag-gari     { background: rgba(135, 143, 162, 0.15); color: #d6dae6; border-color: rgba(135, 143, 162, 0.2); }
+        .tag-poller   { background: rgba(74, 110, 168, 0.15);  color: #7ea8f0; border-color: rgba(74, 110, 168, 0.2); }
+        .tag-watchdog { background: rgba(168, 147, 74, 0.15);  color: #f0d57e; border-color: rgba(168, 147, 74, 0.2); }
+        .tag-api      { background: rgba(168, 80, 80, 0.15);   color: #f07e7e; border-color: rgba(168, 80, 80, 0.2); }
 
-        .lv-warn {
-            color: var(--warn);
-        }
+        .hl-ok    { color: var(--ok); font-weight: 600; text-shadow: 0 0 8px var(--ok-glow); }
+        .hl-err   { color: var(--err); font-weight: 600; text-decoration: underline wavy rgba(168, 80, 80, 0.3); }
+        .hl-url   { color: var(--acc); border-bottom: 1px dashed var(--acc-dim); }
+        .hl-ip    { color: #ffd900; font-family: var(--mono); }
+        .hl-id    { color: #72cfab; font-weight: 500; }
 
-        .lv-err {
-            color: var(--err);
-        }
-
-        .log-txt {
-            flex: 1;
-            line-height: normal;
-        }
-
-        /* Cores Semânticas para Tags de Log */
-        .tag-sync { color: #3b82f6; font-weight: 600; }
-        .tag-idflex { color: #10b981; font-weight: 600; }
-        .tag-watchdog { color: #f59e0b; font-weight: 600; }
-        .tag-hardware { color: #8b5cf6; font-weight: 600; }
-        .tag-worker { color: #6366f1; font-weight: 600; }
-        .tag-config { color: #94a3b8; font-weight: 600; }
-        .tag-enroll { color: #ec4899; font-weight: 600; }
-        .tag-beep { color: #06b6d4; font-weight: 600; }
         .log-counter {
-            margin-left: 8px;
-            background: var(--b1);
+            background: var(--s4);
             color: var(--t2);
-            padding: 1px 6px;
+            font-size: 0.6rem;
+            padding: 1px 5px;
             border-radius: 10px;
-            font-size: 0.65rem;
-            font-family: var(--mono);
+            margin-left: 8px;
             border: 1px solid var(--b2);
+            font-weight: 700;
+            vertical-align: middle;
         }
 
         /* ── MODAL BASE ─── */
@@ -925,6 +943,12 @@
         }
 
         /* ── SETTINGS ─── */
+        #settings-list {
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
         .settings-item {
             background: var(--s3);
             border: 1px solid var(--b1);
@@ -962,6 +986,12 @@
         }
 
         /* ── USERS MODAL ─── */
+        #users-modal-list {
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
         .user-row {
             display: flex;
             justify-content: space-between;
@@ -1382,15 +1412,36 @@
         let ultimoLogInfo = { msg: '', el: null, count: 1 };
 
         function colorizarTags(txt) {
-            return txt
-                .replace(/\[Sync\]/g, '<span class="tag-sync">[Sync]</span>')
-                .replace(/\[iDFlex\]/g, '<span class="tag-idflex">[iDFlex]</span>')
-                .replace(/\[Watchdog\]/g, '<span class="tag-watchdog">[Watchdog]</span>')
-                .replace(/\[Hardware\]/g, '<span class="tag-hardware">[Hardware]</span>')
-                .replace(/\[WorkerApi\]/g, '<span class="tag-worker">[WorkerApi]</span>')
-                .replace(/\[Config\]/g, '<span class="tag-config">[Config]</span>')
-                .replace(/\[Enroll\]/g, '<span class="tag-enroll">[Enroll]</span>')
-                .replace(/\[Beep\]/g, '<span class="tag-beep">[Beep]</span>');
+            // 🏷️ TAGS PRINCIPAIS
+            let resp = txt
+                .replace(/\[Sync\]/g,      '<span class="tag-base tag-sync">🔄 SYNC</span>')
+                .replace(/\[iDFlex\]/g,    '<span class="tag-base tag-idflex">📟 HARDWARE</span>')
+                .replace(/\[Watchdog\]/g,  '<span class="tag-base tag-watchdog">🐕 WATCHDOG</span>')
+                .replace(/\[Hardware\]/g,  '<span class="tag-base tag-hardware">🧩 COMPONENTE</span>')
+                .replace(/\[WorkerApi\]/g, '<span class="tag-base tag-worker">☁ CLOUD</span>')
+                .replace(/\[Config\]/g,    '<span class="tag-base tag-config">⚙ CONFIG</span>')
+                .replace(/\[Enroll\]/g,    '<span class="tag-base tag-enroll">👆 MATRÍCULA</span>')
+                .replace(/\[Beep\]/g,      '<span class="tag-base tag-beep">🔔 BEEP</span>')
+                .replace(/\[Gari Digital\]/g, '<span class="tag-base tag-gari">🧹 GARI</span>')
+                .replace(/\[Poller\]/g,    '<span class="tag-base tag-poller">📡 POLLER</span>')
+                .replace(/\[Local API\]/g, '<span class="tag-base tag-api">🌐 API</span>');
+
+            // ✨ DESTAQUES DE ESTADO (Case Insensitive para abranger variados logs)
+            resp = resp
+                .replace(/\b(sucesso|ok|concluída|ativo|online|conectado|identificada|autorizado)\b/gi, '<span class="hl-ok">$&</span>')
+                .replace(/\b(erro|falha|bloqueio|negado|inacessível|desconectado|divergência|cancelada)\b/gi, '<span class="hl-err">$&</span>');
+
+            // 📍 DADOS TÉCNICOS (IPs, URLs, IDs)
+            resp = resp
+                .replace(/https?:\/\/[^\s]+/g,   '<span class="hl-url">$&</span>')
+                .replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?/g, '<span class="hl-ip">$&</span>')
+                .replace(/\b([A-Z0-9-]{8,})\b/g, (match) => {
+                    // Evita destacar tags HTML ou palavras comuns, foca em UUIDs/IDs técnicos
+                    if (match.includes('<') || match.includes('>')) return match;
+                    return `<span class="hl-id">${match}</span>`;
+                });
+
+            return resp;
         }
 
         // ══════════════════════════════════════
@@ -1718,7 +1769,7 @@
                 </div>
                 <div class="hw-meta">
                     <span>${l.ip || '0.0.0.0'}:${l.porta || 80}</span>
-                    <span>${l.totalUsuarios || 0} usuários</span>
+                    <span>${l.totalUsuarios || 0} ${l.totalUsuarios === 1 ? 'usuário' : 'usuários'}</span>
                     ${lastSeen ? `<span>visto ${lastSeen}</span>` : ''}
                 </div>
                 <div class="hw-actions">
@@ -1858,8 +1909,12 @@
             const list = document.getElementById('settings-list');
             list.innerHTML = configAtiva.map((l, i) => `
             <div class="settings-item">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
-                    <input type="text" class="f-name" value="${escapeHtml(l.nome)}" placeholder="Nome do Leitor">
+                <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:8px; align-items:center;">
+                    <input type="text" class="f-name" value="${escapeHtml(l.nome)}" placeholder="Nome do Leitor" style="flex:1">
+                    <select class="f-tipo" style="background:var(--s3); border:1px solid var(--b2); border-radius:4px; color:var(--t2); font-size:0.65rem; padding:2px 5px; outline:none;">
+                        <option value="ID_FLEX" ${l.tipo === 'ID_FLEX' ? 'selected' : ''}>iD Flex</option>
+                        <option value="ID_NANO" ${l.tipo === 'ID_NANO' ? 'selected' : ''}>iD Nano</option>
+                    </select>
                     <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size:0.62rem; font-family:var(--mono);">excluir</button>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
@@ -1877,8 +1932,12 @@
             const item = document.createElement('div');
             item.className = 'settings-item';
             item.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
-                <input type="text" class="f-name" value="Novo Leitor" placeholder="Nome do Leitor">
+            <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:8px; align-items:center;">
+                <input type="text" class="f-name" value="Novo Leitor" placeholder="Nome do Leitor" style="flex:1">
+                <select class="f-tipo" style="background:var(--s3); border:1px solid var(--b2); border-radius:4px; color:var(--t2); font-size:0.65rem; padding:2px 5px; outline:none;">
+                    <option value="ID_FLEX">iD Flex</option>
+                    <option value="ID_NANO">iD Nano</option>
+                </select>
                 <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size:0.62rem; font-family:var(--mono);">excluir</button>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
@@ -1898,8 +1957,18 @@
                 const nome = el.querySelector('.f-name').value;
                 const ip = el.querySelector('.f-ip').value.trim();
                 const porta = el.querySelector('.f-porta').value;
+                const tipo = el.querySelector('.f-tipo').value;
                 const id = el.querySelector('.f-id')?.value || `idflex-${Date.now()}`;
-                if (ip !== '') novosLeitores.push({ id, nome: nome || 'Leitor Catraki', ip, porta: parseInt(porta) || 80, tipo: 'ID_FLEX' });
+                
+                if (ip !== '') {
+                    novosLeitores.push({ 
+                        id, 
+                        nome: nome || 'Leitor Catraki', 
+                        ip, 
+                        porta: parseInt(porta) || 80, 
+                        tipo 
+                    });
+                }
             });
             try {
                 if (!window.scaeApi) throw new Error();

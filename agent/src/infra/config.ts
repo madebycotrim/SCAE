@@ -29,6 +29,7 @@ export interface AgenteConfig {
   intervalo_sync_ms: number;
   endpoint_worker: string;
   admin_pin: string;
+  agente_secret: string; // Token de autenticação entre Agente <-> Cloudflare
 }
 
 // Configuração padrão de fábrica
@@ -43,7 +44,8 @@ const configPadrao: AgenteConfig = {
   intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,
   endpoint_worker: 'https://catraki.com.br',
-  admin_pin: '123456'
+  admin_pin: '123456',
+  agente_secret: 'catraki-secret-token-default'
 };
 
 // Singleton em memória
@@ -64,10 +66,13 @@ export function carregarConfiguracaoHardware() {
                     id: l.id || `idflex-${l.ip?.replace(/\W/g, '') || Date.now()}`
                 }));
                 if (data.ip_agente) config.ip_agente = data.ip_agente;
+                if (data.agente_secret) config.agente_secret = data.agente_secret;
                 console.log(`[Config] ${config.leitores.length} leitores e IP Configurado: ${config.ip_agente || 'Automático'}`);
             }
         } else {
-            console.log('[Config] local-config.json não existe. Usando padrão.');
+            // Tenta carregar do .env se o arquivo JSON for novo/vazio
+            if (process.env.AGENTE_SECRET) config.agente_secret = process.env.AGENTE_SECRET;
+            console.log('[Config] local-config.json não existe. Usando padrões e .env.');
         }
     } catch (e: any) {
         console.error('[Config] Erro ao carregar hardware:', e.message);
@@ -82,7 +87,8 @@ export function salvarLeitoresNoDisco(leitores: any[], ip_agente?: string) {
     const configPath = getLocalConfigPath();
     const data = { 
         leitores, 
-        ip_agente: ip_agente || undefined 
+        ip_agente: ip_agente || undefined,
+        agente_secret: config.agente_secret
     };
     fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
     

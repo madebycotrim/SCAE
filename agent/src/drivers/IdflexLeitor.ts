@@ -11,13 +11,15 @@ import {
 import { IdFlexHelper } from './IdFlexHelper';
 
 export class IdflexLeitor implements ILeitor {
-  readonly tipo = TipoLeitor.ID_FLEX;
+  readonly tipo: TipoLeitor;
   private tokenSessao?: string;
   private ultimoErroLogado?: string;
   private cacheNomes = new Map<string, { nome: string, matricula: string }>();
   private lastCacheSync = 0;
 
-  constructor(private cfg: LeitorTcpConfig) {}
+  constructor(private cfg: LeitorTcpConfig) {
+    this.tipo = cfg.tipo;
+  }
 
   get id() { return this.cfg.id; }
   get nome() { return this.cfg.nome; }
@@ -30,6 +32,9 @@ export class IdflexLeitor implements ILeitor {
     }
     try {
       const resp = await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados, timeout);
+      if (resp && resp.error) {
+          throw new Error(resp.error);
+      }
       this.ultimoErroLogado = undefined;
       return resp;
     } catch (e: any) {
@@ -415,13 +420,21 @@ export class IdflexLeitor implements ILeitor {
       // 1. Busca o ID técnico do hardware através da matrícula (registration)
       const resp = await this.requisitarComToken('load_objects.fcgi', { 
         object: 'users',
-        where: { registration: matricula }
+        where: { users: { registration: matricula } }
       });
 
       if (!resp.users || resp.users.length === 0) return false;
       const idInterno = resp.users[0].id;
       
-      // 2. Remove o registro definitivo usando o ID real do hardware
+      // 2. Limpeza Preventiva: Remove biometrias antes do usuário
+      try {
+        await this.requisitarComToken('destroy_objects.fcgi', {
+          object: 'fingerprints',
+          where: { fingerprints: { user_id: idInterno } }
+        });
+      } catch {}
+
+      // 3. Remove o registro definitivo usando o ID real do hardware
       await this.requisitarComToken('destroy_objects.fcgi', {
         object: 'users',
         where: { users: { id: idInterno } }

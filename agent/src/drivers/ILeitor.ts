@@ -4,7 +4,8 @@
  */
 
 export enum TipoLeitor {
-  ID_FLEX = 'ID_FLEX'
+  ID_FLEX = 'ID_FLEX',
+  ID_NANO = 'ID_NANO'
 }
 
 

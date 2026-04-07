@@ -11,6 +11,7 @@ export const LeitorFactory = {
   criarLeitor(cfg: LeitorConfig): ILeitor {
     switch (cfg.tipo) {
       case TipoLeitor.ID_FLEX:
+      case TipoLeitor.ID_NANO:
         return new IdflexLeitor(cfg as LeitorTcpConfig);
       
       default:

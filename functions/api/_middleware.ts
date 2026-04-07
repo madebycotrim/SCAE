@@ -24,8 +24,10 @@ async function processarRequisicao(contexto: ContextoCatraki): Promise<Response>
         const rotaResponsavel = url.pathname.startsWith('/api/responsavel/');
         const ehPublicaGet = url.pathname.startsWith('/api/publico/') && requisicao.method === 'GET';
         const ehRotaAgente = url.pathname.startsWith('/api/agente/');
+        const temTokenAgente = requisicao.headers.get('X-Agente-Token') !== null;
 
-        if (rotaResponsavel || ehPublicaGet || ehRotaAgente) {
+        // Bypasses: Responsaveis, Publico e AGENTE (apenas se usar Token específico do Agente)
+        if (rotaResponsavel || ehPublicaGet || (ehRotaAgente && temTokenAgente)) {
             return proximo();
         }
 

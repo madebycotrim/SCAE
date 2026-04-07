@@ -115,8 +115,32 @@ async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Respons
     }
 }
 
+async function processarExclusaoAcessos(contexto: ContextoCatraki): Promise<Response> {
+    try {
+        const idEscola = extrairEscolaId(contexto.request);
+        verificarAcesso(contexto, Permissao.GERENCIAR_ACESSO);
+
+        // Deleta todos os registros de acesso desta escola
+        await contexto.env.DB_SCAE.prepare(
+            "DELETE FROM registros_acesso WHERE escola_id = ?"
+        ).bind(idEscola).run();
+
+        return Response.json({
+            ok: true,
+            mensagem: 'Histórico de acessos removido com sucesso.'
+        });
+    } catch (erro) {
+        if (erro instanceof ErroBase) {
+            return Response.json(erro.toJSON(), { status: erro.status, headers: { 'Content-Type': 'application/json' } });
+        }
+        const erroInterno = new ErroInterno(erro instanceof Error ? erro.message : 'Erro ao limpar acessos');
+        return Response.json(erroInterno.toJSON(), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
+}
+
 // Exportações com Alias para o Framework
 export {
     processarSincronizacaoAcessos as onRequestPost,
-    processarBuscaAcessos as onRequestGet
+    processarBuscaAcessos as onRequestGet,
+    processarExclusaoAcessos as onRequestDelete
 };

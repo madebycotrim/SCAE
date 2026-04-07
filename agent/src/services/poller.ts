@@ -16,8 +16,9 @@ import { config } from '../infra/config';
 export let leitoresAtivos: ILeitor[] = [];
 let notificadorGlobal: any = null;
 
-// Controle de Backoff (para não inundar o hardware se ele cair)
+// Controle de Backoff e Travas de Execução (Lock)
 const falhasLeitores = new Map<string, { contador: number, proximaTentativa: number }>();
+const leitoresEmProcessamento = new Set<string>();
 
 /** Inicializa o monitoramento de todos os leitores configurados */
 export function iniciarPolling(notificador: any) {
@@ -92,12 +93,16 @@ export async function recarregarLeitorEspecifico(leitorId: string) {
     }
 }
 
-/** Fluxo de monitoramento individual por equipamento */
 async function monitorarLeitor(leitor: ILeitor) {
+  // ⚡ LOCK PREVENTION: Evita que o mesmo leitor seja processado em paralelo se a varredura anterior demorar.
+  // Isso era a causa principal de logs triplicados (Race Condition no Cursor de Leitura).
+  if (leitoresEmProcessamento.has(leitor.id)) return;
+  
   const agora = Date.now();
   const falha = falhasLeitores.get(leitor.id);
-  
   if (falha && agora < falha.proximaTentativa) return;
+
+  leitoresEmProcessamento.add(leitor.id);
 
   try {
     // 1. Verificar/Reativar Integridade do Modo Escola (Watchdog) a cada 5 min
@@ -140,42 +145,59 @@ async function monitorarLeitor(leitor: ILeitor) {
     if (eventos.length > 0) {
       console.log(`[Poller] ${leitor.nome}: Coletou ${eventos.length} novas presenças.`);
       
-      for (const ev of eventos) {
+        for (const ev of eventos) {
         const matriculaParaBusca = ev.matricula || ev.idUsuario;
-        const aluno = await getSql('SELECT nome_completo FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
+        const aluno = await getSql('SELECT nome_completo, turma_id FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
         const nomeAcesso = aluno?.nome_completo || ev.nomeHardware || `DESCONHECIDO (${ev.idUsuario})`;
+        const turmaAcesso = aluno?.turma_id || '---';
         const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';
 
-        // 1. Atualiza estatísticas em memória do Agente (Para aparecer na telinha local)
-        stats.registrarAcesso(nomeAcesso, String(matriculaParaBusca), statusAcesso);
+        // --- GRAVAÇÃO DETERMINÍSTICA (Source of Truth) ---
+        // Usamos um ID baseado no ID real do hardware para evitar duplicatas reais
+        const idUnico = `HW-${leitor.id}-${ev.id}`;
+        
+        try {
+            await runSql(`
+                INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, sincronizado)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+            `, [
+                idUnico,
+                leitor.id,
+                config.escola_id,
+                String(matriculaParaBusca),
+                nomeAcesso,
+                statusAcesso,
+                ev.autorizado ? 1 : 0
+            ]);
 
-        // Notifica o Front-End para atualizar a UI e tocar o TTS
-        if (notificadorGlobal) {
-            notificadorGlobal.webContents.send('new-access', {
-                nome: matriculaParaBusca === '0' ? nomeAcesso : `${nomeAcesso} (${matriculaParaBusca})`,
-                nomePuro: nomeAcesso,
-                sucesso: statusAcesso === 'ENTRADA',
-                ttsAtivo: config.tts_ativado,
-                ttsParams: {
-                    sucesso: config.tts_sucesso ?? 'Bem-vindo, {nome}!',
-                    erro: config.tts_erro ?? 'Acesso negado, {nome}!'
-                }
-            });
+            // ⚡ SÓ PROCESSA SE FOR UM REGISTRO NOVO (Não duplicado)
+            // Isso garante que o Poling não gere logs repetidos se o Push já disparou
+
+            // 1. Atualiza estatísticas em memória do Agente (Gráfico e Métricas)
+            stats.registrarAcesso(nomeAcesso, String(matriculaParaBusca), statusAcesso, turmaAcesso);
+
+            // 2. Notifica o Front-End para atualizar a UI e tocar o som (TTS)
+            if (notificadorGlobal) {
+                notificadorGlobal.webContents.send('new-access', {
+                    nome: matriculaParaBusca === '0' ? nomeAcesso : `${nomeAcesso} (${matriculaParaBusca})`,
+                    nomePuro: nomeAcesso,
+                    turma: turmaAcesso,
+                    matricula: String(matriculaParaBusca),
+                    sucesso: statusAcesso === 'ENTRADA',
+                    ttsAtivo: config.tts_ativado,
+                    ttsParams: {
+                        sucesso: config.tts_sucesso ?? 'Bem-vindo, {nome}!',
+                        erro: config.tts_erro ?? 'Acesso negado, {nome}!'
+                    }
+                });
+            }
+        } catch (e: any) {
+            // Se o erro for de restrição de chave única (Unique Constraint), apenas ignoramos 
+            // pois significa que esse log já foi processado anteriormente.
+            if (!e.message.includes('UNIQUE')) {
+                console.error(`[Poller] Erro ao inserir log ${idUnico}:`, e.message);
+            }
         }
-
-        // 2. GRAVA A BATIDA FISICAMENTE NO BANCO (Para que o Sync possa enviar para a Cloudflare)
-        await runSql(`
-            INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, sincronizado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 0)
-        `, [
-            `EV-${ev.id}-${Date.now()}`, // ID único da batida
-            leitor.id,
-            config.escola_id,
-            String(matriculaParaBusca),
-            nomeAcesso,
-            statusAcesso,
-            ev.autorizado ? 1 : 0
-        ]);
         
         const idNum = parseInt(ev.id, 10);
         if (!isNaN(idNum) && idNum > parseInt(maxId, 10)) maxId = ev.id;
@@ -199,5 +221,8 @@ async function monitorarLeitor(leitor: ILeitor) {
     if (e.code !== 'ECONNREFUSED' && e.code !== 'ETIMEDOUT') {
         console.error(`[Poller] Falha no leitor ${leitor.id}:`, e.message);
     }
+  } finally {
+      // Libera o leitor para a próxima varredura
+      leitoresEmProcessamento.delete(leitor.id);
   }
 }

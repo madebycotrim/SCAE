@@ -9,8 +9,8 @@ export async function onRequestPost(contexto: ContextoCatraki): Promise<Response
     const { request, env } = contexto;
 
     try {
-        // Valida token do agente e extrai escola_id dos headers
-        const escolaId = validarAgente(request, env);
+        // Valida token do agente OU sessão administrativa e extrai escola_id dos headers
+        const escolaId = validarAgente(request, env, contexto.data);
         
         const { matricula } = await request.json() as { matricula: string };
 

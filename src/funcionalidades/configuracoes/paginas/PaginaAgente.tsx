@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { alunoServico } from '@/funcionalidades/academico/servicos/aluno.servico';
+import { api } from '@/compartilhado/servicos/api';
 import toast from 'react-hot-toast';
 
 interface StatusAgente {
@@ -26,6 +27,7 @@ interface StatusAgente {
         ultimosEventos: Array<{
             nome: string;
             matricula?: string;
+            turma?: string;
             tipo: string;
             timestamp: string;
         }>;
@@ -72,7 +74,9 @@ export default function PaginaAgente() {
 
     const verificarAgente = async () => {
         try {
-            const res = await fetch('http://127.0.0.1:1912/ping', { mode: 'cors' });
+            const res = await fetch('http://127.0.0.1:1912/ping', { 
+                mode: 'cors'
+            });
             if (!res.ok) throw new Error();
             const dados = await res.json();
             setStatus(dados);
@@ -97,22 +101,63 @@ export default function PaginaAgente() {
         try {
             const res = await fetch('http://127.0.0.1:1912/enroll', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ aluno_id: matricula })
             });
 
             const data = await res.json();
             if (data.ok) {
-                toast.success('Digital vinculada com sucesso!', { id: toastId });
-                setBiometriasConfirmadas(prev => new Set(prev).add(matricula));
-                setTimeout(atualizarAlunos, 2000);
+                // 🔗 SINCRONIZAÇÃO NUVEM: Confirma que o hardware local agora possui a biometria
+                try {
+                    await api.enviar('/agente/confirmar-biometria', { matricula });
+                    toast.success('Digital vinculada e salva na nuvem!', { id: toastId });
+                    setBiometriasConfirmadas(prev => new Set(prev).add(matricula));
+                    setTimeout(atualizarAlunos, 1500);
+                } catch (errCloud: any) {
+                    toast.error(`Capturada, mas erro ao salvar na nuvem: ${errCloud.message}`, { id: toastId });
+                }
             } else {
-                toast.error(data.mensagem || 'Falha na captura.', { id: toastId });
+                // Tradução amigável das mensagens técnicas do iDFlex
+                const erroBruto = (data.erro || data.mensagem || '').toLowerCase();
+                let mensagemUsuario = 'Falha na captura.';
+
+                if (erroBruto.includes('canceled') || erroBruto.includes('cancelado')) {
+                    mensagemUsuario = 'Operação cancelada no leitor.';
+                } else if (erroBruto.includes('timeout') || erroBruto.includes('tempo esgotado')) {
+                    mensagemUsuario = 'Tempo esgotado. Tente novamente.';
+                } else if (erroBruto.includes('not found') || erroBruto.includes('inexistente')) {
+                    mensagemUsuario = 'Aluno não encontrado no hardware.';
+                } else if (erroBruto.includes('already exists')) {
+                    mensagemUsuario = 'Este aluno já possui cadastro.';
+                } else if (data.erro) {
+                    mensagemUsuario = data.erro; // Se for uma mensagem já tratada pelo backend
+                }
+
+                toast.error(mensagemUsuario, { id: toastId });
             }
         } catch (e) {
             toast.error('Erro de conexão local.', { id: toastId });
         } finally {
             setCadastrandoPara(null);
+        }
+    };
+
+    const limparHistorico = async () => {
+        if (!window.confirm('Atenção: Isso removerá TODOS os registros de acesso da nuvem. O hardware local manterá sua cópia física. Continuar?')) return;
+
+        try {
+            const sucesso = await api.remover('/acesso/registros');
+            if (sucesso) {
+                toast.success('Histórico online removido com sucesso!');
+                // Força um ping para atualizar a lista vazia
+                verificarAgente();
+            } else {
+                throw new Error();
+            }
+        } catch (e) {
+            toast.error('Falha ao limpar histórico na nuvem.');
         }
     };
 
@@ -127,15 +172,15 @@ export default function PaginaAgente() {
             <div className="space-y-6">
                 {/* MÉTRICAS */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {[
-                        { label: 'Entradas', valor: status?.stats?.entradas || 0, cor: 'bg-emerald-500', icone: ArrowUp, bg: 'bg-emerald-50', text: 'text-emerald-600' },
-                        { label: 'Negados', valor: status?.stats?.negados || 0, cor: 'bg-rose-500', icone: XCircle, bg: 'bg-rose-50', text: 'text-rose-600' },
-                        { label: 'Pico', valor: '--:--', cor: 'bg-amber-500', icone: Clock, bg: 'bg-amber-50', text: 'text-amber-600' },
-                        { label: 'Último', valor: status?.stats?.ultimoAcesso || '--:--', cor: 'bg-indigo-500', icone: Activity, bg: 'bg-indigo-50', text: 'text-indigo-600' }
-                    ].map((item, i) => (
-                        <CartaoConteudo key={i} className="relative p-5 overflow-hidden">
-                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${item.cor}`} />
-                            <div className="flex items-center gap-4">
+                        {[
+                            { label: 'Entradas', valor: status?.stats?.entradas || 0, cor: 'bg-emerald-500', icone: ArrowUp, bg: 'bg-emerald-50', text: 'text-emerald-600' },
+                            { label: 'Negados', valor: status?.stats?.negados || 0, cor: 'bg-rose-500', icone: XCircle, bg: 'bg-rose-50', text: 'text-rose-600' },
+                            { label: 'Pico', valor: '--:--', cor: 'bg-amber-500', icone: Clock, bg: 'bg-amber-50', text: 'text-amber-600' },
+                            { label: 'Último', valor: status?.stats?.ultimoAcesso || '--:--', cor: 'bg-indigo-500', icone: Activity, bg: 'bg-indigo-50', text: 'text-indigo-600' }
+                        ].map((item, i) => (
+                            <CartaoConteudo key={i} className="relative p-5 overflow-hidden">
+                                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${item.cor}`} />
+                                <div className="flex items-center gap-4">
                                 <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.text} flex items-center justify-center`}>
                                     <item.icone size={24} />
                                 </div>
@@ -226,7 +271,15 @@ export default function PaginaAgente() {
 
                         {/* FLUXO */}
                         <div className="space-y-4">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Fluxo Real-Time</h4>
+                            <div className="flex items-center justify-between px-2">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fluxo Real-Time</h4>
+                                <button 
+                                    onClick={limparHistorico}
+                                    className="text-[9px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-tight flex items-center gap-1.5 transition-colors"
+                                >
+                                    <Trash2 size={12} /> Limpar
+                                </button>
+                            </div>
                             <div className="space-y-2">
                                 {(status?.stats?.ultimosEventos || []).map((ev, i) => (
                                     <div key={i} className="p-3 bg-white border border-slate-100 rounded-xl flex items-center justify-between shadow-sm">
@@ -236,7 +289,7 @@ export default function PaginaAgente() {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black text-slate-800 uppercase leading-none">{ev.nome}</p>
-                                                <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">{ev.matricula || '---'}</p>
+                                                <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">{ev.matricula || '---'} • {ev.turma || 'SEM TURMA'}</p>
                                             </div>
                                         </div>
                                         <span className="text-[9px] font-black text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-md">
