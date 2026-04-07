@@ -309,6 +309,13 @@ export async function sincronizarCacheAlunos(forcar = false) {
   }
 }
 
+/**
+ * Wrapper para ser chamado por eventos externos (API/IPC)
+ */
+export async function forcarSincronizacaoImediata() {
+    return await sincronizarCacheAlunos(true);
+}
+
 async function sincronizarHardware(alunosNuvem: any[]) {
     if (!leitoresAtivos || leitoresAtivos.length === 0) return;
 

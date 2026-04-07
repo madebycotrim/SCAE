@@ -117,6 +117,26 @@ function createWindow() {
         res.writeHead(200); res.end(); return;
     }
 
+    if (req.url === '/ping' && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            ok: true,
+            agente: 'Catraki Edge Agent',
+            versao: '2.0.0',
+            nome_escola: config.nome_escola,
+            total_alunos: config.total_alunos
+        }));
+        return;
+    }
+
+    if (req.url === '/sync-now' && req.method === 'POST') {
+        const { forcarSincronizacaoImediata } = require('../services/sync');
+        forcarSincronizacaoImediata().catch(() => {});
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+        return;
+    }
+
     if (req.url === '/idflex-push' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
