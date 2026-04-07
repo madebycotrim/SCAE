@@ -72,7 +72,7 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                 // Tradução amigável
                 const erroBruto = (data.erro || data.mensagem || '').toLowerCase();
                 let msg = 'Falha na captura.';
-                if (erroBruto.includes('canceled')) msg = 'Operação cancelada no leitor.';
+                if (erroBruto.includes('cancel') || erroBruto.includes('cancelado')) msg = 'Operação cancelada no leitor.';
                 else if (erroBruto.includes('timeout')) msg = 'Tempo esgotado.';
                 else if (data.erro) msg = data.erro;
 

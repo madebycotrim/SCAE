@@ -123,7 +123,7 @@ export default function PaginaAgente() {
                 const erroBruto = (data.erro || data.mensagem || '').toLowerCase();
                 let mensagemUsuario = 'Falha na captura.';
 
-                if (erroBruto.includes('canceled') || erroBruto.includes('cancelado')) {
+                if (erroBruto.includes('cancel') || erroBruto.includes('cancelado')) {
                     mensagemUsuario = 'Operação cancelada no leitor.';
                 } else if (erroBruto.includes('timeout') || erroBruto.includes('tempo esgotado')) {
                     mensagemUsuario = 'Tempo esgotado. Tente novamente.';
