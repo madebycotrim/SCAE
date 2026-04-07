@@ -1,16 +1,50 @@
 /**
  * agent/src/main/main.ts
  * Servidor de Recebimento de Eventos em Tempo Real (Push).
- * Gerenciador de Janela e Handlers de Comunicação.
+ * Gerenciador de Janela e Handlers de Comunicação (IPC).
  */
 
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import http from 'http';
-import { leitoresAtivos, recarregarLeitores } from '../services/poller';
+import { leitoresAtivos, recarregarLeitores, recarregarLeitorEspecifico } from '../services/poller';
 import { carregarConfiguracaoHardware, salvarLeitoresNoDisco, config } from '../infra/config';
 import { stats } from '../infra/stats';
 import { iniciarSync } from '../services/sync';
+import { resetarBancoLocal } from '../infra/db';
+
+// ── REDIRECIONAMENTO DE LOGS (Agente -> UI) ──
+const originalLogs = {
+    log: console.log,
+    warn: console.warn,
+    error: console.error
+};
+
+function formatarLog(args: any[]) {
+    return args.map(arg => {
+        if (typeof arg === 'object') {
+            try { return JSON.stringify(arg); } catch { return String(arg); }
+        }
+        return String(arg);
+    }).join(' ');
+}
+
+console.log = (...args) => {
+    originalLogs.log(...args);
+    if (mainWindow) mainWindow.webContents.send('new-log', formatarLog(args));
+};
+
+console.warn = (...args) => {
+    originalLogs.warn(...args);
+    // Para simplificar no preload v1, enviamos apenas o texto. 
+    // O index.html já tem lógica de colorizar tags.
+    if (mainWindow) mainWindow.webContents.send('new-log', `[AVISO] ${formatarLog(args)}`);
+};
+
+console.error = (...args) => {
+    originalLogs.error(...args);
+    if (mainWindow) mainWindow.webContents.send('new-log', `[ERRO] ${formatarLog(args)}`);
+};
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -23,7 +57,39 @@ export function avisarMudancaConfig() {
             nomeEscola: config.nome_escola,
             ttsAtivo: config.tts_ativado
         });
+        // Força pulso de status imediato
+        enviarStatusParaUI();
     }
+}
+
+/**
+ * Envia o estado completo do Agente para a Interface (Renderer).
+ * Essencial para o dashboard e listagem de equipamentos.
+ */
+function enviarStatusParaUI() {
+    if (!mainWindow) return;
+
+    mainWindow.webContents.send('hardware-status', {
+        ok: true,
+        agente: 'Catraki Edge Agent',
+        versao: '2.0.0',
+        nome_escola: config.nome_escola,
+        total_alunos: config.total_alunos,
+        tts_ativado: config.tts_ativado,
+        tts_sucesso: config.tts_sucesso,
+        tts_erro: config.tts_erro,
+        ip_agente_config: config.ip_agente,
+        stats: stats.obterSnapshot(),
+        leitores: leitoresAtivos.map(l => ({
+            id: l.id,
+            nome: l.nome,
+            tipo: l.tipo,
+            online: (l as any).online,
+            ip: l.ip,
+            porta: (l as any).porta || 80,
+            totalUsuarios: (l as any).totalUsuarios || 0
+        }))
+    });
 }
 
 function createWindow() {
@@ -31,14 +97,14 @@ function createWindow() {
     width: 1280,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
     },
     icon: path.join(__dirname, '../../assets/icon.png'),
     title: 'Catraki Edge Agent - Hub de Portaria'
   });
 
-  // Remove a barra de menu indesejada (File, Edit, etc)
   mainWindow.removeMenu();
 
   // Servidor para receber eventos do iDFlex via HTTP PUSH
@@ -87,7 +153,7 @@ function createWindow() {
                     }
 
                     // --- CLASSIFICAÇÃO INTELIGENTE DE HORÁRIOS ---
-                    const { getSql, runSql } = require('../infra/db');
+                    const { runSql, getSql } = require('../infra/db');
                     const { classificarAcesso } = require('../services/classificador');
 
                     const aluno = (idUsuario !== 0 && idUsuario !== '0') 
@@ -144,26 +210,13 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
+  // Pulse regular de Status (5s) para manter a UI atualizada
+  setInterval(enviarStatusParaUI, 5000);
+
   // --- HANDLERS IPC (UI para Agente) ---
 
-  // Retorna status geral para a UI
-  ipcMain.handle('ping', async () => {
-    return {
-        ok: true,
-        agente: 'Catraki Edge Agent',
-        versao: '2.0.0',
-        escola: config.nome_escola,
-        status: 'OPERACIONAL',
-        stats: stats.obterSnapshot(),
-        leitores: leitoresAtivos.map(l => ({
-            id: l.id,
-            nome: l.nome,
-            tipo: l.tipo,
-            online: (l as any).online,
-            ip: l.ip,
-            totalUsuarios: (l as any).totalUsuarios
-        }))
-    };
+  ipcMain.handle('verificar-pin', async (_event, { pin }) => {
+    return { ok: pin === config.admin_pin };
   });
 
   ipcMain.handle('salvar-leitores', async (_event, { leitores, ipAgente }) => {
@@ -171,7 +224,8 @@ function createWindow() {
         const ok = salvarLeitoresNoDisco(leitores, ipAgente);
         if (ok) {
             carregarConfiguracaoHardware();
-            await recarregarLeitores();
+            recarregarLeitores();
+            enviarStatusParaUI();
             return { ok: true };
         }
         return { ok: false };
@@ -180,25 +234,56 @@ function createWindow() {
     }
   });
 
-  ipcMain.handle('enroll', async (_event, { aluno_id }) => {
+  ipcMain.handle('listar-alunos', async (_event, leitorId) => {
     try {
-        const leitor = leitoresAtivos[0]; // Usa o primeiro por padrão para cadastro
-        if (!leitor) throw new Error('Nenhum leitor disponível para cadastro');
-        
-        const res = await (leitor as any).capturarBiometria(String(aluno_id));
+        const leitor = leitoresAtivos.find(l => l.id === leitorId);
+        if (!leitor || !leitor.listarAlunos) return [];
+        return await leitor.listarAlunos();
+    } catch { return []; }
+  });
+
+  ipcMain.handle('reconectar-leitor', async (_event, { leitorId }) => {
+    try {
+        const res = await recarregarLeitorEspecifico(leitorId);
+        enviarStatusParaUI();
         return res;
     } catch (e: any) {
         return { ok: false, erro: e.message };
     }
   });
 
-  ipcMain.handle('reset-stats', async () => {
-    stats.limparEstatisticas();
-    return { ok: true };
+  ipcMain.handle('reset-db', async () => {
+    try {
+        await resetarBancoLocal();
+        app.relaunch();
+        app.quit();
+        return { ok: true };
+    } catch (e: any) {
+        return { ok: false, erro: e.message };
+    }
   });
 
-  // Inicializa motores de sincronização e comandos da nuvem
+  ipcMain.handle('backup-db', async () => {
+    const userData = app.getPath('userData');
+    const dbPath = path.join(userData, 'data', 'catraki-agente-v3.db');
+    const backupPath = path.join(app.getPath('desktop'), `SCAE-BACKUP-${Date.now()}.db`);
+    
+    try {
+        require('fs').copyFileSync(dbPath, backupPath);
+        return { ok: true, path: backupPath };
+    } catch (e: any) {
+        return { ok: false, erro: e.message };
+    }
+  });
+
+  // --- INICIALIZAÇÃO DO HARDWARE E MOTORES ---
+  carregarConfiguracaoHardware();
+  stats.sincronizarComBanco();
+  recarregarLeitores();
   iniciarSync();
+
+  // Envia primeiro pulso de status após o boot
+  setTimeout(enviarStatusParaUI, 1500);
 }
 
 app.whenReady().then(createWindow);

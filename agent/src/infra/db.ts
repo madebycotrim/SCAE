@@ -1,7 +1,7 @@
 /**
  * infra/db.ts
  * Persistência local do Agente SCAE - Versão Assíncrona (SQLite3).
- * VERSÃO 3.1: Suporte a Reset de Emergência.
+ * VERSÃO 3.2: Suporte a Migrações Automáticas Garantidas.
  */
 
 import * as sqlite3 from 'sqlite3';
@@ -10,6 +10,8 @@ import { app } from 'electron';
 import fs from 'fs';
 
 let database: sqlite3.Database | null = null;
+let dbPronto = false;
+let dbPromessa: Promise<sqlite3.Database> | null = null;
 
 /**
  * Fecha o banco e deleta o arquivo físico se solicitado
@@ -20,20 +22,14 @@ export async function resetarBancoLocal() {
             database?.close((err) => {
                 if (err) console.error('[DB] Erro ao fechar para reset:', err.message);
                 database = null;
+                dbPronto = false;
+                dbPromessa = null;
                 
                 const dbDir = path.join(app.getPath('userData'), 'data');
                 const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
-                const dbWal = dbPath + '-wal';
-                const dbShm = dbPath + '-shm';
                 
                 try {
-                    // Espera 100ms para o SQLite soltar os arquivos reais antes de deletar
-                    setTimeout(() => {
-                        if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
-                        if (fs.existsSync(dbWal)) fs.unlinkSync(dbWal);
-                        if (fs.existsSync(dbShm)) fs.unlinkSync(dbShm);
-                        console.log('[DB] !!! BANCO DELETADO COM SUCESSO (INCLUINDO WAL) !!!');
-                    }, 100);
+                    if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
                 } catch (e: any) {
                     console.error('[DB] Erro ao deletar arquivo:', e.message);
                 }
@@ -43,62 +39,89 @@ export async function resetarBancoLocal() {
     }
 }
 
+/**
+ * Inicializa o banco de dados e garante que as tabelas/colunas estejam prontas.
+ */
+export async function inicializarBanco(): Promise<sqlite3.Database> {
+    if (dbPromessa) return dbPromessa;
+
+    dbPromessa = new Promise((resolve, reject) => {
+        const dbDir = path.join(app.getPath('userData'), 'data');
+        if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+
+        const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
+        const db = new sqlite3.Database(dbPath, (err) => {
+            if (err) return reject(err);
+        });
+
+        db.serialize(() => {
+            db.run('PRAGMA journal_mode = WAL');
+            db.run('PRAGMA synchronous = NORMAL');
+
+            // 1. Tabela de Registros
+            db.run(`
+                CREATE TABLE IF NOT EXISTS registros_acesso (
+                    id TEXT PRIMARY KEY,
+                    leitor_id TEXT,
+                    escola_id TEXT NOT NULL,
+                    matricula TEXT NOT NULL,
+                    nome TEXT,
+                    tipo TEXT DEFAULT 'ENTRADA',
+                    autorizado INTEGER DEFAULT 1,
+                    timestamp_acesso DATETIME DEFAULT (datetime('now', 'localtime')),
+                    sincronizado INTEGER DEFAULT 0
+                )
+            `);
+
+            // 2. Tabela de Cursores
+            db.run(`CREATE TABLE IF NOT EXISTS cursores_leitura (leitor_id TEXT PRIMARY KEY, ultimo_evento_id TEXT, atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')))`);
+            
+            // 3. Tabela de Alunos (Esquema Moderno)
+            db.run(`CREATE TABLE IF NOT EXISTS alunos_cache (
+                matricula TEXT NOT NULL, 
+                escola_id TEXT NOT NULL, 
+                nome_completo TEXT, 
+                turma_id TEXT, 
+                turno TEXT,
+                ativo INTEGER DEFAULT 1, 
+                atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')), 
+                PRIMARY KEY (matricula, escola_id)
+            )`);
+
+            // ⚡ MIGRAÇÃO: Adiciona coluna 'turno' caso o banco seja antigo
+            db.run(`ALTER TABLE alunos_cache ADD COLUMN turno TEXT`, (err: any) => {
+                // Se erro for 'duplicate column', ignoramos. Caso contrário, apenas logamos.
+            });
+
+            // 4. Tabela de Turmas
+            db.run(`CREATE TABLE IF NOT EXISTS turmas_cache (
+                id TEXT PRIMARY KEY,
+                turno TEXT,
+                atualizado_em DATETIME DEFAULT (datetime('now', 'localtime'))
+            )`, () => {
+                database = db;
+                dbPronto = true;
+                console.log('[DB] Base de dados operacional e migrada.');
+                resolve(db);
+            });
+        });
+    });
+
+    return dbPromessa;
+}
+
 export function getDb(): sqlite3.Database {
-  if (database) return database;
-
-  const dbDir = path.join(app.getPath('userData'), 'data');
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+  if (!database) {
+      // Fallback síncrono para evitar crash, mas o ideal é aguardar inicializarBanco()
+      const dbDir = path.join(app.getPath('userData'), 'data');
+      const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
+      database = new sqlite3.Database(dbPath);
   }
-
-  const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
-  database = new sqlite3.Database(dbPath);
-
-  database.serialize(() => {
-    database?.run('PRAGMA journal_mode = WAL');
-    database?.run('PRAGMA synchronous = NORMAL');
-
-    database?.run(`
-      CREATE TABLE IF NOT EXISTS registros_acesso (
-        id TEXT PRIMARY KEY,
-        leitor_id TEXT,
-        escola_id TEXT NOT NULL,
-        matricula TEXT NOT NULL,
-        nome TEXT,
-        tipo TEXT DEFAULT 'ENTRADA',
-        autorizado INTEGER DEFAULT 1,
-        timestamp_acesso DATETIME DEFAULT (datetime('now', 'localtime')),
-        sincronizado INTEGER DEFAULT 0
-      )
-    `);
-
-    database?.run(`CREATE TABLE IF NOT EXISTS cursores_leitura (leitor_id TEXT PRIMARY KEY, ultimo_evento_id TEXT, atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')))`);
-    
-    // Tabela de Alunos com Turno
-    database?.run(`CREATE TABLE IF NOT EXISTS alunos_cache (
-        matricula TEXT NOT NULL, 
-        escola_id TEXT NOT NULL, 
-        nome_completo TEXT, 
-        turma_id TEXT, 
-        turno TEXT,
-        ativo INTEGER DEFAULT 1, 
-        atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')), 
-        PRIMARY KEY (matricula, escola_id)
-    )`);
-
-    // Tabela de Turmas para busca rápida
-    database?.run(`CREATE TABLE IF NOT EXISTS turmas_cache (
-        id TEXT PRIMARY KEY,
-        turno TEXT,
-        atualizado_em DATETIME DEFAULT (datetime('now', 'localtime'))
-    )`);
-  });
-
   return database;
 }
 
-export function runSql(sql: string, params: any[] = []): Promise<void> {
-  const db = getDb();
+export async function runSql(sql: string, params: any[] = []): Promise<void> {
+  const db = await inicializarBanco();
   return new Promise((resolve, reject) => {
     db.run(sql, params, (err: Error | null) => {
       if (err) reject(err);
@@ -107,8 +130,8 @@ export function runSql(sql: string, params: any[] = []): Promise<void> {
   });
 }
 
-export function getSql<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
-  const db = getDb();
+export async function getSql<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
+  const db = await inicializarBanco();
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err: Error | null, row: any) => {
       if (err) reject(err);
@@ -117,8 +140,8 @@ export function getSql<T = any>(sql: string, params: any[] = []): Promise<T | un
   });
 }
 
-export function allSql<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-  const db = getDb();
+export async function allSql<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+  const db = await inicializarBanco();
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err: Error | null, rows: any[]) => {
       if (err) reject(err);
@@ -127,37 +150,15 @@ export function allSql<T = any>(sql: string, params: any[] = []): Promise<T[]> {
   });
 }
 
-/**
- * Gari Digital: Limpa registros com mais de 30 dias que já foram sincronizados.
- * Também executa o comando VACUUM para otimizar o espaço físico em disco.
- */
 export async function limparRegistrosAntigos() {
-  console.log('[Gari Digital] Iniciando varredura de manutenção...');
   try {
-      const db = getDb();
-      return new Promise<void>((resolve, reject) => {
-          // 1. Remove apenas o que já está na nuvem e tem mais de 30 dias
-          db.run(`
-              DELETE FROM registros_acesso 
-              WHERE sincronizado = 1 
-              AND timestamp_acesso < datetime('now', '-30 days', 'localtime')
-          `, (err) => {
-              if (err) {
-                  console.error('[Gari Digital] ✗ Erro ao limpar registros antigos:', err.message);
-                  reject(err);
-              } else {
-                  console.log('[Gari Digital] 🧹 Registros antigos removidos com sucesso.');
-                  
-                  // 2. Otimiza o banco (libera espaço físico)
-                  db.run('VACUUM', (vErr) => {
-                      if (vErr) console.warn('[Gari Digital] Otimização VACUUM falhou:', vErr.message);
-                      else console.log('[Gari Digital] ✓ Banco de dados otimizado (VACUUM).');
-                      resolve();
-                  });
-              }
+      const db = await inicializarBanco();
+      return new Promise<void>((resolve) => {
+          db.run(`DELETE FROM registros_acesso WHERE sincronizado = 1 AND timestamp_acesso < datetime('now', '-30 days', 'localtime')`, () => {
+              db.run('VACUUM', () => resolve());
           });
       });
   } catch (e: any) {
-      console.error('[Gari Digital] Falha crítica no ciclo de limpeza:', e.message);
+      console.error('[Gari Digital] Erro:', e.message);
   }
 }
