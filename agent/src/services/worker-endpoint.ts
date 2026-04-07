@@ -151,9 +151,28 @@ export class WorkerApi {
             'X-Agente-Token': config.agente_secret,
             'User-Agent': 'SCAE-Agent/1.6.2-FINAL'
         },
-        body: JSON.stringify(corpo)
+        body: JSON.stringify(corpo),
+        signal: AbortSignal.timeout(5000)
       });
     } catch { }
+  }
+
+  /**
+   * Remove um comando da fila da nuvem após execução bem-sucedida.
+   */
+  static async confirmarComando(comandoId: string) {
+    try {
+      await fetch(`${config.endpoint_worker}/api/agente/comandos?id=${comandoId}`, {
+        method: 'DELETE',
+        headers: { 
+            'X-Escola-ID': config.escola_id,
+            'X-Agente-Token': config.agente_secret,
+            'User-Agent': 'SCAE-Agent/1.6.2-FINAL'
+        },
+        signal: AbortSignal.timeout(5000)
+      });
+      return true;
+    } catch { return false; }
   }
 
   /**

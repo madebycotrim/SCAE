@@ -1,6 +1,7 @@
 /**
  * agent/src/main/main.ts
  * Servidor de Recebimento de Eventos em Tempo Real (Push).
+ * Gerenciador de Janela e Handlers de Comunicação.
  */
 
 import { app, BrowserWindow, ipcMain } from 'electron';
@@ -9,8 +10,21 @@ import http from 'http';
 import { leitoresAtivos, recarregarLeitores } from '../services/poller';
 import { carregarConfiguracaoHardware, salvarLeitoresNoDisco, config } from '../infra/config';
 import { stats } from '../infra/stats';
+import { iniciarSync } from '../services/sync';
 
 let mainWindow: BrowserWindow | null = null;
+
+/**
+ * Notifica a UI que as configurações foram atualizadas pela nuvem.
+ */
+export function avisarMudancaConfig() {
+    if (mainWindow) {
+        mainWindow.webContents.send('config-updated', {
+            nomeEscola: config.nome_escola,
+            ttsAtivo: config.tts_ativado
+        });
+    }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -24,9 +38,11 @@ function createWindow() {
     title: 'Catraki Edge Agent - Hub de Portaria'
   });
 
+  // Remove a barra de menu indesejada (File, Edit, etc)
+  mainWindow.removeMenu();
+
   // Servidor para receber eventos do iDFlex via HTTP PUSH
   const server = http.createServer((req, res) => {
-    // Adiciona CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -128,12 +144,33 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
+  // --- HANDLERS IPC (UI para Agente) ---
+
+  // Retorna status geral para a UI
+  ipcMain.handle('ping', async () => {
+    return {
+        ok: true,
+        agente: 'Catraki Edge Agent',
+        versao: '2.0.0',
+        escola: config.nome_escola,
+        status: 'OPERACIONAL',
+        stats: stats.obterSnapshot(),
+        leitores: leitoresAtivos.map(l => ({
+            id: l.id,
+            nome: l.nome,
+            tipo: l.tipo,
+            online: (l as any).online,
+            ip: l.ip,
+            totalUsuarios: (l as any).totalUsuarios
+        }))
+    };
+  });
+
   ipcMain.handle('salvar-leitores', async (_event, { leitores, ipAgente }) => {
     try {
         const ok = salvarLeitoresNoDisco(leitores, ipAgente);
         if (ok) {
             carregarConfiguracaoHardware();
-            await stats.sincronizarComBanco();
             await recarregarLeitores();
             return { ok: true };
         }
@@ -143,7 +180,29 @@ function createWindow() {
     }
   });
 
-  // ... rest of the handlers
+  ipcMain.handle('enroll', async (_event, { aluno_id }) => {
+    try {
+        const leitor = leitoresAtivos[0]; // Usa o primeiro por padrão para cadastro
+        if (!leitor) throw new Error('Nenhum leitor disponível para cadastro');
+        
+        const res = await (leitor as any).capturarBiometria(String(aluno_id));
+        return res;
+    } catch (e: any) {
+        return { ok: false, erro: e.message };
+    }
+  });
+
+  ipcMain.handle('reset-stats', async () => {
+    stats.limparEstatisticas();
+    return { ok: true };
+  });
+
+  // Inicializa motores de sincronização e comandos da nuvem
+  iniciarSync();
 }
 
 app.whenReady().then(createWindow);
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
