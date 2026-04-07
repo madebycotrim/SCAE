@@ -1412,34 +1412,29 @@
         let ultimoLogInfo = { msg: '', el: null, count: 1 };
 
         function colorizarTags(txt) {
-            // 🏷️ TAGS PRINCIPAIS
+            // 🏷️ TAGS PRINCIPAIS (Suporta formato [Tag] ou Emoji Tag)
             let resp = txt
-                .replace(/\[Sync\]/g,      '<span class="tag-base tag-sync">🔄 SYNC</span>')
-                .replace(/\[iDFlex\]/g,    '<span class="tag-base tag-idflex">📟 HARDWARE</span>')
-                .replace(/\[Watchdog\]/g,  '<span class="tag-base tag-watchdog">🐕 WATCHDOG</span>')
-                .replace(/\[Hardware\]/g,  '<span class="tag-base tag-hardware">🧩 COMPONENTE</span>')
-                .replace(/\[WorkerApi\]/g, '<span class="tag-base tag-worker">☁ CLOUD</span>')
-                .replace(/\[Config\]/g,    '<span class="tag-base tag-config">⚙ CONFIG</span>')
-                .replace(/\[Enroll\]/g,    '<span class="tag-base tag-enroll">👆 MATRÍCULA</span>')
-                .replace(/\[Beep\]/g,      '<span class="tag-base tag-beep">🔔 BEEP</span>')
-                .replace(/\[Gari Digital\]/g, '<span class="tag-base tag-gari">🧹 GARI</span>')
-                .replace(/\[Poller\]/g,    '<span class="tag-base tag-poller">📡 POLLER</span>')
-                .replace(/\[Local API\]/g, '<span class="tag-base tag-api">🌐 API</span>');
+                .replace(/(\[Sync\]|🔄 SYNC)/gi,      '<span class="tag-base tag-sync">🔄 SYNC</span>')
+                .replace(/(\[iDFlex\]|📟 HARDWARE)/gi,   '<span class="tag-base tag-idflex">📟 HARDWARE</span>')
+                .replace(/(\[Watchdog\]|🐕 WATCHDOG)/gi, '<span class="tag-base tag-watchdog">🐕 WATCHDOG</span>')
+                .replace(/(\[Hardware\]|🧩 COMPONENTE)/gi, '<span class="tag-base tag-hardware">🧩 COMPONENTE</span>')
+                .replace(/(\[WorkerApi\]|☁ CLOUD)/gi, '<span class="tag-base tag-worker">☁ CLOUD</span>')
+                .replace(/(\[Config\]|⚙ CONFIG)/gi,    '<span class="tag-base tag-config">⚙ CONFIG</span>')
+                .replace(/(\[Enroll\]|👆 MATRÍCULA)/gi,  '<span class="tag-base tag-enroll">👆 MATRÍCULA</span>')
+                .replace(/(\[Beep\]|🔔 BEEP)/gi,      '<span class="tag-base tag-beep">🔔 BEEP</span>')
+                .replace(/(\[Gari Digital\]|🧹 GARI)/gi, '<span class="tag-base tag-gari">🧹 GARI</span>')
+                .replace(/(\[Poller\]|📡 POLLER)/gi,    '<span class="tag-base tag-poller">📡 POLLER</span>')
+                .replace(/(\[Local API\]|🌐 API)/gi,   '<span class="tag-base tag-api">🌐 API</span>');
 
-            // ✨ DESTAQUES DE ESTADO (Case Insensitive para abranger variados logs)
+            // ✨ DESTAQUES DE ESTADO
             resp = resp
                 .replace(/\b(sucesso|ok|concluída|ativo|online|conectado|identificada|autorizado)\b/gi, '<span class="hl-ok">$&</span>')
                 .replace(/\b(erro|falha|bloqueio|negado|inacessível|desconectado|divergência|cancelada)\b/gi, '<span class="hl-err">$&</span>');
 
-            // 📍 DADOS TÉCNICOS (IPs, URLs, IDs)
+            // 📍 DADOS TÉCNICOS
             resp = resp
                 .replace(/https?:\/\/[^\s]+/g,   '<span class="hl-url">$&</span>')
-                .replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?/g, '<span class="hl-ip">$&</span>')
-                .replace(/\b([A-Z0-9-]{8,})\b/g, (match) => {
-                    // Evita destacar tags HTML ou palavras comuns, foca em UUIDs/IDs técnicos
-                    if (match.includes('<') || match.includes('>')) return match;
-                    return `<span class="hl-id">${match}</span>`;
-                });
+                .replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?/g, '<span class="hl-ip">$&</span>');
 
             return resp;
         }

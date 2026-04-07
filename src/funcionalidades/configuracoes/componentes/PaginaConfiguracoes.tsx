@@ -100,170 +100,203 @@ export function PaginaConfiguracoes() {
             subtitulo="Ajustes globais do sistema de controle de acesso para sua unidade"
             acoes={
                 alterou ? (
-                    <Botao variante="primario" tamanho="lg" onClick={salvarConfiguracoes} loading={salvando}>
+                    <Botao variante="primario" tamanho="lg" onClick={salvarConfiguracoes} loading={salvando} className="rounded-xl shadow-sm">
                         Salvar Alterações
                     </Botao>
                 ) : (
-                    <div className="px-4 py-2 border border-slate-200 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl">
+                    <div className="px-4 py-2 bg-slate-50 border border-slate-200 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl">
                         Tudo Salvo
                     </div>
                 )
             }
         >
-            <div className="space-y-6 max-w-5xl">
-                {metodo === 'QRCODE' && (
-                    <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
-                        <div className="flex gap-6 items-start">
-                            <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all ${protocolo ? 'bg-amber-50 border-amber-100 text-amber-500' : 'bg-indigo-50 border-indigo-100 text-indigo-600'}`}>
-                                <ShieldAlert strokeWidth={2.5} size={24} />
-                            </div>
-                            <div className="flex flex-col gap-1.5 mt-1">
-                                <div className="flex items-center gap-3">
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">Protocolo de Validação</h3>
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest leading-none h-4 border ${protocolo ? 'bg-amber-50 text-amber-600 border-amber-200' : 'text-slate-500 bg-slate-100 border-slate-200/60'}`}>
-                                        {protocolo ? 'Anti-Fraude Ativo' : 'Funcionamento Offline'}
-                                    </span>
-                                </div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-lg leading-relaxed mt-1">
-                                    {protocolo ? "Codificação dinâmica que expira a cada 15 segundos." : "O código permanece o mesmo. Ideal para locais com pouco sinal."}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200/80 flex items-center shrink-0 w-full md:w-auto h-[52px]">
-                            <button onClick={() => definirProtocolo(false)} className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!protocolo ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:bg-slate-100/50'}`}>
-                                <WifiOff size={14} strokeWidth={2.5} /> QR Estático
-                            </button>
-                            <button onClick={() => definirProtocolo(true)} className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${protocolo ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-100/50'}`}>
-                                <Wifi size={14} strokeWidth={2.5} /> QR Dinâmico
-                            </button>
-                        </div>
-                    </CartaoConteudo>
-                )}
-
-                <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl overflow-hidden">
-                    <div className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
-                        <div className="flex gap-6 items-start">
-                            <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all ${tts ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
-                                {tts ? <Volume2 strokeWidth={2.5} size={24} /> : <VolumeX strokeWidth={2.5} size={24} />}
-                            </div>
-                            <div className="flex flex-col gap-1.5 mt-1">
-                                <div className="flex items-center gap-3">
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">Notificação por Voz (TTS)</h3>
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest leading-none h-4 border ${tts ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'text-slate-500 bg-slate-100 border-slate-200/60'}`}>
-                                        {tts ? 'Ativado' : 'Silencioso'}
-                                    </span>
-                                </div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-lg leading-relaxed mt-1">O terminal anuncia os nomes dos alunos em voz alta durante o registro.</p>
-                            </div>
-                        </div>
-                        <div className="bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200/80 flex items-center shrink-0 w-full md:w-auto h-[52px]">
-                            <button onClick={() => definirTts(false)} className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!tts ? 'bg-white text-slate-700 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:bg-slate-100/50'}`}>
-                                <VolumeX size={14} strokeWidth={2.5} /> Desativado
-                            </button>
-                            <button onClick={() => definirTts(true)} className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tts ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-100/50'}`}>
-                                <Volume2 size={14} strokeWidth={2.5} /> Ativado
-                            </button>
-                        </div>
+            <div className="space-y-8 max-w-5xl mx-auto pb-20">
+                
+                {/* 🔒 SEÇÃO: ACESSO */}
+                <div className="space-y-4">
+                    <div className="px-1 flex items-center gap-2">
+                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fluxo de Acesso</h2>
                     </div>
 
-                    {tts && (
-                        <div className="px-6 md:px-8 pb-8 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600"><CheckCircle2 size={16} /></div>
-                                            <h4 className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Frase de Sucesso</h4>
-                                        </div>
-                                        <input type="text" value={fraseSucesso} onChange={(e) => definirFraseSucesso(e.target.value)} placeholder="Ex: Bem-vindo, {nome}!" className="w-full bg-white border border-slate-200 rounded-xl px-4 h-11 text-xs font-bold focus:border-emerald-500 outline-none transition-all" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* MÉTODO DE RECONHECIMENTO */}
+                        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 flex flex-col justify-between gap-6 transition-all hover:border-indigo-200">
+                            <div className="flex gap-4">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${metodo === 'QRCODE' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                                    {metodo === 'QRCODE' ? <Smartphone size={24} /> : <Fingerprint size={24} />}
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-[13px] font-bold text-slate-900">Método de Identificação</h3>
+                                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">Escolha entre validação por Biometria ou Cartão/QR Code.</p>
+                                </div>
+                            </div>
+                            <div className="p-1.5 bg-slate-50 rounded-xl grid grid-cols-2 gap-1 border border-slate-100">
+                                <button onClick={() => definirMetodo('QRCODE')} className={`flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${metodo === 'QRCODE' ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/40' : 'text-slate-400 hover:text-slate-600'}`}>
+                                    QR Code / Cartão
+                                </button>
+                                <button onClick={() => definirMetodo('DIGITAL')} className={`flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${metodo === 'DIGITAL' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/40' : 'text-slate-400 hover:text-slate-600'}`}>
+                                    Biometria
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* CONTROLE DE SAÍDA */}
+                        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 flex flex-col justify-between gap-6 transition-all hover:border-slate-300">
+                            <div className="flex gap-4">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${saidaObrigatoria ? 'bg-slate-100 text-slate-900' : 'bg-amber-50 text-amber-600'}`}>
+                                    {saidaObrigatoria ? <DoorClosed size={24} /> : <DoorOpen size={24} />}
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-[13px] font-bold text-slate-900">Validar Saída</h3>
+                                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">Define se o aluno precisa registrar a saída na catraca.</p>
+                                </div>
+                            </div>
+                            <div className="p-1.5 bg-slate-50 rounded-xl grid grid-cols-2 gap-1 border border-slate-100">
+                                <button onClick={() => definirSaidaObrigatoria(false)} className={`flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${!saidaObrigatoria ? 'bg-white text-amber-600 shadow-sm border border-slate-200/40' : 'text-slate-400 hover:text-slate-600'}`}>
+                                    Fluxo Livre
+                                </button>
+                                <button onClick={() => definirSaidaObrigatoria(true)} className={`flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${saidaObrigatoria ? 'bg-white text-slate-900 shadow-sm border border-slate-200/40' : 'text-slate-400 hover:text-slate-600'}`}>
+                                    Obrigatória
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* PROTOCOLO DINÂMICO */}
+                        {metodo === 'QRCODE' && (
+                            <div className="col-span-full bg-white border border-slate-200/60 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:border-violet-200 group">
+                                <div className="flex gap-5 items-start">
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${protocolo ? 'bg-violet-50 text-violet-600 outline outline-4 outline-violet-50/50' : 'bg-slate-50 text-slate-400'}`}>
+                                        <ShieldAlert size={28} />
                                     </div>
-                                    <div className="space-y-4">
+                                    <div className="space-y-1.5 pt-0.5">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500"><AlertCircle size={16} /></div>
-                                            <h4 className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Frase de Erro / Negado</h4>
+                                            <h3 className="text-sm font-bold text-slate-900">Protocolo de Validação Dinâmica</h3>
+                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${protocolo ? 'bg-violet-50 text-violet-600 border-violet-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                                {protocolo ? 'Anti-Fraude Ativo' : 'Offline'}
+                                            </span>
                                         </div>
-                                        <input type="text" value={fraseErro} onChange={(e) => definirFraseErro(e.target.value)} placeholder="Ex: Acesso não autorizado." className="w-full bg-white border border-slate-200 rounded-xl px-4 h-11 text-xs font-bold focus:border-rose-500 outline-none transition-all" />
+                                        <p className="text-[11px] text-slate-500 font-medium max-w-xl leading-relaxed">
+                                            {protocolo 
+                                                ? "Geração de códigos que expiram a cada 15s para evitar cópias e capturas de tela." 
+                                                : "O código do aluno permanece o mesmo durante todo o período letivo."}
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="mt-6 pt-6 border-t border-slate-200/60">
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed flex items-center gap-2">
-                                        <Smartphone size={10} className="text-indigo-400" />
-                                        DICA: Use <code className="text-indigo-500 bg-indigo-50 px-1 rounded">{'{nome}'}</code> para falar o nome do aluno.
+                                <div className="p-1 bg-slate-50 rounded-xl flex h-11 w-full md:w-[260px] shrink-0 border border-slate-100">
+                                    <button onClick={() => definirProtocolo(false)} className={`flex-1 flex items-center justify-center gap-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${!protocolo ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-500'}`}>
+                                        Estático
+                                    </button>
+                                    <button onClick={() => definirProtocolo(true)} className={`flex-1 flex items-center justify-center gap-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${protocolo ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-400 hover:text-slate-500'}`}>
+                                        Dinâmico
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* 🔊 SEÇÃO: VOZ */}
+                <div className="space-y-4">
+                    <div className="px-1 flex items-center gap-2">
+                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Falas e Notificações</h2>
+                    </div>
+
+                    <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden group hover:border-pink-200 transition-all">
+                        <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8">
+                            <div className="flex gap-5 items-start">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${tts ? 'bg-pink-50 text-pink-600' : 'bg-slate-50 text-slate-400'}`}>
+                                    {tts ? <Volume2 size={28} /> : <VolumeX size={28} />}
+                                </div>
+                                <div className="space-y-1.5 pt-0.5">
+                                    <h3 className="text-sm font-bold text-slate-900">Anúncio por Voz (TTS)</h3>
+                                    <p className="text-[11px] text-slate-500 font-medium max-w-xl leading-relaxed">O terminal fala o nome do aluno em voz alta para confirmação imediata.</p>
+                                </div>
+                            </div>
+                            <div className="p-1 bg-slate-50 rounded-xl flex h-11 w-full md:w-[260px] shrink-0 border border-slate-100">
+                                <button onClick={() => definirTts(false)} className={`flex-1 flex items-center justify-center gap-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${!tts ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-500'}`}>
+                                    Silencioso
+                                </button>
+                                <button onClick={() => definirTts(true)} className={`flex-1 flex items-center justify-center gap-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${tts ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-400 hover:text-slate-500'}`}>
+                                    Ativado
+                                </button>
+                            </div>
+                        </div>
+
+                        {tts && (
+                            <div className="px-6 md:px-8 pb-8 flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><CheckCircle2 size={12} /></div>
+                                            <h4 className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Sucesso</h4>
+                                        </div>
+                                        <input 
+                                            type="text" 
+                                            value={fraseSucesso} 
+                                            onChange={(e) => definirFraseSucesso(e.target.value)} 
+                                            placeholder="Ex: Bem-vindo, {nome}!" 
+                                            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 h-12 text-[13px] font-medium text-slate-800 placeholder:text-slate-300 focus:bg-white focus:border-indigo-400 outline-none transition-all" 
+                                        />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center"><AlertCircle size={12} /></div>
+                                            <h4 className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Negado</h4>
+                                        </div>
+                                        <input 
+                                            type="text" 
+                                            value={fraseErro} 
+                                            onChange={(e) => definirFraseErro(e.target.value)} 
+                                            placeholder="Ex: Acesso não autorizado." 
+                                            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 h-12 text-[13px] font-medium text-slate-800 placeholder:text-slate-300 focus:bg-white focus:border-rose-400 outline-none transition-all" 
+                                        />
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center gap-4">
+                                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                                        <Smartphone size={16} />
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                                        Dica: O termo <code className="text-indigo-600 font-black mx-1">{"{nome}"}</code> será substituído pelo primeiro nome do aluno.
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </CartaoConteudo>
+                        )}
+                    </div>
+                </div>
 
-                <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
-                    <div className="flex gap-6 items-start">
-                        <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all ${saidaObrigatoria ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
-                            {saidaObrigatoria ? <DoorClosed strokeWidth={2.5} size={24} /> : <DoorOpen strokeWidth={2.5} size={24} />}
-                        </div>
-                        <div className="flex flex-col gap-1.5 mt-1">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">Controle de Saída</h3>
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest leading-none h-4 border ${saidaObrigatoria ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'text-emerald-600 bg-emerald-50 border-emerald-200'}`}>
-                                    {saidaObrigatoria ? 'Rígido' : 'Liberado'}
-                                </span>
-                            </div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-lg leading-relaxed mt-1">
-                                {saidaObrigatoria ? 'A catraca exige validação de saída.' : 'A saída é de fluxo livre.'}
-                            </p>
-                        </div>
+                {/* ⚙️ SEÇÃO: AGENTE LOCAL */}
+                <div className="space-y-4">
+                    <div className="px-1 flex items-center gap-2">
+                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Serviço Local (On-Premise)</h2>
                     </div>
-                    <div className="bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200/80 flex items-center shrink-0 w-full md:w-auto h-[52px]">
-                        <button onClick={() => definirSaidaObrigatoria(false)} className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!saidaObrigatoria ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:bg-slate-100/50'}`}>
-                            <DoorOpen size={14} strokeWidth={2.5} /> Fluxo Aberto
-                        </button>
-                        <button onClick={() => definirSaidaObrigatoria(true)} className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${saidaObrigatoria ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-100/50'}`}>
-                            <DoorClosed size={14} strokeWidth={2.5} /> Obrigatória
-                        </button>
-                    </div>
-                </CartaoConteudo>
 
-                <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
-                    <div className="flex gap-6 items-start">
-                        <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all ${metodo === 'QRCODE' ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
-                            {metodo === 'QRCODE' ? <Smartphone strokeWidth={2.5} size={24} /> : <Fingerprint strokeWidth={2.5} size={24} />}
-                        </div>
-                        <div className="flex flex-col gap-1.5 mt-1">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">Método de Reconhecimento</h3>
+                    <div className="bg-white border border-slate-200/60 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:border-slate-300 group">
+                        <div className="flex gap-5 items-start">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${statusAgente === 'RODANDO' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400'}`}>
+                                <Cpu size={28} />
                             </div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-xl leading-relaxed mt-1">Defina o mecanismo primário: QR Code ou Biometria.</p>
-                        </div>
-                    </div>
-                    <div className="bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200/80 flex items-center shrink-0 w-full md:w-auto h-[52px]">
-                        <button onClick={() => definirMetodo('QRCODE')} className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${metodo === 'QRCODE' ? 'bg-white text-blue-600 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:bg-slate-100/50'}`}>
-                            <Smartphone size={14} strokeWidth={2.5} /> Cartão / QR
-                        </button>
-                        <button onClick={() => definirMetodo('DIGITAL')} className={`flex flex-1 md:flex-none items-center justify-center gap-2.5 px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${metodo === 'DIGITAL' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:bg-slate-100/50'}`}>
-                            <Fingerprint size={14} strokeWidth={2.5} /> Digital
-                        </button>
-                    </div>
-                </CartaoConteudo>
-
-                <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 h-auto">
-                    <div className="flex gap-6 items-start">
-                        <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all ${statusAgente === 'RODANDO' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-rose-50 border-rose-100 text-rose-500'}`}>
-                            <Cpu strokeWidth={2.5} size={24} />
-                        </div>
-                        <div className="flex flex-col gap-1.5 mt-1">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">Catraki Edge Agent</h3>
-                                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest leading-none h-4 border ${statusAgente === 'RODANDO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}>
-                                    {statusAgente === 'RODANDO' ? 'Online na Máquina' : 'Não Detectado'}
-                                </span>
+                            <div className="space-y-1.5 pt-0.5">
+                                <div className="flex items-center gap-3">
+                                    <h3 className="text-sm font-bold text-slate-900 leading-none">Catraki Edge Agent</h3>
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60">
+                                        {statusAgente === 'RODANDO' ? `Operacional (v${infoAgente?.versao || '2.0'})` : 'Desconectado'}
+                                    </div>
+                                </div>
+                                <p className="text-[11px] text-slate-500 font-medium max-w-xl leading-relaxed">Interface técnica para gerenciar o hardware local a partir da nuvem.</p>
                             </div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-xl leading-relaxed mt-1">{statusAgente === 'RODANDO' ? `Software rodando localmente (v${infoAgente?.versao}).` : "O Agente não foi detectado."}</p>
                         </div>
+                        <Botao 
+                            variante="secundario" 
+                            tamanho="sm" 
+                            onClick={() => verificarAgente(true)} 
+                            className="rounded-xl border border-slate-200 text-[10px] font-bold uppercase tracking-widest px-6"
+                        >
+                            Atualizar
+                        </Botao>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Botao variante="ghost" tamanho="sm" onClick={() => verificarAgente(true)} className="border-slate-200 text-[10px] font-black uppercase tracking-widest">Atualizar Status</Botao>
-                    </div>
-                </CartaoConteudo>
+                </div>
             </div>
         </LayoutAdministrativo>
     );
