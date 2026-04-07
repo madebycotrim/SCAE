@@ -148,9 +148,18 @@ export default function PaginaAgente() {
         if (!window.confirm('Atenção: Isso removerá TODOS os registros de acesso da nuvem. O hardware local manterá sua cópia física. Continuar?')) return;
 
         try {
-            const sucesso = await api.remover('/acesso/registros');
-            if (sucesso) {
-                toast.success('Histórico online removido com sucesso!');
+            // 1. Limpa na Nuvem (Banco D1)
+            const sucessoCloud = await api.remover('/acesso/registros');
+            
+            // 2. Limpa no Agente Local (Memória / Stats)
+            try {
+                await fetch('http://127.0.0.1:1912/reset-stats', { method: 'POST' });
+            } catch (err) {
+                console.warn('[Agente] Falha ao resetar stats locais:', err);
+            }
+
+            if (sucessoCloud) {
+                toast.success('Histórico total removido com sucesso!');
                 // Força um ping para atualizar a lista vazia
                 verificarAgente();
             } else {

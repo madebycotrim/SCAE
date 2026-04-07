@@ -216,6 +216,15 @@ async function createWindow() {
         } catch (e) {
             res.writeHead(500); res.end(JSON.stringify({ ok: false }));
         }
+    } else if (req.url === '/reset-stats') {
+        // --- LIMPA ESTATÍSTICAS EM MEMÓRIA ---
+        try {
+            stats.limparEstatisticas();
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true }));
+        } catch (e: any) {
+            res.writeHead(500); res.end(JSON.stringify({ ok: false, erro: e.message }));
+        }
     }
   });
 
@@ -364,6 +373,7 @@ setInterval(enviarStatusHardware, 10000);
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+
 // --- API PARA O SERVIÇO DE SYNC ---
 export function avisarMudancaConfig() {
     if (!mainWindow) return;

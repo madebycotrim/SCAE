@@ -41,6 +41,16 @@ class StatsManager {
         if (this.ultimosEventos.length > 5) this.ultimosEventos.pop();
     }
 
+    limparEstatisticas() {
+        this.entradas = 0;
+        this.saidas = 0;
+        this.negados = 0;
+        this.ultimoAcesso = null;
+        this.ultimosEventos = [];
+        this.horas.fill(0);
+        console.log('[Stats] Métricas de sessão limpas com sucesso.');
+    }
+
     /**
      * Sincroniza métricas com os registros físicos do banco de dados (Últimas 24 Horas)
      * Garante que o histrograma e contadores funcionem mesmo após reboot.
