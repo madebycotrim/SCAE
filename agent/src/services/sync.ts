@@ -78,14 +78,42 @@ export async function iniciarSync() {
     realizarLimpezaGariDigital();
   }, 24 * 60 * 60 * 1000);
 
-  // Atualização de Status Online (Dashboard)
+  // Ciclo 5s: Busca comandos remotos críticos (Abrir catraca, Reboot, Sync)
+  setInterval(async () => {
+    if (config.escola_id !== 'aguardando-identidade') {
+        try {
+            const resp = await fetch(`${config.endpoint_worker}/api/agente/comandos`, {
+                headers: { 
+                    'X-Escola-ID': config.escola_id,
+                    'X-Agente-Token': config.agente_secret 
+                }
+            });
+            if (resp.ok) {
+                const { comandos } = await resp.json();
+                const { processarComandosNuvem } = require('./command-executor');
+                await processarComandosNuvem(comandos);
+            }
+        } catch {}
+    }
+  }, 5000);
+
+  // Atualização de Status Online (Dashboard de Saúde)
   setInterval(() => {
     if (config.escola_id !== 'aguardando-identidade') {
-        const statusLimpo = leitoresAtivos.map(l => ({
-            id: l.id,
-            nome: l.nome,
-            online: (l as any).online || false
-        }));
+        const ipLocal = config.ip_agente || require('../utils/rede').buscarIpLocal();
+        const statusLimpo = {
+            agente_online: true,
+            ultimo_visto: new Date().toISOString(),
+            ip_interno: ipLocal,
+            uptime_seconds: Math.floor(process.uptime()),
+            hardware: leitoresAtivos.map(l => ({
+                id: l.id,
+                nome: l.nome,
+                ip: l.ip,
+                online: (l as any).online || false,
+                total_usuarios: (l as any).totalUsuarios || 0
+            }))
+        };
         WorkerApi.enviarStatus(statusLimpo);
     }
   }, 30 * 1000);
@@ -205,143 +233,109 @@ export async function sincronizarCacheAlunos(forcar = false) {
     const { alunos: alunosServidor, escola_config, etag } = resposta;
     if (etag) ultimaEtag = etag;
 
-    // Atualiza Configurações Globais (Nome, TTS, etc)
+    // Atualiza Configurações Globais (Nome, TTS, Janelas, etc)
     if (escola_config) {
         const configHash = JSON.stringify(escola_config);
         
-        // Log Detalhado APENAS se for disparado MANUALMENTE pelo Site
         if (forcar) {
             console.log("--------------------------------------------------");
             console.log("[Sync] 🌐 PACOTE DE DADOS RECEBIDO DA NUVEM (MANUAL):");
             console.log(` -> Escola: ${escola_config.nome_escola}`);
             console.log(` -> Alunos na Nuvem: ${alunosServidor?.length || 0}`);
+            console.log(` -> Janelas de Horário: ${escola_config.janelas?.length || 0} regras ativas.`);
             console.log(` -> Voz (TTS): ${Number(escola_config.tts_ativado) === 1 ? 'LIGADO' : 'DESLIGADO'}`);
-            console.log(` -> Msg Sucesso (Web): "${escola_config.config_tts_frase_sucesso ?? ''}"`);
-            console.log(` -> Msg Erro (Web): "${escola_config.config_tts_frase_erro ?? ''}"`);
             console.log("--------------------------------------------------");
         }
 
-        // Execução do Sync de Config se o Hash mudou (Background Silencioso se forcar=false)
         if (configHash !== ultimaConfigHash) {
-            // Sincronização de Atributos com o Global Config (Verdade Absoluta da Nuvem)
-            const ttsAntes = config.tts_ativado;
-            const sucessoAntes = config.tts_sucesso;
-            const erroAntes = config.tts_erro;
-
             if (!forcar) {
-                console.log(`[Sync] 🔗 ATUALIZAÇÃO AUTOMÁTICA: Novas configurações detectadas via nuvem.`);
+                console.log(`[Sync] 🔗 ATUALIZAÇÃO AUTOMÁTICA: Novas configurações de horários/regras detectadas.`);
             }
 
             config.nome_escola = escola_config.nome_escola;
             config.tts_ativado = Number(escola_config.tts_ativado) === 1;
             config.tts_sucesso = escola_config.config_tts_frase_sucesso;
             config.tts_erro = escola_config.config_tts_frase_erro;
+            config.janelas = escola_config.janelas || [];
             
-            if (ttsAntes !== config.tts_ativado || sucessoAntes !== config.tts_sucesso || erroAntes !== config.tts_erro) {
-                console.log(`[Sync] 🔗 CONVERGÊNCIA: Divergência detectada! O Agente Local foi atualizado para os padrões WEB.`);
-                console.log(` -> Sucesso: "${config.tts_sucesso}"`);
-                console.log(` -> Erro: "${config.tts_erro}"`);
-            }
-
             ultimaConfigHash = configHash;
 
-            // Avisa a UI (Frontend) sobre a mudança
             const { avisarMudancaConfig } = require('../main/main');
             avisarMudancaConfig();
         }
     }
 
-    // 2. Sincronização de Alunos (Log só se houver mudança)
-    if (alunosServidor && alunosServidor.length !== config.total_alunos) {
-        console.log(`[Sync] 📥 MUDANÇA DETECTADA: Sincronizando ${alunosServidor.length} alunos com o cache local.`);
-        
-        for (const a of (alunosServidor as any[])) {
+    // Sincronização de Turmas (Cache de Turnos)
+    const turmasServidor = (resposta as any).turmas;
+    if (turmasServidor && Array.isArray(turmasServidor)) {
+        for (const t of turmasServidor) {
             await runSql(`
-                INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, ativo)
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(matricula, escola_id) DO UPDATE SET
-                    nome_completo = excluded.nome_completo,
-                    turma_id = excluded.turma_id,
-                    ativo = excluded.ativo,
-                    atualizado_em = datetime('now', 'localtime')
-            `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.ativo === 1 ? 1 : 0]);
+                INSERT INTO turmas_cache (id, turno) VALUES (?, ?)
+                ON CONFLICT(id) DO UPDATE SET turno = excluded.turno, atualizado_em = datetime('now', 'localtime')
+            `, [t.id, t.turno]);
         }
+    }
 
-        config.total_alunos = alunosServidor.length;
-        console.log(`[Sync] 🏁 CACHE DE ALUNOS ATUALIZADO (Total: ${config.total_alunos})`);
+    // Sincronização de Alunos
+    if (alunosServidor) {
+        if (forcar || alunosServidor.length !== config.total_alunos) {
+            console.log(`[Sync] 📥 ATUALIZANDO CACHE: Sincronizando ${alunosServidor.length} alunos com o banco local.`);
+            
+            for (const a of (alunosServidor as any[])) {
+                await runSql(`
+                    INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, turno, ativo)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(matricula, escola_id) DO UPDATE SET
+                        nome_completo = excluded.nome_completo,
+                        turma_id = excluded.turma_id,
+                        turno = excluded.turno,
+                        ativo = excluded.ativo,
+                        atualizado_em = datetime('now', 'localtime')
+                `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.turno, a.ativo === 1 ? 1 : 0]);
+            }
 
-        // --- CONVERGÊNCIA DE HARDWARE (MANTÉM O DISPOSITIVO FÍSICO ESPELHADO) ---
-        // Roda sempre que há mudança no cache ou quando o usuário força via Dashboard
-        await sincronizarHardware(alunosServidor);
-    } else if (forcar && alunosServidor) {
-        // Se o usuário clicou em "Atualizar Status" mas o ETag não mudou (304), 
-        // forçamos a convergência de hardware mesmo assim para garantir 100% de integridade física.
-        await sincronizarHardware(alunosServidor);
+            config.total_alunos = alunosServidor.length;
+            await sincronizarHardware(alunosServidor);
+        } else if (forcar) {
+            await sincronizarHardware(alunosServidor);
+        }
     }
 
   } catch (e: any) {
     if (forcar) console.error(`[Sync] ✗ ERRO NA ATUALIZAÇÃO FORÇADA:`, e.message);
-    // Telemetria (Item 4)
     WorkerApi.reportarErroCritico(`Erro de Sincronização: ${e.message}`, 'SYNC');
   } finally {
       estaSincronizando = false;
   }
 }
 
-/**
- * Motor de Integridade Física: Garante que os alunos da Nuvem existam no Hardware iDFlex.
- * Resolve discrepâncias entre o Banco Online e a memória interna do equipamento.
- */
 async function sincronizarHardware(alunosNuvem: any[]) {
-    if (!leitoresAtivos || leitoresAtivos.length === 0) {
-        console.warn(`[Sync][Hardware] Abortando: Nenhum leitor ativo no radar.`);
-        return;
-    }
-
-    console.log(`[Sync][Hardware] Iniciando análise de ${alunosNuvem.length} alunos da nuvem...`);
+    if (!leitoresAtivos || leitoresAtivos.length === 0) return;
 
     for (const leitor of leitoresAtivos) {
         try {
-            if (!leitor.listarAlunos) {
-                console.log(`[Sync][Hardware] Leitor ${leitor.nome} não suporta listagem de alunos.`);
-                continue;
-            }
-
-            // Verifica se o leitor está marcado como online pelo poller
-            if (!(leitor as any).online) {
-                console.warn(`[Sync][Hardware] Pulando ${leitor.nome}: Equipamento em modo OFFLINE/STANDBY.`);
-                continue;
-            }
+            if (!(leitor as any).online) continue;
+            if (!leitor.listarAlunos) continue;
 
             const usuariosHardware = await leitor.listarAlunos();
             const matriculasNoHardware = new Set(usuariosHardware.map((u: any) => String(u.registration || "").trim()));
 
-            console.log(`[Sync][Hardware] Analisando ${leitor.nome} (${usuariosHardware.length} usuários detectados).`);
-            if (usuariosHardware.length > 0 && usuariosHardware.length < 10) {
-                 console.log(`[Sync][Hardware] Matrículas no hardware: [${Array.from(matriculasNoHardware).join(', ')}]`);
-            }
-
             let cadastrosRealizados = 0;
             let exclusoesRealizadas = 0;
 
-            // 1. Injetar Alunos que faltam no hardware
             for (const aluno of alunosNuvem) {
                 const matriculaLimpa = String(aluno.matricula).trim();
-                // D1 retorna 0/1 para booleanos. Garantimos a conversão.
                 const deveEstarNoHardware = Number(aluno.ativo) === 1 || aluno.ativo === true;
 
                 if (deveEstarNoHardware && !matriculasNoHardware.has(matriculaLimpa)) {
-                    console.log(`[Sync][Hardware] +++ CADASTRANDO: ${aluno.nome_completo} (${matriculaLimpa}) em ${leitor.nome}`);
                     const res = await leitor.cadastrarAluno({
                         matricula: aluno.matricula,
                         nomeCompleto: aluno.nome_completo
                     });
                     if (res.ok) cadastrosRealizados++;
-                    else console.error(`[Sync][Hardware] !!! Erro ao cadastrar ${aluno.nome_completo}: ${res.erro}`);
                 }
             }
 
-            // 2. Expurgar Alunos inativos ou removidos
             const matriculasAtivasNuvem = new Set(
                 alunosNuvem
                     .filter(a => Number(a.ativo) === 1 || a.ativo === true)
@@ -350,7 +344,6 @@ async function sincronizarHardware(alunosNuvem: any[]) {
             for (const hardwareUser of usuariosHardware) {
                 const reg = String(hardwareUser.registration || "").trim();
                 if (reg && reg !== "0" && !matriculasAtivasNuvem.has(reg)) {
-                    console.log(`[Sync][Hardware] <- Removendo acesso obsoleto: Reg ${reg} de ${leitor.nome}...`);
                     await (leitor as any).removerAluno(reg);
                     exclusoesRealizadas++;
                 }
@@ -358,18 +351,9 @@ async function sincronizarHardware(alunosNuvem: any[]) {
 
             if (cadastrosRealizados > 0 || exclusoesRealizadas > 0) {
                 console.warn(`[Sync] 🛡️ CONVERGÊNCIA CONCLUÍDA [${leitor.nome}]: +${cadastrosRealizados} inseridos | -${exclusoesRealizadas} removidos.`);
-            } else {
-                console.log(`[Sync] 🛡️ HARDWARE [${leitor.nome}] JÁ ESTÁ 100% SINCRONIZADO.`);
             }
-
         } catch (e: any) {
             console.error(`[Sync] 🛡️ Falha na convergência de ${leitor.id}: ${e.message}`);
-            if (e.code !== 'ECONNREFUSED' && e.code !== 'ETIMEDOUT') {
-                console.error(`[Poller] Falha no leitor ${leitor.id}:`, e.message);
-                // Telemetria (Item 4): Reporta se for um erro de software/banco e não apenas rede offline
-                const { WorkerApi } = require('./worker-endpoint');
-                WorkerApi.reportarErroCritico(`Falha Poller [${leitor.id}]: ${e.message}`, 'HARDWARE');
-            }
         }
     }
 }

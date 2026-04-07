@@ -11,23 +11,37 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
     const { DB_SCAE: db } = env;
 
     try {
+        // 1. Busca Alunos com seus Turnos (via join com turmas)
         const alunos = await db.prepare(`
-            SELECT a.matricula, a.nome_completo, a.turma_id, a.ativo, a.biometria_cadastrada
+            SELECT a.matricula, a.nome_completo, a.turma_id, t.turno, a.ativo, a.biometria_cadastrada
             FROM alunos a
+            LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
             WHERE a.escola_id = ? AND a.ativo = 1
         `).bind(escolaId).all();
 
+        // 2. Busca Configurações da Escola (incluindo Janelas de Horário)
         const escolaInfo = await db.prepare(`
-            SELECT nome_escola, tts_ativado, 
+            SELECT nome_escola, tts_ativado, janelas,
                    COALESCE(config_tts_frase_sucesso, '') as config_tts_frase_sucesso, 
                    COALESCE(config_tts_frase_erro, '') as config_tts_frase_erro
             FROM escolas
             WHERE id = ?
         `).bind(escolaId).first();
 
+        // 3. Busca lista de Turmas para o Agente ter o mapa completo se precisar
+        const turmas = await db.prepare(`
+            SELECT id, serie, letra, turno FROM turmas WHERE escola_id = ?
+        `).bind(escolaId).all();
+
+        const escolaRetorno = (escolaInfo as any) || {};
+
         const dataObj = {
-            escola_config: escolaInfo || {},
+            escola_config: {
+                ...escolaRetorno,
+                janelas: escolaRetorno.janelas ? JSON.parse(escolaRetorno.janelas as string) : []
+            },
             alunos: alunos.results,
+            turmas: turmas.results,
             total: alunos.results.length
         };
 

@@ -30,6 +30,7 @@ export interface AgenteConfig {
   endpoint_worker: string;
   admin_pin: string;
   agente_secret: string; // Token de autenticação entre Agente <-> Cloudflare
+  janelas?: any[]; // Regras de horário para classificação entrada/saída
 }
 
 // Configuração padrão de fábrica
@@ -41,6 +42,7 @@ const configPadrao: AgenteConfig = {
   tts_sucesso: '',
   tts_erro: '',
   leitores: [],
+  janelas: [],
   intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,
   endpoint_worker: 'https://catraki.com.br',

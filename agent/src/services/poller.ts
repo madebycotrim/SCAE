@@ -147,10 +147,15 @@ async function monitorarLeitor(leitor: ILeitor) {
       
         for (const ev of eventos) {
         const matriculaParaBusca = ev.matricula || ev.idUsuario;
-        const aluno = await getSql('SELECT nome_completo, turma_id FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
+        const aluno = await getSql('SELECT nome_completo, turma_id, turno FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
+        
+        const { classificarAcesso } = require('./classificador');
+        const classificacao = classificarAcesso(String(matriculaParaBusca), aluno?.turno);
+
         const nomeAcesso = aluno?.nome_completo || ev.nomeHardware || `DESCONHECIDO (${ev.idUsuario})`;
         const turmaAcesso = aluno?.turma_id || '---';
-        const statusAcesso = ev.autorizado ? ev.tipo : 'NEGADO';
+        const statusAcesso = ev.autorizado ? classificacao.tipo : 'NEGADO';
+        const detalheAcesso = classificacao.mensagem;
 
         // --- GRAVAÇÃO DETERMINÍSTICA (Source of Truth) ---
         // Usamos um ID baseado no ID real do hardware para evitar duplicatas reais
@@ -183,7 +188,9 @@ async function monitorarLeitor(leitor: ILeitor) {
                     nomePuro: nomeAcesso,
                     turma: turmaAcesso,
                     matricula: String(matriculaParaBusca),
-                    sucesso: statusAcesso === 'ENTRADA',
+                    sucesso: statusAcesso !== 'NEGADO' && statusAcesso !== 'TURNO_ERRADO' && statusAcesso !== 'FORA_DE_HORARIO',
+                    statusAcesso,
+                    detalhe: detalheAcesso,
                     ttsAtivo: config.tts_ativado,
                     ttsParams: {
                         sucesso: config.tts_sucesso ?? 'Bem-vindo, {nome}!',

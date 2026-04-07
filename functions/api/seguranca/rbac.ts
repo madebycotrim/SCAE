@@ -33,6 +33,7 @@ export const Permissao = {
     REGISTRAR_ACESSO: 'acesso:registrar',
     VER_ACESSO: 'acesso:ler',
     GERENCIAR_ACESSO: 'acesso:gerenciar',
+    GERENCIAR_AGENTE: 'agente:gerenciar',
 
     // Relatórios e Dashboards
     VER_RELATORIOS: 'relatorios:ler'
@@ -57,6 +58,7 @@ export const MatrizPermissoes: Record<Papel, Permissao[]> = {
         Permissao.GERENCIAR_ACADEMICO,
         Permissao.VER_ACADEMICO,
         Permissao.GERENCIAR_ACESSO,
+        Permissao.GERENCIAR_AGENTE,
         Permissao.VER_ACESSO,
         Permissao.REGISTRAR_ACESSO, // opcional, mas herdado de superuser
         Permissao.VER_RELATORIOS

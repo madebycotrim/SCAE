@@ -3,10 +3,9 @@ import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrati
 import { CartaoConteudo, Botao } from '@/compartilhado/componentes/UI';
 import { 
     Activity, ArrowUp, XCircle, Clock, 
-    Shield, CheckCircle2, Search, Fingerprint, Trash2,
-    User, ShieldCheck, ArrowRightCircle
+    CheckCircle2, Search, Fingerprint, Trash2,
+    User, ArrowRightCircle, Wifi, WifiOff, RefreshCw, Power, Lock, Zap
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { alunoServico } from '@/funcionalidades/academico/servicos/aluno.servico';
@@ -29,6 +28,7 @@ interface StatusAgente {
             matricula?: string;
             turma?: string;
             tipo: string;
+            detalhe?: string;
             timestamp: string;
         }>;
     };
@@ -38,16 +38,17 @@ interface StatusAgente {
         tipo: string;
         online: boolean;
         ip?: string;
-        porta?: string;
+        totalUsuarios?: number;
     }>;
 }
 
 export default function PaginaAgente() {
     const escola = usarEscola();
     const slugEscola = escola.id;
-    const [status, setStatus] = useState<StatusAgente | null>(null);
+    const [statusLocal, setStatusLocal] = useState<StatusAgente | null>(null);
+    const [statusNuvem, setStatusNuvem] = useState<any>(null);
     const [carregando, setCarregando] = useState(true);
-    const [erro, setErro] = useState<string | null>(null);
+    const [erroLocal, setErroLocal] = useState<string | null>(null);
 
     // Estado para Busca de Alunos
     const [termoBusca, setTermoBusca] = useState('');
@@ -72,70 +73,59 @@ export default function PaginaAgente() {
           ).slice(0, 5)
         : [];
 
-    const verificarAgente = async () => {
+    const verificarSaudeGlobal = async () => {
         try {
-            const res = await fetch('http://127.0.0.1:1912/ping', { 
-                mode: 'cors'
-            });
+            const res = await api.obter<any>('/agente/status');
+            if (res.ok) setStatusNuvem(res.status);
+        } catch {} 
+    };
+
+    const enviarComandoRemoto = async (acao: string, params: any = {}) => {
+        const toastId = toast.loading('Enviando ordem para o Agente...');
+        try {
+            await api.enviar('/agente/comandos', { acao, params });
+            toast.success('Comando enfileirado! O Agente executará em instantes.', { id: toastId });
+        } catch (e: any) {
+            toast.error(`Falha ao enviar: ${e.message}`, { id: toastId });
+        }
+    };
+
+    const verificarAgenteLocal = async () => {
+        try {
+            const res = await fetch('http://127.0.0.1:1912/ping', { mode: 'cors' });
             if (!res.ok) throw new Error();
             const dados = await res.json();
-            setStatus(dados);
-            setErro(null);
+            setStatusLocal(dados);
+            setErroLocal(null);
         } catch (e) {
-            setStatus(null);
-            setErro('AGENTE LOCAL DESCONECTADO');
+            setStatusLocal(null);
+            setErroLocal('AGENTE LOCAL DESCONECTADO');
         } finally {
             setCarregando(false);
         }
     };
 
     const iniciarCadastroBiometrico = async (matricula: string, nome: string) => {
-        if (!status?.ok) {
-            toast.error('Agente offline. Certifique-se que o app Catraki está aberto.');
+        if (!statusLocal?.ok) {
+            toast.error('Agente offline localmente. Use o computador da portaria para cadastrar.');
             return;
         }
-
         setCadastrandoPara(matricula);
         const toastId = toast.loading(`Aguardando digital de ${nome.split(' ')[0]} no leitor...`);
-
         try {
             const res = await fetch('http://127.0.0.1:1912/enroll', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ aluno_id: matricula })
             });
-
             const data = await res.json();
             if (data.ok) {
-                // 🔗 SINCRONIZAÇÃO NUVEM: Confirma que o hardware local agora possui a biometria
-                try {
-                    await api.enviar('/agente/confirmar-biometria', { matricula });
-                    toast.success('Digital vinculada e salva na nuvem!', { id: toastId });
-                    setBiometriasConfirmadas(prev => new Set(prev).add(matricula));
-                    setTimeout(atualizarAlunos, 1500);
-                } catch (errCloud: any) {
-                    toast.error(`Capturada, mas erro ao salvar na nuvem: ${errCloud.message}`, { id: toastId });
-                }
+                await api.enviar('/agente/confirmar-biometria', { matricula });
+                toast.success('Digital vinculada!', { id: toastId });
+                setBiometriasConfirmadas(prev => new Set(prev).add(matricula));
+                setTimeout(atualizarAlunos, 1500);
             } else {
-                // Tradução amigável das mensagens técnicas do iDFlex
-                const erroBruto = (data.erro || data.mensagem || '').toLowerCase();
-                let mensagemUsuario = 'Falha na captura.';
-
-                if (erroBruto.includes('cancel') || erroBruto.includes('cancelado')) {
-                    mensagemUsuario = 'Operação cancelada no leitor.';
-                } else if (erroBruto.includes('timeout') || erroBruto.includes('tempo esgotado')) {
-                    mensagemUsuario = 'Tempo esgotado. Tente novamente.';
-                } else if (erroBruto.includes('not found') || erroBruto.includes('inexistente')) {
-                    mensagemUsuario = 'Aluno não encontrado no hardware.';
-                } else if (erroBruto.includes('already exists')) {
-                    mensagemUsuario = 'Este aluno já possui cadastro.';
-                } else if (data.erro) {
-                    mensagemUsuario = data.erro; // Se for uma mensagem já tratada pelo backend
-                }
-
-                toast.error(mensagemUsuario, { id: toastId });
+                toast.error(data.erro || 'Falha na captura.', { id: toastId });
             }
         } catch (e) {
             toast.error('Erro de conexão local.', { id: toastId });
@@ -145,47 +135,59 @@ export default function PaginaAgente() {
     };
 
     const limparHistorico = async () => {
-        if (!window.confirm('Atenção: Isso removerá TODOS os registros de acesso da nuvem. O hardware local manterá sua cópia física. Continuar?')) return;
-
+        if (!window.confirm('Atenção: Isso removerá TODOS os registros de acesso da nuvem. Continuar?')) return;
         try {
-            // 1. Limpa na Nuvem (Banco D1)
-            const sucessoCloud = await api.remover('/acesso/registros');
-            
-            // 2. Limpa no Agente Local (Memória / Stats)
-            try {
-                await fetch('http://127.0.0.1:1912/reset-stats', { method: 'POST' });
-            } catch (err) {
-                console.warn('[Agente] Falha ao resetar stats locais:', err);
-            }
-
-            if (sucessoCloud) {
-                toast.success('Histórico total removido com sucesso!');
-                // Força um ping para atualizar a lista vazia
-                verificarAgente();
-            } else {
-                throw new Error();
-            }
+            await api.remover('/acesso/registros');
+            try { await fetch('http://127.0.0.1:1912/reset-stats', { method: 'POST' }); } catch {}
+            toast.success('Histórico removido!');
+            verificarAgenteLocal();
         } catch (e) {
-            toast.error('Falha ao limpar histórico na nuvem.');
+            toast.error('Falha ao limpar histórico.');
         }
     };
 
     useEffect(() => {
-        verificarAgente();
-        const interval = setInterval(verificarAgente, 5000);
+        verificarAgenteLocal();
+        verificarSaudeGlobal();
+        const interval = setInterval(() => {
+            verificarAgenteLocal();
+            verificarSaudeGlobal();
+        }, 5000);
         return () => clearInterval(interval);
     }, []);
 
+    const isOnlineNuvem = statusNuvem?.agente_online;
+
     return (
-        <LayoutAdministrativo titulo="Gestão de Biometria" subtitulo="Controle de acesso e cadastro em tempo real">
+        <LayoutAdministrativo titulo="Monitor do Agente" subtitulo="Status de saúde e controle de acesso remoto">
             <div className="space-y-6">
-                {/* MÉTRICAS */}
+                
+                {/* STATUS BAR */}
+                <div className="flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${statusLocal ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Local: {statusLocal ? 'Conectado' : 'Offline'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${isOnlineNuvem ? 'bg-indigo-500 animate-pulse' : 'bg-rose-500'}`} />
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Nuvem: {isOnlineNuvem ? 'Ativo' : 'Desconectado'}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Botao variante="ghost" tamanho="sm" icone={RefreshCw} onClick={() => enviarComandoRemoto('FORCE_SYNC')}>Sincronizar Agora</Botao>
+                        <Botao variante="ghost" tamanho="sm" icone={Power} onClick={() => { if(confirm('Reiniciar o Agente remotamente?')) enviarComandoRemoto('REBOOT_AGENT'); }}>Reiniciar Agente</Botao>
+                    </div>
+                </div>
+
+                {/* MÉTRICAS (MISTO LOCAL/NUVEM) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         {[
-                            { label: 'Entradas', valor: status?.stats?.entradas || 0, cor: 'bg-emerald-500', icone: ArrowUp, bg: 'bg-emerald-50', text: 'text-emerald-600' },
-                            { label: 'Negados', valor: status?.stats?.negados || 0, cor: 'bg-rose-500', icone: XCircle, bg: 'bg-rose-50', text: 'text-rose-600' },
-                            { label: 'Pico', valor: '--:--', cor: 'bg-amber-500', icone: Clock, bg: 'bg-amber-50', text: 'text-amber-600' },
-                            { label: 'Último', valor: status?.stats?.ultimoAcesso || '--:--', cor: 'bg-indigo-500', icone: Activity, bg: 'bg-indigo-50', text: 'text-indigo-600' }
+                            { label: 'Entradas', valor: statusLocal?.stats?.entradas || 0, cor: 'bg-emerald-500', icone: ArrowUp, bg: 'bg-emerald-50', text: 'text-emerald-600' },
+                            { label: 'Negados/Erros', valor: statusLocal?.stats?.negados || 0, cor: 'bg-rose-500', icone: XCircle, bg: 'bg-rose-50', text: 'text-rose-600' },
+                            { label: 'Uptime', valor: statusNuvem?.uptime_seconds ? `${Math.floor(statusNuvem.uptime_seconds/3600)}h` : '--', cor: 'bg-amber-500', icone: Clock, bg: 'bg-amber-50', text: 'text-amber-600' },
+                            { label: 'Último Acesso', valor: statusLocal?.stats?.ultimoAcesso || '--:--', cor: 'bg-indigo-500', icone: Activity, bg: 'bg-indigo-50', text: 'text-indigo-600' }
                         ].map((item, i) => (
                             <CartaoConteudo key={i} className="relative p-5 overflow-hidden">
                                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${item.cor}`} />
@@ -210,7 +212,7 @@ export default function PaginaAgente() {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                 <input 
                                     type="text"
-                                    placeholder="Nome ou matrícula..."
+                                    placeholder="Cadastrar Biometria: Nome ou matrícula..."
                                     value={termoBusca}
                                     onChange={(e) => setTermoBusca(e.target.value)}
                                     className="w-full pl-12 pr-4 h-14 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:border-indigo-500 transition-all"
@@ -233,79 +235,84 @@ export default function PaginaAgente() {
                                             variante={aluno.biometria_cadastrada ? 'secundario' : 'primario'}
                                             onClick={() => iniciarCadastroBiometrico(aluno.matricula, aluno.nome_completo)}
                                             carregando={cadastrandoPara === aluno.matricula}
-                                            disabled={!status?.ok}
+                                            disabled={!statusLocal}
                                             icone={Fingerprint}
                                         >
                                             {aluno.biometria_cadastrada ? 'Recadastrar' : 'Cadastrar'}
                                         </Botao>
                                     </div>
                                 ))}
-                                {termoBusca.length >= 2 && alunosFiltrados.length === 0 && (
-                                    <div className="py-8 text-center text-slate-400 text-[10px] font-black uppercase">Nenhum aluno encontrado</div>
-                                )}
+                            </div>
+                        </CartaoConteudo>
+
+                        <CartaoConteudo className="p-6">
+                             <div className="flex items-center justify-between mb-6 px-2">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fluxo Real-Time</h4>
+                                <button onClick={limparHistorico} className="text-[9px] font-black text-rose-500 uppercase flex items-center gap-1.5"><Trash2 size={12} /> Limpar Tudo</button>
+                            </div>
+                            <div className="space-y-2">
+                                {(statusLocal?.stats?.ultimosEventos || []).map((ev, i) => (
+                                    <div key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${ev.tipo === 'NEGADO' || ev.tipo === 'TURNO_ERRADO' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                                {ev.tipo === 'ENTRADA' ? <ArrowRightCircle size={18} /> : <XCircle size={18} />}
+                                            </div>
+                                            <div>
+                                                <p className="text-[12px] font-black text-slate-800 uppercase leading-none">{ev.nome}</p>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase mt-1">{ev.tipo} • {ev.detalhe || 'OK'}</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-black text-indigo-500 bg-white border border-slate-200 px-2 py-1 rounded-lg">
+                                            {new Date(ev.timestamp).toLocaleTimeString()}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
                         </CartaoConteudo>
                     </div>
 
-                    {/* OPERACIONAL */}
+                    {/* OPERACIONAL (SAÚDE DOS LEITORES) */}
                     <div className="space-y-6">
                         <div className="space-y-4">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Agente Catraki Local</h4>
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 group flex items-center gap-2">
+                                <Zap size={12} className="text-amber-500" /> Equipamentos em Radar
+                            </h4>
                             <div className="space-y-3">
-                                {status?.leitores?.map(leitor => (
-                                    <CartaoConteudo key={leitor.id} className="relative p-4 overflow-hidden">
-                                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${leitor.online ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h5 className="text-[11px] font-black text-slate-800 uppercase">{leitor.nome}</h5>
-                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{leitor.tipo} • {leitor.online ? 'Online' : 'Offline'}</p>
+                                {(statusNuvem?.hardware || []).map((leitor: any) => (
+                                    <CartaoConteudo key={leitor.id} className="relative p-5 overflow-hidden group hover:border-indigo-200 transition-all">
+                                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${leitor.online ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${leitor.online ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                    {leitor.online ? <Wifi size={20} /> : <WifiOff size={20} />}
+                                                </div>
+                                                <div>
+                                                    <h5 className="text-[12px] font-black text-slate-800 uppercase leading-none">{leitor.nome}</h5>
+                                                    <p className="text-[10px] font-bold text-slate-400 mt-1">{leitor.ip}</p>
+                                                </div>
                                             </div>
-                                            <div className={`w-2.5 h-2.5 rounded-full ${leitor.online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2">
+                                            <Botao 
+                                                variante="secundario" 
+                                                className="w-full !py-2 !text-[10px]" 
+                                                icone={Lock} 
+                                                onClick={() => enviarComandoRemoto('ABRIR_CATRACA', { leitorId: leitor.id })}
+                                                disabled={!leitor.online}
+                                            >
+                                                Abrir Catraca
+                                            </Botao>
                                         </div>
                                     </CartaoConteudo>
                                 ))}
-                                
-                                <div className="pt-4 border-t border-slate-100 flex flex-col items-center gap-4">
-                                    {!status && erro && (
-                                        <div className="flex items-center gap-2 text-rose-500 text-[9px] font-black uppercase animate-bounce">
-                                            <AlertTriangle size={14} /> {erro}
-                                        </div>
-                                    )}
-                                    <div className="flex items-center gap-2 text-slate-300 text-[9px] font-black uppercase">
-                                        GERENCIADO FISICAMENTE
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* FLUXO */}
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between px-2">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fluxo Real-Time</h4>
-                                <button 
-                                    onClick={limparHistorico}
-                                    className="text-[9px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-tight flex items-center gap-1.5 transition-colors"
-                                >
-                                    <Trash2 size={12} /> Limpar
-                                </button>
-                            </div>
-                            <div className="space-y-2">
-                                {(status?.stats?.ultimosEventos || []).map((ev, i) => (
-                                    <div key={i} className="p-3 bg-white border border-slate-100 rounded-xl flex items-center justify-between shadow-sm">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${ev.tipo === 'NEGADO' ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'}`}>
-                                                {ev.tipo === 'NEGADO' ? <XCircle size={14} /> : <ArrowRightCircle size={14} />}
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black text-slate-800 uppercase leading-none">{ev.nome}</p>
-                                                <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">{ev.matricula || '---'} • {ev.turma || 'SEM TURMA'}</p>
-                                            </div>
-                                        </div>
-                                        <span className="text-[9px] font-black text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-md">
-                                            {ev.timestamp.includes('T') ? new Date(ev.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ev.timestamp}
-                                        </span>
+                                {(!statusNuvem?.hardware || statusNuvem.hardware.length === 0) && (
+                                    <div className="p-10 text-center bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
+                                        <Search size={32} className="mx-auto text-slate-300 mb-2" />
+                                        <p className="text-[10px] font-black text-slate-400 uppercase">Nenhum hardware detectado</p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     </div>
@@ -314,6 +321,3 @@ export default function PaginaAgente() {
         </LayoutAdministrativo>
     );
 }
-
-// Para manter ícones do Lucide
-const AlertTriangle = (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>;

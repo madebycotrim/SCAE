@@ -7,13 +7,14 @@ import { validarAgente } from './_agente-seguranca';
 
 export async function onRequestPost({ request, env }: ContextoCatraki) {
     const escolaId = validarAgente(request, env);
-    const corpo = await request.json() as { timestamp: string, leitores: any[] };
+    const corpo = await request.json() as any;
 
-    // Usamos o KV (se disponível) ou D1 para registrar o vigor do terminal.
-    // Como D1 é bom para persistência, vamos registrar na tabela 'terminais' (precisa criar).
-    // Por enquanto, apenas logamos no servidor para confirmar funcionalidade.
+    // Persistimos a saúde no KV com TTL de 90 segundos.
+    // Se o Agente parar de enviar por mais de 90s, o registro some e a UI mostra "Offline".
+    const { KV_SCAE } = env;
+    if (KV_SCAE) {
+        await KV_SCAE.put(`escola:${escolaId}:status`, JSON.stringify(corpo), { expirationTtl: 90 });
+    }
     
-    console.log(`[Heartbeat] Agente da Escola ${escolaId} Ativo em ${corpo.timestamp}`);
-    
-    return Response.json({ ok: true, recebido: corpo.timestamp });
+    return Response.json({ ok: true });
 }

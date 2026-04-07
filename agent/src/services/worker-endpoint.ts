@@ -98,8 +98,8 @@ export class WorkerApi {
         escola_id: config.escola_id,
         aluno_matricula: e.matricula, // Converte 'matricula' para 'aluno_matricula'
         tipo_movimentacao: e.tipo || 'ENTRADA', // Converte 'tipo' para 'tipo_movimentacao'
-        metodo_leitura: 'BIOMETRIA',
-        timestamp_acesso: e.timestamp_acesso,
+        metodo_validacao: 'BIOMETRIA',
+        timestamp: e.timestamp_acesso, // O campo no WorkerApi.enviarBatida deve ser 'timestamp'
         leitor_id: e.leitor_id,
         id_evento_hardware: e.id.split('-')[1] || '0'
     }));

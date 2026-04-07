@@ -9,15 +9,17 @@ async function processarSincronizacaoAcessos(contexto: ContextoCatraki): Promise
         // RBAC: PORTEIRO também pode sincronizar
         verificarAcesso(contexto, Permissao.REGISTRAR_ACESSO);
 
-        let registros: PayloadRegistroAcesso[];
+        let registros: PayloadRegistroAcesso[] = [];
         try {
-            registros = await contexto.request.json();
+            const corpo: any = await contexto.request.json();
+            // Suporta [{...}] ou { registros: [{...}] }
+            registros = Array.isArray(corpo) ? corpo : (corpo?.registros || []);
         } catch {
             throw new ErroValidacao('JSON inválido no corpo da requisição', 'JSON_PARSE_ERROR');
         }
 
-        if (!Array.isArray(registros)) {
-            throw new ErroValidacao('Esperado array de registros para sincronização');
+        if (!registros.length) {
+            return Response.json({ dados: [], mensagem: 'Nenhum registro no lote' });
         }
 
         // Usar db.batch() para inserir todos de uma vez (1 round-trip ao D1)
@@ -27,14 +29,20 @@ async function processarSincronizacaoAcessos(contexto: ContextoCatraki): Promise
             VALUES (?, ?, ?, ?, ?, ?, 1)`
         );
 
-        const stmts = registros.map(registro => stmt.bind(
-            registro.id,
-            idEscola,
-            registro.aluno_matricula,
-            registro.tipo_movimentacao,
-            registro.metodo_validacao || 'manual',
-            registro.timestamp
-        ));
+        const stmts = registros.map(registro => {
+             // 🛡️ Fallback robusto para nomes de campos (Híbrido Agente/Worker)
+             const ts = (registro as any).timestamp || (registro as any).timestamp_acesso || (registro as any).data_acesso || new Date().toISOString();
+             const metodo = (registro as any).metodo_validacao || (registro as any).metodo_leitura || 'manual';
+             
+             return stmt.bind(
+                registro.id,
+                idEscola,
+                registro.aluno_matricula,
+                registro.tipo_movimentacao,
+                metodo,
+                ts
+            );
+        });
 
         const batchResults = await contexto.env.DB_SCAE.batch(stmts);
 

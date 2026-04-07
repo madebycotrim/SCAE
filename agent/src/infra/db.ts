@@ -73,7 +73,25 @@ export function getDb(): sqlite3.Database {
     `);
 
     database?.run(`CREATE TABLE IF NOT EXISTS cursores_leitura (leitor_id TEXT PRIMARY KEY, ultimo_evento_id TEXT, atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')))`);
-    database?.run(`CREATE TABLE IF NOT EXISTS alunos_cache (matricula TEXT NOT NULL, escola_id TEXT NOT NULL, nome_completo TEXT, turma_id TEXT, ativo INTEGER DEFAULT 1, atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')), PRIMARY KEY (matricula, escola_id))`);
+    
+    // Tabela de Alunos com Turno
+    database?.run(`CREATE TABLE IF NOT EXISTS alunos_cache (
+        matricula TEXT NOT NULL, 
+        escola_id TEXT NOT NULL, 
+        nome_completo TEXT, 
+        turma_id TEXT, 
+        turno TEXT,
+        ativo INTEGER DEFAULT 1, 
+        atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')), 
+        PRIMARY KEY (matricula, escola_id)
+    )`);
+
+    // Tabela de Turmas para busca rápida
+    database?.run(`CREATE TABLE IF NOT EXISTS turmas_cache (
+        id TEXT PRIMARY KEY,
+        turno TEXT,
+        atualizado_em DATETIME DEFAULT (datetime('now', 'localtime'))
+    )`);
   });
 
   return database;

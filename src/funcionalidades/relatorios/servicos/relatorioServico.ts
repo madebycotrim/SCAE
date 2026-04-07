@@ -25,13 +25,22 @@ export const relatorioServico = {
             return true;
         }).map((r: any) => {
             const aluno = alunos.find((a: any) => a.matricula === r.aluno_matricula);
+            
+            // Mapeamento semântico dos novos tipos vindos do Agente
+            let tipoLabel = r.tipo_movimentacao;
+            if (tipoLabel === 'ENTRADA') tipoLabel = 'ENTRADA';
+            else if (tipoLabel === 'SAIDA') tipoLabel = 'SAÍDA';
+            else if (tipoLabel === 'TURNO_ERRADO') tipoLabel = 'TURNO INVÁLIDO';
+            else if (tipoLabel === 'FORA_DE_HORARIO') tipoLabel = 'FORA DE JANELA';
+            else if (tipoLabel === 'ATRASO') tipoLabel = 'ATRASO';
+
             return {
                 data: format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm:ss'),
                 nome: aluno ? aluno.nome_completo : 'Aluno Removido/Desconhecido',
                 matricula: r.aluno_matricula,
                 turma: aluno ? aluno.turma_id : '-',
-                tipo: r.tipo_movimentacao === 'ENTRADA' ? 'ENTRADA' : 'SAÍDA',
-                sincronizado: 'Online' // No admin online, tudo é online
+                tipo: tipoLabel,
+                sincronizado: 'Online'
             };
         });
     },
@@ -46,12 +55,18 @@ export const relatorioServico = {
         doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 38);
         doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 44);
         doc.text(`Turma: ${filtros.turma}`, 14, 50);
+        
+        // Cores semânticas baseadas no título
+        let headColor: [number, number, number] = [79, 70, 229]; // Indigo
+        if (titulo.includes('Atrasos')) headColor = [217, 119, 6]; // Amber
+        if (titulo.includes('Divergência')) headColor = [220, 38, 38]; // Red
+
         autoTable(doc, {
             startY: 56,
-            head: [['Data/Hora', 'Nome do Aluno', 'Matrícula', 'Turma', 'Tipo', 'Fonte']],
+            head: [['Data/Hora', 'Nome do Aluno', 'Matrícula', 'Turma', 'Obs/Tipo', 'Fonte']],
             body: dados.map(d => [d.data, d.nome, d.matricula, d.turma, d.tipo, d.sincronizado]),
             theme: 'striped',
-            headStyles: { fillColor: [79, 70, 229] }
+            headStyles: { fillColor: headColor }
         });
         doc.save(`Relatorio_${titulo.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
     },
@@ -65,7 +80,39 @@ export const relatorioServico = {
         const registros = registrosResponse || [];
         const alunos = alunosResponse || [];
 
-        if (tipo === 'Risco de Evasão') {
+        if (tipo === 'Divergência de Turno') {
+            const dados = registros.filter((r: any) => {
+                const data = r.timestamp.split('T')[0];
+                return data >= filtros.dataInicio && data <= filtros.dataFim && r.tipo_movimentacao === 'TURNO_ERRADO';
+            }).map((r: any) => {
+                const aluno = alunos.find((a: any) => a.matricula === r.aluno_matricula);
+                return {
+                    data: format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm'),
+                    nome: aluno?.nome_completo || 'N/A',
+                    matricula: r.aluno_matricula,
+                    turma: aluno?.turma_id || '-',
+                    tipo: 'TURNO INCORRETO',
+                    sincronizado: 'Online'
+                };
+            });
+            relatorioServico.gerarPDF(dados, 'Relatório de Divergência de Turno', filtros);
+        } else if (tipo === 'Atrasos e Janelas') {
+            const dados = registros.filter((r: any) => {
+                const data = r.timestamp.split('T')[0];
+                return data >= filtros.dataInicio && data <= filtros.dataFim && (r.tipo_movimentacao === 'ATRASO' || r.tipo_movimentacao === 'FORA_DE_HORARIO');
+            }).map((r: any) => {
+                const aluno = alunos.find((a: any) => a.matricula === r.aluno_matricula);
+                return {
+                    data: format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm'),
+                    nome: aluno?.nome_completo || 'N/A',
+                    matricula: r.aluno_matricula,
+                    turma: aluno?.turma_id || '-',
+                    tipo: r.tipo_movimentacao,
+                    sincronizado: 'Online'
+                };
+            });
+            relatorioServico.gerarPDF(dados, 'Relatório de Atrasos e Janelas', filtros);
+        } else if (tipo === 'Risco de Evasão') {
             const trintaDiasAtras = subDays(new Date(), 30).toISOString();
             const presencasPorAluno: Record<string, number> = {};
             registros.forEach((r: any) => {

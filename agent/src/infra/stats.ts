@@ -22,7 +22,7 @@ class StatsManager {
     registrarAcesso(nome: string, matricula: string, tipo: string, turma?: string) {
         if (tipo === 'ENTRADA') this.entradas++;
         else if (tipo === 'SAIDA') this.saidas++;
-        else if (tipo === 'NEGADO') this.negados++;
+        else this.negados++; // Trata NEGADO, FORA_DE_HORARIO e TURNO_ERRADO como falha no marcador principal
 
         const agoraStatus = new Date().toISOString();
         const horaLocal = new Date().getHours();
@@ -64,7 +64,7 @@ class StatsManager {
                 SELECT 
                     SUM(CASE WHEN tipo = 'ENTRADA' THEN 1 ELSE 0 END) as ent,
                     SUM(CASE WHEN tipo = 'SAIDA' THEN 1 ELSE 0 END) as sai,
-                    SUM(CASE WHEN tipo = 'NEGADO' THEN 1 ELSE 0 END) as neg
+                    SUM(CASE WHEN tipo NOT IN ('ENTRADA', 'SAIDA') THEN 1 ELSE 0 END) as neg
                 FROM registros_acesso 
                 WHERE timestamp_acesso >= datetime('now', '-24 hours', 'localtime')
             `);
