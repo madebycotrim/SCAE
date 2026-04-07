@@ -14,7 +14,11 @@ export class WorkerApi {
       const urlLocal = `http://localhost:8788/api/agente/quem-sou-eu`;
       
       const options = {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+              'Content-Type': 'application/json',
+              'X-Agente-Token': config.agente_secret,
+              'User-Agent': 'SCAE-Agent/1.6.2-FINAL'
+          },
           signal: AbortSignal.timeout(10000)
       };
 

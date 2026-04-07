@@ -11,30 +11,20 @@ import { leitoresAtivos } from './poller';
 let estaSincronizando = false;
 let estaSincronizandoBatidas = false; // Bloqueio para evitar acúmulo se a internet/nuvem estiver lenta
 
+let motoresIniciados = false;
+
 export async function iniciarSync() {
+  if (motoresIniciados) return;
+  motoresIniciados = true;
+
   console.log('[Sync] Iniciando motores de sincronização...');
 
-  // 1. Handshake de Identidade (Auto-Discovery)
+  // 1. Tentar Handshake de Identidade (Auto-Discovery) se necessário
   if (config.escola_id === 'aguardando-identidade') {
-    try {
-        const resp = await WorkerApi.descobrirIdentidade();
-        if (resp && resp.ok && resp.identidade) {
-            const { id, nome_escola, tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro } = resp.identidade;
-            
-            config.escola_id = id;
-            config.nome_escola = nome_escola;
-            config.tts_ativado = Number(tts_ativado) === 1;
-            config.tts_sucesso = config_tts_frase_sucesso;
-            config.tts_erro = config_tts_frase_erro;
-
-            console.log(`[Sync] 🔑 IDENTIDADE CONECTADA: ${nome_escola.toUpperCase()}`);
-            console.log(`[Sync] 🔊 TTS INICIAL: ${config.tts_ativado ? 'ATIVADO' : 'DESATIVADO'}`);
-        }
-    } catch (e) {
-        console.error('[Sync] Falha no Handshake de identidade:', e);
-    }
+    await tentarDescobrirIdentidade();
   }
 
+  // 2. Dispara ciclos iniciais
   sincronizarCacheAlunos();
   sincronizarRegistrosPendentes();
   realizarLimpezaGariDigital(); // Limpeza no Boot
@@ -46,14 +36,15 @@ export async function iniciarSync() {
   }));
   WorkerApi.enviarStatus(statusBoot);
   
+  // Ciclo 15s: Tenta descobrir identidade se ainda não tem, ou baixa alunos se já tem.
   setInterval(async () => {
     try { 
         if (config.escola_id === 'aguardando-identidade') {
-            await iniciarSync(); // Tenta o Handshake novamente
-            return;
+            await tentarDescobrirIdentidade();
+        } else {
+            await sincronizarCacheAlunos();
         }
-        await sincronizarCacheAlunos(); 
-    } catch (e) { console.error('[Sync] Falha cache:', e); }
+    } catch (e) { console.error('[Sync] Falha no ciclo periódico:', e); }
   }, 15 * 1000);
 
   // Ciclo de Sincronização com Backoff Exponencial (Proteção de Rede)
@@ -78,10 +69,6 @@ export async function iniciarSync() {
     const multiplicador = Math.min(Math.pow(2, falhasConsecutivas), 30); // Max 300s (5min)
     const proximoDelay = (falhasConsecutivas === 0) ? delayBase : delayBase * multiplicador;
 
-    if (falhasConsecutivas > 0) {
-        console.log(`[Sync] ⏳ Modo Resiliência: Tentando novamente em ${proximoDelay / 1000}s (Falhas: ${falhasConsecutivas})`);
-    }
-
     setTimeout(loopSincronizacao, proximoDelay);
   };
   setTimeout(loopSincronizacao, 10000);
@@ -91,14 +78,40 @@ export async function iniciarSync() {
     realizarLimpezaGariDigital();
   }, 24 * 60 * 60 * 1000);
 
+  // Atualização de Status Online (Dashboard)
   setInterval(() => {
-    const statusLimpo = leitoresAtivos.map(l => ({
-        id: l.id,
-        nome: l.nome,
-        online: (l as any).online || false
-    }));
-    WorkerApi.enviarStatus(statusLimpo);
+    if (config.escola_id !== 'aguardando-identidade') {
+        const statusLimpo = leitoresAtivos.map(l => ({
+            id: l.id,
+            nome: l.nome,
+            online: (l as any).online || false
+        }));
+        WorkerApi.enviarStatus(statusLimpo);
+    }
   }, 30 * 1000);
+}
+
+/** 
+ * Tenta buscar a identidade da escola na nuvem 
+ */
+async function tentarDescobrirIdentidade() {
+    try {
+        const resp = await WorkerApi.descobrirIdentidade();
+        if (resp && resp.ok && resp.identidade) {
+            const { id, nome_escola, tts_ativado, config_tts_frase_sucesso, config_tts_frase_erro } = resp.identidade;
+            
+            config.escola_id = id;
+            config.nome_escola = nome_escola;
+            config.tts_ativado = Number(tts_ativado) === 1;
+            config.tts_sucesso = config_tts_frase_sucesso;
+            config.tts_erro = config_tts_frase_erro;
+
+            console.log(`[Sync] 🔑 IDENTIDADE CONECTADA: ${nome_escola.toUpperCase()}`);
+            console.log(`[Sync] 🔊 TTS INICIAL: ${config.tts_ativado ? 'ATIVADO' : 'DESATIVADO'}`);
+        }
+    } catch (e) {
+        console.error('[Sync] Falha no Handshake de identidade:', e);
+    }
 }
 
 /**
@@ -166,6 +179,10 @@ export async function sincronizarCacheAlunos(forcar = false) {
       console.log(`[Sync] 🚀 FORÇANDO ATUALIZAÇÃO TOTAL (Ignorando Cache de Hash)...`);
       ultimaConfigHash = ''; 
       ultimaEtag = '';
+  }
+  if (motoresIniciados && forcar && config.escola_id === 'aguardando-identidade') {
+      console.log(`[Sync] 🚀 IDENTIDADE EM STANDBY: Tentando handshake forçado agora...`);
+      await tentarDescobrirIdentidade();
   }
   
   // 🛡️ PROTEÇÃO: Não tenta baixar nada se não souber quem é (ID Padrão)
