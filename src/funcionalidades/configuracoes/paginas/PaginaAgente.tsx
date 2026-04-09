@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { CartaoConteudo, Botao } from '@/compartilhado/componentes/UI';
 import { 
@@ -43,6 +44,7 @@ interface StatusAgente {
 }
 
 export default function PaginaAgente() {
+    const navegar = useNavigate();
     const escola = usarEscola();
     const slugEscola = escola.id;
     const [statusLocal, setStatusLocal] = useState<StatusAgente | null>(null);
@@ -95,6 +97,14 @@ export default function PaginaAgente() {
             const res = await fetch('http://127.0.0.1:1912/ping', { mode: 'cors' });
             if (!res.ok) throw new Error();
             const dados = await res.json();
+            
+            // 🛡️ TRAVA DE SEGURANÇA: Se não tem hardware, a página permanece "oculta" redirecionando o usuário
+            if (dados.ok && dados.leitoresAtivos === 0) {
+                toast.error('Página indisponível: Nenhum leitor detectado.');
+                navegar(`/${slugEscola}/admin/painel`);
+                return;
+            }
+
             setStatusLocal(dados);
             setErroLocal(null);
         } catch (e) {

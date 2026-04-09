@@ -18,7 +18,7 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
     const modoDigital = escola.metodosAcesso.includes('DIGITAL');
     
     // Estados para Biometria
-    const [statusBio, setStatusBio] = useState<'VERIFICANDO' | 'CADASTRADO' | 'PENDENTE' | 'ERRO_AGENTE'>('VERIFICANDO');
+    const [statusBio, setStatusBio] = useState<'VERIFICANDO' | 'CADASTRADO' | 'PENDENTE' | 'ERRO_AGENTE' | 'HARDWARE_OFFLINE'>('VERIFICANDO');
     const [carregandoBio, setCarregandoBio] = useState(false);
 
     const verificarBiometria = async () => {
@@ -31,7 +31,11 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
             if (res.ok) {
                 const dados = await res.json();
                 if (dados.ok) {
-                    setStatusBio(dados.cadastrado ? 'CADASTRADO' : 'PENDENTE');
+                    if (dados.leitoresAtivos === 0) {
+                        setStatusBio('HARDWARE_OFFLINE');
+                    } else {
+                        setStatusBio(dados.cadastrado ? 'CADASTRADO' : 'PENDENTE');
+                    }
                 } else {
                     throw new Error();
                 }
@@ -146,7 +150,7 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                             <div className="p-8 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center">
                                 <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 border-2 shadow-sm transition-all ${
                                     statusBio === 'CADASTRADO' ? 'bg-emerald-50 border-emerald-500 text-emerald-600' : 
-                                    statusBio === 'PENDENTE' ? 'bg-amber-50 border-amber-400 text-amber-500' :
+                                    statusBio === 'HARDWARE_OFFLINE' ? 'bg-orange-50 border-orange-400 text-orange-500' :
                                     statusBio === 'ERRO_AGENTE' ? 'bg-rose-50 border-rose-300 text-rose-500' :
                                     'bg-slate-100 border-slate-200 text-slate-400'
                                 }`}>
@@ -160,11 +164,13 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                                     {statusBio === 'VERIFICANDO' ? 'Consultando Hardware...' :
                                      statusBio === 'CADASTRADO' ? 'Digital Identificada' :
                                      statusBio === 'PENDENTE' ? 'Aguardando Cadastro' :
+                                     statusBio === 'HARDWARE_OFFLINE' ? 'Hardware não Detectado' :
                                      'Agente não detectado'}
                                 </h3>
                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-2 max-w-[200px]">
                                     {statusBio === 'CADASTRADO' ? 'O aluno está pronto para acessar a unidade via biometria.' :
                                      statusBio === 'PENDENTE' ? 'Inicie o processo de captura para registrar este aluno.' :
+                                     statusBio === 'HARDWARE_OFFLINE' ? 'O Agente está rodando, mas não encontrou leitores USB/IP.' :
                                      statusBio === 'ERRO_AGENTE' ? 'O Agente Catraki precisa estar rodando neste computador.' :
                                      'Consultando leitores locais...'}
                                 </p>

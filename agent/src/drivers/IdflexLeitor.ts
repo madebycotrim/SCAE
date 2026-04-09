@@ -12,6 +12,7 @@ import { IdFlexHelper } from './IdFlexHelper';
 
 export class IdflexLeitor implements ILeitor {
   readonly tipo: TipoLeitor;
+  public online: boolean = false;
   private tokenSessao?: string;
   private ultimoErroLogado?: string;
   private cacheNomes = new Map<string, { nome: string, matricula: string }>();
@@ -36,12 +37,24 @@ export class IdflexLeitor implements ILeitor {
           throw new Error(resp.error);
       }
       this.ultimoErroLogado = undefined;
+      this.online = true; // Comunicação bem sucedida
       return resp;
     } catch (e: any) {
+      // Se for erro de rede (timeout, connection refused), marca como offline imediatamente
+      if (e.code === 'ECONNREFUSED' || e.code === 'ETIMEDOUT' || e.message.includes('Timeout')) {
+          this.online = false;
+      }
+
       // Se erro for 401 ou sessão inválida, tenta re-logar uma vez
       if (e.message.includes('401') || e.message.includes('session') || e.body?.includes('invalid session')) {
-        this.tokenSessao = await IdFlexHelper.login({ ip: this.cfg.ip });
-        return await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados, timeout);
+        try {
+            this.tokenSessao = await IdFlexHelper.login({ ip: this.cfg.ip });
+            this.online = true; 
+            return await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados, timeout);
+        } catch (loginErr: any) {
+            this.online = false;
+            throw loginErr;
+        }
       }
       throw e;
     }
@@ -51,8 +64,12 @@ export class IdflexLeitor implements ILeitor {
     try {
       // Usa a requisição autenticada, pois algumas versões trancam até as rotas de sistema
       await this.requisitarComToken('system_information.fcgi');
+      this.online = true;
       return true;
-    } catch { return false; }
+    } catch { 
+      this.online = false;
+      return false; 
+    }
   }
 
   /**
@@ -79,7 +96,7 @@ export class IdflexLeitor implements ILeitor {
         totalRegistros: 0
       };
     } catch (e: any) {
-      // Don't log error here to avoid spamming the log window, let the poller handle it
+      this.online = false;
       return { online: false };
     }
   }

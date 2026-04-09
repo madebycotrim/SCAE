@@ -1369,6 +1369,7 @@
         let configAtiva = [];
         let uptime = 0;
         const hwLatency = {}; // State para latência dos leitores
+        const verificandoStart = {}; // Rastreio de tempo para conexão
 
 
 
@@ -1841,7 +1842,21 @@
                 let statusCls = '';
                 let dotCls = '';
 
-                if (l.online === true) {
+                // Lógica de Timeout para "conectando..."
+                if (l.online === undefined || l.online === null) {
+                    if (!verificandoStart[l.id]) verificandoStart[l.id] = Date.now();
+                    const decorrido = Date.now() - verificandoStart[l.id];
+                    
+                    if (decorrido > 30000) { // 30 segundos
+                        statusCls = 'offline';
+                        dotCls = 'off';
+                        latBadge = `<span class="hw-latency dead">inacessível (timeout)</span>`;
+                    } else {
+                        dotCls = 'verificando';
+                        latBadge = `<span class="hw-latency" style="opacity:0.5">conectando... (${Math.floor((30000 - decorrido) / 1000)}s)</span>`;
+                    }
+                } else if (l.online === true) {
+                    verificandoStart[l.id] = null; // Reset
                     dotCls = 'on';
                     if (lat) {
                         const cls = lat.ms < 50 ? 'fast' : 'slow';
@@ -1849,14 +1864,11 @@
                     } else {
                         latBadge = `<span class="hw-latency fast">—</span>`;
                     }
-                } else if (l.online === false) {
+                } else {
+                    verificandoStart[l.id] = null; // Reset
                     statusCls = 'offline';
                     dotCls = 'off';
                     latBadge = `<span class="hw-latency dead">offline</span>`;
-                } else {
-                    // Estado 'verificando' (Vazio/Neutro)
-                    dotCls = 'verificando';
-                    latBadge = `<span class="hw-latency" style="opacity:0.5">conectando...</span>`;
                 }
 
                 const lastSeen = lat ? formatLastSeen(lat.lastSeen) : '';

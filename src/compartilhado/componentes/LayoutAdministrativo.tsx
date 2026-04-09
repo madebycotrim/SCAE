@@ -125,11 +125,11 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
     // Status do Agente Local
     const [agenteOnline, definirAgenteOnline] = useState(false);
+    const [agenteTemHardware, definirAgenteTemHardware] = useState(false);
 
     useEffect(() => {
         const checkAgente = async () => {
             try {
-                // Timeout curto para não travar a UI se o agente não estiver rodando
                 const controlador = new AbortController();
                 const timeoutId = setTimeout(() => controlador.abort(), 1500);
                 
@@ -139,16 +139,19 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 if (res.ok) {
                     const dados = await res.json();
                     definirAgenteOnline(dados.ok === true);
+                    definirAgenteTemHardware(dados.leitoresAtivos > 0);
                 } else {
                     definirAgenteOnline(false);
+                    definirAgenteTemHardware(false);
                 }
             } catch (e) {
                 definirAgenteOnline(false);
+                definirAgenteTemHardware(false);
             }
         };
 
         checkAgente();
-        const interval = setInterval(checkAgente, 2000); // Checa a cada 2s (Resposta Instantânea)
+        const interval = setInterval(checkAgente, 2000);
         return () => clearInterval(interval);
     }, []);
 
@@ -180,7 +183,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
                 ...(pode('visualizar', 'auditoria') ? [{ icone: Activity, texto: 'Logs', rota: '/logs' }] : []),
-                ...(pode('visualizar', 'configuracoes') && agenteOnline ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
+                ...(pode('visualizar', 'configuracoes') && agenteTemHardware ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
                 ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
             ]
         }

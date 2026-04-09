@@ -48,7 +48,7 @@ export async function iniciarSync() {
     } catch (e) { console.error('[Sync] Falha no ciclo periódico:', e); }
   }, 15 * 1000);
 
-  // Ciclo de Sincronização com Backoff Exponencial (Proteção de Rede)
+  // Ciclo de Sincronização Ultrarrápido (2 segundos)
   let falhasConsecutivas = 0;
   const loopSincronizacao = async () => {
     try {
@@ -65,21 +65,21 @@ export async function iniciarSync() {
         console.error('[Sync] Falha registros:', e);
     }
 
-    // Calcula o próximo delay (Base: 10s | Max: 5min)
-    const delayBase = 10 * 1000;
-    const multiplicador = Math.min(Math.pow(2, falhasConsecutivas), 30); // Max 300s (5min)
+    // Calcula o próximo delay (Base: 2s para resposta rápida | Max: 5min)
+    const delayBase = 2 * 1000;
+    const multiplicador = Math.min(Math.pow(2, falhasConsecutivas), 150); 
     const proximoDelay = (falhasConsecutivas === 0) ? delayBase : delayBase * multiplicador;
 
     setTimeout(loopSincronizacao, proximoDelay);
   };
-  setTimeout(loopSincronizacao, 10000);
+  setTimeout(loopSincronizacao, 2000);
 
   // Ciclo de 24h para o Gari Digital
   setInterval(() => {
     realizarLimpezaGariDigital();
   }, 24 * 60 * 60 * 1000);
 
-  // Ciclo 5s: Busca comandos remotos críticos (Abrir catraca, Reboot, Sync)
+  // Ciclo Ultrarrápido (1s): Busca comandos remotos críticos (Abrir catraca, Reboot, Sync)
   setInterval(async () => {
     if (config.escola_id !== 'aguardando-identidade') {
         try {
@@ -91,14 +91,16 @@ export async function iniciarSync() {
             });
             if (resp.ok) {
                 const { comandos } = await resp.json();
-                const { processarComandosNuvem } = require('./command-executor');
-                await processarComandosNuvem(comandos);
+                if (comandos && comandos.length > 0) {
+                    const { processarComandosNuvem } = require('./command-executor');
+                    await processarComandosNuvem(comandos);
+                }
             }
         } catch {}
     }
-  }, 5000);
+  }, 1000); // 1 segundo para comandos remotos
 
-  // Atualização de Status Online (Dashboard de Saúde)
+  // Atualização de Status Online (Dashboard de Saúde) — 5 segundos
   setInterval(() => {
     if (config.escola_id !== 'aguardando-identidade') {
         const ipLocal = config.ip_agente || require('../utils/rede').buscarIpLocal();
@@ -117,7 +119,7 @@ export async function iniciarSync() {
         };
         WorkerApi.enviarStatus(statusLimpo);
     }
-  }, 10 * 1000);
+  }, 5000);
 }
 
 /** 
@@ -167,7 +169,7 @@ async function realizarLimpezaGariDigital() {
 /**
  * Envia as presenças coletadas localmente para o sistema web (Cloudflare)
  */
-async function sincronizarRegistrosPendentes(): Promise<boolean> {
+export async function sincronizarRegistrosPendentes(): Promise<boolean> {
   if (estaSincronizandoBatidas) return true;
   
   try {

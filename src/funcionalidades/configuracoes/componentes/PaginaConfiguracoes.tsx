@@ -274,14 +274,28 @@ export function PaginaConfiguracoes() {
 
                     <div className="bg-white border border-slate-200/60 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:border-slate-300 group">
                         <div className="flex gap-5 items-start">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${statusAgente === 'RODANDO' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400'}`}>
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
+                                statusAgente === 'RODANDO' 
+                                    ? (infoAgente?.leitoresAtivos > 0 ? 'bg-slate-900 text-white' : 'bg-orange-500 text-white') 
+                                    : 'bg-slate-50 text-slate-400'
+                            }`}>
                                 <Cpu size={28} />
                             </div>
                             <div className="space-y-1.5 pt-0.5">
                                 <div className="flex items-center gap-3">
                                     <h3 className="text-sm font-bold text-slate-900 leading-none">Catraki Edge Agent</h3>
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60">
-                                        {statusAgente === 'RODANDO' ? `Operacional (v${infoAgente?.versao || '2.0'})` : 'Desconectado'}
+                                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border shadow-sm ${
+                                        statusAgente === 'RODANDO' 
+                                            ? (infoAgente?.leitoresAtivos > 0 
+                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                                                : 'bg-orange-50 text-orange-600 border-orange-100')
+                                            : 'bg-slate-100 text-slate-600 border-slate-200/60'
+                                    }`}>
+                                        {statusAgente === 'RODANDO' 
+                                            ? (infoAgente?.leitoresAtivos > 0 
+                                                ? `Operacional (v${infoAgente?.versao || '2.0'})` 
+                                                : 'Conectado, mas sem leitor')
+                                            : 'Desconectado'}
                                     </div>
                                 </div>
                                 <p className="text-[11px] text-slate-500 font-medium max-w-xl leading-relaxed">Interface técnica para gerenciar o hardware local a partir da nuvem.</p>
