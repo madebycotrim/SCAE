@@ -239,5 +239,15 @@ function createWindow() {
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
+/**
+ * 📢 NOTIFICADOR GLOBAL: Avisa a interface e os drivers que algo mudou (Cloud -> Local)
+ */
+export function avisarMudancaConfig() {
+    if (mainWindow) {
+        mainWindow.webContents.send('config-updated', { timestamp: new Date().toISOString() });
+        enviarStatusParaUI();
+    }
+}
+
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

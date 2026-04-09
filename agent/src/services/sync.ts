@@ -277,7 +277,7 @@ export async function sincronizarCacheAlunos(forcar = false) {
             
             // Sincronização Dinâmica de Hardware (Leitores)
             const leitoresNuvem = (resposta as any).leitores;
-            if (leitoresNuvem && Array.isArray(leitoresNuvem)) {
+            if (leitoresNuvem && Array.isArray(leitoresNuvem) && leitoresNuvem.length > 0) {
                 const hashNuvem = JSON.stringify(leitoresNuvem);
                 const hashLocal = JSON.stringify(config.leitores);
                 
@@ -287,6 +287,9 @@ export async function sincronizarCacheAlunos(forcar = false) {
                     const { recarregarLeitores } = require('./poller');
                     recarregarLeitores(); // Reinicia o Radar/Watchdog
                 }
+            } else if (leitoresNuvem && leitoresNuvem.length === 0) {
+                // Apenas loga, mas não sobrescreve a config local se a nuvem estiver vazia
+                console.log(`[Sync] 🛡️ HARDWARE PROTEGIDO: Nuvem sem leitores, mantendo configuração local.`);
             }
 
             ultimaConfigHash = configHash;
