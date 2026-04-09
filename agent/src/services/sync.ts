@@ -117,7 +117,7 @@ export async function iniciarSync() {
         };
         WorkerApi.enviarStatus(statusLimpo);
     }
-  }, 30 * 1000);
+  }, 10 * 1000);
 }
 
 /** 

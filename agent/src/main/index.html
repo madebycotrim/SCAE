@@ -1664,22 +1664,12 @@
             }
             if (status.tts_ativado !== undefined) {
                 const badge = document.getElementById('c-tts-badge');
-                const msgsDiv = document.getElementById('c-tts-msgs');
-                if (status.tts_ativado) {
-                    badge.textContent = 'ON';
-                    badge.className = 'tts-badge on';
-                    msgsDiv.classList.remove('hidden');
-                    document.getElementById('c-msg-ok').textContent = status.tts_sucesso || '(silêncio)';
-                    document.getElementById('c-msg-err').textContent = status.tts_erro || '(silêncio)';
-                } else {
-                    badge.textContent = 'OFF';
-                    badge.className = 'tts-badge off';
-                    msgsDiv.classList.add('hidden');
+                if (badge) {
+                     badge.textContent = status.tts_ativado ? 'ON' : 'OFF';
+                     badge.className = status.tts_ativado ? 'tts-badge on' : 'tts-badge off';
                 }
             }
-
             if (status.stats) {
-                // Sincroniza métricas locais com o que o Agente reportou no boot
                 metrics.ok = (status.stats.entradas || 0) + (status.stats.saidas || 0);
                 metrics.err = (status.stats.negados || 0);
                 if (status.stats.horas) metrics.horas = [...status.stats.horas];
@@ -1688,8 +1678,23 @@
             if (status.ip_agente_config !== undefined) {
                 document.getElementById('ipt-agente-ip').value = status.ip_agente_config;
             }
-            console.log('[UI] configAtiva atualizada:', configAtiva.length, 'leitores');
             renderHardware();
+        });
+
+        // 🆕 Handler para atualizações imediatas vindo da nuvem (sem esperar o pulso de 5s)
+        window.scaeApi.onConfigUpdated(data => {
+            if (data.nomeEscola) {
+                document.getElementById('school-badge').textContent = data.nomeEscola.toUpperCase();
+                document.getElementById('c-escola').textContent = data.nomeEscola.toUpperCase();
+                pushLog(`☁ Configuração atualizada via Nuvem.`, 'info');
+            }
+            if (data.ttsAtivo !== undefined) {
+                const badge = document.getElementById('c-tts-badge');
+                if (badge) {
+                    badge.textContent = data.ttsAtivo ? 'ON' : 'OFF';
+                    badge.className = data.ttsAtivo ? 'tts-badge on' : 'tts-badge off';
+                }
+            }
         });
 
         // ACESSO

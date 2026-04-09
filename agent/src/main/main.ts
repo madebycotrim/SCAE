@@ -56,7 +56,9 @@ export function avisarMudancaConfig() {
     if (mainWindow) {
         mainWindow.webContents.send('config-updated', {
             nomeEscola: config.nome_escola,
-            ttsAtivo: config.tts_ativado
+            ttsAtivo: config.tts_ativado,
+            ttsSucesso: config.tts_sucesso,
+            ttsErro: config.tts_erro
         });
         // Força pulso de status imediato
         enviarStatusParaUI();
@@ -225,6 +227,8 @@ function createWindow() {
                                 erro: config.tts_erro || 'Acesso negado, {nome}!'
                             }
                         });
+                        // ⚡ ATUALIZAÇÃO IMEDIATA: Força sidebar e estatísticas a mudarem na hora
+                        enviarStatusParaUI();
                     }
                  }
                  res.writeHead(200); res.end();

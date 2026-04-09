@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('scaeApi', {
   onNewAccess: (callback: (data: any) => void) => {
     ipcRenderer.on('new-access', (_event, data) => callback(data));
   },
+  onConfigUpdated: (callback: (data: any) => void) => {
+    ipcRenderer.on('config-updated', (_event, data) => callback(data));
+  },
   saveConfig: (data: { escolaId: string }) => ipcRenderer.invoke('save-config', data),
   loginPin: (pin: string) => ipcRenderer.invoke('login-pin', pin),
   
