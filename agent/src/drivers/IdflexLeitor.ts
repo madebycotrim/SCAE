@@ -578,5 +578,19 @@ export class IdflexLeitor implements ILeitor {
       return false;
     }
   }
+
+  /**
+   * Força o reinício físico do hardware iDFlex.
+   */
+  async rebootHardware(): Promise<boolean> {
+    try {
+      console.log(`[iDFlex][${this.id}] Comandando REBOOT físico do hardware...`);
+      await this.requisitarComToken('reboot.fcgi');
+      return true;
+    } catch (e: any) {
+      console.error(`[iDFlex][${this.id}] Erro ao comandar reboot: ${e.message}`);
+      return false;
+    }
+  }
 }
 

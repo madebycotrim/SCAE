@@ -35,6 +35,14 @@ export async function processarComandosNuvem(comandos: any[]) {
                     sucesso = true;
                     break;
 
+                case 'REBOOT_HARDWARE':
+                    console.warn('[Comandos] 📡 REINICIANDO HARDWARE FÍSICO POR ORDEM REMOTA...');
+                    const { rebootFisicoGeral, recarregarLeitores } = require('./poller');
+                    rebootFisicoGeral();
+                    recarregarLeitores();
+                    sucesso = true;
+                    break;
+
                 case 'ABRIR_CATRACA':
                     const leitorId = cmd.params?.leitorId;
                     const leitores = obterLeitoresAtivos();

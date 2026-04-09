@@ -130,13 +130,23 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     useEffect(() => {
         const checkAgente = async () => {
             try {
-                const controlador = new AbortController();
-                const timeoutId = setTimeout(() => controlador.abort(), 1500);
+                const tentarFetch = async (url: string) => {
+                    const controlador = new AbortController();
+                    const timeoutId = setTimeout(() => controlador.abort(), 1000);
+                    try {
+                        const res = await fetch(url, { signal: controlador.signal });
+                        clearTimeout(timeoutId);
+                        return res;
+                    } catch {
+                        clearTimeout(timeoutId);
+                        return null;
+                    }
+                };
+
+                let res = await tentarFetch('http://127.0.0.1:1912/ping');
+                if (!res) res = await tentarFetch('http://localhost:1912/ping');
                 
-                const res = await fetch('http://127.0.0.1:1912/ping', { signal: controlador.signal });
-                clearTimeout(timeoutId);
-                
-                if (res.ok) {
+                if (res && res.ok) {
                     const dados = await res.json();
                     definirAgenteOnline(dados.ok === true);
                     definirAgenteTemHardware(dados.leitoresAtivos > 0);

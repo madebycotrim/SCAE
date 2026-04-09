@@ -94,6 +94,9 @@ export interface ILeitor {
 
   /** Altera o nome interno do equipamento no hardware (Hostname) */
   setNomeDispositivo?(nome: string): Promise<boolean>;
+
+  /** Força o reinício físico do hardware (Reboot da placa) */
+  rebootHardware?(): Promise<boolean>;
 }
 
 

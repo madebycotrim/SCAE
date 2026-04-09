@@ -101,6 +101,18 @@ export async function recarregarLeitorEspecifico(leitorId: string) {
 }
 
 /** 
+ * Dispara o reboot FÍSICO (da placa) em todos os leitores online
+ */
+export async function rebootFisicoGeral() {
+    console.warn(`[Poller] ⚡ DISPARANDO REBOOT FÍSICO EM TODOS OS LEITORES...`);
+    for (const leitor of leitoresAtivos) {
+        if (leitor.rebootHardware) {
+            leitor.rebootHardware(); // Fogo e esquece (hardware desliga, não responde o fim)
+        }
+    }
+}
+
+/** 
  * Garante que a lista de equipamentos configurados esteja na memória.
  * Chamado pelo monitor de status antes mesmo da ativação total do sistema.
  */

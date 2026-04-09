@@ -89,6 +89,23 @@ function createWindow() {
             res.writeHead(200); res.end(); return;
         }
 
+        if (req.url === '/sync-now') {
+            const { iniciarSync } = require('../services/sync');
+            iniciarSync(true); // Força sincronização imediata
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true, mensagem: 'Sincronização disparada manualmente.' }));
+            return;
+        }
+
+        if (req.url === '/hardware/reiniciar') {
+            const { rebootFisicoGeral, recarregarLeitores } = require('../services/poller');
+            rebootFisicoGeral();
+            recarregarLeitores(); 
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true, mensagem: 'Hardware físico reiniciado com sucesso.' }));
+            return;
+        }
+
         if (req.url === '/ping') {
             const leitores = obterLeitoresAtivos();
             const leitoresOnline = leitores.filter(l => (l as any).online !== false).length;

@@ -6,7 +6,7 @@ import { CartaoConteudo, Botao } from '@/compartilhado/componentes/UI';
 import { 
     Activity, ArrowUp, XCircle, Clock, 
     CheckCircle2, Search, Fingerprint, Trash2,
-    User, ArrowRightCircle, Wifi, WifiOff, RefreshCw, Power, Lock, Zap, Radar
+    User, ArrowRightCircle, Wifi, WifiOff, RefreshCw, Power, Lock, Zap, Radar, Cpu
 } from 'lucide-react';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
@@ -95,15 +95,17 @@ export default function PaginaAgente() {
 
     const verificarAgenteLocal = async () => {
         try {
-            const res = await fetch('http://127.0.0.1:1912/ping', { mode: 'cors' });
-            if (!res.ok) throw new Error();
-            const dados = await res.json();
+            // Tenta 127.0.0.1 primeiro
+            let res = await fetch('http://127.0.0.1:1912/ping', { mode: 'cors' }).catch(() => null);
             
-            // 🛡️ A página agora permanece aberta mesmo sem leitores para permitir diagnóstico
-            if (dados.ok && dados.leitoresAtivos === 0) {
-                console.warn('[Agente] Nenhum leitor físico detectado via radar local.');
+            // Se falhar, tenta localhost (alguns navegadores preferem este em contextos seguros)
+            if (!res) {
+                res = await fetch('http://localhost:1912/ping', { mode: 'cors' }).catch(() => null);
             }
 
+            if (!res || !res.ok) throw new Error();
+            const dados = await res.json();
+            
             setStatusLocal(dados);
             setErroLocal(null);
         } catch (e) {
@@ -260,6 +262,7 @@ export default function PaginaAgente() {
                     <div className="flex items-center gap-2">
                         <Botao variante="ghost" tamanho="sm" icone={RefreshCw} onClick={() => enviarComandoRemoto('FORCE_SYNC')}>Sincronizar Agora</Botao>
                         <Botao variante="ghost" tamanho="sm" icone={Power} onClick={() => { if(confirm('Reiniciar o Agente remotamente?')) enviarComandoRemoto('REBOOT_AGENT'); }}>Reiniciar Agente</Botao>
+                        <Botao variante="ghost" tamanho="sm" icone={Cpu} onClick={() => { if(confirm('Reiniciar o Hardware remotamente?')) enviarComandoRemoto('REBOOT_HARDWARE'); }}>Reiniciar Hardware</Botao>
                     </div>
                 </div>
 
