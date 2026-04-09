@@ -33,6 +33,11 @@ export async function onRequestGet(contexto: ContextoCatraki) {
             SELECT id, serie, letra, turno FROM turmas WHERE escola_id = ?
         `).bind(escolaId).all();
 
+        // 4. Busca Configuração de Terminais (Hardware)
+        const terminais = await db.prepare(`
+            SELECT config_leitores FROM terminais WHERE escola_id = ?
+        `).bind(escolaId).first<any>();
+
         const escolaRetorno = (escolaInfo as any) || {};
 
         const dataObj = {
@@ -42,6 +47,7 @@ export async function onRequestGet(contexto: ContextoCatraki) {
             },
             alunos: alunos.results,
             turmas: turmas.results,
+            leitores: terminais?.config_leitores ? JSON.parse(terminais.config_leitores) : [],
             total: alunos.results.length
         };
 

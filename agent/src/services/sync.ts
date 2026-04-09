@@ -268,8 +268,22 @@ export async function sincronizarCacheAlunos(forcar = false) {
             config.tts_erro = escola_config.config_tts_frase_erro;
             config.janelas = escola_config.janelas || [];
             
+            // Sincronização Dinâmica de Hardware (Leitores)
+            const leitoresNuvem = (resposta as any).leitores;
+            if (leitoresNuvem && Array.isArray(leitoresNuvem)) {
+                const hashNuvem = JSON.stringify(leitoresNuvem);
+                const hashLocal = JSON.stringify(config.leitores);
+                
+                if (hashNuvem !== hashLocal || forcar) {
+                    console.log(`[Sync] 📡 HARDWARE ATUALIZADO: Sincronizando ${leitoresNuvem.length} leitores via Cloud...`);
+                    config.leitores = leitoresNuvem;
+                    const { recarregarLeitores } = require('./poller');
+                    recarregarLeitores(); // Reinicia o Radar/Watchdog
+                }
+            }
+
             ultimaConfigHash = configHash;
-            salvarConfiguracaoCompleta(); // Salva novas regras/janelas
+            salvarConfiguracaoCompleta(); // Salva novas regras/janelas e leitores
 
             const { avisarMudancaConfig } = require('../main/main');
             avisarMudancaConfig();
