@@ -13,14 +13,45 @@ const CONJUNTO_CHAVES_JSON = createRemoteJWKSet(
 
 async function processarRequisicao(contexto: ContextoCatraki): Promise<Response> {
     const { request: requisicao, next: proximo } = contexto;
+    const url = new URL(requisicao.url);
+    const ip = requisicao.headers.get('CF-Connecting-IP') || 'unknown';
+
+    // 🛡️ INICIALIZAÇÃO ROBUSTA DO CONTEXTO
+    if (!contexto.data) {
+        (contexto as any).data = {};
+    }
 
     try {
+        if (url.hostname === 'localhost') {
+            console.info(`[Middleware] Processando ${requisicao.method} ${url.pathname}`);
+        }
+
+        // 🛡️ RATE LIMITING
+        // Limite: 100 requisições por minuto por IP
+        const minutoAtual = Math.floor(Date.now() / 60000);
+        const chaveRateLimit = `rate_limit:${ip}:${minutoAtual}`;
+        
+        // Operação atômica de incremento no KV (se disponível)
+        if (contexto.env.KV_SCAE) {
+            const contagemAtual = await contexto.env.KV_SCAE.get(chaveRateLimit);
+            const total = parseInt(contagemAtual || '0') + 1;
+            
+            if (total > 150) { // Limite heróico de 150 req/min
+                return new Response(JSON.stringify({
+                    erro: 'Muitas requisições. Por favor, aguarde um minuto.',
+                    codigo: 'RATE_LIMIT_EXCEEDED'
+                }), { status: 429, headers: { 'Content-Type': 'application/json' } });
+            }
+            
+            // Salvar novo total com tempo de expiração curto
+            (contexto as any).waitUntil(contexto.env.KV_SCAE.put(chaveRateLimit, String(total), { expirationTtl: 120 }));
+        }
+
         // Permitir OPTIONS (Preverificação CORS)
         if (requisicao.method === 'OPTIONS') {
             return proximo();
         }
 
-        const url = new URL(requisicao.url);
         const rotaResponsavel = url.pathname.startsWith('/api/responsavel/');
         const ehPublicaGet = url.pathname.startsWith('/api/publico/') && requisicao.method === 'GET';
         const ehRotaAgente = url.pathname.startsWith('/api/agente/');
@@ -113,11 +144,48 @@ async function processarRequisicao(contexto: ContextoCatraki): Promise<Response>
 
         const resposta = await proximo();
 
-        // Adicionar headers de segurança em todas as respostas
+        // 🛡️ REFORÇO DE SEGURANÇA ELITE - HEADERS
+        // 'ip' já declarado no topo
+        
+        // 1. Content Security Policy (CSP) Rigorosa
+        // Permite apenas scripts do próprio domínio e domínios confiáveis (Firebase/Cloudflare)
+        const csp = [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.firebaseapp.com https://*.googleapis.com https://apis.google.com",
+            "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com http://127.0.0.1:1912 http://localhost:1912",
+            "img-src 'self' data: https://*.googleusercontent.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.gstatic.com",
+            "frame-src https://*.firebaseapp.com",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+            "frame-ancestors 'none'"
+        ].join('; ');
+
+        resposta.headers.set('Content-Security-Policy', csp);
         resposta.headers.set('X-Content-Type-Options', 'nosniff');
         resposta.headers.set('X-Frame-Options', 'DENY');
+        resposta.headers.set('X-XSS-Protection', '1; mode=block');
         resposta.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        resposta.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        resposta.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
+        resposta.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+
+        // ⚡ REGISTRO DE SEGURANÇA E AUDITORIA (LOG)
+        // Finalidade: Monitoramento de acessos e segurança (Art. 7º, IX - LGPD)
+        if (idEscola && email) {
+            const path = url.pathname;
+            const metodo = requisicao.method;
+            if (metodo !== 'GET') {
+                // Registrar ações de escrita asincronamente para não travar a UI
+                (contexto as any).waitUntil(
+                    contexto.env.DB_SCAE.prepare(
+                        "INSERT INTO logs_auditoria (id, escola_id, usuario_email, acao, recurso, ip) VALUES (?, ?, ?, ?, ?, ?)"
+                    ).bind(crypto.randomUUID(), idEscola, email, metodo, path, ip).run()
+                    .catch((e: Error) => console.error('[AUDITORIA] Falha ao registrar log:', e))
+                );
+            }
+        }
 
         return resposta;
 

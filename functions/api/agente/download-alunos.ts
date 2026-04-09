@@ -6,9 +6,9 @@
 import { ContextoCatraki } from '../../tipos/ambiente';
 import { validarAgente } from './_agente-seguranca';
 
-export async function onRequestGet({ request, env }: ContextoCatraki) {
-    const escolaId = validarAgente(request, env);
-    const { DB_SCAE: db } = env;
+export async function onRequestGet(contexto: ContextoCatraki) {
+    const escolaId = validarAgente(contexto.request, contexto.env);
+    const { DB_SCAE: db } = contexto.env;
 
     try {
         // 1. Busca Alunos com seus Turnos (via join com turmas)
@@ -48,7 +48,7 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
         // Gera um ETag simples (contagem de alunos + hash de configs)
         const etag = `W/"${dataObj.total}-${JSON.stringify(dataObj.escola_config).length}"`;
         
-        if (request.headers.get('If-None-Match') === etag) {
+        if (contexto.request.headers.get('If-None-Match') === etag) {
             return new Response(null, { status: 304 });
         }
 

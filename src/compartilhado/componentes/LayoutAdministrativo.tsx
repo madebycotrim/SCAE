@@ -302,17 +302,17 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     h-14 flex items-center relative z-10 border-b border-slate-900
                     ${sidebarMinimizado ? 'justify-center px-0' : 'justify-between px-6'}
                 `}>
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="shrink-0 flex items-center justify-center">
-                            <ShieldCheck className="w-6 h-6 text-eletrico" strokeWidth={2.5} />
-                        </div>
+                    <div className="flex items-center gap-3.5 overflow-hidden">
+                        <ShieldCheck className="w-6 h-6 text-white shrink-0" strokeWidth={2.5} />
 
                         {!sidebarMinimizado && (
-                            <div className="flex flex-col">
-                                <h1 className="font-black text-white leading-tight uppercase tracking-widest text-lg">
+                            <div className="flex flex-col min-w-0">
+                                <h1 className="text-[17px] font-black text-white uppercase tracking-tighter leading-none">
                                     CATRAKI<span className="text-eletrico">.</span>
                                 </h1>
-                                <p className="text-[10px] text-slate-400 font-bold truncate max-w-[160px] uppercase tracking-tighter">{nomeEscola}</p>
+                                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.15em] mt-1.5 truncate leading-none">
+                                    {nomeEscola}
+                                </p>
                             </div>
                         )}
                     </div>

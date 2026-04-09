@@ -11,10 +11,10 @@ import { Permissao } from '../seguranca/rbac';
 /** 
  * GET: O Agente Local chama este endpoint para saber se há ordens para ele executar.
  */
-export async function onRequestGet({ request, env }: ContextoCatraki) {
+export async function onRequestGet(contexto: ContextoCatraki) {
     try {
-        const escolaId = validarAgente(request, env);
-        const { KV_SCAE } = env;
+        const escolaId = validarAgente(contexto.request, contexto.env);
+        const { KV_SCAE } = contexto.env;
 
         if (!KV_SCAE) return Response.json({ ok: false, erro: 'KV não configurado' });
 
@@ -29,13 +29,13 @@ export async function onRequestGet({ request, env }: ContextoCatraki) {
 /**
  * POST: O Painel Administrativo envia um comando para um Agente.
  */
-export async function onRequestPost({ request, env }: ContextoCatraki) {
+export async function onRequestPost(contexto: ContextoCatraki) {
     try {
-        const escolaId = extrairEscolaId(request);
-        verificarAcesso({ request, env } as any, Permissao.GERENCIAR_AGENTE);
+        const escolaId = extrairEscolaId(contexto.request);
+        verificarAcesso(contexto, Permissao.GERENCIAR_AGENTE);
 
-        const { acao, params } = await request.json() as { acao: string, params?: any };
-        const { KV_SCAE } = env;
+        const { acao, params } = await contexto.request.json() as { acao: string, params?: any };
+        const { KV_SCAE } = contexto.env;
 
         if (!KV_SCAE) return Response.json({ ok: false, erro: 'KV não configurado' });
 
@@ -63,15 +63,15 @@ export async function onRequestPost({ request, env }: ContextoCatraki) {
 /**
  * DELETE: O Agente Local notifica que já executou um comando, removendo-o da fila.
  */
-export async function onRequestDelete({ request, env }: ContextoCatraki) {
+export async function onRequestDelete(contexto: ContextoCatraki) {
     try {
-        const escolaId = validarAgente(request, env);
-        const { searchParams } = new URL(request.url);
+        const escolaId = validarAgente(contexto.request, contexto.env);
+        const { searchParams } = new URL(contexto.request.url);
         const comandoId = searchParams.get('id');
         
         if (!comandoId) return Response.json({ ok: false });
 
-        const { KV_SCAE } = env;
+        const { KV_SCAE } = contexto.env;
         if (!KV_SCAE) return Response.json({ ok: false });
 
         const chaveQueue = `escola:${escolaId}:comandos`;

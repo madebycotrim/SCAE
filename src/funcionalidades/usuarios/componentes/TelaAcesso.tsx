@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarEscola } from '@/escola/ProvedorEscola';
@@ -109,13 +110,13 @@ export default function TelaAcesso() {
 
     return (
         <div
-            className="flex min-h-screen w-full font-sans overflow-hidden bg-slate-50"
+            className="flex min-h-screen w-full font-sans overflow-hidden bg-slate-50 relative"
             style={{
                 backgroundImage: 'linear-gradient(rgba(15,23,42,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.04) 1px, transparent 1px)',
                 backgroundSize: '40px 40px'
             }}
         >
-            <div className="flex-1 flex items-center justify-center p-5 md:p-10">
+            <div className="flex-1 flex items-center justify-center p-5 md:p-10 relative z-10">
 
                 {/* Card principal */}
                 <div
@@ -142,7 +143,7 @@ export default function TelaAcesso() {
                         {/* Blur de fundo sutil */}
                         <div className="absolute top-0 right-0 w-72 h-72 rounded-full -translate-y-1/3 translate-x-1/3 blur-[90px] bg-white/[0.04]"></div>
 
-                        {/* BLOCO 1 — Logo SCAE (topo esquerdo) */}
+                        {/* BLOCO 1 — Logo Catraki (topo esquerdo) */}
                         <div className="relative z-10 flex items-center gap-2.5">
                             <div className="p-2 rounded-lg bg-white/[0.08] border border-white/[0.12]">
                                 <ShieldCheck className="w-5 h-5 text-white" />
@@ -173,15 +174,15 @@ export default function TelaAcesso() {
                             {/* BLOCO 4 — Bullet points de valor */}
                             <div className="space-y-2.5">
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-eletrico flex-shrink-0" />
+                                    <Check size={16} className="text-eletrico flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">Registros de acesso em tempo real</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-eletrico flex-shrink-0" />
+                                    <Check size={16} className="text-eletrico flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">QR Code Digital para alunos</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-eletrico flex-shrink-0" />
+                                    <Check size={16} className="text-eletrico flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">Conformidade total com a LGPD</span>
                                 </div>
                             </div>
@@ -203,8 +204,8 @@ export default function TelaAcesso() {
 
                             {/* Ícone + Títulos */}
                             <div className="text-center mb-8">
-                                <div className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center mx-auto mb-4 bg-slate-100 border border-slate-200">
-                                    <ShieldCheck className="w-6 h-6 text-slate-600" />
+                                <div className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center mx-auto mb-4 bg-slate-50 border border-slate-100 shadow-sm">
+                                    <ShieldCheck className="w-6 h-6 text-eletrico" />
                                 </div>
                                 <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Painel Administrativo</h3>
                                 <p className="text-slate-500 text-sm font-medium mt-1.5 leading-relaxed">
@@ -231,7 +232,7 @@ export default function TelaAcesso() {
                             <button
                                 onClick={() => handleLogin('user')}
                                 disabled={carregando}
-                                className="w-full flex items-center justify-center gap-3 py-3 px-5 bg-white border-[1.5px] border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-700 font-medium rounded-2xl transition-all duration-150 group shadow-suave hover:shadow-media active:scale-[0.98]"
+                                className="w-full flex items-center justify-center gap-3 py-3 px-5 bg-white border-[1.5px] border-slate-200 hover:border-eletrico hover:bg-slate-50 text-slate-700 font-medium rounded-2xl transition-all duration-150 group shadow-suave hover:shadow-eletrico/10 active:scale-[0.98]"
                             >
                                 {provedorAuth === 'microsoft' ? (
                                     <svg width="18" height="18" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg" className="group-hover:scale-105 transition-transform duration-150 flex-shrink-0">
@@ -259,7 +260,6 @@ export default function TelaAcesso() {
                                 </div>
                             )}
 
-
                             {/* Separador */}
                             <div className="mt-6 border-t border-slate-100"></div>
 
@@ -279,7 +279,7 @@ export default function TelaAcesso() {
                         onClick={lidarComCliqueAdmin}
                         className="text-[10px] font-bold text-slate-400 transition-opacity uppercase tracking-[0.3em] opacity-10 cursor-default select-none hover:opacity-20"
                     >
-                        Catraki v 4.0
+                        Catraki Operational Edge v 4.0
                     </span>
                 </div>
             </div>

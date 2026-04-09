@@ -5,19 +5,19 @@
 import { ContextoCatraki } from '../../tipos/ambiente';
 import { validarAgente } from './_agente-seguranca';
 
-export async function onRequestPost({ request, env }: ContextoCatraki) {
+export async function onRequestPost(contexto: ContextoCatraki) {
     // 1. Validar segurança (Token + Escola ID)
-    const escolaId = validarAgente(request, env);
+    const escolaId = validarAgente(contexto.request, contexto.env);
     
     // 2. Extrair dados do lote
-    const corpo = await request.json() as { registros: any[] };
+    const corpo = await contexto.request.json() as { registros: any[] };
     const { registros } = corpo;
 
     if (!Array.isArray(registros) || registros.length === 0) {
         return Response.json({ ok: true, processados: 0 });
     }
 
-    const { DB_SCAE: db } = env;
+    const { DB_SCAE: db } = contexto.env;
 
     // 3. Persistir lotes no D1
     const stmt = db.prepare(`

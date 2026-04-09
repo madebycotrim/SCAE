@@ -323,36 +323,6 @@ export default function Painel() {
         >
             <div className="space-y-8 pb-12">
                 
-                {/* Hero Section Institucional */}
-                <div className="bg-marinho rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl border border-slate-800/50">
-                    <div className="absolute right-[-5%] top-[-20%] w-[400px] h-[400px] bg-eletrico/20 blur-[120px] rounded-full pointer-events-none" />
-                    <div className="absolute left-[10%] bottom-[-10%] w-[200px] h-[200px] bg-eletrico/10 blur-[80px] rounded-full pointer-events-none" />
-                    
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                        <div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="px-3 py-1 bg-eletrico rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-eletrico/20">SCAE 2.0</div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Sistema Central de Acesso Escolar</div>
-                            </div>
-                            <h2 className="text-4xl font-black tracking-tight mb-2">Resumo Operacional</h2>
-                            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px] flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                Monitoramento e Gestão Escolar em Tempo Real
-                            </p>
-                        </div>
-                        
-                        <div className="flex gap-4">
-                            <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-3xl min-w-[140px] shadow-inner">
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Status</p>
-                                <p className="text-lg font-black text-eletrico">OPERACIONAL</p>
-                            </div>
-                            <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-3xl min-w-[140px] shadow-inner">
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Rede</p>
-                                <p className="text-lg font-black text-emerald-400 uppercase tracking-tight">Estável</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* --- LINHA DE KPIs ESSENCIAIS --- */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

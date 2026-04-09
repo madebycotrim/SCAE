@@ -37,24 +37,32 @@ export default function PaginaInicial() {
     }, []);
 
     const selecionarEscola = async (slug: string) => {
-        definirEscolaSelecionada(slug);
         definirCarregandoDadosEscola(true);
         
         try {
             const apiUrl = import.meta.env.VITE_API_URL || '/api';
             const resposta = await fetch(`${apiUrl}/publico/escolas/${slug}`);
+            
             if (resposta.ok) {
                 const dados = await resposta.json();
                 const infoEscola = dados.dados;
-                definirEscolaDados(infoEscola);
-
-                // ⚡ Atalho Inteligente: Se não usa QR Code, vai direto para o Login
+                
+                // 🚀 PRIORIDADE 1: Se o método NÃO for QRCODE, redireciona IMEDIATAMENTE
                 if (infoEscola?.metodo_entrada !== 'QRCODE') {
-                    navegar(`/${slug}/login`);
+                    return navegar(`/${slug}/login`);
                 }
+
+                // 🚀 PRIORIDADE 2: Só exibe a tela de escolha se for QRCODE confirmado
+                definirEscolaDados(infoEscola);
+                definirEscolaSelecionada(slug);
+            } else {
+                // Se a escola não for encontrada ou der erro, assume-se Login Gestor como padrão seguro
+                return navegar(`/${slug}/login`);
             }
         } catch (error) {
             console.error('Erro ao buscar detalhes da escola:', error);
+            // Em caso de erro de conexão, tentamos o login administrativo por segurança
+            return navegar(`/${slug}/login`);
         } finally {
             definirCarregandoDadosEscola(false);
         }

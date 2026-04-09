@@ -13,6 +13,9 @@ export const EMAIL_ROOT = 'madebycotrim@gmail.com';
  * Use `verificarAcesso(contexto, Permissao.ACAO_ESPECIFICA)`
  */
 export function verificarPermissao(contexto: ContextoCatraki, papeisPermitidos: string[] | Papel[]) {
+    // 🛡️ INICIALIZAÇÃO SEGURA
+    contexto.data = contexto.data || {};
+    
     const papelUsuario = contexto.data.usuarioCatraki?.papel;
     const eDono = contexto.data.user?.email === EMAIL_ROOT;
 
@@ -29,6 +32,9 @@ export function verificarPermissao(contexto: ContextoCatraki, papeisPermitidos: 
  * consultando a matriz de RBAC central, isolando Papéis soltos.
  */
 export function verificarAcesso(contexto: ContextoCatraki, permissaoNecessaria: Permissao) {
+    // 🛡️ DEFESA ATÔMICA: Garante que 'data' exista para evitar crash de 'undefined' (Regra de Ouro)
+    contexto.data = contexto.data || {};
+
     const papelUsuario = contexto.data.usuarioCatraki?.papel as Papel | undefined;
     const eDono = contexto.data.user?.email === EMAIL_ROOT;
 
