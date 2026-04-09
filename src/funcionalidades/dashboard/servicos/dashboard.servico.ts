@@ -26,7 +26,7 @@ export const dashboardServico = {
 
     async limparHistorico() {
         try {
-            return await api.deletar('/acesso/registros');
+            return await api.remover('/acesso/registros');
         } catch (erro) {
             log.error('Erro ao limpar histórico', erro);
             throw erro;

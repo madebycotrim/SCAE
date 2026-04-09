@@ -302,7 +302,6 @@ export default function Painel() {
                 <div className="flex gap-3">
                     <Botao 
                         variante="secundario" 
-                        rotulo="Limpar Logs" 
                         icone={Trash2} 
                         aoClicar={async () => {
                             if (window.confirm('🚨 CUIDADO: Isso apagará TODO o histórico de acessos (incluindo o de hoje). Deseja continuar?')) {
@@ -314,7 +313,9 @@ export default function Painel() {
                                 }
                             }
                         }}
-                    />
+                    >
+                        Limpar Logs
+                    </Botao>
                 </div>
             }
         >

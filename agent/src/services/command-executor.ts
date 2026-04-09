@@ -1,7 +1,8 @@
+/**
  * services/command-executor.ts
  * Executor de Ordens vindas da Nuvem.
  */
- 
+
 import { runSql } from '../infra/db';
 import { stats } from '../infra/stats';
 
