@@ -137,6 +137,13 @@ async function tentarDescobrirIdentidade() {
             config.tts_sucesso = config_tts_frase_sucesso;
             config.tts_erro = config_tts_frase_erro;
 
+            // 📡 Sincronização Inicial de Hardware
+            if (resp.identidade.leitores && Array.isArray(resp.identidade.leitores)) {
+                config.leitores = resp.identidade.leitores;
+                const { recarregarLeitores } = require('./poller');
+                recarregarLeitores();
+            }
+
             console.log(`[Sync] 🔑 IDENTIDADE CONECTADA: ${nome_escola.toUpperCase()}`);
             console.log(`[Sync] 🔊 TTS INICIAL: ${config.tts_ativado ? 'ATIVADO' : 'DESATIVADO'}`);
 

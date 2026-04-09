@@ -1,9 +1,3 @@
-/**
- * agent/src/main/main.ts
- * Servidor de Recebimento de Eventos em Tempo Real (Push).
- * Gerenciador de Janela e Handlers de Comunicação (IPC).
- */
-
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
@@ -13,6 +7,14 @@ import { carregarConfiguracaoHardware, salvarLeitoresNoDisco, config } from '../
 import { stats } from '../infra/stats';
 import { iniciarSync, obterContagemPendentes, sincronizarRegistrosPendentes } from '../services/sync';
 import { resetarBancoLocal } from '../infra/db';
+
+// 🛡️ REDE DE SEGURANÇA: Captura erros fatais e evita que o Agente feche sem aviso
+process.on('uncaughtException', (erro) => {
+    console.error(' [CRASH] Erro não capturado:', erro);
+});
+process.on('unhandledRejection', (motivo) => {
+    console.error(' [CRASH] Promessa rejeitada sem tratamento:', motivo);
+});
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -95,7 +97,16 @@ function createWindow() {
                 ok: true, 
                 agente: 'Catraki Edge Agent',
                 versao: '2.0.0',
-                leitoresAtivos: leitoresOnline
+                nome_escola: config.nome_escola,
+                leitoresAtivos: leitoresOnline,
+                stats: stats.obterSnapshot(),
+                leitores: leitores.map(l => ({
+                    id: l.id,
+                    nome: l.nome,
+                    online: (l as any).online !== undefined ? (l as any).online : 'verificando',
+                    ip: l.ip,
+                    totalUsuarios: (l as any).totalUsuarios || 0
+                }))
             }));
             return;
         }
@@ -205,6 +216,11 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  
+  // 🚀 ATIVAÇÃO DOS MOTORES CATRAKI
+  iniciarSync();             // Inicia conversa com a Nuvem
+  iniciarPolling(mainWindow); // Inicia radar de Hardware (Leitores)
+
   setInterval(enviarStatusParaUI, 5000);
 
   // Handlers IPC

@@ -98,11 +98,9 @@ export default function PaginaAgente() {
             if (!res.ok) throw new Error();
             const dados = await res.json();
             
-            // 🛡️ TRAVA DE SEGURANÇA: Se não tem hardware, a página permanece "oculta" redirecionando o usuário
+            // 🛡️ A página agora permanece aberta mesmo sem leitores para permitir diagnóstico
             if (dados.ok && dados.leitoresAtivos === 0) {
-                toast.error('Página indisponível: Nenhum leitor detectado.');
-                navegar(`/${slugEscola}/admin/painel`);
-                return;
+                console.warn('[Agente] Nenhum leitor físico detectado via radar local.');
             }
 
             setStatusLocal(dados);

@@ -126,12 +126,16 @@ async function processarRequisicao(contexto: ContextoCatraki): Promise<Response>
         let usuarioCatraki = await contexto.env.KV_SCAE.get(`user:${idEscola}:${email}`, 'json');
 
         if (!usuarioCatraki) {
+            // 🔍 RESOLUÇÃO DE ID (UUID/SLUG): Garante que usuários logados via Dashboard funcionem
+            const idReal = await ServicoCache.buscarIdPorSlug(idEscola, contexto.env);
+            const idParaBusca = idReal || idEscola;
+
             usuarioCatraki = await contexto.env.DB_SCAE.prepare(
-                "SELECT * FROM usuarios WHERE email = ? AND escola_id = ? AND ativo = 1"
-            ).bind(email, idEscola).first();
+                "SELECT * FROM usuarios WHERE email = ? AND (escola_id = ? OR escola_id = ?) AND ativo = 1"
+            ).bind(email, idEscola, idParaBusca).first();
 
             if (usuarioCatraki) {
-                await contexto.env.KV_SCAE.put(`user:${idEscola}:${email}`, JSON.stringify(usuarioCatraki), { expirationTtl: 600 }); // Cache curto de 10 min
+                await contexto.env.KV_SCAE.put(`user:${idEscola}:${email}`, JSON.stringify(usuarioCatraki), { expirationTtl: 600 });
             }
         }
 

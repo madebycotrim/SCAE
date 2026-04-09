@@ -171,7 +171,7 @@ export class WorkerApi {
 
   static async enviarStatus(corpo: any) {
     try {
-      await fetch(`${config.endpoint_worker}/api/agente/status`, {
+      await fetch(`${config.endpoint_worker}/api/agente/heartbeat`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json', 

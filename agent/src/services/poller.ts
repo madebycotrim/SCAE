@@ -24,43 +24,23 @@ const leitoresEmProcessamento = new Set<string>();
 // 🌐 WATCHDOG DE REDE: Detecta mudança de IP Local para reconfigurar Push nos Hardwares
 let ultimoIpLocalDetectado: string | null = null;
 
+let pollingAtivo = false;
+
 /** Inicializa o monitoramento de todos os leitores configurados */
 export function iniciarPolling(notificador: any) {
+  if (pollingAtivo) return;
+  pollingAtivo = true;
+
   // ⚡ SEGURO: Garante que os leitores estejam carregados se ainda não estiverem
   verificarEInicializarLeitores();
 
   notificadorGlobal = notificador;
   console.log(`[Poller] Motores de coleta (Polling) ATIVADOS para ${leitoresAtivos.length} equipamentos.`);
-}
 
-/** 
- * Garante que a lista de equipamentos configurados esteja na memória.
- * Chamado pelo monitor de status antes mesmo da ativação total do sistema.
- */
-export function verificarEInicializarLeitores() {
-  if (leitoresAtivos.length === 0 && config.leitores) {
-    const list = (config.leitores as any[]).map(c => {
-        const l = new IdflexLeitor(c);
-        (l as any).online = 'verificando'; // Estado inicial neutro
-        console.log(`[Poller] Radar ON: Alvejando ${c.nome} em ${c.ip}`);
-        return l;
-    });
-    leitoresAtivos = list;
-    console.log(`[Poller] Hardware carregado: ${leitoresAtivos.length} equipamentos em radar.`);
-  }
+  // Inicia imediatamente e depois repete
+  executarCicloMonitoramento();
+  setInterval(executarCicloMonitoramento, 2000);
 }
-
-// Ciclo Principal de Monitoramento (WATCHDOG) - Roda SEMPRE
-function executarCicloMonitoramento() {
-    // Carrega se sumir
-    verificarEInicializarLeitores();
-    // Monitora individualmente cada leitor
-    leitoresAtivos.forEach(leitor => monitorarLeitor(leitor));
-}
-
-// Inicia imediatamente e depois repete
-executarCicloMonitoramento();
-setInterval(executarCicloMonitoramento, 2000);
 
 /** Recarrega a lista de leitores (Ex: mudança de IP no dashboard) */
 export function recarregarLeitores(novaLista: ILeitor[] = []) {
@@ -118,6 +98,31 @@ export async function recarregarLeitorEspecifico(leitorId: string) {
         console.error(`[Poller] Falha ao reconectar ${leitor.id}:`, e.message);
         return { ok: false, erro: e.message };
     }
+}
+
+/** 
+ * Garante que a lista de equipamentos configurados esteja na memória.
+ * Chamado pelo monitor de status antes mesmo da ativação total do sistema.
+ */
+export function verificarEInicializarLeitores() {
+  if (leitoresAtivos.length === 0 && config.leitores) {
+    const list = (config.leitores as any[]).map(c => {
+        const l = new IdflexLeitor(c);
+        (l as any).online = 'verificando'; // Estado inicial neutro
+        console.log(`[Poller] Radar ON: Alvejando ${c.nome} em ${c.ip}`);
+        return l;
+    });
+    leitoresAtivos = list;
+    console.log(`[Poller] Hardware carregado: ${leitoresAtivos.length} equipamentos em radar.`);
+  }
+}
+
+// Ciclo Principal de Monitoramento (WATCHDOG) - Roda SEMPRE
+function executarCicloMonitoramento() {
+    // Carrega se sumir
+    verificarEInicializarLeitores();
+    // Monitora individualmente cada leitor
+    leitoresAtivos.forEach(leitor => monitorarLeitor(leitor));
 }
 
 async function monitorarLeitor(leitor: ILeitor) {
