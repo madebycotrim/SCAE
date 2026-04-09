@@ -1625,8 +1625,26 @@
         }
 
         // ══════════════════════════════════════
-        //  TTS — FILA SEM CANCEL CONSTANTE
+        //  TTS — MOTOR ROBUSTO (Anti-Bug Chromium)
         // ══════════════════════════════════════
+        let vozPtBr = null;
+
+        // Pré-carrega vozes (Chromium pode demorar para disponibilizá-las)
+        function carregarVozes() {
+            const vozes = window.speechSynthesis.getVoices();
+            if (vozes.length > 0) {
+                // Prioridade: Google pt-BR > qualquer pt-BR > qualquer pt
+                vozPtBr = vozes.find(v => v.lang === 'pt-BR' && v.name.includes('Google'))
+                       || vozes.find(v => v.lang === 'pt-BR')
+                       || vozes.find(v => v.lang.startsWith('pt'))
+                       || null;
+            }
+        }
+        carregarVozes();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = carregarVozes;
+        }
+
         function enqueueTTS(texto) {
             ttsQueue.push(texto);
             if (!ttsSpeaking) drainTTS();
@@ -1636,10 +1654,29 @@
             if (ttsQueue.length === 0) { ttsSpeaking = false; return; }
             ttsSpeaking = true;
             const frase = ttsQueue.shift();
+
+            // Destravar fila caso o Chromium tenha congelado
+            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+            window.speechSynthesis.cancel();
+
             const u = new SpeechSynthesisUtterance(frase);
             u.lang = 'pt-BR';
+            if (vozPtBr) u.voice = vozPtBr;
+            u.rate = 1.05;
             u.onend = () => setTimeout(drainTTS, 150);
             u.onerror = () => setTimeout(drainTTS, 150);
+
+            // Watchdog: Se a fala não terminar em 10s, força próxima
+            const watchdog = setTimeout(() => {
+                window.speechSynthesis.cancel();
+                ttsSpeaking = false;
+                drainTTS();
+            }, 10000);
+
+            const origEnd = u.onend;
+            u.onend = () => { clearTimeout(watchdog); setTimeout(drainTTS, 150); };
+            u.onerror = () => { clearTimeout(watchdog); setTimeout(drainTTS, 150); };
+
             window.speechSynthesis.speak(u);
         }
 

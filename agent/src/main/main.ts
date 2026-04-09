@@ -8,7 +8,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import http from 'http';
-import { obterLeitoresAtivos, recarregarLeitores, recarregarLeitorEspecifico } from '../services/poller';
+import { obterLeitoresAtivos, recarregarLeitores, recarregarLeitorEspecifico, iniciarPolling } from '../services/poller';
 import { carregarConfiguracaoHardware, salvarLeitoresNoDisco, config } from '../infra/config';
 import { stats } from '../infra/stats';
 import { iniciarSync, obterContagemPendentes } from '../services/sync';
@@ -355,6 +355,7 @@ function createWindow() {
   carregarConfiguracaoHardware();
   stats.sincronizarComBanco();
   recarregarLeitores();
+  iniciarPolling(mainWindow);
   iniciarSync();
 
   // Envia primeiro pulso de status após o boot
