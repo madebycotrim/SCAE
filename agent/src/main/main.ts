@@ -8,7 +8,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import http from 'http';
-import { leitoresAtivos, recarregarLeitores, recarregarLeitorEspecifico } from '../services/poller';
+import { obterLeitoresAtivos, recarregarLeitores, recarregarLeitorEspecifico } from '../services/poller';
 import { carregarConfiguracaoHardware, salvarLeitoresNoDisco, config } from '../infra/config';
 import { stats } from '../infra/stats';
 import { iniciarSync, obterContagemPendentes } from '../services/sync';
@@ -72,6 +72,9 @@ function enviarStatusParaUI() {
 
     obterContagemPendentes().then(pendentes => {
         if (!mainWindow) return;
+        const leitores = obterLeitoresAtivos();
+        // console.log(`[UI-Pulse] Enviando status: ${leitores.length} leitores ativos.`);
+
         mainWindow.webContents.send('hardware-status', {
             ok: true,
             agente: 'Catraki Edge Agent',
@@ -82,13 +85,13 @@ function enviarStatusParaUI() {
             tts_sucesso: config.tts_sucesso,
             tts_erro: config.tts_erro,
             ip_agente_config: config.ip_agente,
-            pendentes, // 🔔 EXIBE NA UI: Batidas que cairam no "Offline" e ainda não sincronizaram
+            pendentes,
             stats: stats.obterSnapshot(),
-            leitores: leitoresAtivos.map(l => ({
+            leitores: leitores.map(l => ({
                 id: l.id,
                 nome: l.nome,
                 tipo: l.tipo,
-                online: (l as any).online,
+                online: (l as any).online !== undefined ? (l as any).online : 'verificando',
                 ip: l.ip,
                 porta: (l as any).porta || 80,
                 totalUsuarios: (l as any).totalUsuarios || 0
@@ -150,7 +153,7 @@ function createWindow() {
                 const ev = JSON.parse(body);
                 const clientIp = req.socket.remoteAddress?.replace('::ffff:', '').split(':')[0];
                 
-                const leitor = leitoresAtivos.find(l => {
+                const leitor = obterLeitoresAtivos().find((l: any) => {
                     const leitorBaseIp = l.ip.split(':')[0];
                     return leitorBaseIp === clientIp;
                 }) as any;
@@ -251,7 +254,7 @@ function createWindow() {
     try {
         console.log(`[Config] 💾 Recebida ordem de salvamento: ${leitores.length} dispositivos | IP Agente: ${ipAgente || 'Automático'}`);
         
-        // Log individual para debugar vanishing data
+        // Log individual para debugar
         leitores.forEach((l: any, i: number) => {
             console.log(`  [${i+1}] ID: ${l.id} | IP: ${l.ip} | Tipo: ${l.tipo}`);
         });
@@ -270,13 +273,44 @@ function createWindow() {
         return { ok: false, erro: e.message };
     }
   });
-
   ipcMain.handle('listar-alunos', async (_event, leitorId) => {
     try {
-        const leitor = leitoresAtivos.find(l => l.id === leitorId);
-        if (!leitor || !leitor.listarAlunos) return [];
+        const leitor = obterLeitoresAtivos().find(l => l.id === leitorId);
+        if (!leitor) return { ok: false, erro: 'Leitor não encontrado ou offline.' };
+        if (!leitor.listarAlunos) return [];
         return await leitor.listarAlunos();
     } catch { return []; }
+  });
+
+  ipcMain.handle('cadastrar-aluno', async (_event, dados) => {
+    try {
+        const leitor = obterLeitoresAtivos().find(l => l.id === dados.leitorId);
+        if (!leitor) return { ok: false, erro: 'Leitor offline.' };
+        return await leitor.cadastrarAluno(dados);
+    } catch (e: any) {
+        return { ok: false, erro: e.message };
+    }
+  });
+
+  ipcMain.handle('iniciar-captura', async (_event, dados) => {
+    try {
+        const leitor = obterLeitoresAtivos().find(l => l.id === dados.leitorId);
+        if (!leitor) return { ok: false, erro: 'Leitor offline.' };
+        if (!leitor.iniciarCaptura) return { ok: false, erro: 'Hardware não suporta captura remota.' };
+        return await leitor.iniciarCaptura(dados.userId);
+    } catch (e: any) {
+        return { ok: false, erro: e.message };
+    }
+  });
+
+  ipcMain.handle('excluir-aluno', async (_event, { leitorId, matricula }) => {
+    try {
+        const leitor = obterLeitoresAtivos().find(l => l.id === leitorId);
+        if (!leitor) return { ok: false, erro: 'Leitor offline.' };
+        return await leitor.removerAluno(matricula);
+    } catch (e: any) {
+        return { ok: false, erro: e.message };
+    }
   });
 
   ipcMain.handle('reconectar-leitor', async (_event, { leitorId }) => {

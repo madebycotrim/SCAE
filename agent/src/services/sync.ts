@@ -6,7 +6,7 @@
 import { config, salvarConfiguracaoCompleta } from '../infra/config';
 import { runSql, allSql, getSql } from '../infra/db';
 import { WorkerApi } from './worker-endpoint';
-import { leitoresAtivos } from './poller';
+import { obterLeitoresAtivos } from './poller';
 
 let estaSincronizando = false;
 let estaSincronizandoBatidas = false; // Bloqueio para evitar acúmulo se a internet/nuvem estiver lenta
@@ -29,7 +29,8 @@ export async function iniciarSync() {
   sincronizarRegistrosPendentes();
   realizarLimpezaGariDigital(); // Limpeza no Boot
   
-  const statusBoot = leitoresAtivos.map(l => ({
+  const leitores = obterLeitoresAtivos();
+  const statusBoot = leitores.map(l => ({
       id: l.id,
       nome: l.nome,
       online: (l as any).online || false
@@ -106,7 +107,7 @@ export async function iniciarSync() {
             ultimo_visto: new Date().toISOString(),
             ip_interno: ipLocal,
             uptime_seconds: Math.floor(process.uptime()),
-            hardware: leitoresAtivos.map(l => ({
+            hardware: obterLeitoresAtivos().map(l => ({
                 id: l.id,
                 nome: l.nome,
                 ip: l.ip,
@@ -347,9 +348,10 @@ export async function forcarSincronizacaoImediata() {
  * Muito mais leve que uma convergência total em horários de pico.
  */
 async function sincronizarHardwareDelta(alunosAlterados: any[]) {
-    if (!leitoresAtivos || leitoresAtivos.length === 0) return;
+    const leitores = obterLeitoresAtivos();
+    if (!leitores || leitores.length === 0) return;
 
-    for (const leitor of leitoresAtivos) {
+    for (const leitor of leitores) {
         try {
             if (!(leitor as any).online) continue;
             
@@ -372,7 +374,7 @@ async function sincronizarHardwareDelta(alunosAlterados: any[]) {
             }
 
             if (cadastros > 0 || remocoes > 0) {
-                console.log(`[Sync][${leitor.nome}] Atualização Delta: +${cadastros} | -${remocoes}`);
+                console.log(`🔄 SYNC[${leitor.nome}] Atualização Delta: +${cadastros} | -${remocoes}`);
             }
         } catch (e: any) {
             console.error(`[Sync] Falha na atualização delta de ${leitor.id}: ${e.message}`);

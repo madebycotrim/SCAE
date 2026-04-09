@@ -99,17 +99,33 @@ export class WorkerApi {
     const urlLocal = `http://localhost:8788/api/agente/sync-ponto`;
     
     // ⚡ MAPEAMENTO DE CAMPOS: O Servidor Cloudflare espera nomes de colunas do D1
-    // Registros no banco local v3 -> Objetos esperados pelo sync-ponto.ts
-    const registrosCloud = eventos.map(e => ({
-        id: e.id,
-        escola_id: config.escola_id,
-        aluno_matricula: e.matricula, // Converte 'matricula' para 'aluno_matricula'
-        tipo_movimentacao: e.tipo || 'ENTRADA', // Converte 'tipo' para 'tipo_movimentacao'
-        metodo_validacao: 'BIOMETRIA',
-        timestamp: e.timestamp_acesso, // O campo no WorkerApi.enviarBatida deve ser 'timestamp'
-        leitor_id: e.leitor_id,
-        id_evento_hardware: e.id.split('-')[1] || '0'
-    }));
+    const registrosCloud = eventos.map(e => {
+        // Extrai o ID numérico final do ID único 
+        const partes = e.id.split('-');
+        const rawHardwareId = partes[partes.length - 1] || '0';
+        const hardwareIdNum = parseInt(rawHardwareId, 10) || 0;
+
+        // Garante que o timestamp esteja em formato ISO para o Worker (YYYY-MM-DDTHH:MM:SSZ)
+        let dataIso = e.timestamp_acesso;
+        if (dataIso && !dataIso.includes('T')) {
+            dataIso = dataIso.replace(' ', 'T') + 'Z';
+        }
+
+        // Sanitização total para evitar 500 na Nuvem (D1)
+        // Limpa o ID de espaços e caracteres estranhos
+        const idLimpo = (e.id || `TEMP-${Date.now()}`).replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+
+        return {
+            id: idLimpo,
+            escola_id: String(config.escola_id || '').toLowerCase().trim(),
+            aluno_matricula: String(e.matricula || '0'),
+            tipo_movimentacao: String(e.tipo || 'ENTRADA').toUpperCase(),
+            metodo_validacao: 'BIOMETRIA',
+            timestamp: dataIso || new Date().toISOString(),
+            leitor_id: String(e.leitor_id || 'manual').replace(/\s+/g, '-'),
+            id_evento_hardware: hardwareIdNum
+        };
+    });
 
     const options = {
         method: 'POST',
@@ -120,15 +136,18 @@ export class WorkerApi {
             'User-Agent': 'SCAE-Agent/1.6.2-FINAL'
         },
         body: JSON.stringify({ registros: registrosCloud }),
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(15000)
     };
 
     try {
       const resp = await fetch(urlCloud, options as any);
       if (resp.ok) return true;
-      console.warn(`[WorkerApi] Site recusou as batidas (Status ${resp.status}). Tentando banco local...`);
-    } catch (e: any) { 
-      console.warn(`[WorkerApi] Falha na Nuvem (${e.message}). Tentando localhost...`);
+
+      // Se deu erro, queremos ler o PORQUÊ antes de desistir
+      const detalheErro = await resp.text().catch(() => 'Erro sem corpo');
+      console.warn(`[WorkerApi] Nuvem recusou as batidas (Status ${resp.status}): ${detalheErro.substring(0, 160)}`);
+    } catch { 
+      // Silencioso
     }
 
     // Fallback: Tentativa via localhost (wrangler)

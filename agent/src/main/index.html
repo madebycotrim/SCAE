@@ -1653,6 +1653,8 @@
         //  HARDWARE STATUS
         // ══════════════════════════════════════
         window.scaeApi.onHardwareStatus(status => {
+            document.getElementById('sync-spinner').classList.add('hidden');
+            configAtiva = status.leitores || [];
             if (status.nome_escola) {
                 document.getElementById('school-badge').textContent = status.nome_escola.toUpperCase();
                 document.getElementById('c-escola').textContent = status.nome_escola.toUpperCase();
@@ -1686,7 +1688,6 @@
             if (status.ip_agente_config !== undefined) {
                 document.getElementById('ipt-agente-ip').value = status.ip_agente_config;
             }
-            configAtiva = status.leitores || [];
             console.log('[UI] configAtiva atualizada:', configAtiva.length, 'leitores');
             renderHardware();
         });

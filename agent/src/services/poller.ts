@@ -13,7 +13,8 @@ import { IdflexLeitor } from '../drivers/IdflexLeitor';
 import { config } from '../infra/config';
 
 // Lista de leitores em monitoramento
-export let leitoresAtivos: ILeitor[] = [];
+let leitoresAtivos: ILeitor[] = [];
+export function obterLeitoresAtivos() { return leitoresAtivos; }
 let notificadorGlobal: any = null;
 
 // Controle de Backoff e Travas de Execução (Lock)
@@ -106,7 +107,7 @@ export async function recarregarLeitorEspecifico(leitorId: string) {
             const ipLocal = config.ip_agente || buscarIpLocal();
             if (ipLocal) {
                 await (leitor as any).configurarModoEscola(ipLocal);
-                console.log(`[Poller] ✓ ${leitor.nome} RECONECTADO EM ${ipLocal}.`);
+                console.log(`[Poller] ✓ ${leitor.nome} RECONECTADO.`);
             }
         }
         
@@ -156,8 +157,8 @@ async function monitorarLeitor(leitor: ILeitor) {
 
     if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000) || ipMudou) {
         if (ipAtualLocal && st.online) {
-            // Log cristalino - Escondendo a porta para o usuário não se confundir
-            console.log(`[Watchdog][${leitor.nome}] 🎯 Sincronizando: Leitor (${leitor.ip}) ➔ Agente (${ipAtualLocal})`);
+            // Log simplificado
+            console.log(`[Watchdog][${leitor.nome}] Sincronizando modo escola.`);
             // Ativa o Push (Modo Escola) - Só tenta se o hardware estiver online para evitar bloqueio do loop
             await (leitor as any).configurarModoEscola(ipAtualLocal, config.porta_agente || 1912).catch(() => {});
             // Sincroniza Marca de Watchdog

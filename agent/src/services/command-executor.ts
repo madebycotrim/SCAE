@@ -5,7 +5,7 @@
 
 import { config } from '../infra/config';
 import { sincronizarCacheAlunos } from './sync';
-import { leitoresAtivos } from './poller';
+import { obterLeitoresAtivos } from './poller';
 import { app } from 'electron';
 import { WorkerApi } from './worker-endpoint';
 
@@ -34,9 +34,10 @@ export async function processarComandosNuvem(comandos: any[]) {
 
                 case 'ABRIR_CATRACA':
                     const leitorId = cmd.params?.leitorId;
+                    const leitores = obterLeitoresAtivos();
                     const leitor = leitorId 
-                        ? leitoresAtivos.find(l => l.id === leitorId) 
-                        : leitoresAtivos[0]; // Se não especificar, pega o primeiro
+                        ? leitores.find(l => l.id === leitorId) 
+                        : leitores[0]; // Se não especificar, pega o primeiro
                     
                     if (leitor) {
                         console.log(`[Comandos] 🔓 Abrindo catraca: ${leitor.nome}`);
