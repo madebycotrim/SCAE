@@ -77,16 +77,27 @@ async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Respons
         const data = searchParams.get('data');
         const desde = searchParams.get('desde');
         const matricula = searchParams.get('matricula');
+        
+        const hojeLocal = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(new Date()).split('/').reverse().join('-');
 
         let queryBase = "FROM registros_acesso WHERE escola_id = ?";
         const params: (string | number)[] = [idEscola];
 
         if (data) {
-            queryBase += " AND substr(timestamp_acesso, 1, 10) = ?";
+            queryBase += " AND date(timestamp_acesso, '-3 hours') = ?";
             params.push(data);
         } else if (desde) {
             queryBase += " AND timestamp_acesso > ?";
             params.push(desde);
+        } else {
+            // Hoje local
+            queryBase += " AND date(timestamp_acesso, '-3 hours') = ?";
+            params.push(hojeLocal);
         }
 
         if (matricula) {
@@ -132,6 +143,20 @@ async function processarExclusaoAcessos(contexto: ContextoCatraki): Promise<Resp
         await contexto.env.DB_SCAE.prepare(
             "DELETE FROM registros_acesso WHERE escola_id = ?"
         ).bind(idEscola).run();
+
+        // 🧹 Enfileirar comando para o Agente Local também limpar seu banco físico
+        const { KV_SCAE } = contexto.env;
+        if (KV_SCAE) {
+            const chaveQueue = `escola:${idEscola}:comandos`;
+            const comandosAtuais = await KV_SCAE.get(chaveQueue, 'json') as any[] || [];
+            comandosAtuais.push({
+                id: crypto.randomUUID(),
+                acao: 'WIPE_LOGS',
+                params: {},
+                timestamp: new Date().toISOString()
+            });
+            await KV_SCAE.put(chaveQueue, JSON.stringify(comandosAtuais), { expirationTtl: 600 });
+        }
 
         return Response.json({
             ok: true,

@@ -201,10 +201,11 @@ function createWindow() {
                     // --- PERSISTÊNCIA E NOTIFICAÇÃO ---
                     const idUnico = `PUSH-${leitor.id}-${ev.time}`;
                     try {
+                        const agoraIso = new Date().toISOString();
                         await runSql(`
-                            INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, sincronizado)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, 0)
-                        `, [idUnico, leitor.id, config.escola_id, String(matriculaParaExibir), nomeParaExibir, statusAcesso, statusAcesso !== 'NEGADO' ? 1 : 0]);
+                            INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                        `, [idUnico, leitor.id, config.escola_id, String(matriculaParaExibir), nomeParaExibir, statusAcesso, statusAcesso !== 'NEGADO' ? 1 : 0, agoraIso]);
                     } catch (e) { /* Silencioso se duplicado */ }
 
                     stats.registrarAcesso(nomeParaExibir, String(matriculaParaExibir), statusAcesso, turmaAcesso);

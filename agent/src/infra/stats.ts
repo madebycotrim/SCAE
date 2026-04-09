@@ -66,7 +66,7 @@ class StatsManager {
                     SUM(CASE WHEN tipo = 'SAIDA' THEN 1 ELSE 0 END) as sai,
                     SUM(CASE WHEN tipo NOT IN ('ENTRADA', 'SAIDA') THEN 1 ELSE 0 END) as neg
                 FROM registros_acesso 
-                WHERE timestamp_acesso >= datetime('now', '-24 hours', 'localtime')
+                WHERE date(timestamp_acesso, 'localtime') = date('now', 'localtime')
             `);
 
             if (totais) {
@@ -79,7 +79,7 @@ class StatsManager {
             const dist: any[] = await allSql(`
                 SELECT CAST(strftime('%H', timestamp_acesso) AS INTEGER) as hora, count(*) as total 
                 FROM registros_acesso 
-                WHERE timestamp_acesso >= datetime('now', '-24 hours', 'localtime') 
+                WHERE date(timestamp_acesso, 'localtime') = date('now', 'localtime') 
                 GROUP BY hora
             `);
 
@@ -88,7 +88,7 @@ class StatsManager {
                 if (d.hora >= 0 && d.hora < 24) this.horas[d.hora] = d.total;
             });
 
-            console.log(`[Stats] Métricas sincronizadas (Janela 24h | Total: ${this.entradas + this.saidas + this.negados})`);
+            console.log(`[Stats] Métricas sincronizadas (Filtro Hoje | Total: ${this.entradas + this.saidas + this.negados})`);
         } catch (e) {
             console.error('[Stats] Falha ao sincronizar com banco:', e);
         }

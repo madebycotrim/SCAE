@@ -22,5 +22,14 @@ export const dashboardServico = {
             log.error('Erro ao buscar registros recentes', erro);
             return [];
         }
+    },
+
+    async limparHistorico() {
+        try {
+            return await api.deletar('/acesso/registros');
+        } catch (erro) {
+            log.error('Erro ao limpar histórico', erro);
+            throw erro;
+        }
     }
 };

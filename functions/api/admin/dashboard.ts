@@ -8,9 +8,14 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         const idEscola = extrairEscolaId(contexto.request);
         verificarAcesso(contexto, Permissao.VER_RELATORIOS);
 
+        const hojeStr = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(new Date()).split('/').reverse().join('-');
+
         const hojeObj = new Date();
-        const strIsoHojeLocal = new Date(hojeObj.getTime() - (hojeObj.getTimezoneOffset() * 60000)).toISOString();
-        const hojeStr = strIsoHojeLocal.substring(0, 10); // 'YYYY-MM-DD'
         const inicioSemana = new Date(hojeObj.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString().substring(0, 10);
 
         // 🚀 Otimização N+1 / Batching Crítico (DIMENSÃO 2)
@@ -19,8 +24,8 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
             contexto.env.DB_SCAE.prepare("SELECT COUNT(matricula) as t FROM alunos WHERE escola_id = ? AND ativo = 1").bind(idEscola),
             contexto.env.DB_SCAE.prepare("SELECT COUNT(id) as t FROM turmas WHERE escola_id = ?").bind(idEscola),
             contexto.env.DB_SCAE.prepare("SELECT COUNT(id) as t FROM alertas_risco WHERE escola_id = ? AND status != 'RESOLVIDO'").bind(idEscola),
-            contexto.env.DB_SCAE.prepare("SELECT aluno_matricula, tipo_movimentacao, timestamp_acesso as timestamp FROM registros_acesso WHERE escola_id = ? AND timestamp_acesso LIKE ?").bind(idEscola, `${hojeStr}%`),
-            contexto.env.DB_SCAE.prepare("SELECT substr(timestamp_acesso, 1, 10) as data, COUNT(DISTINCT aluno_matricula) as total FROM registros_acesso WHERE escola_id = ? AND tipo_movimentacao = 'ENTRADA' AND timestamp_acesso >= ? GROUP BY data ORDER BY data DESC LIMIT 7").bind(idEscola, inicioSemana),
+            contexto.env.DB_SCAE.prepare("SELECT aluno_matricula, tipo_movimentacao, timestamp_acesso as timestamp FROM registros_acesso WHERE escola_id = ? AND date(timestamp_acesso, '-3 hours') = ?").bind(idEscola, hojeStr),
+            contexto.env.DB_SCAE.prepare("SELECT date(timestamp_acesso, '-3 hours') as data, COUNT(DISTINCT aluno_matricula) as total FROM registros_acesso WHERE escola_id = ? AND tipo_movimentacao = 'ENTRADA' AND date(timestamp_acesso, '-3 hours') >= ? GROUP BY data ORDER BY data DESC LIMIT 7").bind(idEscola, inicioSemana),
             contexto.env.DB_SCAE.prepare("SELECT matricula, nome_completo, turma_id FROM alunos WHERE escola_id = ?").bind(idEscola), // Usado apenas no Live Feed do front momentaneamente
         ]);
 
@@ -30,7 +35,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
 
         const registros = registrosHjRes.results as { aluno_matricula: string, tipo_movimentacao: string, timestamp: string }[];
         
-        const entradasHoje = new Set(registros.filter(r => r.tipo_movimentacao === 'ENTRADA').map(r => r.aluno_matricula)).size;
+        const entradasHoje = new Set(registros.map(r => r.aluno_matricula)).size;
         const saidasHojeCount = registros.filter(r => r.tipo_movimentacao === 'SAIDA').length;
 
         // Cálculos Server/Worker-Side (Preservando Client Thread)

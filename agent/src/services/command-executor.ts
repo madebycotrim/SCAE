@@ -1,7 +1,9 @@
-/**
  * services/command-executor.ts
  * Executor de Ordens vindas da Nuvem.
  */
+ 
+import { runSql } from '../infra/db';
+import { stats } from '../infra/stats';
 
 import { config } from '../infra/config';
 import { sincronizarCacheAlunos } from './sync';
@@ -50,6 +52,13 @@ export async function processarComandosNuvem(comandos: any[]) {
                 case 'UPDATE_CONFIG':
                     // Recarrega configs da nuvem (Nome da escola, TTS, etc)
                     await sincronizarCacheAlunos(true);
+                    sucesso = true;
+                    break;
+
+                case 'WIPE_LOGS':
+                    console.warn('[Comandos] 🧹 LIMPANDO LOGS LOCAIS POR ORDEM REMOTA...');
+                    await runSql('DELETE FROM registros_acesso');
+                    stats.limparEstatisticas();
                     sucesso = true;
                     break;
 

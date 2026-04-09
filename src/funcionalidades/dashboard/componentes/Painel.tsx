@@ -25,7 +25,8 @@ import {
     Calendar,
     Grid,
     Clock,
-    Users
+    Users,
+    Trash2
 } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import { useMemo } from 'react';
@@ -41,7 +42,7 @@ import {
     Filler,
     ArcElement
 } from 'chart.js';
-import { format, subDays, parseISO } from 'date-fns';
+import { format, subDays, parseISO, isSameDay } from 'date-fns';
 
 ChartJS.register(
     CategoryScale,
@@ -131,11 +132,19 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
                 if (novos && novos.length > 0) {
                     definirRegistros(prev => {
                         const idsExistentes = new Set(prev.map(r => r.id));
-                        const realmenteNovos = novos.filter((n: any) => !idsExistentes.has(n.id));
+                        const realmenteNovos = novos.filter((n: any) => {
+                            const isNovo = !idsExistentes.has(n.id);
+                            const isDeHoje = isSameDay(parseISO(n.timestamp), new Date());
+                            return isNovo && isDeHoje;
+                        });
 
                         if (realmenteNovos.length === 0) return prev;
 
-                        const listaCombinada = [...realmenteNovos, ...prev].slice(0, 30);
+                        // Ao trocar de dia, limpa os antigos
+                        const listaCombinada = [...realmenteNovos, ...prev]
+                            .filter(r => isSameDay(parseISO(r.timestamp), new Date()))
+                            .slice(0, 30);
+                            
                         const maisNovo = listaCombinada[0]?.timestamp;
                         if (maisNovo) definirUltimaAtualizacao(maisNovo);
 
@@ -289,7 +298,25 @@ export default function Painel() {
         <LayoutAdministrativo
             titulo="Dashboard Central"
             subtitulo="Monitoramento e Gestão Escolar"
-            acoes={null}
+            acoes={
+                <div className="flex gap-3">
+                    <Botao 
+                        variante="secundario" 
+                        rotulo="Limpar Logs" 
+                        icone={Trash2} 
+                        aoClicar={async () => {
+                            if (window.confirm('🚨 CUIDADO: Isso apagará TODO o histórico de acessos (incluindo o de hoje). Deseja continuar?')) {
+                                try {
+                                    await dashboardServico.limparHistorico();
+                                    window.location.reload();
+                                } catch (e) {
+                                    alert('Erro ao limpar histórico. Verifique sua conexão.');
+                                }
+                            }
+                        }}
+                    />
+                </div>
+            }
         >
             <div className="space-y-8 pb-12">
 

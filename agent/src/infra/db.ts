@@ -108,7 +108,7 @@ export async function inicializarBanco(): Promise<any> {
                         nome TEXT,
                         tipo TEXT DEFAULT 'ENTRADA',
                         autorizado INTEGER DEFAULT 1,
-                        timestamp_acesso DATETIME DEFAULT (datetime('now', 'localtime')),
+                        timestamp_acesso DATETIME DEFAULT (datetime('now')),
                         sincronizado INTEGER DEFAULT 0
                     )
                 `);
