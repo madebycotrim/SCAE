@@ -132,16 +132,6 @@ export async function inicializarBanco(): Promise<any> {
                 db.run(`ALTER TABLE alunos_cache ADD COLUMN turno TEXT`, () => {});
                 db.run(`ALTER TABLE alunos_cache ADD COLUMN mensagem_aviso TEXT`, () => {});
 
-                // 5. Tabela de Visitantes (Offline Guest Pass)
-                db.run(`CREATE TABLE IF NOT EXISTS visitantes_offline (
-                    id TEXT PRIMARY KEY,
-                    nome TEXT NOT NULL,
-                    documento TEXT,
-                    motivo TEXT,
-                    timestamp_entrada DATETIME DEFAULT (datetime('now', 'localtime')),
-                    sincronizado INTEGER DEFAULT 0
-                )`);
-
                 // 4. Tabela de Turmas
                 db.run(`CREATE TABLE IF NOT EXISTS turmas_cache (
                     id TEXT PRIMARY KEY,

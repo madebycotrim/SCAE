@@ -96,6 +96,7 @@ export const IdFlexHelper = {
       if (!res.session) throw new Error('Falha na autenticação do iDFlex: Session não retornada');
       return res.session;
     } catch (e: any) {
+      console.error(`[iDFlex][${cfg.ip}] ❌ ERRO LOGIN: ${e.message}`);
       if (e.code === 'HTTP_ERROR' && e.statusCode === 401) {
         throw new Error('Usuário ou senha do iDFlex inválidos.');
       }

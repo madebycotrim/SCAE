@@ -148,25 +148,7 @@ export class WorkerApi {
     }
   }
 
-  /**
-   * Envia visitantes cadastrados offline para a nuvem.
-   */
-  static async enviarVisitantes(visitantes: any[]) {
-    const url = `${config.endpoint_worker}/api/agente/sync-visitantes`;
-    try {
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'X-Escola-ID': config.escola_id,
-                'X-Agente-Token': config.agente_secret 
-            },
-            body: JSON.stringify({ visitantes }),
-            signal: AbortSignal.timeout(10000)
-        });
-        return resp.ok;
-    } catch { return false; }
-  }
+
 
   static async enviarStatus(corpo: any) {
     try {

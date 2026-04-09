@@ -1160,12 +1160,7 @@
                 EXPORTAR LOG
             </button>
 
-            <button class="icon-btn accent" id="btn-visita-open" title="Registrar visitante offline">
-                <svg viewBox="0 0 16 16">
-                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2 5V4a2 2 0 1 1 4 0v9m-12 0V4a2 2 0 1 0-4 0v9" />
-                </svg>
-                VISITANTE
-            </button>
+
 
             <button class="icon-btn accent" id="btn-backup-db" title="Salvar cópia do banco">
                 <svg viewBox="0 0 16 16">
@@ -1277,7 +1272,7 @@
 
             <!-- HARDWARE -->
             <div class="sb-block" style="flex:1; min-height:0;">
-                <div class="section-title">Equipamentos Conectados</div>
+                <div class="section-title">Equipamentos/Leitores</div>
                 <div id="offline-banners"></div>
                 <div id="hardware-list">
                     <div class="empty-state">
@@ -1351,30 +1346,7 @@
         </div>
     </div>
 
-    <!-- MODAL: REGISTRAR VISITANTE -->
-    <div id="visita-screen" class="modal-bg hidden">
-        <div class="modal" style="width:400px;">
-            <div class="modal-head">
-                <span class="modal-title">REGISTRAR VISITANTE (OFFLINE)</span>
-                <button class="modal-close" onclick="closeVisita()">✕</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:12px">
-                <div>
-                    <div class="confirm-input-label">NOME COMPLETO</div>
-                    <input type="text" id="vis-nome" class="f-input" placeholder="Ex: João Silva">
-                </div>
-                <div>
-                    <div class="confirm-input-label">DOCUMENTO (CPF/RG)</div>
-                    <input type="text" id="vis-doc" class="f-input" placeholder="000.000.000-00">
-                </div>
-                <div>
-                    <div class="confirm-input-label">MOTIVO DA VISITA</div>
-                    <input type="text" id="vis-motivo" class="f-input" placeholder="Ex: Reunião pedagógica">
-                </div>
-                <button onclick="salvarVisita()" class="btn primary btn-full" style="margin-top:8px">SALVAR REGISTRO</button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- MODAL: PIN DE SEGURANÇA -->
     <div id="pin-screen" class="modal-bg hidden">
@@ -1396,6 +1368,15 @@
         // ══════════════════════════════════════
         let configAtiva = [];
         let uptime = 0;
+        const hwLatency = {}; // State para latência dos leitores
+
+        function formatLastSeen(ts) {
+            if (!ts) return '';
+            const sec = Math.floor((Date.now() - ts) / 1000);
+            if (sec < 5) return 'agora';
+            if (sec < 60) return `${sec}s atrás`;
+            return `${Math.floor(sec / 60)}m atrás`;
+        }
 
         // Métricas do dia
         const metrics = { ok: 0, err: 0, horas: new Array(24).fill(0) };
@@ -1412,8 +1393,7 @@
         const ttsQueue = [];
         let ttsSpeaking = false;
 
-        // Hardware latency tracker
-        const hwLatency = {};   // id -> { ms, lastSeen }
+
 
         // ══════════════════════════════════════
         //  CLOCK + UPTIME
@@ -1443,9 +1423,9 @@
             // 🏷️ TAGS PRINCIPAIS (Suporta formato [Tag] ou Emoji Tag)
             let resp = txt
                 .replace(/(\[Sync\]|🔄 SYNC)/gi,      '<span class="tag-base tag-sync">🔄 SYNC</span>')
-                .replace(/(\[iDFlex\]|📟 HARDWARE)/gi,   '<span class="tag-base tag-idflex">📟 HARDWARE</span>')
+                .replace(/(\[iDFlex\]|📟 LEITOR)/gi,   '<span class="tag-base tag-idflex">📟 LEITOR</span>')
                 .replace(/(\[Watchdog\]|🐕 WATCHDOG)/gi, '<span class="tag-base tag-watchdog">🐕 WATCHDOG</span>')
-                .replace(/(\[Hardware\]|🧩 COMPONENTE)/gi, '<span class="tag-base tag-hardware">🧩 COMPONENTE</span>')
+                .replace(/(\[Hardware\]|🧩 LEITOR)/gi, '<span class="tag-base tag-hardware">🧩 LEITOR</span>')
                 .replace(/(\[WorkerApi\]|☁ CLOUD)/gi, '<span class="tag-base tag-worker">☁ CLOUD</span>')
                 .replace(/(\[Config\]|⚙ CONFIG)/gi,    '<span class="tag-base tag-config">⚙ CONFIG</span>')
                 .replace(/(\[Enroll\]|👆 MATRÍCULA)/gi,  '<span class="tag-base tag-enroll">👆 MATRÍCULA</span>')
@@ -2013,17 +1993,17 @@
                 const ip = el.querySelector('.f-ip').value.trim();
                 const porta = el.querySelector('.f-porta').value;
                 const tipo = el.querySelector('.f-tipo').value;
-                const id = el.querySelector('.f-id')?.value || `idflex-${Date.now()}`;
-                
-                if (ip !== '') {
-                    novosLeitores.push({ 
-                        id, 
-                        nome: nome || 'Leitor Catraki', 
-                        ip, 
-                        porta: parseInt(porta) || 80, 
-                        tipo 
-                    });
-                }
+                    const id = el.querySelector('.f-id')?.value || `idflex-${Date.now()}`;
+                    
+                    if (ip !== '' && ip.length > 5) {
+                        novosLeitores.push({ 
+                            id, 
+                            nome: nome || 'Leitor Biométrico', 
+                            ip, 
+                            porta: parseInt(porta) || 80, 
+                            tipo 
+                        });
+                    }
             });
             if (novosLeitores.length === 0) {
                 if (!confirm("Você está salvando a lista de equipamentos VAZIA. Todas as catracas serão desconectadas. Deseja continuar?")) return;
@@ -2073,36 +2053,7 @@
             } catch { showToast('Falha ao enviar comando.', 'err'); }
         }
 
-        // ══════════════════════════════════════
-        //  VISITANTES
-        // ══════════════════════════════════════
-        document.getElementById('btn-visita-open').onclick = () => {
-            document.getElementById('vis-nome').value = '';
-            document.getElementById('vis-doc').value = '';
-            document.getElementById('vis-motivo').value = '';
-            document.getElementById('visita-screen').classList.remove('hidden');
-        };
 
-        window.closeVisita = () => document.getElementById('visita-screen').classList.add('hidden');
-
-        window.salvarVisita = async () => {
-            const nome = document.getElementById('vis-nome').value.trim();
-            const documento = document.getElementById('vis-doc').value.trim();
-            const motivo = document.getElementById('vis-motivo').value.trim();
-
-            if (!nome) { showToast('Nome é obrigatório', 'err'); return; }
-
-            try {
-                const res = await window.scaeApi.registrarVisitante({ nome, documento, motivo });
-                if (res.ok) {
-                    showToast('Visita registrada!', 'ok');
-                    pushLog(`Visita offline registrada: ${nome} (${documento || 'Sem doc'})`, 'info');
-                    closeVisita();
-                } else {
-                    showToast('Erro ao salvar visita', 'err');
-                }
-            } catch { showToast('Falha na API', 'err'); }
-        };
 
         // ══════════════════════════════════════
         //  MODO QUIOSQUE / PORTARIA

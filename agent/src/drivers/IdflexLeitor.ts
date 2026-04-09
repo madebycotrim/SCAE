@@ -62,7 +62,7 @@ export class IdflexLeitor implements ILeitor {
   async status(): Promise<StatusLeitor> {
     try {
       // Check online status with a light request
-      const info = await this.requisitarComToken('system_information.fcgi', {}, 2000);
+      const info = await this.requisitarComToken('system_information.fcgi', {}, 5000);
       
       return {
         online: true,

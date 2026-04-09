@@ -22,6 +22,5 @@ contextBridge.exposeInMainWorld('scaeApi', {
   backupDb: () => ipcRenderer.invoke('backup-db'),
   cadastrarAluno: (dados: any) => ipcRenderer.invoke('cadastrar-aluno', dados),
   iniciarCaptura: (dados: any) => ipcRenderer.invoke('iniciar-captura', dados),
-  excluirAluno: (dados: any) => ipcRenderer.invoke('excluir-aluno', dados),
-  registrarVisitante: (dados: any) => ipcRenderer.invoke('registrar-visitante', dados)
+  excluirAluno: (dados: any) => ipcRenderer.invoke('excluir-aluno', dados)
 });

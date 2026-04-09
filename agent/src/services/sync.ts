@@ -184,14 +184,7 @@ async function sincronizarRegistrosPendentes(): Promise<boolean> {
         }
     }
 
-    // 2. Sincroniza Visitantes Offline
-    const visitantes = await allSql(`SELECT * FROM visitantes_offline WHERE sincronizado = 0 LIMIT 20`);
-    if (visitantes.length > 0) {
-        const ok = await WorkerApi.enviarVisitantes(visitantes);
-        if (ok) {
-            for (const v of visitantes) await runSql('UPDATE visitantes_offline SET sincronizado = 1 WHERE id = ?', [v.id]);
-        }
-    }
+
 
     return true; 
   } catch (e) {

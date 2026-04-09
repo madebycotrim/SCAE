@@ -233,7 +233,7 @@ function createWindow() {
   });
 
   server.listen(1912, '0.0.0.0', () => {
-      console.log(`[Local API] Servidor ativo em http://0.0.0.0:1912`);
+      console.log(`[Local API] Servidor de Sincronização Ativo.`);
   });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
@@ -250,12 +250,18 @@ function createWindow() {
   ipcMain.handle('salvar-leitores', async (_event, { leitores, ipAgente }) => {
     try {
         console.log(`[Config] 💾 Recebida ordem de salvamento: ${leitores.length} dispositivos | IP Agente: ${ipAgente || 'Automático'}`);
+        
+        // Log individual para debugar vanishing data
+        leitores.forEach((l: any, i: number) => {
+            console.log(`  [${i+1}] ID: ${l.id} | IP: ${l.ip} | Tipo: ${l.tipo}`);
+        });
+
         const ok = salvarLeitoresNoDisco(leitores, ipAgente);
         if (ok) {
             carregarConfiguracaoHardware();
             recarregarLeitores();
             enviarStatusParaUI();
-            console.log(`[Config] ✅ Configuração aplicada e propagada para a UI.`);
+            console.log(`[Config] ✅ Configuração aplicada e persistida.`);
             return { ok: true };
         }
         return { ok: false };
@@ -307,19 +313,7 @@ function createWindow() {
     }
   });
 
-  ipcMain.handle('registrar-visitante', async (_event, dados) => {
-    const { runSql } = require('../infra/db');
-    const id = `V-${Date.now()}`;
-    try {
-        await runSql(`
-            INSERT INTO visitantes_offline (id, nome, documento, motivo, sincronizado)
-            VALUES (?, ?, ?, ?, 0)
-        `, [id, dados.nome, dados.documento, dados.motivo]);
-        return { ok: true, id };
-    } catch (e: any) {
-        return { ok: false, erro: e.message };
-    }
-  });
+
 
   // --- INICIALIZAÇÃO DO HARDWARE E MOTORES ---
   carregarConfiguracaoHardware();

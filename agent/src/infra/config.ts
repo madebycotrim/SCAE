@@ -71,6 +71,7 @@ export function carregarConfiguracaoHardware() {
                     const ipClean = l.ip?.replace(/\W/g, '') || '0000';
                     return {
                         ...l,
+                        ip: l.ip ? l.ip.split(':')[0].trim() : '',
                         id: l.id || `idflex-${ipClean}`
                     };
                 });
@@ -120,6 +121,12 @@ export function salvarLeitoresNoDisco(leitores: any[], ip_agente?: string) {
   if (ip_agente !== undefined) {
       config.ip_agente = ip_agente.split(':')[0].trim();
   }
+
+  // Sanitiza também os IPs dos leitores
+  config.leitores = (leitores || []).map(l => ({
+      ...l,
+      ip: l.ip ? l.ip.split(':')[0].trim() : ''
+  }));
   
   return salvarConfiguracaoCompleta();
 }

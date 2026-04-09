@@ -68,8 +68,20 @@ export function recarregarLeitores(novaLista: ILeitor[] = []) {
     } else {
         // Se chamado sem lista, força a reconstrução a partir da config global atualizada
         const { IdflexLeitor } = require('../drivers/IdflexLeitor');
-        console.log(`[Poller] Reconstruindo lista a partir da config. (Tamanho na config: ${config.leitores?.length || 0})`);
-        leitoresAtivos = (config.leitores as any[]).map(c => new IdflexLeitor(c));
+        const count = config.leitores?.length || 0;
+        console.log(`[Poller] Reconstruindo hardware... (Lido da config: ${count} unidades)`);
+        
+        const novosInstanciados: any[] = [];
+        for (const c of (config.leitores || []) as any[]) {
+            try {
+                novosInstanciados.push(new IdflexLeitor(c));
+                console.log(`   ✓ Leitor Inicializado: ${c.nome} [${c.ip}]`);
+            } catch (e: any) {
+                console.error(`   ✗ Falha ao iniciar drive para ${c.ip}:`, e.message);
+            }
+        }
+        // ATENÇÃO: Nunca usar '=' na variável exportada para não quebrar a referência no main process
+        leitoresAtivos.splice(0, leitoresAtivos.length, ...novosInstanciados);
     }
     console.log(`[Poller] Lista de leitores ativa atualizada para ${leitoresAtivos.length} dispositivos.`);
 }
@@ -144,8 +156,8 @@ async function monitorarLeitor(leitor: ILeitor) {
 
     if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000) || ipMudou) {
         if (ipAtualLocal && st.online) {
-            // Log cristalino para o usuário não confundir IP da Catraca com IP do Agente
-            console.log(`[Watchdog][${leitor.nome}] 🎯 Direcionando Eventos: Catraca (${leitor.ip}) ➔ Destino (${ipAtualLocal}:${config.porta_agente || 1912})`);
+            // Log cristalino - Escondendo a porta para o usuário não se confundir
+            console.log(`[Watchdog][${leitor.nome}] 🎯 Sincronizando: Leitor (${leitor.ip}) ➔ Agente (${ipAtualLocal})`);
             // Ativa o Push (Modo Escola) - Só tenta se o hardware estiver online para evitar bloqueio do loop
             await (leitor as any).configurarModoEscola(ipAtualLocal, config.porta_agente || 1912).catch(() => {});
             // Sincroniza Marca de Watchdog
