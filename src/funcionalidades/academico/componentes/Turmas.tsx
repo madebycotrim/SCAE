@@ -323,7 +323,7 @@ export default function Turmas() {
                                     return (
                                         <tr
                                             key={turma.id}
-                                            className="hover:bg-indigo-50/30 transition-colors group cursor-pointer"
+                                            className="hover:bg-eletrico/5 transition-colors group cursor-pointer"
                                             onClick={() => navegar(`/${escola.id}/admin/alunos?turma=${turma.id}`)}
                                         >
                                             <td className="py-4 px-8">
@@ -366,7 +366,7 @@ export default function Turmas() {
                                                         <div
                                                             className={`h-full rounded-full transition-all duration-1000 ease-out ${ocupacao >= 100 ? 'bg-rose-500' :
                                                                 ocupacao >= 85 ? 'bg-amber-400' :
-                                                                    'bg-slate-900'
+                                                                    'bg-eletrico'
                                                                 }`}
                                                             style={{ width: `${Math.min(ocupacao, 100)}%` }}
                                                         ></div>
@@ -375,9 +375,9 @@ export default function Turmas() {
                                             </td>
                                             <td className="py-4 px-8 text-right">
                                                 <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                                                    <Botao variante="ghost" tamanho="sm" icone={Edit2} onClick={() => abrirEdicao(turma)} title="Configurar Turma" className="hover:text-indigo-600" />
+                                                    <Botao variante="ghost" tamanho="sm" icone={Edit2} onClick={() => abrirEdicao(turma)} title="Configurar Turma" className="hover:text-eletrico" />
                                                     <Botao variante="ghost" tamanho="sm" icone={Trash2} onClick={() => excluirTurma(turma.id)} title="Remover Registro" className="hover:text-rose-600" />
-                                                    <Botao variante="ghost" tamanho="sm" icone={ArrowRight} onClick={() => navegar(`/${escola.id}/admin/alunos?turma=${turma.id}`)} title="Ver Alunos" className="hover:text-indigo-600" />
+                                                    <Botao variante="ghost" tamanho="sm" icone={ArrowRight} onClick={() => navegar(`/${escola.id}/admin/alunos?turma=${turma.id}`)} title="Ver Alunos" className="hover:text-eletrico" />
                                                 </div>
                                             </td>
                                         </tr>

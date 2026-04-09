@@ -91,8 +91,8 @@ export default function Relatorios() {
             descricao: 'Relatório detalhado de entrada e saída dos alunos para controle de portaria e sala de aula.',
             icone: Clock,
             badgeTxt: 'Frequência',
-            badgeCor: 'bg-blue-50 text-blue-600 border-blue-100',
-            iconeCor: 'bg-blue-50 text-blue-500',
+            badgeCor: 'bg-eletrico/10 text-eletrico border-eletrico/20',
+            iconeCor: 'bg-eletrico/10 text-eletrico',
             acao: () => gerarRelatorio('Frequência Diária'),
         },
         {
@@ -169,12 +169,12 @@ export default function Relatorios() {
                                     key={idx}
                                     onClick={() => definirRelatorioSelecionado(item)}
                                     className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all text-left group ${estaSelecionado
-                                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                                        ? 'bg-marinho text-white shadow-lg shadow-marinho/20'
                                         : 'hover:bg-slate-50 text-slate-500 hover:text-slate-900'
                                         }`}
                                 >
                                     <div className={`p-2 rounded-2xl border shrink-0 transition-colors ${estaSelecionado
-                                        ? 'bg-slate-800 border-slate-700 text-sky-400'
+                                        ? 'bg-white/10 border-white/10 text-eletrico'
                                         : 'bg-white border-slate-100 text-slate-400 group-hover:text-slate-600 shadow-suave'
                                         }`}>
                                         <Icone size={16} strokeWidth={2.5} />
@@ -309,7 +309,7 @@ export default function Relatorios() {
                                                 onBlur={() => setTimeout(() => definirMostrarDropdownTurma(false), 200)}
                                                 onChange={(e) => definirFiltros({ ...filtros, turma: e.target.value || 'Todas' })}
                                                 value={filtros.turma === 'Todas' ? '' : filtros.turma}
-                                                className="w-full pl-5 pr-12 py-3.5 bg-slate-50 border border-slate-100 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 rounded-2xl text-xs font-bold text-slate-700 outline-none transition-all"
+                                                className="w-full pl-5 pr-12 py-3.5 bg-slate-50 border border-slate-100 focus:bg-white focus:border-eletrico focus:ring-4 focus:ring-eletrico/5 rounded-2xl text-xs font-bold text-slate-700 outline-none transition-all"
                                             />
                                             <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:rotate-180 transition-transform" />
 
@@ -328,7 +328,7 @@ export default function Relatorios() {
                                                             className="px-4 py-3 text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors rounded-2xl flex items-center justify-between group"
                                                         >
                                                             Geral (Toda a instituição)
-                                                            {filtros.turma === 'Todas' && <CheckCircle2 size={16} className="text-slate-900" />}
+                                                            {filtros.turma === 'Todas' && <CheckCircle2 size={16} className="text-eletrico" />}
                                                         </li>
                                                         {sugestoes.map((t: string) => (
                                                             <li
@@ -384,7 +384,7 @@ export default function Relatorios() {
                                 <button
                                     onClick={relatorioSelecionado.acao}
                                     disabled={carregandoBase}
-                                    className="inline-flex items-center gap-3 text-xs font-black text-white bg-slate-900 hover:bg-slate-800 px-10 py-4 rounded-2xl transition-all shadow-xl shadow-slate-900/20 active:scale-95 disabled:opacity-50 uppercase tracking-widest"
+                                    className="inline-flex items-center gap-3 text-xs font-black text-white bg-eletrico hover:brightness-110 px-10 py-4 rounded-2xl transition-all shadow-xl shadow-eletrico/20 active:scale-95 disabled:opacity-50 uppercase tracking-widest"
                                 >
                                     GERAR RELATÓRIO AGORA
                                     <ArrowRight size={16} />

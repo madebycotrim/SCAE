@@ -63,21 +63,21 @@ interface PropsCardEstatistica {
     valor: string | number;
     subtitulo?: string;
     icone: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
-    cor: 'indigo' | 'amber' | 'rose' | 'emerald';
+    cor: 'marinho' | 'amber' | 'rose' | 'emerald';
     tendencia?: number;
     inverterTendencia?: boolean;
 }
 
 const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }: PropsCardEstatistica) => {
     const corAcento = {
-        indigo: 'border-l-slate-400 ',
+        marinho: 'border-l-marinho',
         amber: 'border-l-amber-500',
         rose: 'border-l-rose-500',
         emerald: 'border-l-emerald-500'
     };
 
     const corIcone = {
-        indigo: 'text-slate-500 border-slate-200',
+        marinho: 'text-eletrico border-eletrico/20',
         amber: 'text-amber-500 border-amber-200',
         rose: 'text-rose-500 border-rose-200',
         emerald: 'text-emerald-500 border-emerald-200'
@@ -278,17 +278,17 @@ export default function Painel() {
         datasets: [{
             label: 'Alunos Presentes',
             data: estatisticas.historicoPresenca.map(h => h.total),
-            borderColor: '#6366f1',
+            borderColor: '#2B59FF',
             borderWidth: 4,
             pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#6366f1',
+            pointBorderColor: '#2B59FF',
             pointBorderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
             backgroundColor: (context) => {
                 const ctx = context.chart.ctx;
                 const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                gradient.addColorStop(0, 'rgba(99, 102, 241, 0.15)');
+                gradient.addColorStop(0, 'rgba(43, 89, 255, 0.15)');
                 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 return gradient;
             },
@@ -300,7 +300,6 @@ export default function Painel() {
     return (
         <LayoutAdministrativo
             titulo="Dashboard Central"
-            subtitulo="Monitoramento e Gestão Escolar"
             acoes={
                 <div className="flex gap-3">
                     <Botao 
@@ -323,6 +322,37 @@ export default function Painel() {
             }
         >
             <div className="space-y-8 pb-12">
+                
+                {/* Hero Section Institucional */}
+                <div className="bg-marinho rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl border border-slate-800/50">
+                    <div className="absolute right-[-5%] top-[-20%] w-[400px] h-[400px] bg-eletrico/20 blur-[120px] rounded-full pointer-events-none" />
+                    <div className="absolute left-[10%] bottom-[-10%] w-[200px] h-[200px] bg-eletrico/10 blur-[80px] rounded-full pointer-events-none" />
+                    
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                        <div>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="px-3 py-1 bg-eletrico rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-eletrico/20">SCAE 2.0</div>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Sistema Central de Acesso Escolar</div>
+                            </div>
+                            <h2 className="text-4xl font-black tracking-tight mb-2">Resumo Operacional</h2>
+                            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px] flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                Monitoramento e Gestão Escolar em Tempo Real
+                            </p>
+                        </div>
+                        
+                        <div className="flex gap-4">
+                            <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-3xl min-w-[140px] shadow-inner">
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Status</p>
+                                <p className="text-lg font-black text-eletrico">OPERACIONAL</p>
+                            </div>
+                            <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-3xl min-w-[140px] shadow-inner">
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Rede</p>
+                                <p className="text-lg font-black text-emerald-400 uppercase tracking-tight">Estável</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* --- LINHA DE KPIs ESSENCIAIS --- */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -347,7 +377,7 @@ export default function Painel() {
                         valor={estatisticas.saidasHoje}
                         subtitulo="Fluxo total de hoje"
                         icone={LogOut}
-                        cor="indigo"
+                        cor="marinho"
                     />
                     <CardEstatistica
                         titulo="Risco de Abandono"
@@ -373,7 +403,7 @@ export default function Painel() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-200 shadow-sm">
-                                    <TrendingUp size={16} className="text-indigo-600" />
+                                    <TrendingUp size={16} className="text-eletrico" />
                                     <span className="text-[11px] font-black text-slate-600 uppercase">Média: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)} alunos/dia</span>
                                 </div>
                             </div>

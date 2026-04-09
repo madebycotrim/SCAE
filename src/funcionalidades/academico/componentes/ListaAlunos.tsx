@@ -96,7 +96,7 @@ export default function ListaAlunos({
                                     </tr>
                                 ))
                             ) : alunos.map((aluno) => (
-                                <tr key={aluno.matricula} className={`hover:bg-indigo-50/20 transition-all group ${alunosSelecionados.includes(aluno.matricula) ? 'bg-indigo-50/40' : ''}`}>
+                                <tr key={aluno.matricula} className={`hover:bg-eletrico/5 transition-all group ${alunosSelecionados.includes(aluno.matricula) ? 'bg-eletrico/10' : ''}`}>
                                     <td className="py-4 px-8 text-center">
                                         <input
                                             type="checkbox"

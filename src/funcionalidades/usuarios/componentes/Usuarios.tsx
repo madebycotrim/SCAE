@@ -151,7 +151,7 @@ export default function Usuarios() {
                     <label className="text-[10px] font-black text-transparent uppercase tracking-[0.2em] ml-1 leading-none">Info</label>
                     <div className="flex items-center gap-4 bg-white border border-slate-200 px-5 h-11 rounded-2xl shadow-sm">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total</span>
-                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Registros</span>
+                        <span className="text-[10px] font-black text-eletrico uppercase tracking-widest leading-none">{usuariosFiltrados.length} Registros</span>
                     </div>
                 </div>
             </BarraFiltro>
@@ -204,11 +204,11 @@ export default function Usuarios() {
                                         <tr key={u.email} className={`hover:bg-slate-50/50 transition-all group ${!u.ativo ? 'opacity-70 grayscale' : ''}`}>
                                             <td className="py-5 px-8">
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-suave transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-suave transition-transform group-hover:scale-110 ${u.papel === 'ADMIN' ? 'bg-eletrico/10 text-eletrico border-eletrico/20' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
                                                         {u.papel === 'ADMIN' ? <ShieldCheck size={20} strokeWidth={2.5} /> : <UserCircle2 size={20} />}
                                                     </div>
                                                     <div>
-                                                        <p className="font-black text-slate-900 text-sm uppercase tracking-tight group-hover:text-indigo-700 transition-colors">
+                                                        <p className="font-black text-slate-900 text-sm uppercase tracking-tight group-hover:text-eletrico transition-colors">
                                                             {u.nome_completo || u.email.split('@')[0]}
                                                         </p>
                                                         <div className="flex items-center gap-2 text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest">
@@ -219,7 +219,7 @@ export default function Usuarios() {
                                                 </div>
                                             </td>
                                             <td className="py-5 px-8 text-center">
-                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave ${papelCor === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave ${papelCor === 'eletrico' ? 'bg-eletrico/10 text-eletrico border-eletrico/20' : 
                                                     papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                                         papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                                             papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
@@ -239,7 +239,7 @@ export default function Usuarios() {
                                                             tamanho="sm"
                                                             icone={Edit2}
                                                             onClick={() => abrirEdicao(u)}
-                                                            className="hover:text-indigo-600 font-black text-[10px] tracking-widest"
+                                                            className="hover:text-eletrico font-black text-[10px] tracking-widest"
                                                         >
                                                             EDITAR
                                                         </Botao>

@@ -214,10 +214,10 @@ export default function PainelRiscoAbandono() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {paginados.map((alerta) => (
-                                        <tr key={alerta.id} className="hover:bg-indigo-50/20 transition-colors group">
+                                        <tr key={alerta.id} className="hover:bg-eletrico/5 transition-colors group">
                                             <td className="py-6 px-8">
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className="font-black text-slate-900 text-sm uppercase tracking-tight group-hover:text-indigo-700 transition-colors">{alerta.aluno_nome}</span>
+                                                    <span className="font-black text-slate-900 text-sm uppercase tracking-tight group-hover:text-eletrico transition-colors">{alerta.aluno_nome}</span>
                                                     <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">{alerta.aluno_matricula}</span>
                                                 </div>
                                             </td>
@@ -248,7 +248,7 @@ export default function PainelRiscoAbandono() {
                                                     <select
                                                         value={alerta.status}
                                                         onChange={(e) => tratarAlerta(alerta.id, e.target.value as StatusRiscoAbandono)}
-                                                        className="text-[10px] font-black uppercase tracking-widest border-2 border-slate-200 rounded-2xl px-3 py-2 bg-white text-slate-600 outline-none hover:border-indigo-300 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer shadow-suave"
+                                                        className="text-[10px] font-black uppercase tracking-widest border-2 border-slate-200 rounded-2xl px-3 py-2 bg-white text-slate-600 outline-none hover:border-eletrico/30 focus:ring-4 focus:ring-eletrico/5 transition-all cursor-pointer shadow-suave"
                                                     >
                                                         <option value="PENDENTE">Status: Urgente</option>
                                                         <option value="EM_ANALISE">Status: Em Análise</option>
@@ -261,7 +261,7 @@ export default function PainelRiscoAbandono() {
                                                         icone={History}
                                                         onClick={() => definirAlertaFaltasAtivo(alerta)}
                                                         title="Dossiê de Frequência"
-                                                        className="hover:text-indigo-600 active:scale-95 transition-transform"
+                                                        className="hover:text-eletrico active:scale-95 transition-transform"
                                                     />
                                                 </div>
                                             </td>
@@ -279,7 +279,7 @@ export default function PainelRiscoAbandono() {
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1.5 bg-white border-2 border-slate-200 px-3 py-1.5 rounded-2xl shadow-suave">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Página</span>
-                                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
+                                <span className="text-[10px] font-black text-eletrico uppercase tracking-widest leading-none">{paginaAtual} de {totalPaginas}</span>
                             </div>
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Instâncias pendentes: {metricas.criticos}</span>
                         </div>
@@ -316,15 +316,15 @@ export default function PainelRiscoAbandono() {
                     tamanho="lg"
                 >
                     <div className="space-y-8 pb-4">
-                        <div className="bg-slate-900 rounded-2xl p-8 border-2 border-slate-800 shadow-md relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 blur-3xl rounded-full"></div>
+                        <div className="bg-marinho rounded-2xl p-8 border-2 border-slate-800 shadow-md relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-eletrico/10 blur-3xl rounded-full"></div>
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                                 <div>
                                     <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-1">{alertaFaltasAtivo.aluno_nome}</h3>
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">MATRICULA: {alertaFaltasAtivo.aluno_matricula}</p>
                                 </div>
                                 <div className="bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-2xl border-2 border-white/10 shadow-xl">
-                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{alertaFaltasAtivo.turma_nome}</span>
+                                    <span className="text-[10px] font-black text-eletrico uppercase tracking-widest">{alertaFaltasAtivo.turma_nome}</span>
                                 </div>
                             </div>
                         </div>
@@ -346,7 +346,7 @@ export default function PainelRiscoAbandono() {
                                     Registros de Entrada e Saída (Últimos 30 dias)
                                 </h4>
                                 {historicoAtivo.length > 0 && (
-                                    <span className="text-[9px] font-black text-indigo-600 bg-white border-2 border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-widest">
+                                    <span className="text-[9px] font-black text-eletrico bg-white border-2 border-eletrico/10 px-2.5 py-1 rounded-full uppercase tracking-widest">
                                         {historicoAtivo.length} Registros
                                     </span>
                                 )}
@@ -355,7 +355,7 @@ export default function PainelRiscoAbandono() {
                             <div className="space-y-3 max-h-72 overflow-y-auto pr-2 custom-scrollbar p-1">
                                 {carregandoHistorico ? (
                                     <div className="py-16 flex flex-col items-center gap-4 text-slate-400 opacity-50 grayscale">
-                                        <Loader2 size={32} className="animate-spin text-indigo-600" />
+                                        <Loader2 size={32} className="animate-spin text-eletrico" />
                                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">Buscando informações...</span>
                                     </div>
                                 ) : historicoAtivo.length === 0 ? (
@@ -365,10 +365,10 @@ export default function PainelRiscoAbandono() {
                                     </div>
                                 ) : (
                                     historicoAtivo.map(registro => (
-                                        <div key={registro.id} className="flex justify-between items-center p-4 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-300 transition-all hover:shadow-lg hover:shadow-indigo-900/5 group">
+                                        <div key={registro.id} className="flex justify-between items-center p-4 bg-white border-2 border-slate-100 rounded-2xl hover:border-eletrico/30 transition-all hover:shadow-lg hover:shadow-eletrico/5 group">
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-3 h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.1)] ${registro.tipo_movimentacao === 'ENTRADA' ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-rose-500 shadow-rose-500/20'}`}></div>
-                                                <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest group-hover:text-indigo-700 transition-colors">{registro.tipo_movimentacao}</span>
+                                                <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest group-hover:text-eletrico transition-colors">{registro.tipo_movimentacao}</span>
                                             </div>
                                             <div className="flex items-center gap-2 font-mono text-[10px] font-black text-slate-400 group-hover:text-slate-900 transition-colors">
                                                 <History size={12} className="text-slate-200" />

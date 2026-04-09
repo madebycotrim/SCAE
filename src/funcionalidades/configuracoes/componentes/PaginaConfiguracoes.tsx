@@ -122,7 +122,7 @@ export function PaginaConfiguracoes() {
                         {/* MÉTODO DE RECONHECIMENTO */}
                         <div className="bg-white border border-slate-200/60 rounded-2xl p-6 flex flex-col justify-between gap-6 transition-all hover:border-indigo-200">
                             <div className="flex gap-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${metodo === 'QRCODE' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${metodo === 'QRCODE' ? 'bg-eletrico/10 text-eletrico' : 'bg-emerald-50 text-emerald-600'}`}>
                                     {metodo === 'QRCODE' ? <Smartphone size={24} /> : <Fingerprint size={24} />}
                                 </div>
                                 <div className="space-y-1">
@@ -131,7 +131,7 @@ export function PaginaConfiguracoes() {
                                 </div>
                             </div>
                             <div className="p-1.5 bg-slate-50 rounded-xl grid grid-cols-2 gap-1 border border-slate-100">
-                                <button onClick={() => definirMetodo('QRCODE')} className={`flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${metodo === 'QRCODE' ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/40' : 'text-slate-400 hover:text-slate-600'}`}>
+                                <button onClick={() => definirMetodo('QRCODE')} className={`flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${metodo === 'QRCODE' ? 'bg-white text-eletrico shadow-sm border border-slate-200/40' : 'text-slate-400 hover:text-slate-600'}`}>
                                     QR Code / Cartão
                                 </button>
                                 <button onClick={() => definirMetodo('DIGITAL')} className={`flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${metodo === 'DIGITAL' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/40' : 'text-slate-400 hover:text-slate-600'}`}>
@@ -163,15 +163,15 @@ export function PaginaConfiguracoes() {
 
                         {/* PROTOCOLO DINÂMICO */}
                         {metodo === 'QRCODE' && (
-                            <div className="col-span-full bg-white border border-slate-200/60 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:border-violet-200 group">
+                            <div className="col-span-full bg-white border border-slate-200/60 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:border-eletrico/20 group">
                                 <div className="flex gap-5 items-start">
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${protocolo ? 'bg-violet-50 text-violet-600 outline outline-4 outline-violet-50/50' : 'bg-slate-50 text-slate-400'}`}>
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${protocolo ? 'bg-eletrico/5 text-eletrico outline outline-4 outline-eletrico/5' : 'bg-slate-50 text-slate-400'}`}>
                                         <ShieldAlert size={28} />
                                     </div>
                                     <div className="space-y-1.5 pt-0.5">
                                         <div className="flex items-center gap-3">
                                             <h3 className="text-sm font-bold text-slate-900">Protocolo de Validação Dinâmica</h3>
-                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${protocolo ? 'bg-violet-50 text-violet-600 border-violet-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${protocolo ? 'bg-eletrico/5 text-eletrico border-eletrico/10' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
                                                 {protocolo ? 'Anti-Fraude Ativo' : 'Offline'}
                                             </span>
                                         </div>
@@ -186,7 +186,7 @@ export function PaginaConfiguracoes() {
                                     <button onClick={() => definirProtocolo(false)} className={`flex-1 flex items-center justify-center gap-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${!protocolo ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-500'}`}>
                                         Estático
                                     </button>
-                                    <button onClick={() => definirProtocolo(true)} className={`flex-1 flex items-center justify-center gap-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${protocolo ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-400 hover:text-slate-500'}`}>
+                                    <button onClick={() => definirProtocolo(true)} className={`flex-1 flex items-center justify-center gap-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${protocolo ? 'bg-white text-eletrico shadow-sm' : 'text-slate-400 hover:text-slate-500'}`}>
                                         Dinâmico
                                     </button>
                                 </div>
@@ -235,7 +235,7 @@ export function PaginaConfiguracoes() {
                                             value={fraseSucesso} 
                                             onChange={(e) => definirFraseSucesso(e.target.value)} 
                                             placeholder="Ex: Bem-vindo, {nome}!" 
-                                            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 h-12 text-[13px] font-medium text-slate-800 placeholder:text-slate-300 focus:bg-white focus:border-indigo-400 outline-none transition-all" 
+                                            className="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 h-12 text-[13px] font-medium text-slate-800 placeholder:text-slate-300 focus:bg-white focus:border-eletrico outline-none transition-all" 
                                         />
                                     </div>
 
@@ -258,7 +258,7 @@ export function PaginaConfiguracoes() {
                                         <Smartphone size={16} />
                                     </div>
                                     <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                                        Dica: O termo <code className="text-indigo-600 font-black mx-1">{"{nome}"}</code> será substituído pelo primeiro nome do aluno.
+                                        Dica: O termo <code className="text-eletrico font-black mx-1">{"{nome}"}</code> será substituído pelo primeiro nome do aluno.
                                     </p>
                                 </div>
                             </div>
@@ -276,7 +276,7 @@ export function PaginaConfiguracoes() {
                         <div className="flex gap-5 items-start">
                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
                                 statusAgente === 'RODANDO' 
-                                    ? (infoAgente?.leitoresAtivos > 0 ? 'bg-slate-900 text-white' : 'bg-orange-500 text-white') 
+                                    ? (infoAgente ? (infoAgente.leitoresAtivos > 0 ? 'bg-slate-900 text-white' : 'bg-orange-500 text-white') : 'bg-indigo-600 text-white animate-pulse') 
                                     : 'bg-slate-50 text-slate-400'
                             }`}>
                                 <Cpu size={28} />
@@ -286,16 +286,16 @@ export function PaginaConfiguracoes() {
                                     <h3 className="text-sm font-bold text-slate-900 leading-none">Catraki Edge Agent</h3>
                                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border shadow-sm ${
                                         statusAgente === 'RODANDO' 
-                                            ? (infoAgente?.leitoresAtivos > 0 
-                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                                                : 'bg-orange-50 text-orange-600 border-orange-100')
-                                            : 'bg-slate-100 text-slate-600 border-slate-200/60'
+                                            ? (infoAgente 
+                                                ? (infoAgente.leitoresAtivos > 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-orange-50 text-orange-600 border-orange-100')
+                                                : 'bg-indigo-50 text-indigo-600 border-indigo-100 animate-pulse')
+                                            : statusAgente === 'DESCONHECIDO' ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-rose-50 text-rose-600 border-rose-100'
                                     }`}>
                                         {statusAgente === 'RODANDO' 
-                                            ? (infoAgente?.leitoresAtivos > 0 
-                                                ? `Operacional (v${infoAgente?.versao || '2.0'})` 
-                                                : 'Conectado, mas sem leitor')
-                                            : 'Desconectado'}
+                                            ? (infoAgente 
+                                                ? (infoAgente.leitoresAtivos > 0 ? `Operacional (v${infoAgente.versao || '2.0'})` : 'Conectado, mas sem leitor')
+                                                : 'Verificando Hardware...')
+                                            : statusAgente === 'DESCONHECIDO' ? 'Tentando conexão...' : 'Agente Desconectado'}
                                     </div>
                                 </div>
                                 <p className="text-[11px] text-slate-500 font-medium max-w-xl leading-relaxed">Interface técnica para gerenciar o hardware local a partir da nuvem.</p>

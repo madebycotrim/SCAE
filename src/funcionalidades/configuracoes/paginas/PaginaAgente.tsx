@@ -180,7 +180,7 @@ export default function PaginaAgente() {
                             <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Local: {statusLocal ? 'Conectado' : 'Offline'}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${isOnlineNuvem ? 'bg-indigo-500 animate-pulse' : 'bg-rose-500'}`} />
+                            <div className={`w-3 h-3 rounded-full ${isOnlineNuvem ? 'bg-eletrico animate-pulse' : 'bg-rose-500'}`} />
                             <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Nuvem: {isOnlineNuvem ? 'Ativo' : 'Desconectado'}</span>
                         </div>
                     </div>
@@ -197,7 +197,7 @@ export default function PaginaAgente() {
                             { label: 'Entradas', valor: statusLocal?.stats?.entradas || 0, cor: 'bg-emerald-500', icone: ArrowUp, bg: 'bg-emerald-50', text: 'text-emerald-600' },
                             { label: 'Negados/Erros', valor: statusLocal?.stats?.negados || 0, cor: 'bg-rose-500', icone: XCircle, bg: 'bg-rose-50', text: 'text-rose-600' },
                             { label: 'Uptime', valor: statusNuvem?.uptime_seconds ? `${Math.floor(statusNuvem.uptime_seconds/3600)}h` : '--', cor: 'bg-amber-500', icone: Clock, bg: 'bg-amber-50', text: 'text-amber-600' },
-                            { label: 'Último Acesso', valor: statusLocal?.stats?.ultimoAcesso || '--:--', cor: 'bg-indigo-500', icone: Activity, bg: 'bg-indigo-50', text: 'text-indigo-600' }
+                            { label: 'Último Acesso', valor: statusLocal?.stats?.ultimoAcesso || '--:--', cor: 'bg-eletrico', icone: Activity, bg: 'bg-eletrico/10', text: 'text-eletrico' }
                         ].map((item, i) => (
                             <CartaoConteudo key={i} className="relative p-5 overflow-hidden">
                                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${item.cor}`} />
@@ -225,13 +225,13 @@ export default function PaginaAgente() {
                                     placeholder="Cadastrar Biometria: Nome ou matrícula..."
                                     value={termoBusca}
                                     onChange={(e) => setTermoBusca(e.target.value)}
-                                    className="w-full pl-12 pr-4 h-14 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:border-indigo-500 transition-all"
+                                    className="w-full pl-12 pr-4 h-14 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:border-eletrico transition-all"
                                 />
                             </div>
 
                             <div className="space-y-3">
                                 {alunosFiltrados.map((aluno) => (
-                                    <div key={aluno.matricula} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-all">
+                                    <div key={aluno.matricula} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-eletrico/20 transition-all">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${aluno.biometria_cadastrada ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
                                                 {aluno.biometria_cadastrada ? <CheckCircle2 size={24} /> : <User size={24} />}
@@ -272,7 +272,7 @@ export default function PaginaAgente() {
                                                 <p className="text-[10px] font-bold text-slate-500 uppercase mt-1">{ev.tipo} • {ev.detalhe || 'OK'}</p>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black text-indigo-500 bg-white border border-slate-200 px-2 py-1 rounded-lg">
+                                        <span className="text-[10px] font-black text-eletrico bg-white border border-slate-200 px-2 py-1 rounded-lg">
                                             {new Date(ev.timestamp).toLocaleTimeString()}
                                         </span>
                                     </div>
@@ -289,7 +289,7 @@ export default function PaginaAgente() {
                             </h4>
                             <div className="space-y-3">
                                 {(statusNuvem?.hardware || []).map((leitor: any) => (
-                                    <CartaoConteudo key={leitor.id} className="relative p-5 overflow-hidden group hover:border-indigo-200 transition-all">
+                                    <CartaoConteudo key={leitor.id} className="relative p-5 overflow-hidden group hover:border-eletrico/30 transition-all">
                                         <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${leitor.online ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-3">

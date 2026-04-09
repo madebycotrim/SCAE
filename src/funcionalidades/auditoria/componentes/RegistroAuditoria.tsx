@@ -244,7 +244,7 @@ export default function RegistroAuditoria() {
                                                     tamanho="sm"
                                                     icone={Eye}
                                                     onClick={() => { definirLogSelecionado(log); definirMostrarRastroCompleto(false); }}
-                                                    className="text-slate-400 hover:text-indigo-600 hover:bg-white shadow-sm rounded-lg w-9 h-9 p-0 border border-slate-200 transition-all"
+                                                    className="text-slate-400 hover:text-eletrico hover:bg-white shadow-sm rounded-lg w-9 h-9 p-0 border border-slate-200 transition-all"
                                                 />
 
                                                 {EH_ADMIN_SUPREMO && (
@@ -270,7 +270,7 @@ export default function RegistroAuditoria() {
                     <div className="flex items-center gap-8">
                         <div className="flex items-center gap-3 bg-white border border-slate-100 px-5 py-2.5 rounded-2xl shadow-sm">
                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] leading-none">Página</span>
-                            <span className="text-[12px] font-black text-indigo-600 uppercase tracking-widest leading-none">{pagina} <span className="text-slate-200 mx-2">/</span> {totalPaginas}</span>
+                            <span className="text-[12px] font-black text-eletrico uppercase tracking-widest leading-none">{pagina} <span className="text-slate-200 mx-2">/</span> {totalPaginas}</span>
                         </div>
                         <div className="h-4 w-px bg-slate-200"></div>
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fluxo: {logsFiltrados.length} registros</span>
@@ -281,7 +281,7 @@ export default function RegistroAuditoria() {
                             variante="secundario"
                             disabled={pagina === 1}
                             onClick={() => definirPagina(p => p - 1)}
-                            className="bg-white border-slate-100 hover:border-indigo-100 hover:text-indigo-600 shadow-sm w-11 h-11 p-0 flex items-center justify-center rounded-2xl transition-all"
+                            className="bg-white border-slate-100 hover:border-eletrico/20 hover:text-eletrico shadow-sm w-11 h-11 p-0 flex items-center justify-center rounded-2xl transition-all"
                         >
                             <ChevronLeft size={20} strokeWidth={3} />
                         </Botao>
@@ -289,7 +289,7 @@ export default function RegistroAuditoria() {
                             variante="secundario"
                             disabled={pagina === totalPaginas}
                             onClick={() => definirPagina(p => p + 1)}
-                            className="bg-white border-slate-100 hover:border-indigo-100 hover:text-indigo-600 shadow-sm w-11 h-11 p-0 flex items-center justify-center rounded-2xl transition-all"
+                            className="bg-white border-slate-100 hover:border-eletrico/20 hover:text-eletrico shadow-sm w-11 h-11 p-0 flex items-center justify-center rounded-2xl transition-all"
                         >
                             <ChevronRight size={20} strokeWidth={3} />
                         </Botao>
@@ -322,7 +322,7 @@ export default function RegistroAuditoria() {
                             <div className="flex flex-col items-end">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Registro Temporal</span>
                                 <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                                    <Clock size={14} className="text-indigo-500" />
+                                    <Clock size={14} className="text-eletrico" />
                                     <span className="text-xs font-bold text-slate-700">
                                         {format(new Date(logSelecionado.criado_em || logSelecionado.criado_at || logSelecionado.created_at || logSelecionado.data_criacao || logSelecionado.timestamp), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
                                     </span>
@@ -410,9 +410,9 @@ export default function RegistroAuditoria() {
                                 <button
                                     onClick={() => definirMostrarRastroCompleto(!mostrarRastroCompleto)}
                                     className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] cursor-pointer hover:opacity-80 transition-opacity list-none"
-                                    style={{ color: mostrarRastroCompleto ? '#818cf8' : '#cbd5e1' }}
+                                    style={{ color: mostrarRastroCompleto ? '#2B59FF' : '#cbd5e1' }}
                                 >
-                                    <div className={`w-1.5 h-1.5 rounded-full ${mostrarRastroCompleto ? 'bg-indigo-400 animate-pulse' : 'bg-slate-200'}`}></div>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${mostrarRastroCompleto ? 'bg-eletrico animate-pulse' : 'bg-slate-200'}`}></div>
                                     {mostrarRastroCompleto ? 'VER APENAS O QUE MUDOU' : 'VER OBJETO DE RASTRO COMPLETO'}
                                 </button>
                             </div>

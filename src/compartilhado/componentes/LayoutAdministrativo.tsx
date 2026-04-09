@@ -252,7 +252,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                     <button
                         onClick={confirmarAcesso}
-                        className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-indigo-600/20"
+                        className="w-full py-4 bg-eletrico text-white rounded-2xl font-bold text-lg hover:bg-eletrico/90 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-eletrico/20"
                     >
                         Confirmar e Acessar
                     </button>
@@ -269,7 +269,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     }
 
     return (
-        <div className="flex h-screen bg-gray-50 font-sans overflow-hidden selection:bg-blue-100 selection:text-blue-900">
+        <div className="flex h-screen bg-marinho font-sans overflow-hidden selection:bg-eletrico/20 selection:text-eletrico">
             <BarraProgressoGlobal ativa={!!carregando} />
 
             {/* Link de Pulo para Acessibilidade (WCAG 2.4.1) */}
@@ -294,7 +294,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     flex flex-col transition-all duration-300 ease-in-out shadow-none relative
                     ${sidebarAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     ${sidebarMinimizado ? 'lg:w-20' : 'lg:w-64'}
-                    w-64 bg-slate-950
+                    w-64 bg-marinho
                 `}
             >
                 {/* Seção do Logo (Clean) */}
@@ -304,15 +304,15 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 `}>
                     <div className="flex items-center gap-3 overflow-hidden">
                         <div className="shrink-0 flex items-center justify-center">
-                            <ShieldCheck className="w-6 h-6 text-orange-500" strokeWidth={2.5} />
+                            <ShieldCheck className="w-6 h-6 text-eletrico" strokeWidth={2.5} />
                         </div>
 
                         {!sidebarMinimizado && (
                             <div className="flex flex-col">
-                                <h1 className="font-black text-white leading-tight uppercase tracking-widest">
-                                    CATRAKI
+                                <h1 className="font-black text-white leading-tight uppercase tracking-widest text-lg">
+                                    CATRAKI<span className="text-eletrico">.</span>
                                 </h1>
-                                <p className="text-[12px] text-slate-400 font-bold truncate max-w-[160px] uppercase tracking-tighter">{nomeEscola}</p>
+                                <p className="text-[10px] text-slate-400 font-bold truncate max-w-[160px] uppercase tracking-tighter">{nomeEscola}</p>
                             </div>
                         )}
                     </div>
@@ -359,15 +359,15 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                         w-full flex items-center transition-all duration-150 group
                                                         ${sidebarMinimizado ? 'justify-center p-2' : 'gap-3 px-3 py-2'}
                                                         ${ativo
-                                                            ? 'bg-orange-500/10 border-l-2 border-orange-500 text-white font-black rounded-r-2xl'
-                                                            : 'bg-transparent text-slate-400 font-bold hover:bg-slate-900/50 hover:text-slate-200 rounded-2xl'
+                                                            ? 'bg-eletrico/10 border-l-2 border-eletrico text-white font-black rounded-r-2xl'
+                                                            : 'bg-transparent text-slate-400 font-bold hover:bg-white/5 hover:text-slate-200 rounded-2xl'
                                                         }
                                                     `}
                                                     title={sidebarMinimizado ? item.texto : ""}
                                                 >
                                                     <Icone
                                                         size={16}
-                                                        className={ativo ? 'text-orange-500' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
+                                                        className={ativo ? 'text-eletrico' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
                                                     />
                                                     {!sidebarMinimizado && (
                                                         <span className="text-sm">{item.texto}</span>
@@ -471,11 +471,11 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                         }}
                                                         className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-all text-left group"
                                                     >
-                                                        <div className="w-9 h-9 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                                        <div className="w-9 h-9 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:bg-eletrico group-hover:text-white transition-colors">
                                                             <Icone size={18} />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{res.titulo}</p>
+                                                            <p className="text-sm font-bold text-slate-700 group-hover:text-eletrico transition-colors uppercase tracking-tight">{res.titulo}</p>
                                                             <p className="text-[10px] text-slate-400 truncate mt-0.5">{res.descricao}</p>
                                                         </div>
                                                         <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-all" />
@@ -522,7 +522,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                 {naoLidas > 0 && (
                                                     <button
                                                         onClick={() => marcarTodasComoLidas()}
-                                                        className="text-[9px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-tighter"
+                                                        className="text-[9px] font-black text-eletrico hover:text-eletrico/80 uppercase tracking-tighter"
                                                     >
                                                         Marcar como lidas
                                                     </button>
@@ -548,7 +548,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                             `}
                                                         >
                                                             {!n.lida && (
-                                                                <div className="absolute left-2 top-4 w-1 h-1 bg-indigo-600 rounded-full" />
+                                                                <div className="absolute left-2 top-4 w-1 h-1 bg-eletrico rounded-full" />
                                                             )}
                                                             <div className="pl-3">
                                                                 <div className="flex justify-between items-start mb-0.5">
@@ -600,7 +600,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     tabIndex={-1}
                     ref={mainRef}
                     onScroll={lidarComScroll}
-                    className="flex-1 overflow-y-auto p-8 md:p-10 lg:p-12 scroll-smooth z-10 custom-scrollbar bg-slate-50/30"
+                    className="flex-1 overflow-y-auto p-8 md:p-10 lg:p-12 scroll-smooth z-10 custom-scrollbar bg-slate-50"
                 >
                     <motion.div
                         key={localizacao.pathname}

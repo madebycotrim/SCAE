@@ -159,7 +159,7 @@ export default function Alunos() {
 
 
     const obterCorAvatar = (id: string) => {
-        const cores = ['from-indigo-500 to-purple-600', 'from-emerald-400 to-teal-600', 'from-rose-400 to-pink-600', 'from-amber-400 to-orange-500', 'from-sky-400 to-blue-600', 'from-violet-500 to-fuchsia-600'];
+        const cores = ['from-eletrico to-cyan-600', 'from-emerald-400 to-teal-600', 'from-rose-400 to-pink-600', 'from-amber-400 to-orange-500', 'from-sky-400 to-blue-600', 'from-violet-500 to-fuchsia-600'];
         return cores[parseInt(id.slice(-1)) % cores.length || 0];
     };
 

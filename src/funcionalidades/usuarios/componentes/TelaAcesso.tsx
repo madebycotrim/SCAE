@@ -126,7 +126,7 @@ export default function TelaAcesso() {
                     {/* ─── PAINEL ESQUERDO ─── */}
                     <div
                         className="md:w-[52%] p-14 relative flex flex-col justify-between overflow-hidden"
-                        style={{ background: 'linear-gradient(145deg, #060d1f 0%, #0a1628 60%, #0d1f3c 100%)' }}
+                        style={{ background: 'linear-gradient(145deg, #0A1121 0%, #131B31 60%, #1D2840 100%)' }}
                     >
                         {/* Padrão decorativo — branco muito sutil */}
                         <div className="absolute top-[10%] right-[8%] opacity-[0.05]">
@@ -147,7 +147,7 @@ export default function TelaAcesso() {
                             <div className="p-2 rounded-lg bg-white/[0.08] border border-white/[0.12]">
                                 <ShieldCheck className="w-5 h-5 text-white" />
                             </div>
-                            <span className="text-xl font-black text-white tracking-tighter uppercase italic">Catraki<span className="text-orange-500">.</span></span>
+                            <span className="text-xl font-black text-white tracking-tighter uppercase italic">Catraki<span className="text-eletrico">.</span></span>
                         </div>
 
                         {/* BLOCO 2, 3, 4 — Conteúdo central */}
@@ -173,15 +173,15 @@ export default function TelaAcesso() {
                             {/* BLOCO 4 — Bullet points de valor */}
                             <div className="space-y-2.5">
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                                    <Check className="w-4 h-4 text-eletrico flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">Registros de acesso em tempo real</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                                    <Check className="w-4 h-4 text-eletrico flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">QR Code Digital para alunos</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                                    <Check className="w-4 h-4 text-eletrico flex-shrink-0" />
                                     <span className="text-[13px] text-slate-300">Conformidade total com a LGPD</span>
                                 </div>
                             </div>
@@ -215,13 +215,13 @@ export default function TelaAcesso() {
                             {/* Domínio Permitido — Estilo Selo de Segurança */}
                             {dominioEmail && (
                                 <div className="flex justify-center mb-10">
-                                    <div className="inline-flex items-center gap-3 px-1.5 py-1.5 pr-5 bg-slate-50 border border-slate-200/60 rounded-full hover:border-indigo-200 hover:bg-white transition-all duration-300 group shadow-sm active:scale-95 cursor-default">
-                                        <div className="w-8 h-8 rounded-full bg-[#0d1f3c] flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
+                                    <div className="inline-flex items-center gap-3 px-1.5 py-1.5 pr-5 bg-slate-50 border border-slate-200/60 rounded-full hover:border-eletrico/30 hover:bg-white transition-all duration-300 group shadow-sm active:scale-95 cursor-default">
+                                        <div className="w-8 h-8 rounded-full bg-marinho flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
                                             <Lock size={14} className="text-white" />
                                         </div>
                                         <div className="flex flex-col text-left">
                                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Acesso Institucional</span>
-                                            <span className="text-xs font-bold text-indigo-600 leading-none">{dominioEmail}</span>
+                                            <span className="text-xs font-bold text-eletrico leading-none">{dominioEmail}</span>
                                         </div>
                                     </div>
                                 </div>
