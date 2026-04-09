@@ -31,6 +31,8 @@ export interface AgenteConfig {
   admin_pin: string;
   agente_secret: string; // Token de autenticação entre Agente <-> Cloudflare
   janelas?: any[]; // Regras de horário para classificação entrada/saída
+  ultimo_sinc_alunos?: string; // ISO 8601 do último aluno sincronizado (Delta Sync)
+  porta_agente?: number; // Porto local para recebimento de eventos (Padrão 1912)
 }
 
 // Configuração padrão de fábrica
@@ -47,7 +49,8 @@ const configPadrao: AgenteConfig = {
   intervalo_sync_ms: 10000,
   endpoint_worker: 'https://catraki.com.br',
   admin_pin: '123456',
-  agente_secret: 'catraki-secret-token-default'
+  agente_secret: 'catraki-secret-token-default',
+  porta_agente: 1912
 };
 
 // Singleton em memória
@@ -63,13 +66,25 @@ export function carregarConfiguracaoHardware() {
             const raw = fs.readFileSync(configPath, 'utf-8');
             const data = JSON.parse(raw);
             if (data.leitores) {
-                config.leitores = data.leitores.map((l: any) => ({
-                    ...l,
-                    id: l.id || `idflex-${l.ip?.replace(/\W/g, '') || Date.now()}`
-                }));
-                if (data.ip_agente) config.ip_agente = data.ip_agente;
-                if (data.agente_secret) config.agente_secret = data.agente_secret;
-                console.log(`[Config] ${config.leitores.length} leitores e IP Configurado: ${config.ip_agente || 'Automático'}`);
+                config.leitores = data.leitores.map((l: any) => {
+                    // ID Determinístico baseado no IP para evitar duplicatas órfãs
+                    const ipClean = l.ip?.replace(/\W/g, '') || '0000';
+                    return {
+                        ...l,
+                        id: l.id || `idflex-${ipClean}`
+                    };
+                });
+                if (data.ip_agente !== undefined) config.ip_agente = data.ip_agente;
+                if (data.agente_secret !== undefined) config.agente_secret = data.agente_secret;
+                if (data.escola_id !== undefined) config.escola_id = data.escola_id;
+                if (data.nome_escola !== undefined) config.nome_escola = data.nome_escola;
+                if (data.ultimo_sinc_alunos !== undefined) config.ultimo_sinc_alunos = data.ultimo_sinc_alunos;
+                if (data.janelas !== undefined) config.janelas = data.janelas;
+                if (data.tts_ativado !== undefined) config.tts_ativado = data.tts_ativado;
+                if (data.tts_sucesso !== undefined) config.tts_sucesso = data.tts_sucesso;
+                if (data.tts_erro !== undefined) config.tts_erro = data.tts_erro;
+
+                console.log(`[Config] 📂 Estado carregado: ${config.leitores.length} leitores | IP Agente: ${config.ip_agente || 'Automático'}`);
             }
         } else {
             // Tenta carregar do .env se o arquivo JSON for novo/vazio
@@ -82,28 +97,31 @@ export function carregarConfiguracaoHardware() {
 }
 
 /**
- * Grava a lista de leitores fisicamente no disco e atualiza a memória
+ * Grava o estado completo da configuração no disco.
+ */
+export function salvarConfiguracaoCompleta() {
+    try {
+        const configPath = getLocalConfigPath();
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+        return true;
+    } catch (e) {
+        console.error('[Config] Erro ao salvar configuração completa:', e);
+        return false;
+    }
+}
+
+/**
+ * Grava apenas a lista de leitores e o IP (interface legada v3.0)
  */
 export function salvarLeitoresNoDisco(leitores: any[], ip_agente?: string) {
-  try {
-    const configPath = getLocalConfigPath();
-    const data = { 
-        leitores, 
-        ip_agente: ip_agente || undefined,
-        agente_secret: config.agente_secret
-    };
-    fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
-    
-    // Atualiza a referência global
-    config.leitores = leitores;
-    if (ip_agente !== undefined) config.ip_agente = ip_agente;
-    
-    console.log(`[Config] CONFIGURAÇÃO SALVA COM SUCESSO EM: ${configPath}`);
-    return true;
-  } catch (e) {
-    console.error('[Config] Falha crítica ao salvar no disco:', e);
-    return false;
+  config.leitores = leitores;
+  
+  // ⚡ SANITIZAÇÃO: Remove portas acidentais (:80, :1912) se o usuário digitou no campo de IP
+  if (ip_agente !== undefined) {
+      config.ip_agente = ip_agente.split(':')[0].trim();
   }
+  
+  return salvarConfiguracaoCompleta();
 }
 
 // Carga Inicial Automática

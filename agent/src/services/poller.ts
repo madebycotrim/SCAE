@@ -20,6 +20,9 @@ let notificadorGlobal: any = null;
 const falhasLeitores = new Map<string, { contador: number, proximaTentativa: number }>();
 const leitoresEmProcessamento = new Set<string>();
 
+// 🌐 WATCHDOG DE REDE: Detecta mudança de IP Local para reconfigurar Push nos Hardwares
+let ultimoIpLocalDetectado: string | null = null;
+
 /** Inicializa o monitoramento de todos os leitores configurados */
 export function iniciarPolling(notificador: any) {
   // ⚡ SEGURO: Garante que os leitores estejam carregados se ainda não estiverem
@@ -59,15 +62,16 @@ setInterval(executarCicloMonitoramento, 2000);
 
 /** Recarrega a lista de leitores (Ex: mudança de IP no dashboard) */
 export function recarregarLeitores(novaLista: ILeitor[] = []) {
+    const { config } = require('../infra/config');
     if (novaLista.length > 0) {
         leitoresAtivos = novaLista;
     } else {
         // Se chamado sem lista, força a reconstrução a partir da config global atualizada
         const { IdflexLeitor } = require('../drivers/IdflexLeitor');
-        const { config } = require('../infra/config');
+        console.log(`[Poller] Reconstruindo lista a partir da config. (Tamanho na config: ${config.leitores?.length || 0})`);
         leitoresAtivos = (config.leitores as any[]).map(c => new IdflexLeitor(c));
     }
-    console.log(`[Poller] Lista de leitores atualizada (${leitoresAtivos.length} ativos).`);
+    console.log(`[Poller] Lista de leitores ativa atualizada para ${leitoresAtivos.length} dispositivos.`);
 }
 
 /** Tenta forçar a reconexão imediata de um leitor específico (Manual via UI) */
@@ -131,14 +135,22 @@ async function monitorarLeitor(leitor: ILeitor) {
         }
     }
 
-    if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000)) {
-        const ipLocal = config.ip_agente || buscarIpLocal();
-        if (ipLocal) {
-            console.log(`[Watchdog][${leitor.id}] Sincronizando Modo Push em ${ipLocal}...`);
-            // Ativa o Push (Modo Escola)
-            await (leitor as any).configurarModoEscola(ipLocal);
+    const ipAtualLocal = config.ip_agente || buscarIpLocal();
+    const ipMudou = ultimoIpLocalDetectado && ipAtualLocal && ultimoIpLocalDetectado !== ipAtualLocal;
+
+    if (ipMudou) {
+        console.warn(`[Watchdog] 🌐 REDE ALTERADA: Agente agora em ${ipAtualLocal}. Atualizando catracas...`);
+    }
+
+    if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000) || ipMudou) {
+        if (ipAtualLocal && st.online) {
+            // Log cristalino para o usuário não confundir IP da Catraca com IP do Agente
+            console.log(`[Watchdog][${leitor.nome}] 🎯 Direcionando Eventos: Catraca (${leitor.ip}) ➔ Destino (${ipAtualLocal}:${config.porta_agente || 1912})`);
+            // Ativa o Push (Modo Escola) - Só tenta se o hardware estiver online para evitar bloqueio do loop
+            await (leitor as any).configurarModoEscola(ipAtualLocal, config.porta_agente || 1912).catch(() => {});
             // Sincroniza Marca de Watchdog
             (global as any)[tagCheck] = agora;
+            ultimoIpLocalDetectado = ipAtualLocal;
         }
     }
 
@@ -165,7 +177,7 @@ async function monitorarLeitor(leitor: ILeitor) {
       
         for (const ev of eventos) {
         const matriculaParaBusca = ev.matricula || ev.idUsuario;
-        const aluno = await getSql('SELECT nome_completo, turma_id, turno FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
+        const aluno = await getSql('SELECT nome_completo, turma_id, turno, mensagem_aviso FROM alunos_cache WHERE matricula = ?', [matriculaParaBusca]);
         
         const { classificarAcesso } = require('./classificador');
         const classificacao = classificarAcesso(String(matriculaParaBusca), aluno?.turno);
@@ -209,6 +221,7 @@ async function monitorarLeitor(leitor: ILeitor) {
                     sucesso: statusAcesso !== 'NEGADO' && statusAcesso !== 'TURNO_ERRADO' && statusAcesso !== 'FORA_DE_HORARIO',
                     statusAcesso,
                     detalhe: detalheAcesso,
+                    mensagemAviso: aluno?.mensagem_aviso || null, // Novo campo para TTS de recados
                     ttsAtivo: config.tts_ativado,
                     ttsParams: {
                         sucesso: config.tts_sucesso ?? 'Bem-vindo, {nome}!',
@@ -245,6 +258,11 @@ async function monitorarLeitor(leitor: ILeitor) {
     
     if (e.code !== 'ECONNREFUSED' && e.code !== 'ETIMEDOUT') {
         console.error(`[Poller] Falha no leitor ${leitor.id}:`, e.message);
+    } else {
+        // Log minimalista para erro de conexão conhecido
+        if (contador % 30 === 1) { // Só loga a cada 30 falhas (~1 min no backoff max)
+            console.warn(`[Poller][${leitor.nome}] Equipamento em ${leitor.ip} continua offline (Backoff Ativo).`);
+        }
     }
   } finally {
       // Libera o leitor para a próxima varredura

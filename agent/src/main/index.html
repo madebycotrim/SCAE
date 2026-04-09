@@ -1160,6 +1160,13 @@
                 EXPORTAR LOG
             </button>
 
+            <button class="icon-btn accent" id="btn-visita-open" title="Registrar visitante offline">
+                <svg viewBox="0 0 16 16">
+                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2 5V4a2 2 0 1 1 4 0v9m-12 0V4a2 2 0 1 0-4 0v9" />
+                </svg>
+                VISITANTE
+            </button>
+
             <button class="icon-btn accent" id="btn-backup-db" title="Salvar cópia do banco">
                 <svg viewBox="0 0 16 16">
                     <path d="M4 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4 6h8M4 10h8" />
@@ -1235,11 +1242,17 @@
                     style="background:var(--s2); border:1px solid var(--b1); border-radius:var(--r); padding:10px 12px;">
                     <div class="cloud-row">
                         <span class="cloud-key">ESCOLA</span>
-                        <span class="cloud-val ok" id="c-escola">NÃO SYNC</span>
+                        <div style="display:flex; align-items:center; gap:6px">
+                            <span class="cloud-val ok" id="c-escola">NÃO SYNC</span>
+                            <span id="sync-spinner" class="hidden" style="font-size:10px; animation: spin 1s linear infinite;">🔄</span>
+                        </div>
                     </div>
                     <div class="cloud-row">
                         <span class="cloud-key">ALUNOS OFFLINE</span>
-                        <span class="cloud-val" id="c-alunos">0</span>
+                        <div style="display:flex; align-items:center; gap:8px">
+                            <span class="cloud-val" id="c-pendentes">0</span>
+                            <button class="btn accent" onclick="forcarSinc()" style="padding:4px 8px; font-size:10px; height:auto">SINCRONIZAR</button>
+                        </div>
                     </div>
                     <div class="cloud-row">
                         <span class="cloud-key">VOZ (TTS)</span>
@@ -1338,22 +1351,27 @@
         </div>
     </div>
 
-    <!-- MODAL: CONFIRMAR RESET -->
-    <div id="confirm-screen" class="modal-bg hidden">
-        <div class="modal" style="width:400px; text-align:center;">
-            <div class="confirm-icon">🗑️</div>
-            <div class="confirm-title">Limpeza Nuclear</div>
-            <div class="confirm-desc">
-                Isso vai <strong>apagar o banco de dados local</strong> e reiniciar o Agente.<br>
-                Presenças não sincronizadas serão perdidas para sempre.
+    <!-- MODAL: REGISTRAR VISITANTE -->
+    <div id="visita-screen" class="modal-bg hidden">
+        <div class="modal" style="width:400px;">
+            <div class="modal-head">
+                <span class="modal-title">REGISTRAR VISITANTE (OFFLINE)</span>
+                <button class="modal-close" onclick="closeVisita()">✕</button>
             </div>
-            <div class="confirm-input-label" style="text-align:left">DIGITE <code
-                    style="color:var(--err)">RESETAR</code> PARA CONFIRMAR</div>
-            <input type="text" class="confirm-input" id="confirm-text" placeholder="RESETAR" autocomplete="off">
-            <div class="confirm-actions">
-                <button class="btn" onclick="closeConfirm()" style="flex:1">CANCELAR</button>
-                <button class="btn danger" id="btn-confirm-reset" onclick="doReset()" style="flex:1" disabled>APAGAR
-                    TUDO</button>
+            <div style="display:flex; flex-direction:column; gap:12px">
+                <div>
+                    <div class="confirm-input-label">NOME COMPLETO</div>
+                    <input type="text" id="vis-nome" class="f-input" placeholder="Ex: João Silva">
+                </div>
+                <div>
+                    <div class="confirm-input-label">DOCUMENTO (CPF/RG)</div>
+                    <input type="text" id="vis-doc" class="f-input" placeholder="000.000.000-00">
+                </div>
+                <div>
+                    <div class="confirm-input-label">MOTIVO DA VISITA</div>
+                    <input type="text" id="vis-motivo" class="f-input" placeholder="Ex: Reunião pedagógica">
+                </div>
+                <button onclick="salvarVisita()" class="btn primary btn-full" style="margin-top:8px">SALVAR REGISTRO</button>
             </div>
         </div>
     </div>
@@ -1685,10 +1703,11 @@
                 if (status.stats.horas) metrics.horas = [...status.stats.horas];
                 updateMetricsUI();
             }
-            if (status.ip_agente_config) {
+            if (status.ip_agente_config !== undefined) {
                 document.getElementById('ipt-agente-ip').value = status.ip_agente_config;
             }
             configAtiva = status.leitores || [];
+            console.log('[UI] configAtiva atualizada:', configAtiva.length, 'leitores');
             renderHardware();
         });
 
@@ -1706,7 +1725,9 @@
                     sucesso: data.ttsParams?.sucesso ?? 'Bem-vindo, {nome}!',
                     erro: data.ttsParams?.erro ?? 'Acesso negado, {nome}!'
                 };
-                const tpl = data.sucesso ? ttsParams.sucesso : ttsParams.erro;
+                
+                // 📢 RECADO PERSONALIZADO: Se houver mensagemAviso, ela tem prioridade sobre o padrão
+                const tpl = data.mensagemAviso || (data.sucesso ? ttsParams.sucesso : ttsParams.erro);
                 
                 if (tpl && tpl.trim() !== '') {
                     const frase = tpl.replace('{nome}', data.nomePuro || 'Visitante');
@@ -1721,6 +1742,21 @@
         // ══════════════════════════════════════
         //  RENDER HARDWARE
         // ══════════════════════════════════════
+        window.forcarSinc = async () => {
+            showToast('Sincronização forçada...', 'info');
+            pushLog('🚀 Solicitando atualização imediata da nuvem...', 'info');
+            document.getElementById('sync-spinner').classList.remove('hidden');
+            try {
+                // Chama o endpoint de sync do main process
+                await fetch('http://localhost:1912/sync-now', { method: 'POST' });
+                showToast('Sync finalizado!', 'ok');
+            } catch {
+                showToast('Erro no sync local', 'err');
+            } finally {
+                document.getElementById('sync-spinner').classList.add('hidden');
+            }
+        };
+
         function renderHardware() {
             const list = document.getElementById('hardware-list');
             const bannersDiv = document.getElementById('offline-banners');
@@ -1922,6 +1958,10 @@
 
         function renderSettings() {
             const list = document.getElementById('settings-list');
+            if (configAtiva.length === 0) {
+                list.innerHTML = `<div class="empty-state" style="padding:10px; opacity:0.6; font-size:0.7rem;">Nenhum leitor cadastrado. Clique no botão abaixo para adicionar.</div>`;
+                return;
+            }
             list.innerHTML = configAtiva.map((l, i) => `
             <div class="settings-item">
                 <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:8px; align-items:center;">
@@ -1985,9 +2025,14 @@
                     });
                 }
             });
+            if (novosLeitores.length === 0) {
+                if (!confirm("Você está salvando a lista de equipamentos VAZIA. Todas as catracas serão desconectadas. Deseja continuar?")) return;
+            }
+
             try {
                 if (!window.scaeApi) throw new Error();
                 const ipAgente = document.getElementById('ipt-agente-ip').value.trim();
+                console.log('[UI] Enviando salvarLeitores:', { count: novosLeitores.length, ipAgente });
                 const res = await window.scaeApi.salvarLeitores(novosLeitores, ipAgente);
                 if (res.ok) { 
                     showToast('Configuração salva!', 'ok'); 
@@ -2029,17 +2074,41 @@
         }
 
         // ══════════════════════════════════════
+        //  VISITANTES
+        // ══════════════════════════════════════
+        document.getElementById('btn-visita-open').onclick = () => {
+            document.getElementById('vis-nome').value = '';
+            document.getElementById('vis-doc').value = '';
+            document.getElementById('vis-motivo').value = '';
+            document.getElementById('visita-screen').classList.remove('hidden');
+        };
+
+        window.closeVisita = () => document.getElementById('visita-screen').classList.add('hidden');
+
+        window.salvarVisita = async () => {
+            const nome = document.getElementById('vis-nome').value.trim();
+            const documento = document.getElementById('vis-doc').value.trim();
+            const motivo = document.getElementById('vis-motivo').value.trim();
+
+            if (!nome) { showToast('Nome é obrigatório', 'err'); return; }
+
+            try {
+                const res = await window.scaeApi.registrarVisitante({ nome, documento, motivo });
+                if (res.ok) {
+                    showToast('Visita registrada!', 'ok');
+                    pushLog(`Visita offline registrada: ${nome} (${documento || 'Sem doc'})`, 'info');
+                    closeVisita();
+                } else {
+                    showToast('Erro ao salvar visita', 'err');
+                }
+            } catch { showToast('Falha na API', 'err'); }
+        };
+
+        // ══════════════════════════════════════
         //  MODO QUIOSQUE / PORTARIA
         // ══════════════════════════════════════
-        document.getElementById('btn-kiosk').onclick = toggleKiosk;
-
-        window.toggleKiosk = () => {
-            kioskMode = !kioskMode;
-            document.body.classList.toggle('kiosk', kioskMode);
-            if (kioskMode) {
-                pushLog('Modo portaria (quiosque) ativado.', 'info');
-            }
-        };
+        let kioskMode = false;
+        // document.getElementById('btn-kiosk').onclick = toggleKiosk; // Removido por enquanto
 
         // ESC para sair do modo quiosque
         document.addEventListener('keydown', e => {

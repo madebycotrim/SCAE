@@ -3,8 +3,8 @@
  * Orquestrador de Sincronização Bidirecional (Local <-> Cloudflare).
  */
 
-import { config } from '../infra/config';
-import { runSql, allSql } from '../infra/db';
+import { config, salvarConfiguracaoCompleta } from '../infra/config';
+import { runSql, allSql, getSql } from '../infra/db';
 import { WorkerApi } from './worker-endpoint';
 import { leitoresAtivos } from './poller';
 
@@ -136,6 +136,8 @@ async function tentarDescobrirIdentidade() {
 
             console.log(`[Sync] 🔑 IDENTIDADE CONECTADA: ${nome_escola.toUpperCase()}`);
             console.log(`[Sync] 🔊 TTS INICIAL: ${config.tts_ativado ? 'ATIVADO' : 'DESATIVADO'}`);
+
+            salvarConfiguracaoCompleta(); // Persiste a identidade no disco
         }
     } catch (e) {
         console.error('[Sync] Falha no Handshake de identidade:', e);
@@ -165,31 +167,33 @@ async function realizarLimpezaGariDigital() {
  * Envia as presenças coletadas localmente para o sistema web (Cloudflare)
  */
 async function sincronizarRegistrosPendentes(): Promise<boolean> {
-  if (estaSincronizandoBatidas) return true; // Se a última ainda não terminou, aborta essa tentativa silenciosamente
+  if (estaSincronizandoBatidas) return true;
   
   try {
+    // 1. Sincroniza Batidas de Alunos
     const pendentes = await allSql(`SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 50`);
-    
     if (pendentes.length > 0) {
         estaSincronizandoBatidas = true;
-        
-        // Tenta enviar para a Nuvem através do WorkerApi
         const ok = await WorkerApi.enviarBatida(pendentes);
-        
         if (ok) {
-        for (const p of pendentes) {
-            await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
-        }
-        console.log(`[Sync] ✓ ENVIADOS: ${pendentes.length} registros de acesso para o sistema web.`);
-        estaSincronizandoBatidas = false;
-        return true;
+            for (const p of pendentes) await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
+            estaSincronizandoBatidas = false;
         } else {
-        console.warn(`[Sync] ! FALHA: Erro ao enviar ${pendentes.length} batidas para a rede.`);
-        estaSincronizandoBatidas = false;
-        return false;
+            estaSincronizandoBatidas = false;
+            return false;
         }
     }
-    return true; // Nada pendente é um "sucesso"
+
+    // 2. Sincroniza Visitantes Offline
+    const visitantes = await allSql(`SELECT * FROM visitantes_offline WHERE sincronizado = 0 LIMIT 20`);
+    if (visitantes.length > 0) {
+        const ok = await WorkerApi.enviarVisitantes(visitantes);
+        if (ok) {
+            for (const v of visitantes) await runSql('UPDATE visitantes_offline SET sincronizado = 1 WHERE id = ?', [v.id]);
+        }
+    }
+
+    return true; 
   } catch (e) {
       console.error('[Sync] Erro crítico na sincronização:', e);
       estaSincronizandoBatidas = false;
@@ -199,6 +203,16 @@ async function sincronizarRegistrosPendentes(): Promise<boolean> {
 
 let ultimaConfigHash = '';
 let ultimaEtag = '';
+
+/**
+ * Pega o total de batidas que ainda não foram enviadas para a nuvem.
+ */
+export async function obterContagemPendentes(): Promise<number> {
+    try {
+        const row = await getSql(`SELECT COUNT(*) as total FROM registros_acesso WHERE sincronizado = 0`);
+        return row?.total || 0;
+    } catch { return 0; }
+}
 
 export async function sincronizarCacheAlunos(forcar = false) {
   if (estaSincronizando) return;
@@ -221,7 +235,7 @@ export async function sincronizarCacheAlunos(forcar = false) {
   estaSincronizando = true;
   
   try {
-    const resposta = await WorkerApi.buscarSincronizacaoAlunos(ultimaEtag);
+    const resposta = await WorkerApi.buscarSincronizacaoAlunos(ultimaEtag, forcar ? undefined : config.ultimo_sinc_alunos);
     if (!resposta || !resposta.ok) return;
 
     // Inteligência: Se a rede disse que não mudou nada, não gasta CPU
@@ -259,6 +273,7 @@ export async function sincronizarCacheAlunos(forcar = false) {
             config.janelas = escola_config.janelas || [];
             
             ultimaConfigHash = configHash;
+            salvarConfiguracaoCompleta(); // Salva novas regras/janelas
 
             const { avisarMudancaConfig } = require('../main/main');
             avisarMudancaConfig();
@@ -278,26 +293,44 @@ export async function sincronizarCacheAlunos(forcar = false) {
 
     // Sincronização de Alunos
     if (alunosServidor) {
-        if (forcar || alunosServidor.length !== config.total_alunos) {
-            console.log(`[Sync] 📥 ATUALIZANDO CACHE: Sincronizando ${alunosServidor.length} alunos com o banco local.`);
+        const totalRecebidos = alunosServidor.length;
+        if (totalRecebidos > 0) {
+            // Log apenas se for a primeira vez no boot ou se realmente houver carga útil
+            if (forcar || totalRecebidos > 1 || !config.ultimo_sinc_alunos) {
+                console.log(`[Sync] 📥 DELTA SYNC: Recebidos ${totalRecebidos} registros da nuvem.`);
+            }
             
             for (const a of (alunosServidor as any[])) {
-                await runSql(`
-                    INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, turno, ativo)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(matricula, escola_id) DO UPDATE SET
-                        nome_completo = excluded.nome_completo,
-                        turma_id = excluded.turma_id,
-                        turno = excluded.turno,
-                        ativo = excluded.ativo,
-                        atualizado_em = datetime('now', 'localtime')
-                `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.turno, a.ativo === 1 ? 1 : 0]);
+                const eInativo = Number(a.ativo) === 0 || a.ativo === false;
+                
+                if (eInativo) {
+                    // 🛡️ LGPD: Se o aluno foi desativado/removido na nuvem, limpamos o cache local
+                    await runSql(`DELETE FROM alunos_cache WHERE matricula = ? AND escola_id = ?`, [a.matricula, config.escola_id]);
+                } else {
+                    await runSql(`
+                        INSERT INTO alunos_cache (matricula, escola_id, nome_completo, turma_id, turno, mensagem_aviso, ativo)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(matricula, escola_id) DO UPDATE SET
+                            nome_completo = excluded.nome_completo,
+                            turma_id = excluded.turma_id,
+                            turno = excluded.turno,
+                            mensagem_aviso = excluded.mensagem_aviso,
+                            ativo = excluded.ativo,
+                            atualizado_em = datetime('now', 'localtime')
+                    `, [a.matricula, config.escola_id, a.nome_completo, a.turma_id, a.turno, a.mensagem_aviso, 1]);
+                }
             }
 
-            config.total_alunos = alunosServidor.length;
-            await sincronizarHardware(alunosServidor);
-        } else if (forcar) {
-            await sincronizarHardware(alunosServidor);
+            // Atualiza o timestamp para a próxima sincronização delta
+            config.ultimo_sinc_alunos = new Date().toISOString();
+            salvarConfiguracaoCompleta(); // ⚡ CRÍTICO: Registra o progresso do Delta Sync
+            
+            // Sincroniza apenas os alunos que mudaram para os hardwares
+            await sincronizarHardwareDelta(alunosServidor);
+            
+            // Recalcula total de alunos para a UI
+            const countRow = await getSql('SELECT COUNT(*) as total FROM alunos_cache');
+            config.total_alunos = countRow?.total || 0;
         }
     }
 
@@ -316,51 +349,40 @@ export async function forcarSincronizacaoImediata() {
     return await sincronizarCacheAlunos(true);
 }
 
-async function sincronizarHardware(alunosNuvem: any[]) {
+/**
+ * Sincronização Delta para o Hardware: Apenas envia/remove o que mudou agora.
+ * Muito mais leve que uma convergência total em horários de pico.
+ */
+async function sincronizarHardwareDelta(alunosAlterados: any[]) {
     if (!leitoresAtivos || leitoresAtivos.length === 0) return;
 
     for (const leitor of leitoresAtivos) {
         try {
             if (!(leitor as any).online) continue;
-            if (!leitor.listarAlunos) continue;
+            
+            let cadastros = 0;
+            let remocoes = 0;
 
-            const usuariosHardware = await leitor.listarAlunos();
-            const matriculasNoHardware = new Set(usuariosHardware.map((u: any) => String(u.registration || "").trim()));
-
-            let cadastrosRealizados = 0;
-            let exclusoesRealizadas = 0;
-
-            for (const aluno of alunosNuvem) {
-                const matriculaLimpa = String(aluno.matricula).trim();
+            for (const aluno of alunosAlterados) {
                 const deveEstarNoHardware = Number(aluno.ativo) === 1 || aluno.ativo === true;
 
-                if (deveEstarNoHardware && !matriculasNoHardware.has(matriculaLimpa)) {
+                if (deveEstarNoHardware) {
                     const res = await leitor.cadastrarAluno({
                         matricula: aluno.matricula,
                         nomeCompleto: aluno.nome_completo
                     });
-                    if (res.ok) cadastrosRealizados++;
+                    if (res.ok) cadastros++;
+                } else {
+                    const res = await (leitor as any).removerAluno(String(aluno.matricula));
+                    if (res) remocoes++;
                 }
             }
 
-            const matriculasAtivasNuvem = new Set(
-                alunosNuvem
-                    .filter(a => Number(a.ativo) === 1 || a.ativo === true)
-                    .map(a => String(a.matricula).trim())
-            );
-            for (const hardwareUser of usuariosHardware) {
-                const reg = String(hardwareUser.registration || "").trim();
-                if (reg && reg !== "0" && !matriculasAtivasNuvem.has(reg)) {
-                    await (leitor as any).removerAluno(reg);
-                    exclusoesRealizadas++;
-                }
-            }
-
-            if (cadastrosRealizados > 0 || exclusoesRealizadas > 0) {
-                console.warn(`[Sync] 🛡️ CONVERGÊNCIA CONCLUÍDA [${leitor.nome}]: +${cadastrosRealizados} inseridos | -${exclusoesRealizadas} removidos.`);
+            if (cadastros > 0 || remocoes > 0) {
+                console.log(`[Sync][${leitor.nome}] Atualização Delta: +${cadastros} | -${remocoes}`);
             }
         } catch (e: any) {
-            console.error(`[Sync] 🛡️ Falha na convergência de ${leitor.id}: ${e.message}`);
+            console.error(`[Sync] Falha na atualização delta de ${leitor.id}: ${e.message}`);
         }
     }
 }

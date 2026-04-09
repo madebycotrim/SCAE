@@ -40,19 +40,26 @@ export class WorkerApi {
 
   /**
    * Tenta buscar os dados da Nuvem com Headers robustos.
+   * Suporta Sincronização Delta via timestamp 'desde'.
    */
-  static async buscarSincronizacaoAlunos(lastEtag?: string) {
-    const urlCloud = `${config.endpoint_worker}/api/agente/download-alunos`;
-    const urlLocal = `http://localhost:8788/api/agente/download-alunos`;
+  static async buscarSincronizacaoAlunos(lastEtag?: string, desde?: string) {
+    let urlCloud = `${config.endpoint_worker}/api/agente/download-alunos`;
+    let urlLocal = `http://localhost:8788/api/agente/download-alunos`;
+    
+    if (desde) {
+        const query = `?desde=${encodeURIComponent(desde)}`;
+        urlCloud += query;
+        urlLocal += query;
+    }
     
     const headers: any = { 
         'X-Escola-ID': config.escola_id,
-        'X-Agente-Token': config.agente_secret, // Segurança: Token compartilhado
+        'X-Agente-Token': config.agente_secret, 
         'Content-Type': 'application/json',
         'User-Agent': 'SCAE-Agent/1.6.2-FINAL'
     };
 
-    if (lastEtag) headers['If-None-Match'] = lastEtag;
+    if (lastEtag && !desde) headers['If-None-Match'] = lastEtag;
 
     const options = { headers, signal: AbortSignal.timeout(10000) };
 
@@ -139,6 +146,26 @@ export class WorkerApi {
         console.error(`[WorkerApi] ✗ ERRO FATAL: Nuvem e Localhost falharam. (${err.message})`);
         return false;
     }
+  }
+
+  /**
+   * Envia visitantes cadastrados offline para a nuvem.
+   */
+  static async enviarVisitantes(visitantes: any[]) {
+    const url = `${config.endpoint_worker}/api/agente/sync-visitantes`;
+    try {
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-Escola-ID': config.escola_id,
+                'X-Agente-Token': config.agente_secret 
+            },
+            body: JSON.stringify({ visitantes }),
+            signal: AbortSignal.timeout(10000)
+        });
+        return resp.ok;
+    } catch { return false; }
   }
 
   static async enviarStatus(corpo: any) {

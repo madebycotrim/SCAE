@@ -79,7 +79,7 @@ export const IdFlexHelper = {
       req.on('error', (e) => reject(e));
       req.on('timeout', () => {
         req.destroy();
-        const err = new Error(`Timeout corrigido na comunicação com o iDFlex ${cfg.ip} em ${endpoint}`);
+        const err = new Error(`Timeout na comunicação com o iDFlex ${cfg.ip} em ${endpoint}`);
         (err as any).code = 'ETIMEDOUT';
         reject(err);
       });

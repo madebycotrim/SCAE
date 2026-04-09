@@ -5,12 +5,13 @@
  */
 
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import http from 'http';
 import { leitoresAtivos, recarregarLeitores, recarregarLeitorEspecifico } from '../services/poller';
 import { carregarConfiguracaoHardware, salvarLeitoresNoDisco, config } from '../infra/config';
 import { stats } from '../infra/stats';
-import { iniciarSync } from '../services/sync';
+import { iniciarSync, obterContagemPendentes } from '../services/sync';
 import { resetarBancoLocal } from '../infra/db';
 
 // ── REDIRECIONAMENTO DE LOGS (Agente -> UI) ──
@@ -69,26 +70,30 @@ export function avisarMudancaConfig() {
 function enviarStatusParaUI() {
     if (!mainWindow) return;
 
-    mainWindow.webContents.send('hardware-status', {
-        ok: true,
-        agente: 'Catraki Edge Agent',
-        versao: '2.0.0',
-        nome_escola: config.nome_escola,
-        total_alunos: config.total_alunos,
-        tts_ativado: config.tts_ativado,
-        tts_sucesso: config.tts_sucesso,
-        tts_erro: config.tts_erro,
-        ip_agente_config: config.ip_agente,
-        stats: stats.obterSnapshot(),
-        leitores: leitoresAtivos.map(l => ({
-            id: l.id,
-            nome: l.nome,
-            tipo: l.tipo,
-            online: (l as any).online,
-            ip: l.ip,
-            porta: (l as any).porta || 80,
-            totalUsuarios: (l as any).totalUsuarios || 0
-        }))
+    obterContagemPendentes().then(pendentes => {
+        if (!mainWindow) return;
+        mainWindow.webContents.send('hardware-status', {
+            ok: true,
+            agente: 'Catraki Edge Agent',
+            versao: '2.0.0',
+            nome_escola: config.nome_escola,
+            total_alunos: config.total_alunos,
+            tts_ativado: config.tts_ativado,
+            tts_sucesso: config.tts_sucesso,
+            tts_erro: config.tts_erro,
+            ip_agente_config: config.ip_agente,
+            pendentes, // 🔔 EXIBE NA UI: Batidas que cairam no "Offline" e ainda não sincronizaram
+            stats: stats.obterSnapshot(),
+            leitores: leitoresAtivos.map(l => ({
+                id: l.id,
+                nome: l.nome,
+                tipo: l.tipo,
+                online: (l as any).online,
+                ip: l.ip,
+                porta: (l as any).porta || 80,
+                totalUsuarios: (l as any).totalUsuarios || 0
+            }))
+        });
     });
 }
 
@@ -177,7 +182,7 @@ function createWindow() {
                     const { classificarAcesso } = require('../services/classificador');
 
                     const aluno = (idUsuario !== 0 && idUsuario !== '0') 
-                        ? await getSql('SELECT nome_completo, turma_id, turno FROM alunos_cache WHERE matricula = ?', [matriculaParaExibir])
+                        ? await getSql('SELECT nome_completo, turma_id, turno, mensagem_aviso FROM alunos_cache WHERE matricula = ?', [matriculaParaExibir])
                         : null;
                     
                     const classificacao = classificarAcesso(matriculaParaExibir, aluno?.turno);
@@ -199,6 +204,8 @@ function createWindow() {
 
                     stats.registrarAcesso(nomeParaExibir, String(matriculaParaExibir), statusAcesso, turmaAcesso);
 
+
+
                     if (mainWindow) {
                         mainWindow.webContents.send('new-access', { 
                             nome: (idUsuario === 0) ? nomeParaExibir : `${nomeParaExibir} (${matriculaParaExibir})`, 
@@ -208,6 +215,7 @@ function createWindow() {
                             sucesso: statusAcesso !== 'NEGADO',
                             statusAcesso,
                             detalhe: detalheAcesso,
+                            mensagemAviso: aluno?.mensagem_aviso || null, // Recado personalizado
                             ttsAtivo: config.tts_ativado,
                             ttsParams: {
                                 sucesso: config.tts_sucesso || 'Bem-vindo, {nome}!',
@@ -241,15 +249,18 @@ function createWindow() {
 
   ipcMain.handle('salvar-leitores', async (_event, { leitores, ipAgente }) => {
     try {
+        console.log(`[Config] 💾 Recebida ordem de salvamento: ${leitores.length} dispositivos | IP Agente: ${ipAgente || 'Automático'}`);
         const ok = salvarLeitoresNoDisco(leitores, ipAgente);
         if (ok) {
             carregarConfiguracaoHardware();
             recarregarLeitores();
             enviarStatusParaUI();
+            console.log(`[Config] ✅ Configuração aplicada e propagada para a UI.`);
             return { ok: true };
         }
         return { ok: false };
     } catch (e: any) {
+        console.error(`[Config] ❌ Falha crítica ao salvar configurações:`, e.message);
         return { ok: false, erro: e.message };
     }
   });
@@ -296,6 +307,20 @@ function createWindow() {
     }
   });
 
+  ipcMain.handle('registrar-visitante', async (_event, dados) => {
+    const { runSql } = require('../infra/db');
+    const id = `V-${Date.now()}`;
+    try {
+        await runSql(`
+            INSERT INTO visitantes_offline (id, nome, documento, motivo, sincronizado)
+            VALUES (?, ?, ?, ?, 0)
+        `, [id, dados.nome, dados.documento, dados.motivo]);
+        return { ok: true, id };
+    } catch (e: any) {
+        return { ok: false, erro: e.message };
+    }
+  });
+
   // --- INICIALIZAÇÃO DO HARDWARE E MOTORES ---
   carregarConfiguracaoHardware();
   stats.sincronizarComBanco();
@@ -304,6 +329,22 @@ function createWindow() {
 
   // Envia primeiro pulso de status após o boot
   setTimeout(enviarStatusParaUI, 1500);
+
+  // --- AUTO-UPDATE ---
+  autoUpdater.checkForUpdatesAndNotify();
+  
+  autoUpdater.on('update-available', () => {
+    console.log('[AutoUpdate] 🔄 Nova versão disponível! Baixando...');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    console.log('[AutoUpdate] ✅ Atualização baixada. Reiniciando em 5 segundos...');
+    setTimeout(() => autoUpdater.quitAndInstall(), 5000);
+  });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
 
 app.whenReady().then(createWindow);
