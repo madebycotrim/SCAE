@@ -23,9 +23,14 @@ export async function onRequestGet({ env }: ContextoCatraki) {
             }, { status: 404 });
         }
 
-        const terminais = await db.prepare(`
-            SELECT config_leitores FROM terminais WHERE escola_id = ?
-        `).bind((configEscola as any).id).first<any>();
+        let terminais: any = null;
+        try {
+            terminais = await db.prepare(`
+                SELECT config_leitores FROM terminais WHERE escola_id = ?
+            `).bind((configEscola as any).id).first<any>();
+        } catch (e) {
+            // Tabela ainda não existe, apenas ignora
+        }
 
         return Response.json({
             ok: true,

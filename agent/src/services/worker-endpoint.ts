@@ -73,7 +73,8 @@ export class WorkerApi {
             const etag = resp.headers.get('ETag');
             return { ...data, ok: true, mudou: true, etag };
         } else {
-            console.error(`[WorkerApi] ! SITE RESPONDEU MAS DEU ERRO (${resp.status})`);
+            const erroCorpo = await resp.text().catch(() => 'indisponível');
+            console.error(`[WorkerApi] ! SITE RESPONDEU MAS DEU ERRO (${resp.status}): ${erroCorpo}`);
         }
     } catch (e: any) {
         console.warn(`[WorkerApi] !!! FALHA NA NUVEM: ${e.name} - ${e.message}`);

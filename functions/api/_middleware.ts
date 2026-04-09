@@ -184,7 +184,7 @@ async function processarRequisicao(contexto: ContextoCatraki): Promise<Response>
                 // Registrar ações de escrita asincronamente para não travar a UI
                 (contexto as any).waitUntil(
                     contexto.env.DB_SCAE.prepare(
-                        "INSERT INTO logs_auditoria (id, escola_id, usuario_email, acao, recurso, ip) VALUES (?, ?, ?, ?, ?, ?)"
+                        "INSERT INTO logs_auditoria (id, escola_id, usuario_email, acao, entidade_tipo, ip_address) VALUES (?, ?, ?, ?, ?, ?)"
                     ).bind(crypto.randomUUID(), idEscola, email, metodo, path, ip).run()
                     .catch((e: Error) => console.error('[AUDITORIA] Falha ao registrar log:', e))
                 );

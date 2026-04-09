@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { CartaoConteudo, Botao } from '@/compartilhado/componentes/UI';
 import { 
     Activity, ArrowUp, XCircle, Clock, 
     CheckCircle2, Search, Fingerprint, Trash2,
-    User, ArrowRightCircle, Wifi, WifiOff, RefreshCw, Power, Lock, Zap
+    User, ArrowRightCircle, Wifi, WifiOff, RefreshCw, Power, Lock, Zap, Radar
 } from 'lucide-react';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
@@ -166,8 +167,81 @@ export default function PaginaAgente() {
 
     const isOnlineNuvem = statusNuvem?.agente_online;
 
+    // Componente de Radar para o Cabeçalho
+    const [radarAberto, setRadarAberto] = useState(false);
+    const leitores = statusNuvem?.hardware || [];
+    const onlineCount = leitores.filter((l: any) => l.online).length;
+
+    const BotoesAcao = (
+        <div className="relative">
+            <button
+                onClick={() => setRadarAberto(!radarAberto)}
+                className={`
+                    flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all
+                    ${radarAberto ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}
+                `}
+            >
+                <div className="relative">
+                    <Radar size={16} className={radarAberto || onlineCount > 0 ? 'animate-pulse' : ''} />
+                    {onlineCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
+                    )}
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-tight">Radar</span>
+            </button>
+
+            <AnimatePresence>
+                {radarAberto && (
+                    <>
+                        <div className="fixed inset-0 z-[45]" onClick={() => setRadarAberto(false)} />
+                        <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
+                        >
+                            <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipamentos Ativos</h4>
+                                <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase">
+                                    {onlineCount} Online
+                                </span>
+                            </div>
+                            <div className="p-2 space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                {leitores.length === 0 ? (
+                                    <div className="py-8 text-center">
+                                        <Search size={24} className="mx-auto text-slate-200 mb-2" />
+                                        <p className="text-[9px] font-black text-slate-300 uppercase">Procurando...</p>
+                                    </div>
+                                ) : (
+                                    leitores.map((leitor: any) => (
+                                        <div key={leitor.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${leitor.online ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                                    {leitor.online ? <Wifi size={14} /> : <WifiOff size={14} />}
+                                                </div>
+                                                <div>
+                                                    <p className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">{leitor.nome}</p>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">{leitor.ip}</p>
+                                                </div>
+                                            </div>
+                                            <div className={`w-1.5 h-1.5 rounded-full ${leitor.online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-400'}`} />
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+
     return (
-        <LayoutAdministrativo titulo="Monitor do Agente" subtitulo="Status de saúde e controle de acesso remoto">
+        <LayoutAdministrativo 
+            titulo="Monitor do Agente" 
+            subtitulo="Status de saúde e controle de acesso remoto"
+            acoes={BotoesAcao}
+        >
             <div className="space-y-6">
                 
                 {/* STATUS BAR */}
@@ -213,7 +287,7 @@ export default function PaginaAgente() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* BUSCA E CADASTRO */}
+                    {/* COLUNA PRINCIPAL (ESQUERDA) */}
                     <div className="lg:col-span-2 space-y-4">
                         <CartaoConteudo className="p-6">
                             <div className="relative mb-6">
@@ -252,77 +326,38 @@ export default function PaginaAgente() {
                                 ))}
                             </div>
                         </CartaoConteudo>
+                    </div>
 
+                    {/* COLUNA LATERAL (DIREITA) - FLUXO REAL-TIME */}
+                    <div className="space-y-6">
                         <CartaoConteudo className="p-6">
                              <div className="flex items-center justify-between mb-6 px-2">
                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fluxo Real-Time</h4>
-                                <button onClick={limparHistorico} className="text-[9px] font-black text-rose-500 uppercase flex items-center gap-1.5"><Trash2 size={12} /> Limpar Tudo</button>
+                                <button onClick={limparHistorico} className="text-[9px] font-black text-rose-500 uppercase flex items-center gap-1.5"><Trash2 size={12} /> Limpar</button>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 {(statusLocal?.stats?.ultimosEventos || []).map((ev, i) => (
-                                    <div key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${ev.tipo === 'NEGADO' || ev.tipo === 'TURNO_ERRADO' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                                                {ev.tipo === 'ENTRADA' ? <ArrowRightCircle size={18} /> : <XCircle size={18} />}
-                                            </div>
-                                            <div>
-                                                <p className="text-[12px] font-black text-slate-800 uppercase leading-none">{ev.nome}</p>
-                                                <p className="text-[10px] font-bold text-slate-500 uppercase mt-1">{ev.tipo} • {ev.detalhe || 'OK'}</p>
-                                            </div>
+                                    <div key={i} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-eletrico bg-white border border-slate-100 px-2 py-0.5 rounded-md uppercase tracking-tighter">
+                                                {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                            <div className={`w-2 h-2 rounded-full ${ev.tipo === 'NEGADO' || ev.tipo === 'TURNO_ERRADO' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
                                         </div>
-                                        <span className="text-[10px] font-black text-eletrico bg-white border border-slate-200 px-2 py-1 rounded-lg">
-                                            {new Date(ev.timestamp).toLocaleTimeString()}
-                                        </span>
+                                        <div>
+                                            <p className="text-[11px] font-black text-slate-800 uppercase truncate leading-none mb-1">{ev.nome}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase truncate">{ev.tipo} • {ev.detalhe || 'OK'}</p>
+                                        </div>
                                     </div>
                                 ))}
-                            </div>
-                        </CartaoConteudo>
-                    </div>
-
-                    {/* OPERACIONAL (SAÚDE DOS LEITORES) */}
-                    <div className="space-y-6">
-                        <div className="space-y-4">
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 group flex items-center gap-2">
-                                <Zap size={12} className="text-amber-500" /> Equipamentos em Radar
-                            </h4>
-                            <div className="space-y-3">
-                                {(statusNuvem?.hardware || []).map((leitor: any) => (
-                                    <CartaoConteudo key={leitor.id} className="relative p-5 overflow-hidden group hover:border-eletrico/30 transition-all">
-                                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${leitor.online ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${leitor.online ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                                    {leitor.online ? <Wifi size={20} /> : <WifiOff size={20} />}
-                                                </div>
-                                                <div>
-                                                    <h5 className="text-[12px] font-black text-slate-800 uppercase leading-none">{leitor.nome}</h5>
-                                                    <p className="text-[10px] font-bold text-slate-400 mt-1">{leitor.ip}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2">
-                                            <Botao 
-                                                variante="secundario" 
-                                                className="w-full !py-2 !text-[10px]" 
-                                                icone={Lock} 
-                                                onClick={() => enviarComandoRemoto('ABRIR_CATRACA', { leitorId: leitor.id })}
-                                                disabled={!leitor.online}
-                                            >
-                                                Abrir Catraca
-                                            </Botao>
-                                        </div>
-                                    </CartaoConteudo>
-                                ))}
-
-                                {(!statusNuvem?.hardware || statusNuvem.hardware.length === 0) && (
-                                    <div className="p-10 text-center bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
-                                        <Search size={32} className="mx-auto text-slate-300 mb-2" />
-                                        <p className="text-[10px] font-black text-slate-400 uppercase">Nenhum hardware detectado</p>
+                                {(!statusLocal?.stats?.ultimosEventos || statusLocal.stats.ultimosEventos.length === 0) && (
+                                    <div className="py-10 text-center">
+                                        <Clock className="mx-auto text-slate-200 mb-2" size={24} />
+                                        <p className="text-[9px] font-black text-slate-300 uppercase">Aguardando acessos...</p>
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </CartaoConteudo>
                     </div>
                 </div>
             </div>
