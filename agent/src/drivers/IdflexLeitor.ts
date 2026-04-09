@@ -64,11 +64,18 @@ export class IdflexLeitor implements ILeitor {
       // Check online status with a light request
       const info = await this.requisitarComToken('system_information.fcgi', {}, 5000);
       
+      // Busca contagem real de usuários no hardware
+      let totalUsuarios = 0;
+      try {
+        const usersResp = await this.requisitarComToken('load_objects.fcgi', { object: 'users' }, 5000);
+        totalUsuarios = usersResp?.users?.length || 0;
+      } catch { /* Se falhar, fica 0 mesmo */ }
+
       return {
         online: true,
         modelo: info.model || 'iDFlex',
         serial: info.serial_number,
-        totalUsuarios: 0, // Will be updated by poller later
+        totalUsuarios,
         totalRegistros: 0
       };
     } catch (e: any) {
@@ -76,6 +83,7 @@ export class IdflexLeitor implements ILeitor {
       return { online: false };
     }
   }
+
 
   /**
    * Sincroniza o relógio do iDFlex com o do servidor do Agente.

@@ -1370,13 +1370,7 @@
         let uptime = 0;
         const hwLatency = {}; // State para latência dos leitores
 
-        function formatLastSeen(ts) {
-            if (!ts) return '';
-            const sec = Math.floor((Date.now() - ts) / 1000);
-            if (sec < 5) return 'agora';
-            if (sec < 60) return `${sec}s atrás`;
-            return `${Math.floor(sec / 60)}m atrás`;
-        }
+
 
         // Métricas do dia
         const metrics = { ok: 0, err: 0, horas: new Array(24).fill(0) };
@@ -1655,29 +1649,50 @@
         window.scaeApi.onHardwareStatus(status => {
             document.getElementById('sync-spinner').classList.add('hidden');
             configAtiva = status.leitores || [];
+
+            // Nome da Escola
             if (status.nome_escola) {
                 document.getElementById('school-badge').textContent = status.nome_escola.toUpperCase();
                 document.getElementById('c-escola').textContent = status.nome_escola.toUpperCase();
             }
+
+            // Alunos no Cache Offline
             if (status.total_alunos !== undefined) {
-                document.getElementById('c-alunos').textContent = status.total_alunos;
+                document.getElementById('c-pendentes').textContent = status.total_alunos;
             }
+
+            // Indicador de Voz (TTS) + Frases na Sidebar
             if (status.tts_ativado !== undefined) {
                 const badge = document.getElementById('c-tts-badge');
+                const msgsDiv = document.getElementById('c-tts-msgs');
                 if (badge) {
-                     badge.textContent = status.tts_ativado ? 'ON' : 'OFF';
-                     badge.className = status.tts_ativado ? 'tts-badge on' : 'tts-badge off';
+                    badge.textContent = status.tts_ativado ? 'ON' : 'OFF';
+                    badge.className = status.tts_ativado ? 'tts-badge on' : 'tts-badge off';
+                }
+                if (msgsDiv) {
+                    if (status.tts_ativado) {
+                        msgsDiv.classList.remove('hidden');
+                        document.getElementById('c-msg-ok').textContent = status.tts_sucesso || '(silêncio)';
+                        document.getElementById('c-msg-err').textContent = status.tts_erro || '(silêncio)';
+                    } else {
+                        msgsDiv.classList.add('hidden');
+                    }
                 }
             }
+
+            // Métricas 24h
             if (status.stats) {
                 metrics.ok = (status.stats.entradas || 0) + (status.stats.saidas || 0);
                 metrics.err = (status.stats.negados || 0);
                 if (status.stats.horas) metrics.horas = [...status.stats.horas];
                 updateMetricsUI();
             }
+
+            // IP do Agente (para tela de Configurações)
             if (status.ip_agente_config !== undefined) {
                 document.getElementById('ipt-agente-ip').value = status.ip_agente_config;
             }
+
             renderHardware();
         });
 
@@ -1686,16 +1701,30 @@
             if (data.nomeEscola) {
                 document.getElementById('school-badge').textContent = data.nomeEscola.toUpperCase();
                 document.getElementById('c-escola').textContent = data.nomeEscola.toUpperCase();
-                pushLog(`☁ Configuração atualizada via Nuvem.`, 'info');
             }
+
+            // Atualiza indicador TTS + frases na sidebar
             if (data.ttsAtivo !== undefined) {
                 const badge = document.getElementById('c-tts-badge');
+                const msgsDiv = document.getElementById('c-tts-msgs');
                 if (badge) {
                     badge.textContent = data.ttsAtivo ? 'ON' : 'OFF';
                     badge.className = data.ttsAtivo ? 'tts-badge on' : 'tts-badge off';
                 }
+                if (msgsDiv) {
+                    if (data.ttsAtivo) {
+                        msgsDiv.classList.remove('hidden');
+                        if (data.ttsSucesso !== undefined) document.getElementById('c-msg-ok').textContent = data.ttsSucesso || '(silêncio)';
+                        if (data.ttsErro !== undefined) document.getElementById('c-msg-err').textContent = data.ttsErro || '(silêncio)';
+                    } else {
+                        msgsDiv.classList.add('hidden');
+                    }
+                }
             }
+
+            pushLog(`☁ Configuração atualizada via Nuvem.`, 'info');
         });
+
 
         // ACESSO
         window.scaeApi.onNewAccess(data => {
@@ -1807,7 +1836,6 @@
                 <div class="hw-meta">
                     <span>${l.ip || '0.0.0.0'}:${l.porta || 80}</span>
                     <span>${l.totalUsuarios || 0} ${l.totalUsuarios === 1 ? 'usuário' : 'usuários'}</span>
-                    ${lastSeen ? `<span>visto ${lastSeen}</span>` : ''}
                 </div>
                 <div class="hw-actions">
                     <button class="hw-btn users" onclick="verUsuarios('${l.id}','${escapeHtml(l.nome)}')">PESSOAS</button>

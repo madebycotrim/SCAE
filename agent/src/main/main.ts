@@ -209,8 +209,6 @@ function createWindow() {
 
                     stats.registrarAcesso(nomeParaExibir, String(matriculaParaExibir), statusAcesso, turmaAcesso);
 
-
-
                     if (mainWindow) {
                         mainWindow.webContents.send('new-access', { 
                             nome: (idUsuario === 0) ? nomeParaExibir : `${nomeParaExibir} (${matriculaParaExibir})`, 
