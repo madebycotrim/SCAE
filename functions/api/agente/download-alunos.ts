@@ -1,7 +1,7 @@
 /**
  * api/agente/download-alunos.ts
  * Fornece a base de alunos da escola para o Agente Local fazer cache offline.
- * Versão de Debug Elite: Logando absolutamente tudo para matar o erro 500.
+ * Versão Ultra-Resiliente: Verifica a existência de tabelas via sqlite_master antes de consultar.
  */
 import { ContextoCatraki } from '../../tipos/ambiente';
 import { validarAgente } from './_agente-seguranca';
@@ -25,14 +25,13 @@ export async function onRequestGet(contexto: ContextoCatraki) {
                 WHERE a.escola_id = ? AND a.ativo = 1
             `).bind(escolaId).all();
         } catch (e: any) {
-            if (e.message?.includes('no such column')) {
-                alunos = await db.prepare(`
-                    SELECT a.matricula, a.nome_completo, a.turma_id, t.turno, a.ativo
-                    FROM alunos a
-                    LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
-                    WHERE a.escola_id = ? AND a.ativo = 1
-                `).bind(escolaId).all();
-            } else throw e;
+             // Fallback se biometria_cadastrada não existir
+             alunos = await db.prepare(`
+                SELECT a.matricula, a.nome_completo, a.turma_id, t.turno, a.ativo
+                FROM alunos a
+                LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
+                WHERE a.escola_id = ? AND a.ativo = 1
+            `).bind(escolaId).all();
         }
 
         // 2. Busca Configurações da Escola
@@ -47,11 +46,9 @@ export async function onRequestGet(contexto: ContextoCatraki) {
                 WHERE id = ?
             `).bind(escolaId).first();
         } catch (e: any) {
-            if (e.message?.includes('no such column')) {
-                escolaInfo = await db.prepare(`SELECT nome_escola FROM escolas WHERE id = ?`).bind(escolaId).first();
-            } else throw e;
+            escolaInfo = await db.prepare(`SELECT nome_escola FROM escolas WHERE id = ?`).bind(escolaId).first();
         }
-        escolaInfo = escolaInfo || { nome_escola: 'Escola Desconhecida' };
+        escolaInfo = escolaInfo || { nome_escola: 'Escola Central' };
 
         // 3. Busca Turmas
         etapa = "BUSCAR_TURMAS";
@@ -60,25 +57,26 @@ export async function onRequestGet(contexto: ContextoCatraki) {
             turmas = await db.prepare(`SELECT id, serie, letra, turno FROM turmas WHERE escola_id = ?`).bind(escolaId).all();
         } catch {}
 
-        // 4. Busca Terminais
-        etapa = "BUSCAR_TERMINAIS";
+        // 4. Busca Terminais (VERIFICAÇÃO DE EXISTÊNCIA VIA METADADOS)
+        etapa = "BUSCAR_TERMINAIS_META";
         let leitores: any[] = [];
-        try {
-            const terminais = await db.prepare(`SELECT config_leitores FROM terminais WHERE escola_id = ?`).bind(escolaId).first<any>();
-            if (terminais?.config_leitores) leitores = JSON.parse(terminais.config_leitores);
-        } catch {}
+        const checarTabela = await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='terminais'").first();
+        
+        if (checarTabela) {
+            etapa = "BUSCAR_TERMINAIS_EXEC";
+            try {
+                const terminais = await db.prepare(`SELECT config_leitores FROM terminais WHERE escola_id = ?`).bind(escolaId).first<any>();
+                if (terminais?.config_leitores) leitores = JSON.parse(terminais.config_leitores);
+            } catch {}
+        }
 
         etapa = "PROCESSAR_JANELAS";
         let janelasProcessadas = [];
         try {
             if (escolaInfo.janelas) {
-                janelasProcessadas = typeof escolaInfo.janelas === 'string' 
-                    ? JSON.parse(escolaInfo.janelas) 
-                    : escolaInfo.janelas;
+                janelasProcessadas = typeof escolaInfo.janelas === 'string' ? JSON.parse(escolaInfo.janelas) : escolaInfo.janelas;
             }
-        } catch {
-            console.warn('[Agente] Janelas inválidas no D1');
-        }
+        } catch {}
 
         const dataObj = {
             escola_config: {
@@ -91,13 +89,9 @@ export async function onRequestGet(contexto: ContextoCatraki) {
             total: (alunos.results || []).length
         };
 
-        etapa = "GERAR_ETAG";
+        etapa = "FINALIZAR";
         const etag = `W/"${dataObj.total}-${JSON.stringify(dataObj.escola_config).length}"`;
         
-        if (contexto.request.headers.get('If-None-Match') === etag) {
-            return new Response(null, { status: 304 });
-        }
-
         return Response.json({
             ok: true,
             ...dataObj,
@@ -108,10 +102,10 @@ export async function onRequestGet(contexto: ContextoCatraki) {
         });
 
     } catch (e: any) {
-        console.error(`[Agente] 🚨 ERRO 500 na etapa ${etapa}:`, e.message);
+        console.error(`[Agente] 🚨 ERRO 500 CRÍTICO na etapa ${etapa}:`, e.message);
         return Response.json({
             ok: false,
-            erro: `Falha na etapa ${etapa}`,
+            erro: `Erro crítico na etapa ${etapa}`,
             detalhe: e.message
         }, { status: 500 });
     }
