@@ -15,6 +15,7 @@ interface BotaoProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     loading?: boolean;
     carregando?: boolean; // Alias para compatibilidade
     fullWidth?: boolean;
+    aoClicar?: (evento: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const Botao: React.FC<BotaoProps> = ({
@@ -25,11 +26,14 @@ export const Botao: React.FC<BotaoProps> = ({
     loading,
     carregando,
     fullWidth,
+    aoClicar,
     className = '',
     disabled,
+    onClick,
     ...props
 }) => {
     const estaCarregando = loading || carregando;
+    const cliqueFinal = aoClicar || onClick;
 
     const baseStyles = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-tight transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer";
 
@@ -53,6 +57,7 @@ export const Botao: React.FC<BotaoProps> = ({
             className={`${baseStyles} ${variantes[variante]} ${tamanhos[tamanho]} ${widthStyle} ${className}`}
             disabled={disabled || estaCarregando}
             aria-busy={estaCarregando}
+            onClick={cliqueFinal}
             {...props}
         >
             {estaCarregando ? (

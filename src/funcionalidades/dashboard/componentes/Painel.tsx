@@ -112,7 +112,7 @@ const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendenci
     );
 };
 
-const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
+const LiveAccessFeed = ({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNovos?: () => void }) => {
     const [registros, definirRegistros] = useState<any[]>([]);
     const [ultimaAtualizacao, definirUltimaAtualizacao] = useState<string | null>(null);
     const [conectado, definirConectado] = useState(true);
@@ -139,6 +139,9 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
                         });
 
                         if (realmenteNovos.length === 0) return prev;
+
+                        // ⚡ Sincronização: Se chegou gente nova, avisa o painel pai para atualizar os números
+                        if (aoReceberNovos) aoReceberNovos();
 
                         // Ao trocar de dia, limpa os antigos
                         const listaCombinada = [...realmenteNovos, ...prev]
@@ -245,10 +248,10 @@ const LiveAccessFeed = ({ alunos }: { alunos: any[] }) => {
 
 
 export default function Painel() {
-    const { dados: estatisticasRaw, carregando } = usarConsulta(
+    const { dados: estatisticasRaw, carregando, recarregar: atualizarKPIs } = usarConsulta(
         ['estatisticas-dashboard-online'],
         () => dashboardServico.obterEstatisticas(),
-        { refetchInterval: 60000, staleTime: 55000 }
+        { refetchInterval: 30000, staleTime: 25000 }
     );
 
     const estatisticas = useMemo(() => {
@@ -442,7 +445,10 @@ export default function Painel() {
 
                     {/* Feed em Tempo Real */}
                     <div className="lg:col-span-1 h-full min-h-[480px]">
-                        <LiveAccessFeed alunos={estatisticas.alunos} />
+                        <LiveAccessFeed 
+                            alunos={estatisticas.alunos} 
+                            aoReceberNovos={() => atualizarKPIs()} 
+                        />
                     </div>
 
                 </div>

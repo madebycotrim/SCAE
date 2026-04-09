@@ -535,5 +535,31 @@ export class IdflexLeitor implements ILeitor {
         return new Set();
     }
   }
+
+  /**
+   * Verifica se um usuário com a matrícula fornecida existe e possui biometria no hardware.
+   */
+  async verificarUsuarioCadastrado(matricula: string): Promise<boolean> {
+    try {
+      // 1. Acha o ID do usuário pela matrícula
+      const resp = await this.requisitarComToken('load_objects.fcgi', {
+        object: 'users',
+        where: { users: { registration: matricula } }
+      });
+
+      if (!resp.users || resp.users.length === 0) return false;
+      const userId = resp.users[0].id;
+
+      // 2. Verifica se tem digital (fingerprints) vinculada
+      const respBio = await this.requisitarComToken('load_objects.fcgi', {
+        object: 'fingerprints',
+        where: { fingerprints: { user_id: userId } }
+      });
+
+      return respBio.fingerprints && respBio.fingerprints.length > 0;
+    } catch {
+      return false;
+    }
+  }
 }
 

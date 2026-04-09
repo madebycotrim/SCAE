@@ -118,7 +118,7 @@ function createWindow() {
   mainWindow.removeMenu();
 
   // Servidor para receber eventos do iDFlex via HTTP PUSH
-  const server = http.createServer((req, res) => {
+  const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -144,6 +144,50 @@ function createWindow() {
         forcarSincronizacaoImediata().catch(() => {});
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true }));
+        return;
+    }
+
+    if (req.url?.startsWith('/biometria/status') && req.method === 'GET') {
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const matricula = url.searchParams.get('matricula');
+        
+        let cadastrado = false;
+        const leitores = obterLeitoresAtivos();
+        
+        for (const leitor of leitores) {
+            if ((leitor as any).verificarUsuarioCadastrado) {
+                if (await (leitor as any).verificarUsuarioCadastrado(matricula)) {
+                    cadastrado = true;
+                    break;
+                }
+            }
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, cadastrado }));
+        return;
+    }
+
+    if (req.url === '/enroll' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const { aluno_id } = JSON.parse(body);
+                const leitor = obterLeitoresAtivos()[0]; // Usa o primeiro leitor para cadastro
+                
+                if (!leitor || !leitor.iniciarCaptura) {
+                    res.writeHead(400); res.end(JSON.stringify({ ok: false, erro: 'Hardware não suporta captura.' }));
+                    return;
+                }
+
+                const resultado = await leitor.iniciarCaptura(aluno_id);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(resultado));
+            } catch (e) {
+                res.writeHead(500); res.end(JSON.stringify({ ok: false, erro: 'Erro interno no Agente.' }));
+            }
+        });
         return;
     }
 
