@@ -112,7 +112,7 @@ export class WorkerApi {
         }
 
         // Sanitização total para evitar 500 na Nuvem (D1)
-        // Limpa o ID de espaços e caracteres estranhos
+        // O servidor espera exatamente: id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, timestamp_acesso, leitor_id, id_evento_hardware
         const idLimpo = (e.id || `TEMP-${Date.now()}`).replace(/\s+/g, '-').replace(/[^\w-]/g, '');
 
         return {
@@ -120,8 +120,8 @@ export class WorkerApi {
             escola_id: String(config.escola_id || '').toLowerCase().trim(),
             aluno_matricula: String(e.matricula || '0'),
             tipo_movimentacao: String(e.tipo || 'ENTRADA').toUpperCase(),
-            metodo_validacao: 'BIOMETRIA',
-            timestamp: dataIso || new Date().toISOString(),
+            metodo_leitura: 'BIOMETRIA',
+            timestamp_acesso: dataIso || new Date().toISOString(),
             leitor_id: String(e.leitor_id || 'manual').replace(/\s+/g, '-'),
             id_evento_hardware: hardwareIdNum
         };
