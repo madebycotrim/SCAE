@@ -42,6 +42,7 @@ export function verificarEInicializarLeitores() {
     const list = (config.leitores as any[]).map(c => {
         const l = new IdflexLeitor(c);
         (l as any).online = 'verificando'; // Estado inicial neutro
+        console.log(`[Poller] Radar ON: Alvejando ${c.nome} em ${c.ip}`);
         return l;
     });
     leitoresAtivos = list;
@@ -75,16 +76,17 @@ export function recarregarLeitores(novaLista: ILeitor[] = []) {
         const novosInstanciados: any[] = [];
         for (const c of (config.leitores || []) as any[]) {
             try {
-                novosInstanciados.push(new IdflexLeitor(c));
-                console.log(`   ✓ Leitor Inicializado: ${c.nome} [${c.ip}]`);
+                const leitor = new IdflexLeitor(c);
+                novosInstanciados.push(leitor);
+                console.log(`   [RADAR] 📡 Equipamento Alvo: ${c.nome} | IP: ${c.ip} | ID: ${c.id}`);
             } catch (e: any) {
-                console.error(`   ✗ Falha ao iniciar drive para ${c.ip}:`, e.message);
+                console.error(`   [RADAR] ❌ Falha catastrófica ao iniciar drive para ${c.ip}:`, e.message);
             }
         }
         // ATENÇÃO: Nunca usar '=' na variável exportada para não quebrar a referência no main process
         leitoresAtivos.splice(0, leitoresAtivos.length, ...novosInstanciados);
     }
-    console.log(`[Poller] Lista de leitores ativa atualizada para ${leitoresAtivos.length} dispositivos.`);
+    console.log(`[Poller] Radar atualizado: ${leitoresAtivos.length} dispositivos em monitoramento.`);
 }
 
 /** Tenta forçar a reconexão imediata de um leitor específico (Manual via UI) */
