@@ -51,7 +51,7 @@ export default function RegistroAuditoria() {
     const [logSelecionado, definirLogSelecionado] = useState(null);
     const [mostrarRastroCompleto, definirMostrarRastroCompleto] = useState(false);
     const [mapaUsuarios, definirMapaUsuarios] = useState<Record<string, string>>({});
-    const [confirmacao, definirConfirmacao] = useState<{ aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao' } | null>(null);
+    const [confirmacao, definirConfirmacao] = useState<{ aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigo' | 'padrao' } | null>(null);
 
     const LOGS_PER_PAGE = 15;
     const EH_ADMIN_SUPREMO = ehCentral; // << Mudança aqui: de ehAdmin para ehCentral
@@ -85,7 +85,7 @@ export default function RegistroAuditoria() {
             aberto: true,
             titulo: 'Remover Log de Auditoria',
             mensagem: 'A exclusão de logs de auditoria compromete a rastreabilidade legal (Marco Civil). Deseja continuar?',
-            variante: 'perigoso',
+            variante: 'perigo',
             acao: async () => {
                 try {
                     const banco = await bancoLocal.iniciarBanco();

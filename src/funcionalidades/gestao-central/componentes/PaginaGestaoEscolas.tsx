@@ -50,7 +50,7 @@ export function PaginaGestaoEscolas() {
         contato_suporte: ''
     });
 
-    const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao'} | null>(null);
+    const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigo' | 'padrao'} | null>(null);
 
     const formPadrao = {
         nome_escola: '', id: '', dominio_email: '', 
@@ -110,7 +110,7 @@ export function PaginaGestaoEscolas() {
             aberto: true,
             titulo: `${novoStatus === 'ATIVA' ? 'Reativar' : 'Suspender'} Unidade`,
             mensagem: `Deseja ${novoStatus === 'ATIVA' ? 'reativar' : 'suspender'} a unidade ${escola.nome}?`,
-            variante: novoStatus === 'SUSPENSA' ? 'perigoso' : 'padrao',
+            variante: novoStatus === 'SUSPENSA' ? 'perigo' : 'padrao',
             acao: async () => {
                 try {
                     await api.atualizar(`/central/escolas/${escola.id}`, { status: novoStatus });
@@ -128,7 +128,7 @@ export function PaginaGestaoEscolas() {
             aberto: true,
             titulo: 'Exclusão de Unidade',
             mensagem: `Deseja apagar permanentemente a escola "${nome}" e todos os seus dados? Esta ação é irreversível.`,
-            variante: 'perigoso',
+            variante: 'perigo',
             acao: async () => {
                 try {
                     await api.remover(`/central/escolas/${id}`);

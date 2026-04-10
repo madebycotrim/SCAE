@@ -29,6 +29,7 @@ import {
     Users,
     Trash2
 } from 'lucide-react';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 import { Line } from 'react-chartjs-2';
 import { useMemo } from 'react';
 import {
@@ -278,6 +279,18 @@ export default function Painel() {
 
     const { ehAdmin, ehCentral } = usarPermissoes();
     const [modoFoco, definirModoFoco] = useState(false);
+    const [estadoConfirmacao, setEstadoConfirmacao] = useState<{
+        aberto: boolean;
+        titulo: string;
+        mensagem: string;
+        aoConfirmar: () => void;
+        variante?: 'perigo' | 'padrao';
+    }>({
+        aberto: false,
+        titulo: '',
+        mensagem: '',
+        aoConfirmar: () => {},
+    });
 
     // Atalho de Teclado (F para Foco)
     useEffect(() => {
@@ -356,14 +369,21 @@ export default function Painel() {
                             variante="secundario" 
                             icone={Trash2} 
                             onClick={async () => {
-                                if (window.confirm('🚨 CUIDADO: Isso apagará TODO o histórico de acessos. Deseja continuar?')) {
-                                    try {
-                                        await dashboardServico.limparHistorico();
-                                        window.location.reload();
-                                    } catch (e) {
-                                        toast.error('Erro ao limpar histórico.');
+                                setEstadoConfirmacao({
+                                    aberto: true,
+                                    titulo: 'Limpar Todo Histórico?',
+                                    mensagem: '🚨 CUIDADO: Isso apagará permanentemente TODO o histórico de acessos da escola na nuvem. Esta operação é irreversível.',
+                                    variante: 'perigo',
+                                    aoConfirmar: async () => {
+                                        setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                                        try {
+                                            await dashboardServico.limparHistorico();
+                                            window.location.reload();
+                                        } catch (e) {
+                                            toast.error('Erro ao limpar histórico.');
+                                        }
                                     }
-                                }
+                                });
                             }}
                         >
                             Limpar Logs
@@ -539,6 +559,16 @@ export default function Painel() {
                 </div>
 
             </div>
+
+            {estadoConfirmacao.aberto && (
+                <ModalConfirmacao
+                    titulo={estadoConfirmacao.titulo}
+                    mensagem={estadoConfirmacao.mensagem}
+                    aoConfirmar={estadoConfirmacao.aoConfirmar}
+                    aoCancelar={() => setEstadoConfirmacao(prev => ({ ...prev, aberto: false }))}
+                    variante={estadoConfirmacao.variante}
+                />
+            )}
         </LayoutAdministrativo>
     );
 }

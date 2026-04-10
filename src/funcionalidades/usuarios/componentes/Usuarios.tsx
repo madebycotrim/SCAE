@@ -281,7 +281,7 @@ export default function Usuarios() {
                     textoConfirmar="Sim, Excluir"
                     aoConfirmar={confirmarExclusao}
                     aoCancelar={() => definirUsuarioParaExcluir(null)}
-                    variante="perigoso"
+                    variante="perigo"
                 />
             )}
         </LayoutAdministrativo>

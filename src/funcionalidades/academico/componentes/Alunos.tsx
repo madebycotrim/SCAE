@@ -290,7 +290,7 @@ export default function Alunos() {
                     textoConfirmar="Sim, Remover"
                     aoConfirmar={confirmarExclusao}
                     aoCancelar={() => definirAlunoParaExcluir(null)}
-                    variante="perigoso"
+                    variante="perigo"
                 />
             )}
 

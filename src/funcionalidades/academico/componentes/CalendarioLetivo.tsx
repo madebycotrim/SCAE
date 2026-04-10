@@ -20,7 +20,7 @@ export default function CalendarioLetivo() {
     const [novaData, definirNovaData] = useState('');
     const [novaDescricao, definirNovaDescricao] = useState('');
     const [novoTipo, definirNovoTipo] = useState<DiaCalendario['tipo']>('FERIADO');
-    const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao'} | null>(null);
+    const [confirmacao, definirConfirmacao] = useState<{aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigo' | 'padrao'} | null>(null);
 
     const { data: dias = [], isLoading } = useQuery({
         queryKey: ['calendario'],
@@ -216,7 +216,7 @@ export default function CalendarioLetivo() {
                                                     aberto: true,
                                                     titulo: 'Remover Dia',
                                                     mensagem: 'Deseja remover este dia do calendário escolar?',
-                                                    variante: 'perigoso',
+                                                    variante: 'perigo',
                                                     acao: () => mutationRemover.mutate(dia.data)
                                                 });
                                             }}

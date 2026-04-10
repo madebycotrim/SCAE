@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Botao } from '@/compartilhado/componentes/UI';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 import toast from 'react-hot-toast';
 
 interface ModalComunicacaoVisualProps {
@@ -26,16 +27,20 @@ export const ModalComunicacaoVisual: React.FC<ModalComunicacaoVisualProps> = ({
     const [abaAtiva, setAbaAtiva] = React.useState<'TEXTO' | 'IMAGEM'>('TEXTO');
     const [textoPrevia, setTextoPrevia] = React.useState('');
     const [imagemPrevia, setImagemPrevia] = React.useState<string | null>(null);
+    const [confirmacaoAberto, setConfirmacaoAberto] = React.useState(false);
 
     const resetarTudo = () => {
-        if(confirm('Isso removerá qualquer personalização (texto ou imagem) e voltará ao padrão do hardware. Confirmar?')) {
-            enviarComandoRemoto('SET_HARDWARE_BANNER', { base64: "" }); 
-            setTextoPrevia('');
-            setImagemPrevia(null);
-            const el = document.getElementById('input-modal-banner') as HTMLInputElement;
-            if(el) el.value = '';
-            toast.success('Hardware restaurado para o padrão.');
-        }
+        setConfirmacaoAberto(true);
+    };
+
+    const aoConfirmarReset = () => {
+        enviarComandoRemoto('SET_HARDWARE_BANNER', { base64: "" }); 
+        setTextoPrevia('');
+        setImagemPrevia(null);
+        setConfirmacaoAberto(false);
+        const el = document.getElementById('input-modal-banner') as HTMLInputElement;
+        if(el) el.value = '';
+        toast.success('Hardware restaurado para o padrão.');
     };
 
     return (
@@ -202,6 +207,16 @@ export const ModalComunicacaoVisual: React.FC<ModalComunicacaoVisualProps> = ({
                 </div>
 
             </div>
+
+            {confirmacaoAberto && (
+                <ModalConfirmacao
+                    titulo="Resetar Visual?"
+                    mensagem="Isso removerá qualquer personalização (texto ou imagem) e voltará ao padrão original do hardware. Deseja continuar?"
+                    variante="perigo"
+                    aoConfirmar={aoConfirmarReset}
+                    aoCancelar={() => setConfirmacaoAberto(false)}
+                />
+            )}
         </ModalUniversal>
     );
 };

@@ -404,7 +404,7 @@ export default function Turmas() {
                     textoConfirmar="Sim, Excluir"
                     aoConfirmar={confirmarExclusao}
                     aoCancelar={() => definirTurmaParaExcluir(null)}
-                    variante="perigoso"
+                    variante="perigo"
                 />
             )}
         </LayoutAdministrativo>

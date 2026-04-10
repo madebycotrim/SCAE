@@ -86,7 +86,7 @@ export default function ModalUniversal({
             `}>
                 {/* Header Universal - Sticky */}
                 <div className={`
-                    shrink-0 p-5 flex items-start gap-4 border-b border-slate-100 
+                    shrink-0 p-5 flex items-center gap-4 border-b border-slate-100 
                     ${tema.bg} bg-opacity-60 backdrop-blur-sm relative z-20
                 `}>
                     <div className={`

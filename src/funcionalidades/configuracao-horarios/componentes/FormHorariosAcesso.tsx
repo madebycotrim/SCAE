@@ -32,6 +32,7 @@ import {
     Cloud
 } from 'lucide-react';
 import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 export default function FormHorariosAcesso() {
     const { id: idEscola } = usarEscola();
@@ -42,6 +43,7 @@ export default function FormHorariosAcesso() {
     const { ehAdmin, ehCentral, usuario } = usarPermissoes();
     const [confirmandoQR, setConfirmandoQR] = useState<{ dinamico: boolean } | null>(null);
     const [statusSincronizacao, definirStatusSincronizacao] = useState<'sincronizado' | 'salvando' | 'erro' | 'pendente'>('sincronizado');
+    const [indiceRemovendo, setIndiceRemovendo] = useState<number | null>(null);
 
     const carregando = carregandoHorarios || carregandoConfigs;
 
@@ -342,7 +344,7 @@ export default function FormHorariosAcesso() {
                                                         Fluxo de {isEntrada ? 'Entrada' : 'Saída'}
                                                     </div>
                                                     <button
-                                                        onClick={() => removerJanela(indice)}
+                                                        onClick={() => setIndiceRemovendo(indice)}
                                                         className="w-9 h-9 rounded-2xl flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all"
                                                     >
                                                         <Trash2 size={16} />
@@ -439,6 +441,20 @@ export default function FormHorariosAcesso() {
                     </div>
                 )}
             </div>
+
+            {indiceRemovendo !== null && (
+                <ModalConfirmacao
+                    titulo="Excluir Janela de Horário?"
+                    mensagem={`Deseja realmente remover o ${obterTurnoConfig(janelas[indiceRemovendo].horaInicio, janelas[indiceRemovendo].tipoAcesso).label}? Isso pode afetar o fluxo de ${janelas[indiceRemovendo].tipoAcesso === 'ENTRADA' ? 'entrada' : 'saída'} da portaria.`}
+                    variante="perigo"
+                    aoConfirmar={() => {
+                        removerJanela(indiceRemovendo);
+                        setIndiceRemovendo(null);
+                        toast.success('Horário removido com sucesso!');
+                    }}
+                    aoCancelar={() => setIndiceRemovendo(null)}
+                />
+            )}
         </LayoutAdministrativo>
     );
 }
