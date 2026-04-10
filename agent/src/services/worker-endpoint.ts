@@ -146,9 +146,12 @@ export class WorkerApi {
 
       // Se deu erro, queremos ler o PORQUÊ antes de desistir
       const detalheErro = await resp.text().catch(() => 'Erro sem corpo');
-      console.warn(`[WorkerApi] Nuvem recusou as batidas (Status ${resp.status}): ${detalheErro.substring(0, 160)}`);
-    } catch { 
-      // Silencioso
+      console.warn(`[WorkerApi] ❌ NUVEM RECUSOU SYNC (Status ${resp.status}): ${detalheErro.substring(0, 160)}`);
+      if (resp.status === 403 || resp.status === 401) {
+          console.error(`[WorkerApi] ERRO DE AUTENTICAÇÃO: Verifique o AGENTE_SECRET e o ESCOLA_ID no .env.`);
+      }
+    } catch (e: any) { 
+        console.error(`[WorkerApi] 🌐 ERRO DE CONEXÃO COM A NUVEM: ${e.message}`);
     }
 
     // Fallback: Tentativa via localhost (wrangler)

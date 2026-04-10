@@ -95,9 +95,8 @@ async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Respons
             queryBase += " AND timestamp_acesso > ?";
             params.push(desde);
         } else {
-            // Hoje local
-            queryBase += " AND date(timestamp_acesso, '-3 hours') = ?";
-            params.push(hojeLocal);
+            // Removida a trava de 'hojeLocal' para permitir ver registros recentes 
+            // mesmo na virada de meia-noite ou fusos diferentes.
         }
 
         if (matricula) {

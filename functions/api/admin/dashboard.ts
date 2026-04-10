@@ -24,9 +24,9 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
             contexto.env.DB_SCAE.prepare("SELECT COUNT(matricula) as t FROM alunos WHERE escola_id = ? AND ativo = 1").bind(idEscola),
             contexto.env.DB_SCAE.prepare("SELECT COUNT(id) as t FROM turmas WHERE escola_id = ?").bind(idEscola),
             contexto.env.DB_SCAE.prepare("SELECT COUNT(id) as t FROM alertas_risco WHERE escola_id = ? AND status != 'RESOLVIDO'").bind(idEscola),
-            contexto.env.DB_SCAE.prepare("SELECT aluno_matricula, tipo_movimentacao, timestamp_acesso as timestamp FROM registros_acesso WHERE escola_id = ? AND date(timestamp_acesso, '-3 hours') = ?").bind(idEscola, hojeStr),
+            contexto.env.DB_SCAE.prepare("SELECT aluno_matricula, tipo_movimentacao, timestamp_acesso as timestamp FROM registros_acesso WHERE escola_id = ? AND date(timestamp_acesso, '-3 hours') >= ?").bind(idEscola, hojeStr),
             contexto.env.DB_SCAE.prepare("SELECT date(timestamp_acesso, '-3 hours') as data, COUNT(DISTINCT aluno_matricula) as total FROM registros_acesso WHERE escola_id = ? AND tipo_movimentacao = 'ENTRADA' AND date(timestamp_acesso, '-3 hours') >= ? GROUP BY data ORDER BY data DESC LIMIT 7").bind(idEscola, inicioSemana),
-            contexto.env.DB_SCAE.prepare("SELECT matricula, nome_completo, turma_id FROM alunos WHERE escola_id = ?").bind(idEscola), // Usado apenas no Live Feed do front momentaneamente
+            contexto.env.DB_SCAE.prepare("SELECT matricula, nome_completo, turma_id FROM alunos WHERE escola_id = ?").bind(idEscola),
         ]);
 
         const totalAlunos = (alunosRes.results[0] as {t: number})?.t || 0;

@@ -2,6 +2,7 @@
  * infra/config.ts
  * Central de Configuração do Agente com Persistência Definitiva.
  */
+require('dotenv').config();
 import fs from 'fs';
 import path from 'path';
 import { TipoLeitor, LeitorConfig, LeitorTcpConfig } from '../drivers/ILeitor';
@@ -38,7 +39,7 @@ export interface AgenteConfig {
 
 // Configuração padrão de fábrica
 const configPadrao: AgenteConfig = {
-  escola_id: 'aguardando-identidade',
+  escola_id: process.env.ESCOLA_ID || 'aguardando-identidade',
   nome_escola: 'STANDBY (SINAL RESTRITO)',
   total_alunos: 0,
   tts_ativado: false,
@@ -48,9 +49,9 @@ const configPadrao: AgenteConfig = {
   janelas: [],
   intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,
-  endpoint_worker: 'https://catraki.com.br',
+  endpoint_worker: process.env.CATRAKI_API_URL || 'https://catraki.com.br',
   admin_pin: '123456',
-  agente_secret: 'catraki-secret-token-default',
+  agente_secret: process.env.AGENTE_SECRET || 'catraki-secret-token-default',
   porta_agente: 1912
 };
 
@@ -61,8 +62,19 @@ export let config: AgenteConfig = { ...configPadrao };
  * Lê o arquivo do disco e atualiza a variável global 'config'
  */
 export function carregarConfiguracaoHardware() {
+    console.log('[Config] 🛠️ Carregando motor de configuração...');
+    console.log(`[Config] 🔗 Nuvem Alvo: ${config.endpoint_worker}`);
+    console.log(`[Config] 🔑 Escola ID: ${config.escola_id}`);
+    
     try {
         const configPath = getLocalConfigPath();
+        
+        // Prioridade 1: .env (para desenvolvedores/live)
+        if (process.env.CATRAKI_API_URL) config.endpoint_worker = process.env.CATRAKI_API_URL;
+        if (process.env.ESCOLA_ID) config.escola_id = process.env.ESCOLA_ID;
+        if (process.env.AGENTE_SECRET) config.agente_secret = process.env.AGENTE_SECRET;
+
+        // Prioridade 2: Persistência em disco (configurações via UI do Agente)
         if (fs.existsSync(configPath)) {
             const raw = fs.readFileSync(configPath, 'utf-8');
             const data = JSON.parse(raw);
@@ -85,12 +97,11 @@ export function carregarConfiguracaoHardware() {
                 if (data.tts_ativado !== undefined) config.tts_ativado = data.tts_ativado;
                 if (data.tts_sucesso !== undefined) config.tts_sucesso = data.tts_sucesso;
                 if (data.tts_erro !== undefined) config.tts_erro = data.tts_erro;
+                if (data.endpoint_worker !== undefined) config.endpoint_worker = data.endpoint_worker;
 
-                console.log(`[Config] 📂 Estado carregado: ${config.leitores.length} leitores | IP Agente: ${config.ip_agente || 'Automático'}`);
+                console.log(`[Config] 📂 Estado carregado: ${config.leitores.length} leitores | Escola: ${config.escola_id}`);
             }
         } else {
-            // Tenta carregar do .env se o arquivo JSON for novo/vazio
-            if (process.env.AGENTE_SECRET) config.agente_secret = process.env.AGENTE_SECRET;
             console.log('[Config] local-config.json não existe. Usando padrões e .env.');
         }
     } catch (e: any) {

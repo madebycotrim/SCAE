@@ -1,38 +1,18 @@
-import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
-import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
-import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { dashboardServico } from '../servicos/dashboard.servico';
-import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
-import { Botao, CartaoConteudo, Esqueleto, CardMetrica } from '@/compartilhado/componentes/UI';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
-import { toast } from 'react-hot-toast';
-import {
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { 
+    CheckCircle, 
+    Clock, 
+    LogOut, 
+    AlertTriangle, 
     TrendingUp,
-    TrendingDown,
-    ArrowUpRight,
-    ArrowDownRight,
+    Trash2,
     Activity,
-    LogOut,
-    LogIn,
-    ArrowRight,
-    Radar,
-    AlertTriangle,
-    CheckCircle,
-    Layers,
-    Shield,
-    ShieldCheck,
-    FileText,
-    Calendar,
-    Grid,
-    Clock,
-    Users,
-    Trash2
+    User,
+    Wifi
 } from 'lucide-react';
-import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
+import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
+import { CardMetrica, CartaoConteudo, Botao } from '@/compartilhado/componentes/UI';
 import { Line } from 'react-chartjs-2';
-import { useMemo } from 'react';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -42,10 +22,14 @@ import {
     Title,
     Tooltip,
     Legend,
-    Filler,
-    ArcElement
+    Filler
 } from 'chart.js';
-import { format, subDays, parseISO, isSameDay } from 'date-fns';
+import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
+import { dashboardServico } from '@/funcionalidades/dashboard/servicos/dashboard.servico';
+import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
+import toast from 'react-hot-toast';
+import { AnimatePresence, motion } from 'framer-motion';
 
 ChartJS.register(
     CategoryScale,
@@ -55,176 +39,157 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    Filler,
-    ArcElement
+    Filler
 );
 
-// --- Área de Dashboard ---
+/**
+ * RadarIcon - Pequeno widget animado para indicar atividade real-time
+ */
+const RadarIcon = () => (
+    <div className="relative flex items-center justify-center w-5 h-5">
+        <div className="absolute w-full h-full bg-emerald-400 rounded-full animate-ping opacity-20" />
+        <div className="absolute w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
+    </div>
+);
 
-const LiveAccessFeed = ({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNovos?: () => void }) => {
-    const [registros, definirRegistros] = useState<any[]>([]);
-    const [ultimaAtualizacao, definirUltimaAtualizacao] = useState<string | null>(null);
-    const [conectado, definirConectado] = useState(true);
+/**
+ * LiveAccessFeed - Monitor de acessos em tempo real via polling otimizado
+ */
+export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNovos: () => void }) {
+    const [registros, setRegistros] = useState<any[]>([]);
+    const [carregando, setCarregando] = useState(true);
+    const ultimaDataRef = useRef<string | null>(null);
+    const inicializadoRef = useRef(false);
 
-    // Polling de ALTA FREQUÊNCIA para registros de acesso
     useEffect(() => {
-        let timer: any;
         let montado = true;
+        let timerId: any;
 
-        const buscarNovos = async (isFirst = false) => {
+        const buscarNovos = async () => {
             try {
-                const desde = isFirst ? undefined : ultimaAtualizacao;
-                const novos = await dashboardServico.buscarRegistrosRecentes(desde);
+                // Busca via serviço que já injeta os headers necessários
+                const novos = await dashboardServico.buscarRegistrosRecentes(ultimaDataRef.current || undefined);
 
-                if (!montado) return;
-
-                if (novos && novos.length > 0) {
-                    definirRegistros(prev => {
-                        const idsExistentes = new Set(prev.map(r => r.id));
-                        const realmenteNovos = novos.filter((n: any) => {
-                            const isNovo = !idsExistentes.has(n.id);
-                            const isDeHoje = isSameDay(parseISO(n.timestamp), new Date());
-                            return isNovo && isDeHoje;
-                        });
-
-                        if (realmenteNovos.length === 0) return prev;
-
-                        if (aoReceberNovos) aoReceberNovos();
-
-                        const listaCombinada = [...realmenteNovos, ...prev]
-                            .filter(r => isSameDay(parseISO(r.timestamp), new Date()))
-                            .slice(0, 30);
+                if (montado && novos && novos.length > 0) {
+                    // Atualiza a referência da última data para o próximo poll
+                    // Compatibilidade Híbrida: Nuvem usa 'timestamp', Local usa 'timestamp_acesso'
+                    const ultimaData = novos[0].timestamp || novos[0].timestamp_acesso || novos[0].criado_em;
+                    
+                    if (ultimaDataRef.current !== ultimaData) {
+                        ultimaDataRef.current = ultimaData;
+                        
+                        setRegistros(prev => {
+                            // Evita duplicados comparando IDs
+                            const idsExistentes = new Set(prev.map(r => r.id));
+                            const unicos = novos.filter((n: any) => !idsExistentes.has(n.id));
                             
-                        const maisNovo = listaCombinada[0]?.timestamp;
-                        if (maisNovo) definirUltimaAtualizacao(maisNovo);
-
-                        return listaCombinada;
-                    });
+                            if (unicos.length > 0 && inicializadoRef.current) {
+                                aoReceberNovos(); // Notifica o pai para atualizar KPIs (Presentes Hoje, etc)
+                            }
+                            
+                            return [...unicos, ...prev].slice(0, 15);
+                        });
+                    }
                 }
-                definirConectado(true);
-            } catch (e) {
-                console.error("Erro no poll de tempo real:", e);
-                definirConectado(false);
+            } catch (erro) {
+                console.error('Erro no poll de tempo real:', erro);
             } finally {
-                if (montado) {
-                    timer = setTimeout(() => buscarNovos(), 3000); // Mais agressivo: 3s
-                }
+                setCarregando(false);
+                inicializadoRef.current = true;
+                if (montado) timerId = setTimeout(buscarNovos, 4000); // Poll a cada 4s
             }
         };
 
-        buscarNovos(true);
+        buscarNovos();
         return () => {
             montado = false;
-            clearTimeout(timer);
+            clearTimeout(timerId);
         };
-    }, [ultimaAtualizacao, dashboardServico]);
+    }, [aoReceberNovos]);
 
     return (
-        <CartaoConteudo className="h-full flex flex-col bg-white border border-slate-200 shadow-suave rounded-[2.5rem] overflow-hidden group transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50">
-            <div className="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30 backdrop-blur-sm">
-                <div className="flex flex-col">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Monitoramento</h3>
-                    <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
-                        <Radar size={16} className={`text-slate-600 ${conectado ? 'animate-pulse' : 'text-rose-400'}`} />
-                        Fluxo ao Vivo
-                    </h4>
+        <CartaoConteudo className="h-full flex flex-col bg-white border border-slate-200 shadow-suave rounded-2xl overflow-hidden group">
+            <div className="px-6 py-5 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <RadarIcon />
+                    <div>
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Live Radar</h4>
+                        <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-tight">Monitorando Atividade</p>
+                    </div>
                 </div>
-                <div className={`flex items-center gap-2 px-4 py-1.5 bg-white border rounded-full shadow-sm transition-all duration-500 ${conectado ? 'border-emerald-100 bg-emerald-50/50' : 'border-rose-200 bg-rose-50'}`}>
-                    <span className="relative flex h-2 w-2">
-                        {conectado && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
-                        <span className={`relative inline-flex rounded-full h-2 w-2 ${conectado ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-                    </span>
-                    <span className={`text-[9px] font-black uppercase tracking-[0.15em] leading-none ${conectado ? 'text-emerald-700' : 'text-rose-600'}`}>
-                        {conectado ? 'Radar Ativo' : 'Offline'}
-                    </span>
+                <div className="flex items-center gap-2 px-2.5 py-1 bg-white rounded-full border border-slate-100 shadow-sm">
+                    <Wifi size={10} className="text-emerald-500" />
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Conexão Ativa</span>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-2 min-h-[400px]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                 <AnimatePresence initial={false}>
-                    {registros.length === 0 ? (
-                        <motion.div
-                            key="empty"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex flex-col items-center justify-center py-20 text-center gap-4"
-                        >
-                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-200">
-                                <Activity size={32} strokeWidth={1} />
-                            </div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Varredura iniciada...</p>
-                        </motion.div>
-                    ) : (
-                        registros.map((reg, index) => {
-                            const aluno = alunos.find(a => a.matricula === reg.aluno_matricula);
-                            const isEntrada = reg.tipo_movimentacao === 'ENTRADA';
-                            const isNew = index === 0 && (new Date().getTime() - parseISO(reg.timestamp).getTime() < 10000);
+                    {registros.map((reg) => {
+                        const alunoData = alunos?.find(a => a.matricula === reg.aluno_matricula);
+                        const isSaida = reg.tipo_movimentacao === 'SAIDA';
 
-                            return (
-                                <motion.div
-                                    key={reg.id}
-                                    layout
-                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                    animate={{ 
-                                        opacity: 1, 
-                                        scale: 1, 
-                                        y: 0,
-                                        backgroundColor: isNew ? 'rgba(236, 253, 245, 0.5)' : 'transparent'
-                                    }}
-                                    className={`p-4 rounded-[1.5rem] border transition-all duration-300 flex items-center gap-5 group/item ${isNew ? 'border-emerald-200 shadow-lg shadow-emerald-500/5' : 'border-transparent hover:bg-slate-50 hover:border-slate-100'}`}
-                                >
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 shadow-sm transition-all duration-500 group-hover/item:scale-110 ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-                                        {isEntrada ? <LogIn size={20} strokeWidth={2.5} /> : <LogOut size={20} strokeWidth={2.5} />}
+                        return (
+                            <motion.div
+                                key={reg.id}
+                                initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-emerald-200 transition-colors flex items-center justify-between group/card"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover/card:scale-110 ${isSaida ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                        {isSaida ? <LogOut size={20} /> : <Activity size={20} />}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-black text-slate-800 uppercase tracking-tight truncate leading-tight">
-                                            {aluno?.nome_completo || 'Aluno Identificado'}
+                                    <div className="max-w-[150px] overflow-hidden">
+                                        <p className="text-[12px] font-black text-slate-800 uppercase leading-none mb-1 truncate">
+                                            {alunoData?.nome_completo || reg.aluno_nome || 'Acesso Identificado'}
                                         </p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                            {reg.aluno_matricula} • <span className="text-slate-900">{aluno?.turma_id || '---'}</span>
-                                        </p>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                        <div className="flex flex-col items-end gap-1">
-                                            <span className="text-[10px] font-black text-slate-700 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm">
-                                                {format(parseISO(reg.timestamp), 'HH:mm')}
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                {reg.tipo_movimentacao}
                                             </span>
-                                            {isNew && (
-                                                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-tighter animate-pulse">Agora</span>
-                                            )}
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight truncate">
+                                                {alunoData?.turma_id || '---'}
+                                            </span>
                                         </div>
                                     </div>
-                                </motion.div>
-                            );
-                        })
+                                </div>
+                                
+                                <div className="text-right">
+                                    <p className="text-[11px] font-black text-slate-900 leading-none mb-1">
+                                        {new Date(reg.timestamp || reg.timestamp_acesso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                                        {reg.metodo_leitura || 'Biometria'}
+                                    </p>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+
+                    {registros.length === 0 && !carregando && (
+                        <div className="h-full flex flex-col items-center justify-center py-20 opacity-40">
+                            <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center mb-4">
+                                <User size={32} className="text-slate-300" />
+                            </div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aguardando Movimentação</p>
+                            <p className="text-[8px] font-bold text-slate-300 uppercase mt-1">Sincronizado com Portaria</p>
+                        </div>
                     )}
                 </AnimatePresence>
             </div>
-
-            <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-50 border-dashed">
-                <div className="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                    <span>Catraki Operational Radar</span>
-                    <div className="flex items-center gap-1">
-                        <div className="w-1 h-1 rounded-full bg-slate-300 animate-bounce" />
-                        <div className="w-1 h-1 rounded-full bg-slate-300 animate-bounce [animation-delay:0.2s]" />
-                        <div className="w-1 h-1 rounded-full bg-slate-300 animate-bounce [animation-delay:0.4s]" />
-                    </div>
-                </div>
-            </div>
         </CartaoConteudo>
     );
-};
-
+}
 
 export default function Painel() {
-    const { dados: estatisticasRaw, carregando, recarregar: atualizarKPIs } = usarConsulta(
+    const { dados: estatisticasRaw, recarregar: atualizarKPIs } = usarConsulta(
         ['estatisticas-dashboard-online'],
         () => dashboardServico.obterEstatisticas(),
         { refetchInterval: 30000, staleTime: 25000 }
     );
 
-    const { ehAdmin, ehCentral } = usarPermissoes();
-    const [modoFoco, definirModoFoco] = useState(false);
+    const { ehCentral } = usarPermissoes();
     const [estadoConfirmacao, setEstadoConfirmacao] = useState<{
         aberto: boolean;
         titulo: string;
@@ -237,23 +202,6 @@ export default function Painel() {
         mensagem: '',
         aoConfirmar: () => {},
     });
-
-    // Atalho de Teclado (F para Foco)
-    useEffect(() => {
-        const lidarTeclado = (e: KeyboardEvent) => {
-            if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey && document.activeElement?.tagName !== 'INPUT') {
-                definirModoFoco(prev => !prev);
-                if (!modoFoco) {
-                    toast.success('Radar em Tela Cheia', { icon: '🎯', position: 'bottom-center' });
-                }
-            }
-            if (e.key === 'Escape' && modoFoco) {
-                definirModoFoco(false);
-            }
-        };
-        window.addEventListener('keydown', lidarTeclado);
-        return () => window.removeEventListener('keydown', lidarTeclado);
-    }, [modoFoco]);
 
     const estatisticas = useMemo(() => {
         if (!estatisticasRaw) return {
@@ -302,14 +250,6 @@ export default function Painel() {
             titulo="Dashboard Central"
             acoes={
                 <div className="flex gap-3">
-                    <Botao 
-                        variante="ghost" 
-                        icone={Radar} 
-                        onClick={() => definirModoFoco(true)}
-                        className="hidden md:flex"
-                    >
-                        Modo Radar (F)
-                    </Botao>
                     {ehCentral && (
                         <Botao 
                             variante="secundario" 
@@ -338,42 +278,8 @@ export default function Painel() {
                 </div>
             }
         >
-            {/* Overlay de MODO FOCO */}
-            <AnimatePresence>
-                {modoFoco && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 1.1 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="fixed inset-0 z-[100] bg-slate-900 flex flex-col p-8 md:p-12 lg:p-20"
-                    >
-                        <div className="flex justify-between items-center mb-10">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shadow-lg">
-                                    <Radar size={40} className="animate-pulse" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Radar de Monitoramento</h2>
-                                    <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px] mt-1">Tempo Real • Portaria Central</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => definirModoFoco(false)}
-                                className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-widest border border-white/10 transition-all"
-                            >
-                                Sair do Modo Radar [ESC]
-                            </button>
-                        </div>
-                        
-                        <div className="flex-1 w-full max-w-5xl mx-auto shadow-2xl shadow-indigo-500/10 rounded-[3rem] overflow-hidden">
-                            <LiveAccessFeed alunos={estatisticas.alunos} aoReceberNovos={() => atualizarKPIs()} />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             <div className="space-y-8 pb-12">
-                {/* --- LINHA DE KPIs ESSENCIAIS (Padrão Global 2xl) --- */}
+                {/* --- LINHA DE KPIs --- */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <CardMetrica
                         label="Presentes Hoje"
@@ -416,12 +322,9 @@ export default function Painel() {
                     />
                 </div>
 
-                {/* --- ÁREA CENTRAL: ANÁLISE E TEMPO REAL --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
-                    {/* Gráfico de Frequência */}
                     <div className="lg:col-span-2">
-                        <CartaoConteudo className="p-8 flex flex-col bg-white border border-slate-200 shadow-suave rounded-2xl overflow-hidden group min-h-[480px]">
+                        <CartaoConteudo className="p-8 flex flex-col bg-white border border-slate-200 shadow-suave rounded-2xl overflow-hidden min-h-[480px]">
                             <div className="flex justify-between items-center mb-8">
                                 <div className="flex items-center gap-4 border-l-4 border-slate-900 pl-4">
                                     <div>
@@ -431,7 +334,7 @@ export default function Painel() {
                                 </div>
                                 <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-200 shadow-sm">
                                     <TrendingUp size={16} className="text-eletrico" />
-                                    <span className="text-[11px] font-black text-slate-600 uppercase">Média: {Math.round(estatisticas.historicoPresenca.reduce((a, b) => a + b.total, 0) / 7)} alunos/dia</span>
+                                    <span className="text-[11px] font-black text-slate-600 uppercase">Média Geral</span>
                                 </div>
                             </div>
 
@@ -439,39 +342,10 @@ export default function Painel() {
                                 <Line data={dataLine} options={{
                                     maintainAspectRatio: false,
                                     responsive: true,
-                                    plugins: {
-                                        legend: { display: false },
-                                        tooltip: {
-                                            backgroundColor: '#0f172a',
-                                            titleFont: { family: 'inherit', weight: 800, size: 12 },
-                                            bodyFont: { family: 'inherit', size: 12, weight: 600 },
-                                            padding: 16,
-                                            cornerRadius: 16,
-                                            displayColors: false,
-                                            caretSize: 8,
-                                            bodyColor: '#cbd5e1'
-                                        }
-                                    },
+                                    plugins: { legend: { display: false } },
                                     scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            grid: { color: '#f1f5f9', drawTicks: false },
-                                            border: { display: false },
-                                            ticks: {
-                                                font: { family: 'inherit', size: 10, weight: 700 },
-                                                color: '#94a3b8',
-                                                padding: 10
-                                            }
-                                        },
-                                        x: {
-                                            grid: { display: false },
-                                            border: { display: false },
-                                            ticks: {
-                                                font: { family: 'inherit', size: 10, weight: 700 },
-                                                color: '#94a3b8',
-                                                padding: 10
-                                            }
-                                        }
+                                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                                        x: { grid: { display: false } }
                                     }
                                 }} />
                             </div>
@@ -490,26 +364,23 @@ export default function Painel() {
                                     <p className="text-sm font-black text-slate-700">{estatisticas.permanenciaMedia}</p>
                                 </div>
                                 <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Sistema</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Sistema</p>
                                     <div className="flex items-center gap-1.5 mt-0.5">
                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">Operacional</p>
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">Ok</p>
                                     </div>
                                 </div>
                             </div>
                         </CartaoConteudo>
                     </div>
 
-                    {/* Feed em Tempo Real */}
                     <div className="lg:col-span-1 h-full min-h-[480px]">
                         <LiveAccessFeed 
                             alunos={estatisticas.alunos} 
                             aoReceberNovos={() => atualizarKPIs()} 
                         />
                     </div>
-
                 </div>
-
             </div>
 
             {estadoConfirmacao.aberto && (
@@ -524,4 +395,3 @@ export default function Painel() {
         </LayoutAdministrativo>
     );
 }
-

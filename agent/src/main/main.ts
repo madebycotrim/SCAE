@@ -1,3 +1,4 @@
+require('dotenv').config();
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';

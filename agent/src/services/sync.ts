@@ -181,8 +181,12 @@ export async function sincronizarRegistrosPendentes(): Promise<boolean> {
   
   try {
     // 1. Sincroniza Batidas de Alunos
+    const totalRegistros = await getSql(`SELECT COUNT(*) as total FROM registros_acesso`);
     const pendentes = await allSql(`SELECT * FROM registros_acesso WHERE sincronizado = 0 LIMIT 50`);
+    
     if (pendentes.length > 0) {
+        console.log(`[Sync] 📊 Auditoria: ${totalRegistros?.total || 0} registros totais | ${pendentes.length} pendentes agora.`);
+        console.log(`[Sync] 📤 ENVIANDO ${pendentes.length} BATIDAS PARA A NUVEM...`);
         estaSincronizandoBatidas = true;
         const ok = await WorkerApi.enviarBatida(pendentes);
         if (ok) {
