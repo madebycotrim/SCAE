@@ -159,8 +159,8 @@ export default function Relatorios() {
         >
             <div className="flex flex-1 gap-6 min-h-0 overflow-hidden pb-4">
                 {/* Master: Lista de Relatórios */}
-                <div className="w-80 flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-suave">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1 pt-4">
+                <div className="w-80 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 pt-4">
                         {CARDS_RELATORIO.map((item, idx) => {
                             const Icone = item.icone;
                             const estaSelecionado = relatorioSelecionado?.titulo === item.titulo;
@@ -168,89 +168,87 @@ export default function Relatorios() {
                                 <button
                                     key={idx}
                                     onClick={() => definirRelatorioSelecionado(item)}
-                                    className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all text-left group ${estaSelecionado
-                                        ? 'bg-marinho text-white shadow-lg shadow-marinho/20'
-                                        : 'hover:bg-slate-50 text-slate-500 hover:text-slate-900'
+                                    className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 text-left group ${estaSelecionado
+                                        ? 'bg-slate-50 text-slate-900 shadow-sm ring-1 ring-slate-200'
+                                        : 'hover:bg-slate-50/50 text-slate-400 hover:text-slate-600'
                                         }`}
                                 >
                                     <div className={`p-2 rounded-2xl border shrink-0 transition-colors ${estaSelecionado
-                                        ? 'bg-white/10 border-white/10 text-eletrico'
-                                        : 'bg-white border-slate-100 text-slate-400 group-hover:text-slate-600 shadow-suave'
+                                        ? 'bg-white border-slate-200 text-eletrico shadow-sm'
+                                        : 'bg-transparent border-transparent text-slate-300 group-hover:text-slate-400'
                                         }`}>
-                                        <Icone size={16} strokeWidth={2.5} />
+                                        <Icone size={16} strokeWidth={2} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-[11px] font-black tracking-tight truncate flex items-center gap-1.5 uppercase">
+                                        <p className={`text-[11px] font-bold tracking-tight truncate uppercase leading-none mb-1 ${estaSelecionado ? 'text-slate-800' : 'text-slate-500'}`}>
                                             {item.titulo}
                                         </p>
-                                        <p className={`text-[9px] font-medium truncate ${estaSelecionado ? 'text-slate-400' : 'text-slate-400'}`}>
+                                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
                                             {item.badgeTxt}
                                         </p>
                                     </div>
-                                    {estaSelecionado && <ArrowRight size={14} className="text-white/50" />}
+                                    
+                                    {estaSelecionado && (
+                                        <div className="w-1 h-3 rounded-full bg-eletrico" />
+                                    )}
                                 </button>
                             );
                         })}
                     </div>
 
-                    <div className="p-5 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between mt-auto">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {CARDS_RELATORIO.length} Módulo{CARDS_RELATORIO.length !== 1 ? 's' : ''}
+                    <div className="p-5 border-t border-slate-100 flex items-center justify-between mt-auto">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                            {CARDS_RELATORIO.length} Módulos Disponíveis
                         </span>
                         <div className="flex items-center gap-2">
-                            <span className="relative flex h-1.5 w-1.5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                            </span>
-                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
-                                Sistema Ativo
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                Online
                             </span>
                         </div>
                     </div>
                 </div>
 
                 {/* Detail: Painel de Configuração */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-suave flex flex-col relative">
+                <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col relative">
                     {relatorioSelecionado ? (
                         <>
                             {/* Header do Detalhe */}
-                            <div className="p-8 border-b border-slate-100 bg-slate-50/20">
+                            <div className="p-8 border-b border-slate-100 bg-white">
                                 <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-4 rounded-2xl border border-slate-100 shadow-suave ${relatorioSelecionado.iconeCor}`}>
-                                            <relatorioSelecionado.icone size={32} strokeWidth={1.5} />
+                                    <div className="flex items-center gap-5">
+                                        <div className={`p-4 rounded-2xl border border-slate-100 shadow-sm ${relatorioSelecionado.iconeCor}`}>
+                                            <relatorioSelecionado.icone size={28} strokeWidth={1.5} />
                                         </div>
                                         <div>
-                                            <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                                            <h2 className="text-xl font-bold text-slate-800 tracking-tight uppercase">
                                                 {relatorioSelecionado.titulo}
                                             </h2>
-                                            <span className={`inline-block mt-1 text-[9px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border shadow-suave ${relatorioSelecionado.badgeCor}`}>
+                                            <span className={`inline-block mt-1 text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-2xl border ${relatorioSelecionado.badgeCor}`}>
                                                 {relatorioSelecionado.badgeTxt}
                                             </span>
                                         </div>
                                     </div>
                                     <div className="text-right hidden sm:block">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status do Módulo</p>
-                                        <div className="flex items-center gap-2 justify-end text-emerald-600 font-bold text-[11px]">
-                                            <CheckCircle2 size={12} />
-                                            Pronto para exportação
+                                        <div className="flex items-center gap-2 justify-end text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                                            <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                            Módulo de Exportação
                                         </div>
                                     </div>
                                 </div>
-                                <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-2xl">
+                                <p className="text-xs font-medium text-slate-500 leading-relaxed max-w-2xl">
                                     {relatorioSelecionado.descricao}
                                 </p>
                             </div>
 
                             {/* Área de Filtros e Parâmetros */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-                                <div className="max-w-3xl space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-8 bg-white">
+                                <div className="max-w-2xl space-y-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {/* Ano Letivo */}
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 ml-1">
-                                                <Calendar size={14} className="text-slate-400" />
-                                                Ano Letivo
+                                        <div className="space-y-3">
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                                                Ano de Referência
                                             </div>
                                             <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-100 h-10">
                                                 {[anoAtual - 1, anoAtual, anoAtual + 1].map((ano) => (
@@ -260,9 +258,9 @@ export default function Relatorios() {
                                                             const periodo = calcularPeriodo(ano, filtros.semestre);
                                                             definirFiltros({ ...filtros, anoLetivo: ano, ...periodo });
                                                         }}
-                                                        className={`flex-1 h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filtros.anoLetivo === ano
-                                                            ? 'bg-white text-slate-900 shadow-media border border-slate-200'
-                                                            : 'text-slate-400 hover:text-slate-600'}`}
+                                                        className={`flex-1 h-full rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all ${filtros.anoLetivo === ano
+                                                            ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
+                                                            : 'text-slate-400 hover:text-slate-500'}`}
                                                     >
                                                         {ano}
                                                     </button>
@@ -271,10 +269,9 @@ export default function Relatorios() {
                                         </div>
 
                                         {/* Semestre */}
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 ml-1">
-                                                <Clock size={14} className="text-slate-400" />
-                                                Período
+                                        <div className="space-y-3">
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                                                Período Letivo
                                             </div>
                                             <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-100 h-10">
                                                 {([1, 2] as const).map((sem) => (
@@ -284,11 +281,11 @@ export default function Relatorios() {
                                                             const periodo = calcularPeriodo(filtros.anoLetivo, sem);
                                                             definirFiltros({ ...filtros, semestre: sem, ...periodo });
                                                         }}
-                                                        className={`flex-1 h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filtros.semestre === sem
-                                                            ? 'bg-white text-slate-900 shadow-media border border-slate-200'
-                                                            : 'text-slate-400 hover:text-slate-600'}`}
+                                                        className={`flex-1 h-full rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all ${filtros.semestre === sem
+                                                            ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
+                                                            : 'text-slate-400 hover:text-slate-500'}`}
                                                     >
-                                                        {sem}º semestre
+                                                        {sem}º Sem.
                                                     </button>
                                                 ))}
                                             </div>
@@ -296,22 +293,21 @@ export default function Relatorios() {
                                     </div>
 
                                     {/* Turma */}
-                                    <div className="space-y-4" ref={refDropdownTurma}>
-                                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 ml-1">
-                                            <Layers size={14} className="text-slate-400" />
-                                            Filtro por Turma
+                                    <div className="space-y-3" ref={refDropdownTurma}>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                                            Filtrar por Turma
                                         </div>
-                                        <div className="relative group">
+                                        <div className="relative">
                                             <input
                                                 type="text"
-                                                placeholder="Deixe vazio para visualizar todas as turmas..."
+                                                placeholder="Todas as turmas..."
                                                 onFocus={() => definirMostrarDropdownTurma(true)}
                                                 onBlur={() => setTimeout(() => definirMostrarDropdownTurma(false), 200)}
                                                 onChange={(e) => definirFiltros({ ...filtros, turma: e.target.value || 'Todas' })}
                                                 value={filtros.turma === 'Todas' ? '' : filtros.turma}
-                                                className="w-full pl-5 pr-12 py-3.5 bg-slate-50 border border-slate-100 focus:bg-white focus:border-eletrico focus:ring-4 focus:ring-eletrico/5 rounded-2xl text-xs font-bold text-slate-700 outline-none transition-all"
+                                                className="w-full pl-5 pr-12 py-3 bg-slate-50 border border-slate-100 focus:bg-white focus:border-eletrico focus:ring-4 focus:ring-eletrico/5 rounded-2xl text-xs font-bold text-slate-700 outline-none transition-all placeholder:text-slate-400"
                                             />
-                                            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:rotate-180 transition-transform" />
+                                            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300" />
 
                                             {mostrarDropdownTurma && (() => {
                                                 const termo = filtros.turma === 'Todas' ? '' : filtros.turma.toLowerCase();
@@ -319,16 +315,16 @@ export default function Relatorios() {
                                                     .filter((t: string) => t.toLowerCase().includes(termo))
                                                     .slice(0, 5);
                                                 return (
-                                                    <ul className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden animate-zoom-in p-2 ring-1 ring-black/5">
+                                                    <ul className="absolute top-[calc(100%+6px)] left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden p-1">
                                                         <li
                                                             onMouseDown={() => {
-                                                                definirFiltros({ ...filtros, turma: 'Todas' });
-                                                                definirMostrarDropdownTurma(false);
+                                                                 definirFiltros({ ...filtros, turma: 'Todas' });
+                                                                 definirMostrarDropdownTurma(false);
                                                             }}
-                                                            className="px-4 py-3 text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors rounded-2xl flex items-center justify-between group"
+                                                            className="px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer rounded-2xl flex items-center justify-between"
                                                         >
-                                                            Geral (Toda a instituição)
-                                                            {filtros.turma === 'Todas' && <CheckCircle2 size={16} className="text-eletrico" />}
+                                                            Geral (Toda Escola)
+                                                            {filtros.turma === 'Todas' && <CheckCircle2 size={14} className="text-eletrico" />}
                                                         </li>
                                                         {sugestoes.map((t: string) => (
                                                             <li
@@ -337,10 +333,9 @@ export default function Relatorios() {
                                                                     definirFiltros({ ...filtros, turma: t });
                                                                     definirMostrarDropdownTurma(false);
                                                                 }}
-                                                                className="px-4 py-3 text-[10px] font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer transition-colors rounded-2xl flex items-center justify-between group"
+                                                                className="px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer rounded-2xl"
                                                             >
                                                                 {t}
-                                                                <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-1 group-hover:translate-x-0" />
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -349,57 +344,39 @@ export default function Relatorios() {
                                         </div>
                                     </div>
 
-                                    {/* Mini-Resumo Dinâmico (Preenchimento de Espaço) */}
-                                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex items-start gap-4 mt-6">
-                                        <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-suave border border-slate-100 shrink-0">
-                                            <Info size={18} />
-                                        </div>
-                                        <div className="flex-1 mt-0.5">
-                                            <p className="text-[11px] font-bold text-slate-500 mb-1">Prévia do Documento</p>
-                                            <p className="text-sm font-medium text-slate-600 leading-relaxed">
-                                                Este relatório incluirá <span className="text-slate-900 font-bold">{quantidadeAlunosPrevista} alunos</span> do <span className="text-slate-900 font-bold">{filtros.semestre}º semestre</span> de <span className="text-slate-900 font-bold">{filtros.anoLetivo}</span>
-                                                {filtros.turma !== 'Todas' ? (
-                                                    <> da turma <span className="text-slate-900 font-bold">{filtros.turma}</span></>
-                                                ) : (
-                                                    <> de toda a instituição</>
-                                                )}.
-                                            </p>
-                                        </div>
+                                    {/* Resumo Discreto */}
+                                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-4">
+                                        <Info size={16} className="text-slate-300 shrink-0" />
+                                        <p className="text-[11px] font-medium text-slate-500">
+                                            O PDF incluirá <span className="text-slate-800 font-bold">{quantidadeAlunosPrevista} alunos</span> • 
+                                            <span className="text-slate-800 font-bold ml-1">{filtros.turma === 'Todas' ? 'Toda Instituição' : `Turma ${filtros.turma}`}</span>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Footer do Painel - Ação Principal */}
-                            <div className="p-8 border-t border-slate-100 bg-slate-50/10 flex items-center justify-between">
-                                <div className="flex items-center gap-4 text-slate-400">
-                                    <div className="p-2 bg-white border border-slate-200 rounded-lg shadow-suave">
-                                        <Download size={14} />
-                                    </div>
-                                    <div className="text-[10px] font-semibold leading-tight text-slate-500">
-                                        Formato de Saída<br />
-                                        <span className="text-slate-900 font-bold">Documento PDF Oficial</span>
+                            <div className="p-8 border-t border-slate-100 bg-white flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                        Documento PDF • Padrão A4
                                     </div>
                                 </div>
 
                                 <button
                                     onClick={relatorioSelecionado.acao}
                                     disabled={carregandoBase}
-                                    className="inline-flex items-center gap-3 text-xs font-black text-white bg-eletrico hover:brightness-110 px-10 py-4 rounded-2xl transition-all shadow-xl shadow-eletrico/20 active:scale-95 disabled:opacity-50 uppercase tracking-widest"
+                                    className="inline-flex items-center gap-3 text-[10px] font-bold text-white bg-slate-800 hover:bg-slate-900 px-8 py-3.5 rounded-2xl transition-all shadow-sm active:scale-95 disabled:opacity-50 uppercase tracking-widest"
                                 >
-                                    GERAR RELATÓRIO AGORA
-                                    <ArrowRight size={16} />
+                                    Gerar Relatório
+                                    <ArrowRight size={14} />
                                 </button>
                             </div>
                         </>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-50">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 border-2 border-dashed border-slate-200">
-                                <FileSpreadsheet size={32} className="text-slate-300" />
-                            </div>
-                            <h3 className="text-sm font-bold text-slate-500 mb-2">Selecione um Módulo</h3>
-                            <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
-                                Utilize a lista lateral para escolher o documento que deseja configurar e exportar.
-                            </p>
+                        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-40">
+                            <FileSpreadsheet size={32} className="text-slate-300 mb-4" />
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Selecione um Módulo</h3>
                         </div>
                     )}
                 </div>

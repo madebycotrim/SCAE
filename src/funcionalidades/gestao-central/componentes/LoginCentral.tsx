@@ -40,14 +40,14 @@ export default function LoginCentral() {
             <div className="max-w-md w-full">
                 
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 mb-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 mb-6">
                         <ShieldCheck className="text-slate-600" size={32} />
                     </div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Catraki Central</h1>
                     <p className="text-sm text-slate-500 mt-2">Painel de Administração Global</p>
                 </div>
 
-                <div className="bg-white border border-slate-200 rounded-lg p-8 md:p-10 shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-2xl p-8 md:p-10 shadow-sm">
                     <div className="text-center mb-8">
                         <h2 className="text-lg font-semibold text-slate-800">Autenticação Restrita</h2>
                         <p className="text-sm text-slate-500 mt-1 pb-4 border-b border-slate-100">Acesso via Google Workspace</p>

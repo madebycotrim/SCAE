@@ -80,14 +80,14 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                     <div className="flex p-1 bg-slate-50 rounded-2xl border border-slate-200">
                         <button
                             onClick={() => definirAbaAtiva('arquivo')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'arquivo' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'arquivo' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <FileSpreadsheet size={14} />
                             Planilha (XLSX/CSV)
                         </button>
                         <button
                             onClick={() => definirAbaAtiva('colar')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'colar' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'colar' ? 'bg-slate-900 text-white shadow-suave' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <Clipboard size={14} />
                             Input Direto
@@ -138,7 +138,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                         value={textoColado}
                                         onChange={(e) => definirTextoColado(e.target.value)}
                                     />
-                                    <div className="absolute right-4 bottom-4 px-2 py-1 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-500 pointer-events-none uppercase tracking-widest shadow-suave">
+                                    <div className="absolute right-4 bottom-4 px-2 py-1 bg-white border border-slate-200 rounded-2xl text-[9px] font-black text-slate-500 pointer-events-none uppercase tracking-widest shadow-suave">
                                         {textoColado.length > 0 ? `${textoColado.trim().split('\n').length} Linhas` : 'Vazio'}
                                     </div>
                                 </div>
@@ -180,7 +180,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 rounded-lg p-5 border border-slate-200 mb-8 flex items-center gap-4">
+                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 mb-8 flex items-center gap-4">
                         <AlertCircle className="text-slate-400 shrink-0" size={18} />
                         <p className="text-[9px] font-bold text-slate-500 leading-normal uppercase tracking-wide">
                             Registros com incidência de erro devem ser validados individualmente no próximo painel.

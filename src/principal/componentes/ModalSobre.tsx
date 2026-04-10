@@ -55,7 +55,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                            className={`relative w-full max-w-4xl rounded-3xl shadow-2xl border overflow-hidden flex flex-col max-h-[90vh]
+                            className={`relative w-full max-w-4xl rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[90vh]
                             ${temaEscuro ? 'bg-[#0B0F19] border-slate-700' : 'bg-white border-slate-100'}`}
                         >
                             {/* Modal Header */}
@@ -197,7 +197,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
 
                                 </div>
 
-                                <div className="mt-12 p-8 bg-gradient-to-br from-slate-900 to-sky-950 rounded-3xl text-center shadow-lg relative overflow-hidden">
+                                <div className="mt-12 p-8 bg-gradient-to-br from-slate-900 to-sky-950 rounded-2xl text-center shadow-lg relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                                     <h4 className="text-white font-extrabold text-2xl mb-3 relative z-10">O próximo passo lógico para a sua instituição.</h4>
                                     <p className="text-sky-200/80 text-base font-medium mb-6 max-w-lg mx-auto relative z-10">

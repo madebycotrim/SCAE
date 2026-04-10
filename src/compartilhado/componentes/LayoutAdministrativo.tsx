@@ -543,7 +543,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="absolute top-full right-0 mt-3 w-80 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 z-[50] overflow-hidden origin-top-right"
+                                            className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 z-[50] overflow-hidden origin-top-right"
                                         >
                                             <div className="px-5 py-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                                                 <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Notificações</h4>
@@ -601,7 +601,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
                                             {notificacoes.length > 0 && (
                                                 <div className="p-3 bg-slate-50/50 border-t border-slate-50">
-                                                    <button className="w-full py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-colors">
+                                                    <button className="w-full py-2 bg-white border border-slate-200 rounded-2xl text-[9px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-colors">
                                                         Ver Histórico Completo
                                                     </button>
                                                 </div>

@@ -1,4 +1,4 @@
-import { LucideIcon, Loader2 } from 'lucide-react';
+import { LucideIcon, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 /**
@@ -44,7 +44,7 @@ export const Botao: React.FC<BotaoProps> = ({
 
     const tamanhos = {
         sm: "h-8 px-3 text-[10px] tracking-widest rounded-2xl",
-        md: "h-11 px-4 text-[11px] rounded-2xl", // Aumentado de h-9 para h-11 para alinhar com input
+        md: "h-11 px-4 text-[11px] rounded-2xl",
         lg: "h-12 px-6 text-sm rounded-2xl"
     };
 
@@ -79,6 +79,64 @@ export const BarraFiltro: React.FC<{ children: React.ReactNode; className?: stri
         {children}
     </div>
 );
+
+// --- METRICAS E INDICADORES ---
+
+interface CardMetricaProps {
+    label: string;
+    valor: string | number;
+    icone: LucideIcon;
+    subtitulo?: string;
+    tendencia?: number;
+    inverterTendencia?: boolean;
+    bg?: string;
+    text?: string;
+    border?: string;
+    className?: string;
+}
+
+export const CardMetrica: React.FC<CardMetricaProps> = ({ 
+    label, 
+    valor, 
+    icone: Icone, 
+    subtitulo,
+    tendencia,
+    inverterTendencia,
+    bg = 'bg-slate-50', 
+    text = 'text-slate-600', 
+    border = 'border-slate-100',
+    className = ''
+}) => {
+    const isPositivo = tendencia ? (inverterTendencia ? tendencia < 0 : tendencia > 0) : false;
+
+    return (
+        <div className={`bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5 group transition-all hover:shadow-md ${className}`}>
+            {/* Container do Ícone */}
+            <div className={`w-14 h-14 rounded-2xl ${bg} ${text} flex items-center justify-center shrink-0 border-2 ${border} shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+                <Icone size={26} strokeWidth={2.5} />
+            </div>
+
+            {/* Conteúdo Informativo */}
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none truncate">{label}</span>
+                    {tendencia !== undefined && (
+                        <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[8px] font-black shrink-0 ${isPositivo ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                            {isPositivo ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                            {Math.abs(tendencia)}%
+                        </div>
+                    )}
+                </div>
+                <div className="flex items-baseline gap-2 overflow-hidden">
+                    <span className="text-xl font-black text-slate-900 leading-none truncate">{valor}</span>
+                    {subtitulo && (
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate">{subtitulo}</span>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // --- CARREGAMENTO INTELIGENTE (SKELETONS) ---
 

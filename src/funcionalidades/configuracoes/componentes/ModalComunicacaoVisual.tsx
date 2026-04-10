@@ -85,13 +85,13 @@ export const ModalComunicacaoVisual: React.FC<ModalComunicacaoVisualProps> = ({
                 <div className="flex p-1 bg-slate-100 rounded-2xl gap-1">
                     <button 
                         onClick={() => setAbaAtiva('TEXTO')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'TEXTO' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'TEXTO' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                     >
                         <Type size={14} /> Gerar Texto
                     </button>
                     <button 
                         onClick={() => setAbaAtiva('IMAGEM')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'IMAGEM' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${abaAtiva === 'IMAGEM' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                     >
                         <ImageIcon size={14} /> Upload Foto
                     </button>

@@ -155,7 +155,7 @@ export default function RegistroAuditoria() {
         }
 
         return (
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${colorClasses}`}>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${colorClasses}`}>
                 <Icone size={12} strokeWidth={3} />
                 {action}
             </div>
@@ -188,7 +188,7 @@ export default function RegistroAuditoria() {
                     { label: 'Avisos/Edições', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ATUALIZAR') || l.acao?.toUpperCase().includes('EDITAR')).length, icon: Code, col: 'amber' },
                     { label: 'Alertas Críticos', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ERRO') || l.acao?.toUpperCase().includes('DELETAR')).length, icon: AlertTriangle, col: 'rose' }
                 ].map((stat, i) => (
-                    <div key={i} className="bg-white border border-slate-200/60 p-5 rounded-[2rem] shadow-suave hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                    <div key={i} className="bg-white border border-slate-200/60 p-5 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
                         <div className="flex items-center gap-4">
                             <div className={`w-12 h-12 rounded-2xl bg-${stat.col}-50 text-${stat.col}-600 flex items-center justify-center border border-${stat.col}-100 shadow-sm group-hover:scale-110 transition-transform`}>
                                 <stat.icon size={20} strokeWidth={2.5} />
@@ -202,15 +202,15 @@ export default function RegistroAuditoria() {
                 ))}
             </div>
 
-            <div className="mb-8 flex items-center bg-white border border-slate-200/60 shadow-suave p-5 rounded-[2rem] gap-8">
+            <div className="mb-8 flex items-center bg-white border border-slate-200/60 shadow-sm p-5 rounded-2xl gap-8">
                 <div className="flex flex-col gap-2 flex-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em] ml-2 leading-none">Rastrear Evento</label>
                     <div className="relative group">
-                        <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-all duration-300" />
+                        <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-eletrico transition-all duration-300" />
                         <input 
                             placeholder="Buscar por usuário, ação ou tipo de dado..."
                             value={busca}
-                            className="w-full bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-200 transition-all h-12 pl-14 pr-4 rounded-2xl text-[13px] font-bold text-slate-700 outline-none shadow-inner"
+                            className="w-full bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-eletrico focus:ring-4 focus:ring-eletrico/5 transition-all h-12 pl-14 pr-4 rounded-2xl text-[13px] font-bold text-slate-700 outline-none shadow-inner"
                             readOnly 
                         />
                     </div>
@@ -218,7 +218,7 @@ export default function RegistroAuditoria() {
 
                 <div className="flex flex-col gap-2 shrink-0">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1 leading-none">Severidade</label>
-                    <div className="flex items-center bg-slate-50/80 p-1.5 rounded-[1.2rem] border border-slate-200/60 h-12">
+                    <div className="flex items-center bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200/60 h-12">
                         {[
                             { id: 'todos', label: 'Todos', icone: Terminal },
                             { id: 'sucesso', label: 'Sucesso', icone: Activity },
@@ -241,7 +241,7 @@ export default function RegistroAuditoria() {
                 </div>
             </div>
 
-            <CartaoConteudo className="flex flex-col h-[calc(100vh-290px)] overflow-hidden bg-white border border-slate-200/60 shadow-suave rounded-[2.5rem]">
+            <CartaoConteudo className="flex flex-col h-[calc(100vh-290px)] overflow-hidden bg-white border border-slate-200/60 shadow-sm rounded-2xl">
                 {/* Table Area */}
                 <div className="flex-1 overflow-auto relative custom-scrollbar">
                     {/* Linha da Timeline (Movida para fora do tbody) */}
@@ -261,24 +261,24 @@ export default function RegistroAuditoria() {
                             {carregandoInicial ? (
                                 Array.from({ length: 10 }).map((_, i) => (
                                     <tr key={i} className="animate-fade-in relative z-10">
-                                        <td className="py-6 pl-12"><Esqueleto className="w-32 h-6 rounded-xl" /></td>
+                                        <td className="py-6 pl-12"><Esqueleto className="w-32 h-6 rounded-2xl" /></td>
                                         <td className="py-6 px-6">
                                             <div className="flex items-center gap-4">
                                                 <Esqueleto className="w-10 h-10 rounded-2xl" />
                                                 <div className="space-y-2">
-                                                    <Esqueleto className="w-40 h-3" />
-                                                    <Esqueleto className="w-28 h-2 opacity-60" />
+                                                    <Esqueleto className="w-40 h-3 shadow-none bg-slate-50" />
+                                                    <Esqueleto className="w-28 h-2 opacity-60 shadow-none bg-slate-50" />
                                                 </div>
                                             </div>
                                         </td>
-                                        <td colSpan={3} className="px-6 py-6"><Esqueleto className="w-full h-4 rounded-lg" /></td>
+                                        <td colSpan={3} className="px-6 py-6"><Esqueleto className="w-full h-4 rounded-2xl" /></td>
                                     </tr>
                                 ))
                             ) : logsPaginados.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="py-32 text-center relative z-10">
                                         <div className="flex flex-col items-center justify-center gap-6">
-                                            <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200">
+                                            <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-200 border border-slate-100">
                                                 <Activity size={48} />
                                             </div>
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Varredura concluída: Sem registros</span>
@@ -290,7 +290,7 @@ export default function RegistroAuditoria() {
                                     <tr key={log.id} className="group/row transition-all duration-300 hover:bg-slate-50/50 relative z-10">
                                         <td className="pl-12 py-6 align-middle relative">
                                             {/* Ponto da Timeline */}
-                                            <div className="absolute left-[30px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-slate-200 group-hover/row:border-indigo-400 group-hover/row:scale-125 transition-all duration-300 z-10" />
+                                            <div className="absolute left-[30px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-slate-200 group-hover/row:border-eletrico group-hover/row:scale-125 transition-all duration-300 z-10" />
                                             
                                             <div className="flex items-center">
                                                 <StatusBadge action={log.acao} />
@@ -298,7 +298,7 @@ export default function RegistroAuditoria() {
                                         </td>
                                         <td className="px-6 py-6 align-middle">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 shadow-inner group-hover/row:bg-white group-hover/row:text-indigo-500 transition-colors">
+                                                <div className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 shadow-inner group-hover/row:bg-white group-hover/row:text-eletrico transition-colors">
                                                     <User size={18} strokeWidth={2.5} />
                                                 </div>
                                                 <div className="flex flex-col text-left truncate">
@@ -312,13 +312,13 @@ export default function RegistroAuditoria() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-6 align-middle text-center">
-                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-100 shadow-sm group-hover/row:border-slate-200 transition-all">
+                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 bg-white px-3 py-1.5 rounded-2xl border border-slate-100 shadow-sm group-hover/row:border-slate-200 transition-all">
                                                 {log.entidade_tipo}
                                             </span>
                                         </td>
                                         <td className="px-6 py-6 align-middle text-center">
                                             <div className="flex flex-col items-center gap-1">
-                                                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 group-hover/row:bg-white transition-all">
+                                                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-100 group-hover/row:bg-white transition-all">
                                                     <Clock size={12} className="text-slate-400" />
                                                     <span className="text-[11px] text-slate-700 font-black tracking-tight">
                                                         {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "HH:mm:ss")}
@@ -333,7 +333,7 @@ export default function RegistroAuditoria() {
                                             <div className="flex justify-end gap-2 opactiy-80 group-hover/row:opacity-100 transition-all">
                                                 <button
                                                     onClick={() => { definirLogSelecionado(log); definirMostrarRastroCompleto(false); }}
-                                                    className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300"
+                                                    className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-eletrico hover:border-eletrico/20 hover:shadow-lg hover:shadow-eletrico/10 transition-all duration-300"
                                                 >
                                                     <Eye size={18} />
                                                 </button>
@@ -399,19 +399,19 @@ export default function RegistroAuditoria() {
                         {/* Header do Modal */}
                         <div className="flex items-center justify-between p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-200 text-slate-400">
+                                <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-200 text-slate-400">
                                     <Fingerprint size={28} strokeWidth={1.5} />
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ID do Rastro</span>
-                                    <span className="font-mono text-xs text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                                    <span className="font-mono text-xs text-slate-700 bg-white px-2.5 py-1 rounded-2xl border border-slate-200">
                                         {logSelecionado.id}
                                     </span>
                                 </div>
                             </div>
                             <div className="flex flex-col items-end">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Registro Temporal</span>
-                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-200">
                                     <Clock size={14} className="text-eletrico" />
                                     <span className="text-xs font-bold text-slate-700">
                                         {format(new Date(logSelecionado.criado_em || logSelecionado.criado_at || logSelecionado.created_at || logSelecionado.data_criacao || logSelecionado.timestamp), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
@@ -472,7 +472,7 @@ export default function RegistroAuditoria() {
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">
                                             Estado Anterior {!mostrarRastroCompleto && <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span>}
                                         </span>
-                                        <div className="bg-slate-900 rounded-xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
+                                        <div className="bg-slate-900 rounded-2xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
                                             <pre className="text-[11px] font-mono text-rose-300/80 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar flex-1">
                                                 {antStr}
                                             </pre>
@@ -483,7 +483,7 @@ export default function RegistroAuditoria() {
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">
                                             Estado Novo {!mostrarRastroCompleto && <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span>}
                                         </span>
-                                        <div className="bg-slate-900 rounded-xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
+                                        <div className="bg-slate-900 rounded-2xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
                                             <pre className="text-[11px] font-mono text-emerald-300/80 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar flex-1">
                                                 {novStr}
                                             </pre>

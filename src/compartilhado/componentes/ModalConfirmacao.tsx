@@ -11,6 +11,7 @@ interface ModalConfirmacaoProps {
     aoCancelar: () => void;
     variante?: 'perigo' | 'padrao';
     carregando?: boolean;
+    semCancelar?: boolean;
 }
 
 /**
@@ -25,7 +26,8 @@ export default function ModalConfirmacao({
     aoConfirmar,
     aoCancelar,
     variante = 'padrao',
-    carregando = false
+    carregando = false,
+    semCancelar = false
 }: ModalConfirmacaoProps) {
     return (
         <ModalUniversal
@@ -41,15 +43,17 @@ export default function ModalConfirmacao({
                 </p>
 
                 <div className="flex gap-3">
-                    <Botao
-                        variante="secundario"
-                        fullWidth
-                        tamanho="lg"
-                        onClick={aoCancelar}
-                        disabled={carregando}
-                    >
-                        {textoCancelar}
-                    </Botao>
+                    {!semCancelar && (
+                        <Botao
+                            variante="secundario"
+                            fullWidth
+                            tamanho="lg"
+                            onClick={aoCancelar}
+                            disabled={carregando}
+                        >
+                            {textoCancelar}
+                        </Botao>
+                    )}
                     <Botao
                         variante={variante === 'perigo' ? 'perigo' : 'primario'}
                         fullWidth

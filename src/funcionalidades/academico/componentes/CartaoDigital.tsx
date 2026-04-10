@@ -273,7 +273,7 @@ export default function CartaoDigital() {
 
                                         {!navigator.onLine && (
                                             <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-[2px] z-20 pointer-events-none">
-                                                <div className="px-4 py-2 border-2 border-white/20 rounded-xl bg-slate-900/80 flex items-center gap-2 -rotate-12">
+                                                <div className="px-4 py-2 border-2 border-white/20 rounded-2xl bg-slate-900/80 flex items-center gap-2 -rotate-12">
                                                     <WifiOff className="w-5 h-5 text-white/40" />
                                                     <span className="text-white/40 font-black text-xl uppercase tracking-tighter">OFFLINE</span>
                                                 </div>
@@ -283,7 +283,7 @@ export default function CartaoDigital() {
 
                                     {/* Status de Validação — Novo design premium */}
                                     <div className="w-full max-w-[300px] p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${cartao?.dados?.qrDinamico ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'}`}>
+                                        <div className={`w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0 ${cartao?.dados?.qrDinamico ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'}`}>
                                             <ShieldCheck size={16} />
                                         </div>
                                         <div className="text-left">

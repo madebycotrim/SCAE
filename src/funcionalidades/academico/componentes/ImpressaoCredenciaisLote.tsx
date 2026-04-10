@@ -22,7 +22,7 @@ export default function ImpressaoCredenciaisLote({ alunos }: ImpressaoCredenciai
                     });
 
                     return (
-                        <div key={aluno.matricula} className="break-inside-avoid w-[8.5cm] h-[12cm] border border-slate-300 rounded-3xl p-6 flex flex-col items-center bg-white relative mb-8">
+                        <div key={aluno.matricula} className="break-inside-avoid w-[8.5cm] h-[12cm] border border-slate-300 rounded-2xl p-6 flex flex-col items-center bg-white relative mb-8">
                              {/* Cabeçalho da Escola no Cartão */}
                             <div className="w-full flex justify-between items-center mb-6 px-1">
                                 <div className="flex items-center gap-2">

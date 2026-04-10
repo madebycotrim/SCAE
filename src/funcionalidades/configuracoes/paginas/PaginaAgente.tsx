@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { CartaoConteudo, Botao } from '@/compartilhado/componentes/UI';
+import { CartaoConteudo, Botao, CardMetrica } from '@/compartilhado/componentes/UI';
 import { 
     Activity, ArrowUp, XCircle, Clock, 
     CheckCircle2, Search, Fingerprint, Trash2,
@@ -71,6 +71,8 @@ export default function PaginaAgente() {
         mensagem: string;
         aoConfirmar: () => void;
         variante?: 'perigo' | 'padrao';
+        semCancelar?: boolean;
+        textoConfirmar?: string;
     }>({
         aberto: false,
         titulo: '',
@@ -156,7 +158,22 @@ export default function PaginaAgente() {
                 setBiometriasConfirmadas(prev => new Set(prev).add(matricula));
                 setTimeout(atualizarAlunos, 1500);
             } else {
-                toast.error(data.erro || 'Falha na captura.', { id: toastId });
+                const msgErro = data.erro || 'Falha na captura.';
+                if (msgErro.includes('cadastrada')) {
+                    toast.dismiss(toastId);
+                    setEstadoConfirmacao({
+                        aberto: true,
+                        titulo: 'Digital Já Cadastrada',
+                        mensagem: 'O leitor identificou que esta digital já pertence a outro aluno ou já está vinculada a este registro em outro terminal. O processo foi cancelado para evitar duplicidade.',
+                        variante: 'perigo',
+                        semCancelar: true,
+                        // Apenas um botão de OK para fechar
+                        aoConfirmar: () => setEstadoConfirmacao(prev => ({ ...prev, aberto: false })),
+                        textoConfirmar: 'Entendido'
+                    });
+                } else {
+                    toast.error(msgErro, { id: toastId });
+                }
             }
         } catch (e) {
             toast.error('Erro de conexão local.', { id: toastId });
@@ -208,7 +225,7 @@ export default function PaginaAgente() {
             <div className="relative">
                 <button
                     onClick={() => setModalConfigAberto(!modalConfigAberto)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${modalConfigAberto ? 'bg-slate-200 text-slate-800' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all ${modalConfigAberto ? 'bg-slate-200 text-slate-800' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
                 >
                     <Settings size={16} />
                     <span className="text-[10px] font-black uppercase tracking-tight">Agente</span>
@@ -261,7 +278,7 @@ export default function PaginaAgente() {
                 <button
                     onClick={() => setRadarAberto(!radarAberto)}
                     className={`
-                        flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all
+                        flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all
                         ${radarAberto ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}
                     `}
                 >
@@ -298,9 +315,9 @@ export default function PaginaAgente() {
                                         </div>
                                     ) : (
                                         leitores.map((leitor: any) => (
-                                            <div key={leitor.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between group">
+                                            <div key={leitor.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between group">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${leitor.online ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                                    <div className={`w-8 h-8 rounded-2xl flex items-center justify-center ${leitor.online ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                                                         {leitor.online ? <Wifi size={14} /> : <WifiOff size={14} />}
                                                     </div>
                                                     <div>
@@ -395,30 +412,40 @@ export default function PaginaAgente() {
                     </div>
                 </div>
 
-                {/* MÉTRICAS (MISTO LOCAL/NUVEM) */}
+                {/* MÉTRICAS (MISTO LOCAL/NUVEM - Padrão Luxury 2xl) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {[
-                        { label: 'Fluxo Hoje', valor: statusLocal?.stats?.entradas || 0, cor: 'bg-emerald-500', icone: ArrowUp, bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100' },
-                        { label: 'Alertas / Negados', valor: statusLocal?.stats?.negados || 0, cor: 'bg-rose-500', icone: XCircle, bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100' },
-                        { label: 'Tempo de Uptime', valor: statusNuvem?.uptime_seconds ? `${Math.floor(statusNuvem.uptime_seconds/3600)}h` : '--', cor: 'bg-amber-500', icone: Clock, bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100' },
-                        { label: 'Sinal Úl. Acesso', valor: statusLocal?.stats?.ultimoAcesso || '--:--', cor: 'bg-indigo-500', icone: Activity, bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-100' }
-                    ].map((item, i) => (
-                        <div key={i} className="relative bg-white p-5 rounded-r-2xl rounded-l-none border border-slate-100 shadow-sm flex items-center gap-4 group transition-all hover:shadow-md overflow-hidden">
-                            {/* Barra de Acento Lateral */}
-                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${item.cor} opacity-60 group-hover:opacity-100 transition-all`} />
-                            
-                            {/* Ícone Circular (Sem Borda) */}
-                            <div className={`w-12 h-12 rounded-full ${item.bg} ${item.text} flex items-center justify-center shrink-0`}>
-                                <item.icone size={22} strokeWidth={2.5} />
-                            </div>
-
-                            {/* Conteúdo */}
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
-                                <span className="text-xl font-black text-slate-800 leading-none">{item.valor}</span>
-                            </div>
-                        </div>
-                    ))}
+                    <CardMetrica
+                        label="Fluxo Hoje"
+                        valor={statusLocal?.stats?.entradas || 0}
+                        icone={ArrowUp}
+                        bg="bg-emerald-50"
+                        text="text-emerald-600"
+                        border="border-emerald-100"
+                    />
+                    <CardMetrica
+                        label="Alertas / Negados"
+                        valor={statusLocal?.stats?.negados || 0}
+                        icone={XCircle}
+                        bg="bg-rose-50"
+                        text="text-rose-600"
+                        border="border-rose-100"
+                    />
+                    <CardMetrica
+                        label="Tempo de Uptime"
+                        valor={statusNuvem?.uptime_seconds ? `${Math.floor(statusNuvem.uptime_seconds / 3600)}h` : '--'}
+                        icone={Clock}
+                        bg="bg-amber-50"
+                        text="text-amber-600"
+                        border="border-amber-100"
+                    />
+                    <CardMetrica
+                        label="Último Sinal"
+                        valor={statusLocal?.stats?.ultimoAcesso || '--:--'}
+                        icone={Activity}
+                        bg="bg-indigo-50"
+                        text="text-indigo-600"
+                        border="border-indigo-100"
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -509,6 +536,8 @@ export default function PaginaAgente() {
                     aoConfirmar={estadoConfirmacao.aoConfirmar}
                     aoCancelar={() => setEstadoConfirmacao(prev => ({ ...prev, aberto: false }))}
                     variante={estadoConfirmacao.variante}
+                    semCancelar={estadoConfirmacao.semCancelar}
+                    textoConfirmar={estadoConfirmacao.textoConfirmar}
                 />
             )}
         </LayoutAdministrativo>

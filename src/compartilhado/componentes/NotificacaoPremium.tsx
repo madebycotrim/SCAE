@@ -47,7 +47,7 @@ export const NotificacaoPremium = ({ t, titulo, mensagem, tipo = 'info' }: Notif
                 backdrop-blur-xl bg-white/95
             `}
         >
-            <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-slate-50 border border-slate-100`}>
+            <div className={`shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center bg-slate-50 border border-slate-100`}>
                 {icones[tipo]}
             </div>
             

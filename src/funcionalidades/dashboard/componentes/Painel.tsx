@@ -3,13 +3,14 @@ import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutentica
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { dashboardServico } from '../servicos/dashboard.servico';
 import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
-import { Botao, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
+import { Botao, CartaoConteudo, Esqueleto, CardMetrica } from '@/compartilhado/componentes/UI';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
 import { toast } from 'react-hot-toast';
 import {
     TrendingUp,
+    TrendingDown,
     ArrowUpRight,
     ArrowDownRight,
     Activity,
@@ -58,62 +59,7 @@ ChartJS.register(
     ArcElement
 );
 
-// --- Componentes Auxiliares ---
-
-interface PropsCardEstatistica {
-    titulo: string;
-    valor: string | number;
-    subtitulo?: string;
-    icone: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
-    cor: 'marinho' | 'amber' | 'rose' | 'emerald';
-    tendencia?: number;
-    inverterTendencia?: boolean;
-}
-
-const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }: PropsCardEstatistica) => {
-    const coresTema = {
-        marinho: { barra: 'bg-slate-700', bg: 'bg-slate-50', text: 'text-slate-600' },
-        amber: { barra: 'bg-amber-500', bg: 'bg-amber-50', text: 'text-amber-600' },
-        rose: { barra: 'bg-rose-500', bg: 'bg-rose-50', text: 'text-rose-600' },
-        emerald: { barra: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-600' }
-    };
-
-    const tema = coresTema[cor];
-
-    return (
-        <div className="relative bg-white p-5 rounded-r-2xl rounded-l-none border border-slate-200 shadow-sm flex items-center gap-4 group transition-all hover:shadow-md overflow-hidden">
-            {/* Barra de Acento Lateral */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${tema.barra} opacity-80 group-hover:opacity-100 transition-all`} />
-            
-            {/* Ícone Circular (Sem Borda) */}
-            <div className={`w-12 h-12 rounded-full ${tema.bg} ${tema.text} flex items-center justify-center shrink-0`}>
-                <Icone size={22} strokeWidth={2.5} />
-            </div>
-
-            {/* Conteúdo */}
-            <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{titulo}</span>
-                <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-black text-slate-800 leading-none">{valor}</span>
-                    {subtitulo && (
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate">{subtitulo}</span>
-                    )}
-                </div>
-            </div>
-
-            {/* Tendência (Pequena Tag) */}
-            {tendencia !== undefined && tendencia !== 0 && (
-                <div className={`flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 rounded-md border uppercase tracking-wider shrink-0 ${(tendencia > 0 && !inverterTendencia) || (tendencia < 0 && inverterTendencia)
-                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                    : 'bg-rose-50 text-rose-600 border-rose-100'
-                    }`}>
-                    {tendencia > 0 ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-                    {Math.abs(tendencia)}%
-                </div>
-            )}
-        </div>
-    );
-};
+// --- Área de Dashboard ---
 
 const LiveAccessFeed = ({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNovos?: () => void }) => {
     const [registros, definirRegistros] = useState<any[]>([]);
@@ -203,7 +149,7 @@ const LiveAccessFeed = ({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNo
                             animate={{ opacity: 1 }}
                             className="flex flex-col items-center justify-center py-20 text-center gap-4"
                         >
-                            <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-200">
+                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-200">
                                 <Activity size={32} strokeWidth={1} />
                             </div>
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Varredura iniciada...</p>
@@ -403,7 +349,7 @@ export default function Painel() {
                     >
                         <div className="flex justify-between items-center mb-10">
                             <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shadow-lg">
+                                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shadow-lg">
                                     <Radar size={40} className="animate-pulse" />
                                 </div>
                                 <div className="flex flex-col">
@@ -427,39 +373,45 @@ export default function Painel() {
             </AnimatePresence>
 
             <div className="space-y-8 pb-12">
-                
-
-                {/* --- LINHA DE KPIs ESSENCIAIS --- */}
+                {/* --- LINHA DE KPIs ESSENCIAIS (Padrão Global 2xl) --- */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <CardEstatistica
-                        titulo="Presentes Hoje"
+                    <CardMetrica
+                        label="Presentes Hoje"
                         valor={estatisticas.presentesHoje}
                         subtitulo={`${estatisticas.totalAlunos > 0 ? Math.round((estatisticas.presentesHoje / estatisticas.totalAlunos) * 100) : 0}% da escola`}
                         icone={CheckCircle}
-                        cor="emerald"
+                        bg="bg-emerald-50"
+                        text="text-emerald-600"
+                        border="border-emerald-100"
                         tendencia={estatisticas.tendenciaFrequencia}
                     />
-                    <CardEstatistica
-                        titulo="Atrasos Detectados"
+                    <CardMetrica
+                        label="Atrasos Detectados"
                         valor={estatisticas.atrasosHoje}
                         subtitulo="Entradas pós-tolerância"
                         icone={Clock}
-                        cor="amber"
+                        bg="bg-amber-50"
+                        text="text-amber-600"
+                        border="border-amber-100"
                         inverterTendencia
                     />
-                    <CardEstatistica
-                        titulo="Saídas Registradas"
+                    <CardMetrica
+                        label="Saídas Registradas"
                         valor={estatisticas.saidasHoje}
                         subtitulo="Fluxo total de hoje"
                         icone={LogOut}
-                        cor="marinho"
+                        bg="bg-indigo-50"
+                        text="text-indigo-600"
+                        border="border-indigo-100"
                     />
-                    <CardEstatistica
-                        titulo="Risco de Abandono"
+                    <CardMetrica
+                        label="Risco de Abandono"
                         valor={estatisticas.alunosEmRisco}
                         subtitulo="Ações pedagógicas urgentes"
                         icone={AlertTriangle}
-                        cor="rose"
+                        bg="bg-rose-50"
+                        text="text-rose-600"
+                        border="border-rose-100"
                         inverterTendencia
                     />
                 </div>

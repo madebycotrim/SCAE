@@ -44,15 +44,19 @@ export default function FormHorariosAcesso() {
     const [confirmandoQR, setConfirmandoQR] = useState<{ dinamico: boolean } | null>(null);
     const [statusSincronizacao, definirStatusSincronizacao] = useState<'sincronizado' | 'salvando' | 'erro' | 'pendente'>('sincronizado');
     const [indiceRemovendo, setIndiceRemovendo] = useState<number | null>(null);
+    const [jaCarregou, setJaCarregou] = useState(false);
 
     const carregando = carregandoHorarios || carregandoConfigs;
 
     // Carregar janelas apenas no carregamento inicial
     useEffect(() => {
-        if (regras.length > 0 && janelas.length === 0 && !carregandoHorarios) {
-            definirJanelas(regras);
+        if (!carregandoHorarios && !jaCarregou) {
+            if (regras.length > 0) {
+                definirJanelas(regras);
+            }
+            setJaCarregou(true);
         }
-    }, [regras, janelas.length, carregandoHorarios]);
+    }, [regras, carregandoHorarios, jaCarregou]);
 
     const obterTurnoConfig = (hora: string, tipo: JanelaHorarioAcesso['tipoAcesso'] = 'ENTRADA') => {
         if (!hora) return { label: 'Turno Indefinido', icone: Clock, cor: 'indigo', css: 'text-slate-400 bg-slate-50 border-slate-200' };
@@ -315,7 +319,7 @@ export default function FormHorariosAcesso() {
                                             isEntrada ? 'bg-amber-500' : 'bg-indigo-600'
                                         }`}></div>
 
-                                        <div className="bg-white rounded-3xl border border-slate-200/60 shadow-suave hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden">
+                                        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-suave hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden">
                                             {/* Header do Card */}
                                             <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
                                                 <div className="flex items-center gap-4">

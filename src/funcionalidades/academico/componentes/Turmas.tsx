@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo, Esqueleto, CardMetrica } from '@/compartilhado/componentes/UI';
 import { api } from '@/compartilhado/servicos/api';
 import {
     Users,
@@ -20,7 +20,9 @@ import {
     CloudSun,
     Moon,
     Zap,
-    GraduationCap
+    GraduationCap,
+    Activity,
+    Layers
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
@@ -206,6 +208,40 @@ export default function Turmas() {
             acoes={AcoesHeader}
             carregando={carregando}
         >
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <CardMetrica
+                    label="Total de Turmas"
+                    valor={turmas.length}
+                    icone={Grid}
+                    bg="bg-indigo-50"
+                    text="text-indigo-600"
+                    border="border-indigo-100"
+                />
+                <CardMetrica
+                    label="Alunos Enturmados"
+                    valor={turmas.reduce((acc, t) => acc + (t.totalAlunos || 0), 0)}
+                    icone={Users}
+                    bg="bg-emerald-50"
+                    text="text-emerald-600"
+                    border="border-emerald-100"
+                />
+                <CardMetrica
+                    label="Capacidade Total"
+                    valor={turmas.reduce((acc, t) => acc + (t.lotacao_maxima || 40), 0)}
+                    icone={GraduationCap}
+                    bg="bg-amber-50"
+                    text="text-amber-600"
+                    border="border-amber-100"
+                />
+                <CardMetrica
+                    label="Taxa de Ocupação"
+                    valor={`${Math.round((turmas.reduce((acc, t) => acc + (t.totalAlunos || 0), 0) / (turmas.reduce((acc, t) => acc + (t.lotacao_maxima || 40), 0) || 1)) * 100)}%`}
+                    icone={Activity}
+                    bg="bg-rose-50"
+                    text="text-rose-600"
+                    border="border-rose-100"
+                />
+            </div>
             <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
                 <div className="flex flex-col gap-2 flex-1 w-full">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Turma</label>

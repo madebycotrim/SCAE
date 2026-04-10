@@ -101,31 +101,39 @@ export default function PainelRiscoAbandono() {
         >
             <div className="space-y-8 pb-12">
 
-                {/* Métricas Master Style */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {/* Métricas Quick Look (Padrão Luxury 2xl) */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <CardMetrica
                         label="Total de Alertas"
                         valor={metricas.total}
-                        icon={<Activity size={20} />}
-                        cor="slate"
+                        icone={Activity}
+                        bg="bg-indigo-50"
+                        text="text-indigo-600"
+                        border="border-indigo-100"
                     />
                     <CardMetrica
                         label="Atenção Urgente"
                         valor={metricas.criticos}
-                        icon={<ShieldAlert size={20} />}
-                        cor="rose"
+                        icone={ShieldAlert}
+                        bg="bg-rose-50"
+                        text="text-rose-600"
+                        border="border-rose-100"
                     />
                     <CardMetrica
                         label="Em Análise"
                         valor={metricas.emTratativa}
-                        icon={<Clock size={20} />}
-                        cor="amber"
+                        icone={Clock}
+                        bg="bg-amber-50"
+                        text="text-amber-600"
+                        border="border-amber-100"
                     />
                     <CardMetrica
                         label="Casos Resolvidos"
                         valor={metricas.resolvidos}
-                        icon={<CheckCircle2 size={20} />}
-                        cor="emerald"
+                        icone={CheckCircle2}
+                        bg="bg-emerald-50"
+                        text="text-emerald-600"
+                        border="border-emerald-100"
                     />
                 </div>
 
@@ -395,31 +403,18 @@ export default function PainelRiscoAbandono() {
     )
 }
 
-function CardMetrica({ label, valor, icon, cor }: { label: string, valor: number, icon: React.ReactNode, cor: 'indigo' | 'emerald' | 'rose' | 'amber' | 'slate' }) {
-    const cores = {
-        indigo: "border-l-indigo-600",
-        emerald: "border-l-emerald-600",
-        rose: "border-l-rose-600",
-        amber: "border-l-amber-500",
-        slate: "border-l-slate-400"
-    };
-
-    const iconCores = {
-        indigo: "border-indigo-200 text-indigo-600",
-        emerald: "border-emerald-200 text-emerald-600",
-        rose: "border-rose-200 text-rose-600",
-        amber: "border-amber-200 text-amber-500",
-        slate: "border-slate-200 text-slate-400"
-    };
-
+function CardMetrica({ label, valor, icone: Icone, bg, text, border }: { label: string, valor: number, icone: any, bg: string, text: string, border: string }) {
     return (
-        <div className={`p-5 bg-white border-2 border-slate-200/60 border-l-4 ${cores[cor]} rounded-none rounded-r-lg hover:shadow-md transition-all hover:-translate-y-0.5 relative overflow-hidden group flex items-center gap-4`}>
-            <div className={`w-10 h-10 bg-white rounded-2xl flex items-center justify-center shrink-0 border-2 ${iconCores[cor]} z-10 transition-transform group-hover:scale-105`}>
-                {icon}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5 group transition-all hover:shadow-md">
+            {/* Container do Ícone (Estilo da Imagem) */}
+            <div className={`w-14 h-14 rounded-2xl ${bg} ${text} flex items-center justify-center shrink-0 border-2 ${border} shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+                <Icone size={26} strokeWidth={2.5} />
             </div>
-            <div className="z-10">
-                <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mb-0.5 leading-none">{label}</p>
-                <p className="text-xl font-black text-slate-700 leading-tight">{valor}</p>
+
+            {/* Conteúdo (Estilo da Imagem) */}
+            <div className="flex flex-col gap-0.5 min-w-0">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</span>
+                <span className="text-xl font-black text-slate-900 leading-none">{valor}</span>
             </div>
         </div>
     );

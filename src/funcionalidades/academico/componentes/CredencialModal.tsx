@@ -182,7 +182,7 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                             </div>
 
                             <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 flex gap-4 items-center">
-                                <div className="w-10 h-10 bg-white rounded-xl border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                                <div className="w-10 h-10 bg-white rounded-2xl border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
                                     <User size={18} />
                                 </div>
                                 <div className="flex flex-col min-w-0">

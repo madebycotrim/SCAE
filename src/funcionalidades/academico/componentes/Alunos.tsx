@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { Botao, BarraFiltro, InputBusca } from '@/compartilhado/componentes/UI';
-import { Plus, Search, Upload, Calendar, Layers, CheckCircle2, XCircle, Grid } from 'lucide-react';
+import { Botao, BarraFiltro, InputBusca, CardMetrica } from '@/compartilhado/componentes/UI';
+import { Plus, Search, Upload, Calendar, Layers, CheckCircle2, XCircle, Grid, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { alunoServico } from '../servicos/aluno.servico';
@@ -192,6 +192,40 @@ export default function Alunos() {
             acoes={AcoesHeader}
             carregando={carregando}
         >
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <CardMetrica
+                    label="Alunos Matriculados"
+                    valor={alunos.length}
+                    icone={GraduationCap}
+                    bg="bg-indigo-50"
+                    text="text-indigo-600"
+                    border="border-indigo-100"
+                />
+                <CardMetrica
+                    label="Alunos Ativos"
+                    valor={alunos.filter(a => a.ativo !== false).length}
+                    icone={CheckCircle2}
+                    bg="bg-emerald-50"
+                    text="text-emerald-600"
+                    border="border-emerald-100"
+                />
+                <CardMetrica
+                    label="Alunos Inativos"
+                    valor={alunos.filter(a => a.ativo === false).length}
+                    icone={XCircle}
+                    bg="bg-rose-50"
+                    text="text-rose-600"
+                    border="border-rose-100"
+                />
+                <CardMetrica
+                    label="Total de Turmas"
+                    valor={turmas.length}
+                    icone={Layers}
+                    bg="bg-amber-50"
+                    text="text-amber-600"
+                    border="border-amber-100"
+                />
+            </div>
             <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
                 <div className="flex flex-col gap-2 flex-1 w-full">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Aluno</label>

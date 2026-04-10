@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { 
     Search, Edit2, Ban, Plus, 
     ExternalLink, AlertTriangle, X, Zap,
-    Trash2
+    Trash2, Users, Shield, Activity, Layers
 } from 'lucide-react';
 import { api } from '@/compartilhado/servicos/api';
 import { toast } from 'react-hot-toast';
+import { CardMetrica } from '@/compartilhado/componentes/UI';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 interface EscolaSistema {
@@ -189,37 +190,68 @@ export function PaginaGestaoEscolas() {
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto px-4 py-8">
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                 <div>
-                    <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">Gestão de Unidades</h1>
-                    <p className="text-sm text-slate-500 mt-1">Adicione e gerencie as escolas da sua infraestrutura.</p>
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Gestão Central</h1>
+                    <p className="text-sm text-slate-500 font-medium">Controle de unidades, limites e diretrizes globais</p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
-                    <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <div className="flex items-center gap-3">
+                    <div className="relative group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={16} />
                         <input 
                             type="text" 
-                            placeholder="Buscar unidade..."
-                            className="w-full h-9 pl-9 pr-4 text-sm bg-white border border-slate-200 rounded-md focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors"
+                            placeholder="Procurar unidade..." 
                             value={busca}
                             onChange={(e) => definirBusca(e.target.value)}
+                            className="pl-10 pr-4 h-11 w-64 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold outline-none focus:bg-white focus:border-slate-900 transition-all"
                         />
                     </div>
                     <button 
-                        onClick={() => {
-                            definirEditandoId(null);
-                            definirForm({ ...formPadrao });
-                            definirModalAberto(true);
-                        }}
-                        className="w-full sm:w-auto h-9 px-4 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors whitespace-nowrap flex items-center justify-center gap-2"
+                        onClick={() => { definirEditandoId(null); definirForm({...formPadrao}); definirModalAberto(true); }}
+                        className="flex items-center gap-2 px-4 h-11 bg-slate-900 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-200"
                     >
-                        <Plus size={16} />
-                        Nova Unidade
+                        <Plus size={16} /> Nova Unidade
                     </button>
                 </div>
             </header>
+            
+            {/* CARDS DE MÉTRICAS GLOBAIS (ESTILO LUXO PADRONIZADO 2XL) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <CardMetrica
+                    label="Total Unidades"
+                    valor={escolas.length}
+                    icone={Layers}
+                    bg="bg-indigo-50"
+                    text="text-indigo-600"
+                    border="border-indigo-100"
+                />
+                <CardMetrica
+                    label="Escolas Ativas"
+                    valor={escolas.filter(e => e.status === 'ATIVA').length}
+                    icone={Shield}
+                    bg="bg-emerald-50"
+                    text="text-emerald-600"
+                    border="border-emerald-100"
+                />
+                <CardMetrica
+                    label="Alunos no Sistema"
+                    valor={escolas.reduce((acc, e) => acc + (e.totalAlunos || 0), 0)}
+                    icone={Users}
+                    bg="bg-amber-50"
+                    text="text-amber-600"
+                    border="border-amber-100"
+                />
+                <CardMetrica
+                    label="Cota Utilizada"
+                    valor={`${Math.round((escolas.reduce((acc, e) => acc + (e.totalAlunos || 0), 0) / (escolas.reduce((acc, e) => acc + (e.limiteAlunos || 1000), 0) || 1)) * 100)}%`}
+                    icone={Activity}
+                    bg="bg-rose-50"
+                    text="text-rose-600"
+                    border="border-rose-100"
+                />
+            </div>
 
-            <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-x-auto">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
                 <table className="w-full text-sm text-left">
                     <thead>
                         <tr className="bg-slate-50/80 border-b border-slate-200">
@@ -283,7 +315,7 @@ export function PaginaGestaoEscolas() {
                                                 rel="noreferrer"
                                                 className="flex items-center gap-1 px-2 py-1.5 text-[11px] font-medium hover:text-slate-900 hover:bg-slate-100 transition-colors rounded-md border border-transparent hover:border-slate-200"
                                             >
-                                                <ExternalLink size={13} /> Panel
+                                                <ExternalLink size={13} /> Painel
                                             </a>
                                             <button 
                                                 onClick={() => abrirEdicao(escola)}
@@ -315,7 +347,7 @@ export function PaginaGestaoEscolas() {
 
             {modalAberto && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm">
-                    <div className="bg-white w-full max-w-2xl rounded-lg shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
                             <h3 className="text-base font-semibold text-slate-800">
                                 {editandoId ? 'Editar Unidade Organizacional' : 'Cadastrar Nova Unidade'}
