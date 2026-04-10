@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { usarRegrasHorarios } from '@/funcionalidades/configuracao-horarios';
+import { usarRegrasHorarios } from '../hooks/usarRegrasHorarios';
 import type { JanelaHorarioAcesso } from '@/funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarConfiguracoesEscola } from '@/compartilhado/hooks/usarConfiguracoesEscola';

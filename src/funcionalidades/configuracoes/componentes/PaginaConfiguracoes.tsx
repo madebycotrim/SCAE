@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { Botao, CartaoConteudo } from '@/compartilhado/componentes/UI';
-import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorClosed, Fingerprint, Smartphone, Cpu, CheckCircle2, AlertCircle, Settings, Power, RefreshCw } from 'lucide-react';
+import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorClosed, Fingerprint, Smartphone, Cpu, CheckCircle2, AlertCircle, Settings, Power, RefreshCw, Download } from 'lucide-react';
 import { usarConfiguracoesEscola } from '@/compartilhado/hooks/usarConfiguracoesEscola';
 import { api } from '@/compartilhado/servicos/api';
 import toast from 'react-hot-toast';
@@ -35,11 +35,13 @@ export function PaginaConfiguracoes() {
     };
 
     const verificarAgente = async (comSync = false) => {
+        // 🔇 Silenciador: Não tenta se a aba não estiver visível (apenas no automático)
+        if (!comSync && document.visibilityState !== 'visible') return;
+
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2000);
+            const timeoutId = setTimeout(() => controller.abort(), 800);
             
-            // 1. Pega status básico (v1.6.2+)
             const res = await fetch('http://127.0.0.1:1912/ping', { signal: controller.signal });
             clearTimeout(timeoutId);
             
@@ -47,22 +49,31 @@ export function PaginaConfiguracoes() {
                 const dados = await res.json();
                 setStatusAgente('RODANDO');
                 setInfoAgente(dados);
-
-                // 2. Comanda um Sync IMEDIATO apenas se solicitado MANUALMENTE
-                if (comSync) {
-                    fetch('http://127.0.0.1:1912/sync-now', { method: 'POST', mode: 'no-cors' }).catch(() => {});
-                }
-            } else { throw new Error(); }
+                if (comSync) fetch('http://127.0.0.1:1912/sync-now', { method: 'POST', mode: 'no-cors' }).catch(() => {});
+                return true;
+            }
         } catch (e) {
             setStatusAgente('AUSENTE');
             setInfoAgente(null);
+            return false;
         }
     };
 
     useEffect(() => {
-        verificarAgente(false); // Só o ping no boot
-        const interval = setInterval(() => verificarAgente(false), 10000); // Polling silencioso
-        return () => clearInterval(interval);
+        let timer: NodeJS.Timeout;
+        let falhas = 0;
+
+        const loopCheck = async () => {
+            const sucess = await verificarAgente(false);
+            if (sucess) falhas = 0; else falhas++;
+            
+            // Back-off: 5s normal, 30s se ausente
+            const proximo = falhas > 2 ? 30000 : 5000;
+            timer = setTimeout(loopCheck, proximo);
+        };
+
+        loopCheck();
+        return () => clearTimeout(timer);
     }, []);
 
     useEffect(() => {
@@ -115,7 +126,7 @@ export function PaginaConfiguracoes() {
             subtitulo="Ajustes globais do sistema de controle de acesso para sua unidade"
             acoes={
                 alterou ? (
-                    <Botao variante="primario" tamanho="lg" onClick={salvarConfiguracoes} loading={salvando} className="rounded-xl shadow-sm">
+                    <Botao variante="primario" tamanho="lg" onClick={salvarConfiguracoes} carregando={salvando} className="rounded-xl shadow-sm">
                         Salvar Alterações
                     </Botao>
                 ) : (
@@ -282,64 +293,112 @@ export function PaginaConfiguracoes() {
                 </div>
 
                 {/* ⚙️ SEÇÃO: AGENTE LOCAL */}
-                <div className="space-y-4">
-                    <div className="px-1 flex items-center gap-2">
-                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Serviço Local (On-Premise)</h2>
+                <div className="space-y-6">
+                    <div className="px-1 flex items-center justify-between">
+                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <Cpu size={12} className="text-slate-300" />
+                            Serviço Local (On-Premise)
+                        </h2>
+                        {statusAgente === 'RODANDO' && (
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest animate-pulse flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                Sistema Live
+                            </span>
+                        )}
                     </div>
 
-                    <div className="bg-white border border-slate-200/60 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 transition-all hover:border-slate-300 group">
-                        <div className="flex gap-5 items-start">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
-                                statusAgente === 'RODANDO' 
-                                    ? (infoAgente ? (infoAgente.leitoresAtivos > 0 ? 'bg-slate-900 text-white' : 'bg-orange-500 text-white') : 'bg-indigo-600 text-white animate-pulse') 
-                                    : 'bg-slate-50 text-slate-400'
-                            }`}>
-                                <Cpu size={28} />
-                            </div>
-                            <div className="space-y-1.5 pt-0.5">
-                                <div className="flex items-center gap-3">
-                                    <h3 className="text-sm font-bold text-slate-900 leading-none">Catraki Edge Agent</h3>
-                                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border shadow-sm ${
-                                        statusAgente === 'RODANDO' 
-                                            ? (infoAgente 
-                                                ? (infoAgente.leitoresAtivos > 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-orange-50 text-orange-600 border-orange-100')
-                                                : 'bg-indigo-50 text-indigo-600 border-indigo-100 animate-pulse')
-                                            : statusAgente === 'DESCONHECIDO' ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-rose-50 text-rose-600 border-rose-100'
-                                    }`}>
-                                        {statusAgente === 'RODANDO' 
-                                            ? (infoAgente 
-                                                ? (infoAgente.leitoresAtivos > 0 ? `Operacional (v${infoAgente.versao || '2.0'})` : 'Conectado, mas sem leitor')
-                                                : 'Verificando Hardware...')
-                                            : statusAgente === 'DESCONHECIDO' ? 'Tentando conexão...' : 'Agente Desconectado'}
+                    <div className="grid grid-cols-1 gap-6">
+                        {/* Monitor de Status do Agente (Industrial Style) */}
+                        <div className="bg-slate-900 rounded-[2rem] p-8 md:p-10 shadow-2xl shadow-slate-900/10 border border-slate-800 relative overflow-hidden group">
+                            
+                            {/* Efeito Visual de Fundo (Scanlines sutil) */}
+                            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 2px)', backgroundSize: '100% 3px' }} />
+
+                            <div className="flex flex-col lg:flex-row items-center justify-between gap-10 relative z-10">
+                                <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                                    {/* Icone com Pulso Central */}
+                                    <div className="relative group/icon">
+                                        <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center transition-all duration-500 shadow-xl ${
+                                            statusAgente === 'RODANDO' 
+                                                ? 'bg-indigo-500 text-white shadow-indigo-500/20' 
+                                                : 'bg-slate-800 text-slate-500 border border-slate-700'
+                                        }`}>
+                                            <Cpu size={40} className={statusAgente === 'RODANDO' ? 'animate-pulse' : ''} />
+                                        </div>
+                                        {statusAgente === 'RODANDO' && (
+                                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center border-4 border-slate-900 animate-bounce">
+                                                <Wifi size={10} strokeWidth={4} />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-col items-center md:items-start text-center md:text-left gap-2">
+                                        <div className="flex flex-col md:flex-row md:items-center gap-3">
+                                            <h3 className="text-xl font-black text-white tracking-tighter uppercase italic">Catraki Edge Agent</h3>
+                                            <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${
+                                                statusAgente === 'RODANDO' 
+                                                    ? 'bg-emerald-500 text-white border-emerald-400' 
+                                                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                                            }`}>
+                                                {statusAgente === 'RODANDO' ? 'Agente Conectado' : 'Aguardando Agente'}
+                                            </div>
+                                        </div>
+                                        <p className="text-slate-400 text-xs font-medium max-w-sm leading-relaxed">
+                                            Interface local operacional. Gerencia leitores biométricos, tablets e a sincronização do banco de dados offline.
+                                        </p>
+
+                                        {/* Telemetria Rápida */}
+                                        {statusAgente === 'RODANDO' && infoAgente && (
+                                            <div className="flex flex-wrap gap-4 mt-4">
+                                                <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-400" />
+                                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Versão {infoAgente.versao || '4.0.0'}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                                                    <div className={`w-2 h-2 rounded-full ${infoAgente.leitoresAtivos > 0 ? 'bg-emerald-400' : 'bg-orange-400'}`} />
+                                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Hardware: {infoAgente.leitoresAtivos > 0 ? 'Ativo' : 'Offline'}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                                <p className="text-[11px] text-slate-500 font-medium max-w-xl leading-relaxed">Interface técnica para gerenciar o hardware local a partir da nuvem.</p>
+
+                                <div className="flex flex-col gap-3 w-full lg:w-auto">
+                                    {statusAgente === 'RODANDO' ? (
+                                        <>
+                                            <button 
+                                                onClick={() => verificarAgente(true)} 
+                                                className="w-full lg:w-48 h-12 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
+                                            >
+                                                <RefreshCw size={14} />
+                                                Sincronizar
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    if(confirm('Reiniciar o Agente remotamente?')) {
+                                                        enviarComandoRemoto('REBOOT_AGENT');
+                                                    }
+                                                }}
+                                                disabled={enviandoComando}
+                                                className="w-full lg:w-48 h-12 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50"
+                                            >
+                                                <Power size={14} />
+                                                Reiniciar
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <a 
+                                            href="https://github.com/mateus099803/SCAE/releases/latest" 
+                                            target="_blank" 
+                                            rel="noreferrer"
+                                            className="w-full lg:w-56 h-14 bg-white text-slate-900 rounded-2xl flex items-center justify-center gap-4 text-[11px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all shadow-xl"
+                                        >
+                                            <Download size={18} />
+                                            Obter Agent .exe
+                                        </a>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Botao 
-                                variante="ghost" 
-                                tamanho="sm" 
-                                onClick={() => verificarAgente(true)} 
-                                icone={RefreshCw}
-                                className="rounded-xl border border-slate-100 text-[10px] font-bold uppercase tracking-widest px-4"
-                            >
-                                Atualizar
-                            </Botao>
-                            <Botao 
-                                variante="secundario" 
-                                tamanho="sm" 
-                                icone={Power}
-                                onClick={() => {
-                                    if(confirm('Reiniciar o Agente remotamente? Isso cortará a conexão por alguns segundos.')) {
-                                        enviarComandoRemoto('REBOOT_AGENT');
-                                    }
-                                }}
-                                carregando={enviandoComando}
-                                className="rounded-xl border border-slate-200 text-[10px] font-bold uppercase tracking-widest px-6"
-                            >
-                                Reiniciar Agente
-                            </Botao>
                         </div>
                     </div>
                 </div>

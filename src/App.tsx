@@ -35,7 +35,6 @@ import {
     PaginaPainel,
     PaginaAlunos,
     PaginaTurmas,
-    PaginaTerminalAcesso,
     PaginaQuiosqueAutoatendimento,
     PaginaRelatorios,
     PaginaAuditoria,

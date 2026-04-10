@@ -128,11 +128,20 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     const [agenteTemHardware, definirAgenteTemHardware] = useState(false);
 
     useEffect(() => {
+        let timer: NodeJS.Timeout;
+        let falhasConsecutivas = 0;
+
         const checkAgente = async () => {
+            // 🔇 Silenciador: Não tenta se a aba não estiver visível
+            if (document.visibilityState !== 'visible') {
+                timer = setTimeout(checkAgente, 10000);
+                return;
+            }
+
             try {
                 const tentarFetch = async (url: string) => {
                     const controlador = new AbortController();
-                    const timeoutId = setTimeout(() => controlador.abort(), 1000);
+                    const timeoutId = setTimeout(() => controlador.abort(), 800);
                     try {
                         const res = await fetch(url, { signal: controlador.signal });
                         clearTimeout(timeoutId);
@@ -150,19 +159,23 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     const dados = await res.json();
                     definirAgenteOnline(dados.ok === true);
                     definirAgenteTemHardware(dados.leitoresAtivos > 0);
+                    falhasConsecutivas = 0; // Reseta o back-off
                 } else {
-                    definirAgenteOnline(false);
-                    definirAgenteTemHardware(false);
+                    throw new Error();
                 }
             } catch (e) {
                 definirAgenteOnline(false);
                 definirAgenteTemHardware(false);
+                falhasConsecutivas++;
+            } finally {
+                // 🧠 Back-off: Se falhou, espera mais tempo (mín 5s, máx 30s)
+                const proximoIntervalo = falhasConsecutivas > 3 ? 30000 : 5000;
+                timer = setTimeout(checkAgente, proximoIntervalo);
             }
         };
 
         checkAgente();
-        const interval = setInterval(checkAgente, 2000);
-        return () => clearInterval(interval);
+        return () => clearTimeout(timer);
     }, []);
 
     const gruposMenu = [
@@ -404,10 +417,15 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             </div>
                             {!sidebarMinimizado && (
                                 <div className="flex-1 min-w-0 pr-2">
-                                    <p className="text-[12px] font-black text-white truncate uppercase tracking-tight">
+                                    <p className="text-[12px] font-black text-white truncate uppercase tracking-tight flex items-center gap-2">
                                         {usuario?.nome_completo || 'Usuário'}
+                                        {ehCentral && (
+                                            <span className="px-1.5 py-0.5 bg-indigo-500 text-white text-[7px] font-black rounded-sm tracking-[0.15em] uppercase shadow-lg shadow-indigo-500/20 border border-indigo-400">
+                                                Root
+                                            </span>
+                                        )}
                                     </p>
-                                    <p className="text-[10.5px] text-slate-400 truncate font-bold tracking-tighter">
+                                    <p className="text-[10px] text-slate-500 truncate font-bold tracking-widest uppercase mt-0.5">
                                         {mascararEmail(usuarioAtual?.email)}
                                     </p>
                                 </div>

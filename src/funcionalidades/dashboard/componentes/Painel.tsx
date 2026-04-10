@@ -2,11 +2,12 @@ import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { dashboardServico } from '../servicos/dashboard.servico';
-import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
+import { usarPermissoes } from '@/compartilhado/autorizacao/ContextoPermissoes';
 import { Botao, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { RegistroAcessoLocal } from '@/compartilhado/types/bancoLocal.tipos';
+import { toast } from 'react-hot-toast';
 import {
     TrendingUp,
     ArrowUpRight,
@@ -141,10 +142,8 @@ const LiveAccessFeed = ({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNo
 
                         if (realmenteNovos.length === 0) return prev;
 
-                        // ⚡ Sincronização: Se chegou gente nova, avisa o painel pai para atualizar os números
                         if (aoReceberNovos) aoReceberNovos();
 
-                        // Ao trocar de dia, limpa os antigos
                         const listaCombinada = [...realmenteNovos, ...prev]
                             .filter(r => isSameDay(parseISO(r.timestamp), new Date()))
                             .slice(0, 30);
@@ -161,7 +160,7 @@ const LiveAccessFeed = ({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNo
                 definirConectado(false);
             } finally {
                 if (montado) {
-                    timer = setTimeout(() => buscarNovos(), 4000);
+                    timer = setTimeout(() => buscarNovos(), 3000); // Mais agressivo: 3s
                 }
             }
         };
@@ -174,62 +173,79 @@ const LiveAccessFeed = ({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNo
     }, [ultimaAtualizacao, dashboardServico]);
 
     return (
-        <CartaoConteudo className="h-full flex flex-col bg-white border border-slate-200 shadow-suave rounded-2xl overflow-hidden group">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Radar size={14} className={`text-slate-600 ${conectado ? 'animate-pulse' : 'text-rose-400'}`} />
-                    Acessos em Tempo Real
-                </h3>
-                <div className={`flex items-center gap-2 px-3 py-1 bg-white border rounded-2xl shadow-sm transition-colors ${conectado ? 'border-slate-200' : 'border-rose-200 bg-rose-50'}`}>
-                    <span className="relative flex h-1.5 w-1.5">
+        <CartaoConteudo className="h-full flex flex-col bg-white border border-slate-200 shadow-suave rounded-[2.5rem] overflow-hidden group transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50">
+            <div className="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30 backdrop-blur-sm">
+                <div className="flex flex-col">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Monitoramento</h3>
+                    <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+                        <Radar size={16} className={`text-slate-600 ${conectado ? 'animate-pulse' : 'text-rose-400'}`} />
+                        Fluxo ao Vivo
+                    </h4>
+                </div>
+                <div className={`flex items-center gap-2 px-4 py-1.5 bg-white border rounded-full shadow-sm transition-all duration-500 ${conectado ? 'border-emerald-100 bg-emerald-50/50' : 'border-rose-200 bg-rose-50'}`}>
+                    <span className="relative flex h-2 w-2">
                         {conectado && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
-                        <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${conectado ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${conectado ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
                     </span>
-                    <span className={`text-[9px] font-black uppercase tracking-widest leading-none ${conectado ? 'text-slate-500' : 'text-rose-600'}`}>
-                        {conectado ? 'AO VIVO' : 'OFFLINE'}
+                    <span className={`text-[9px] font-black uppercase tracking-[0.15em] leading-none ${conectado ? 'text-emerald-700' : 'text-rose-600'}`}>
+                        {conectado ? 'Radar Ativo' : 'Offline'}
                     </span>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-1 min-h-[350px]">
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-2 min-h-[400px]">
                 <AnimatePresence initial={false}>
                     {registros.length === 0 ? (
                         <motion.div
                             key="empty"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col items-center justify-center py-20 text-center opacity-40 grayscale gap-4"
+                            className="flex flex-col items-center justify-center py-20 text-center gap-4"
                         >
-                            <Activity size={32} strokeWidth={1} className="text-slate-400" />
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Aguardando leituras...</p>
+                            <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-200">
+                                <Activity size={32} strokeWidth={1} />
+                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Varredura iniciada...</p>
                         </motion.div>
                     ) : (
-                        registros.map((reg) => {
+                        registros.map((reg, index) => {
                             const aluno = alunos.find(a => a.matricula === reg.aluno_matricula);
                             const isEntrada = reg.tipo_movimentacao === 'ENTRADA';
+                            const isNew = index === 0 && (new Date().getTime() - parseISO(reg.timestamp).getTime() < 10000);
+
                             return (
                                 <motion.div
                                     key={reg.id}
                                     layout
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="p-3 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all flex items-center gap-4 group/item"
+                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                    animate={{ 
+                                        opacity: 1, 
+                                        scale: 1, 
+                                        y: 0,
+                                        backgroundColor: isNew ? 'rgba(236, 253, 245, 0.5)' : 'transparent'
+                                    }}
+                                    className={`p-4 rounded-[1.5rem] border transition-all duration-300 flex items-center gap-5 group/item ${isNew ? 'border-emerald-200 shadow-lg shadow-emerald-500/5' : 'border-transparent hover:bg-slate-50 hover:border-slate-100'}`}
                                 >
-                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border-2 shadow-sm transition-transform ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                                        {isEntrada ? <LogIn size={18} /> : <LogOut size={18} />}
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 shadow-sm transition-all duration-500 group-hover/item:scale-110 ${isEntrada ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                        {isEntrada ? <LogIn size={20} strokeWidth={2.5} /> : <LogOut size={20} strokeWidth={2.5} />}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-black text-slate-700 uppercase tracking-tight truncate">
+                                        <p className="text-xs font-black text-slate-800 uppercase tracking-tight truncate leading-tight">
                                             {aluno?.nome_completo || 'Aluno Identificado'}
                                         </p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                                            {reg.aluno_matricula} • {aluno?.turma_id || '---'}
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                            {reg.aluno_matricula} • <span className="text-slate-900">{aluno?.turma_id || '---'}</span>
                                         </p>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-[10px] font-black text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-lg">
-                                            {format(parseISO(reg.timestamp), 'HH:mm')}
-                                        </span>
+                                    <div className="text-right shrink-0">
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className="text-[10px] font-black text-slate-700 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm">
+                                                {format(parseISO(reg.timestamp), 'HH:mm')}
+                                            </span>
+                                            {isNew && (
+                                                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-tighter animate-pulse">Agora</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </motion.div>
                             );
@@ -238,10 +254,15 @@ const LiveAccessFeed = ({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNo
                 </AnimatePresence>
             </div>
 
-            <div className="px-6 py-3 bg-slate-50 border-t border-slate-100">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] text-center">
-                    Portões sincronizados a cada 4 segundos
-                </p>
+            <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-50 border-dashed">
+                <div className="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <span>Catraki Operational Radar</span>
+                    <div className="flex items-center gap-1">
+                        <div className="w-1 h-1 rounded-full bg-slate-300 animate-bounce" />
+                        <div className="w-1 h-1 rounded-full bg-slate-300 animate-bounce [animation-delay:0.2s]" />
+                        <div className="w-1 h-1 rounded-full bg-slate-300 animate-bounce [animation-delay:0.4s]" />
+                    </div>
+                </div>
             </div>
         </CartaoConteudo>
     );
@@ -254,6 +275,26 @@ export default function Painel() {
         () => dashboardServico.obterEstatisticas(),
         { refetchInterval: 30000, staleTime: 25000 }
     );
+
+    const { ehAdmin, ehCentral } = usarPermissoes();
+    const [modoFoco, definirModoFoco] = useState(false);
+
+    // Atalho de Teclado (F para Foco)
+    useEffect(() => {
+        const lidarTeclado = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey && document.activeElement?.tagName !== 'INPUT') {
+                definirModoFoco(prev => !prev);
+                if (!modoFoco) {
+                    toast.success('Radar em Tela Cheia', { icon: '🎯', position: 'bottom-center' });
+                }
+            }
+            if (e.key === 'Escape' && modoFoco) {
+                definirModoFoco(false);
+            }
+        };
+        window.addEventListener('keydown', lidarTeclado);
+        return () => window.removeEventListener('keydown', lidarTeclado);
+    }, [modoFoco]);
 
     const estatisticas = useMemo(() => {
         if (!estatisticasRaw) return {
@@ -270,7 +311,6 @@ export default function Painel() {
             alunos: []
         };
 
-        // 🚀 Dimensão 2: Tudo processado no Worker via db.batch()!
         return estatisticasRaw;
     }, [estatisticasRaw]);
 
@@ -286,7 +326,7 @@ export default function Painel() {
             pointBorderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
-            backgroundColor: (context) => {
+            backgroundColor: (context: any) => {
                 const ctx = context.chart.ctx;
                 const gradient = ctx.createLinearGradient(0, 0, 0, 400);
                 gradient.addColorStop(0, 'rgba(43, 89, 255, 0.15)');
@@ -298,24 +338,30 @@ export default function Painel() {
         }]
     };
 
-    const { usuarioAtual } = usarAutenticacao();
-
     return (
         <LayoutAdministrativo
             titulo="Dashboard Central"
             acoes={
                 <div className="flex gap-3">
-                    {(usuarioAtual?.cargo === 'administrador' || usuarioAtual?.email === 'madebycotrim@gmail.com') && (
+                    <Botao 
+                        variante="ghost" 
+                        icone={Radar} 
+                        onClick={() => definirModoFoco(true)}
+                        className="hidden md:flex"
+                    >
+                        Modo Radar (F)
+                    </Botao>
+                    {ehCentral && (
                         <Botao 
                             variante="secundario" 
                             icone={Trash2} 
-                            aoClicar={async () => {
-                                if (window.confirm('🚨 CUIDADO: Isso apagará TODO o histórico de acessos (incluindo o de hoje). Deseja continuar?')) {
+                            onClick={async () => {
+                                if (window.confirm('🚨 CUIDADO: Isso apagará TODO o histórico de acessos. Deseja continuar?')) {
                                     try {
                                         await dashboardServico.limparHistorico();
                                         window.location.reload();
                                     } catch (e) {
-                                        alert('Erro ao limpar histórico. Verifique sua conexão.');
+                                        toast.error('Erro ao limpar histórico.');
                                     }
                                 }
                             }}
@@ -326,6 +372,40 @@ export default function Painel() {
                 </div>
             }
         >
+            {/* Overlay de MODO FOCO */}
+            <AnimatePresence>
+                {modoFoco && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 1.1 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="fixed inset-0 z-[100] bg-slate-900 flex flex-col p-8 md:p-12 lg:p-20"
+                    >
+                        <div className="flex justify-between items-center mb-10">
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shadow-lg">
+                                    <Radar size={40} className="animate-pulse" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Radar de Monitoramento</h2>
+                                    <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px] mt-1">Tempo Real • Portaria Central</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => definirModoFoco(false)}
+                                className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-widest border border-white/10 transition-all"
+                            >
+                                Sair do Modo Radar [ESC]
+                            </button>
+                        </div>
+                        
+                        <div className="flex-1 w-full max-w-5xl mx-auto shadow-2xl shadow-indigo-500/10 rounded-[3rem] overflow-hidden">
+                            <LiveAccessFeed alunos={estatisticas.alunos} aoReceberNovos={() => atualizarKPIs()} />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="space-y-8 pb-12">
                 
 

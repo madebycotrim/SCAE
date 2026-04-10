@@ -73,7 +73,18 @@ async function obterCabecalhos(): Promise<CabecalhosApi> {
     return cabecalhos;
 }
 
+/**
+ * Objeto centralizador para comunicação HTTP com o backend.
+ * Implementa automaticamente injeção de tokens JWT e identificação de contexto escolar.
+ */
 export const api = {
+    /**
+     * Realiza uma requisição do tipo GET para buscar dados.
+     * @param rota - Caminho do endpoint (ex: '/usuarios').
+     * @param opcoes - Configurações adicionais de cabeçalho.
+     * @returns {Promise<T>} Resposta da API mapeada para o tipo genérico T.
+     * @throws {ErroApi} Caso o status HTTP não seja de sucesso (2xx).
+     */
     obter: async <T = unknown>(rota: string, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
         const cabecalhosPadrao = await obterCabecalhos();
         const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
@@ -91,7 +102,6 @@ export const api = {
         const contentType = resposta.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
             const json = await resposta.json();
-            // Descompactar automaticamente se seguir o padrão { dados: ... }
             return (json && typeof json === 'object' && 'dados' in json) ? json.dados : json;
         } else {
             const texto = await resposta.text();
@@ -102,6 +112,12 @@ export const api = {
         }
     },
 
+    /**
+     * Realiza uma requisição do tipo POST para envio de novos dados.
+     * @param rota - Caminho do endpoint.
+     * @param dados - Corpo da requisição (será convertido para JSON).
+     * @param opcoes - Configurações adicionais de cabeçalho.
+     */
     enviar: async <T = unknown>(rota: string, dados: unknown, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
         const cabecalhosPadrao = await obterCabecalhos();
         const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
@@ -128,6 +144,12 @@ export const api = {
         }
     },
 
+    /**
+     * Realiza uma requisição do tipo PATCH para atualização parcial de dados.
+     * @param rota - Caminho do endpoint.
+     * @param dados - Campos a serem atualizados no servidor.
+     * @param opcoes - Configurações adicionais de cabeçalho.
+     */
     atualizar: async <T = unknown>(rota: string, dados: unknown, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
         const cabecalhosPadrao = await obterCabecalhos();
         const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
@@ -154,6 +176,11 @@ export const api = {
         }
     },
 
+    /**
+     * Realiza uma requisição do tipo DELETE para remoção de registros.
+     * @param rota - Caminho do endpoint incluindo query strings se necessário.
+     * @returns {Promise<boolean>} Verdadeiro se a exclusão foi confirmada.
+     */
     remover: async (rota: string): Promise<boolean> => {
         const cabecalhos = await obterCabecalhos();
         const resposta = await fetch(`${URL_BASE}${rota}`, {

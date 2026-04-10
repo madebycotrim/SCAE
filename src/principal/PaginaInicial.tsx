@@ -254,7 +254,7 @@ export default function PaginaInicial() {
                                             <ShieldCheck size={44} strokeWidth={2} />
                                         </div>
                                         <div>
-                                            <p className={`text-lg font-black uppercase tracking-tight mb-1 ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>Sou Gestor / Equipe</p>
+                                            <p className={`text-lg font-black uppercase tracking-tight mb-1 ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>Sou Gestor</p>
                                             <p className={`text-[10px] font-bold uppercase tracking-widest ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Acessar Painel de Controle Escolar</p>
                                         </div>
                                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">

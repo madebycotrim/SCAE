@@ -36,7 +36,8 @@ export interface RegistroAcessoLocal {
     tipo_movimentacao: 'ENTRADA' | 'SAIDA';
     timestamp_acesso: string;    // campo do servidor
     timestamp?: string;          // campo local
-        sincronizado: number;        // 0 = pendente | 1 = sincronizado
+    metodo_leitura?: string;     // FINGERPRINT, QRCODE, RFID, MANUAL
+    sincronizado: number;        // 0 = pendente | 1 = sincronizado
 }
 
 export interface UsuarioLocal {

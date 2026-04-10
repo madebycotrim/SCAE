@@ -253,7 +253,7 @@ export default function FormTurmaModal({ turma, aoFechar, aoSalvar }: FormTurmaM
                                 tamanho="lg"
                                 icone={CheckCircle}
                                 onClick={manipularSalvar}
-                                loading={carregando}
+                                carregando={carregando}
                             >
                                 {turma ? 'Salvar Alterações' : 'Criar Turma'}
                             </Botao>

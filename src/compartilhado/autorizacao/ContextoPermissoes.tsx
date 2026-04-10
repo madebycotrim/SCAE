@@ -2,8 +2,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { api } from '@/compartilhado/servicos/api';
+import { EMAIL_RAIZ } from '@/compartilhado/constantes/seguranca';
 
-const EMAIL_RAIZ = 'madebycotrim@gmail.com';
 const log = criarRegistrador('Permissoes');
 
 export interface UsuarioPermissoes {
@@ -191,15 +191,15 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
         carregando,
         pode,
         podeAcessar: pode,
-        temPapel: (papel: string) => usuario?.papel === papel,
-        temAlgumPapel: (papeis: string[]) => !!usuario && papeis.includes(usuario.papel),
+        temPapel: (papel: string) => usuario?.papel === papel || usuarioAtual?.email === EMAIL_RAIZ,
+        temAlgumPapel: (papeis: string[]) => (!!usuario && papeis.includes(usuario.papel)) || usuarioAtual?.email === EMAIL_RAIZ,
 
         ehCentral: usuario?.papel === 'CENTRAL' || usuarioAtual?.email === EMAIL_RAIZ,
-        ehAdmin: usuario?.papel === 'ADMIN',
-        ehCoordenacao: usuario?.papel === 'COORDENACAO',
-        ehSecretaria: usuario?.papel === 'SECRETARIA',
-        ehPorteiro: usuario?.papel === 'PORTEIRO',
-        ehVisualizacao: usuario?.papel === 'VISUALIZACAO',
+        ehAdmin: usuario?.papel === 'ADMIN' || usuarioAtual?.email === EMAIL_RAIZ,
+        ehCoordenacao: usuario?.papel === 'COORDENACAO' || usuarioAtual?.email === EMAIL_RAIZ,
+        ehSecretaria: usuario?.papel === 'SECRETARIA' || usuarioAtual?.email === EMAIL_RAIZ,
+        ehPorteiro: usuario?.papel === 'PORTEIRO' || usuarioAtual?.email === EMAIL_RAIZ,
+        ehVisualizacao: usuario?.papel === 'VISUALIZACAO' || usuarioAtual?.email === EMAIL_RAIZ,
 
         podeGerenciarAlunos: pode('editar', 'alunos') || pode('criar', 'alunos'),
         podeGerenciarTurmas: pode('editar', 'turmas') || pode('criar', 'turmas'),

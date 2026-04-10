@@ -32,7 +32,7 @@ import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 export default function RegistroAuditoria() {
-    const { podeVerLogs, ehAdmin } = usarPermissoes();
+    const { podeVerLogs, ehAdmin, ehCentral } = usarPermissoes();
     const { dados: logsBrutos, carregando, carregandoInicial, recarregar: carregarLogs } = usarConsulta(
         ['logs-auditoria-online'],
         async () => {
@@ -54,7 +54,7 @@ export default function RegistroAuditoria() {
     const [confirmacao, definirConfirmacao] = useState<{ aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigoso' | 'padrao' } | null>(null);
 
     const LOGS_PER_PAGE = 15;
-    const EH_ADMIN_SUPREMO = ehAdmin;
+    const EH_ADMIN_SUPREMO = ehCentral; // << Mudança aqui: de ehAdmin para ehCentral
 
     useEffect(() => {
         carregarUsuarios();
@@ -134,15 +134,31 @@ export default function RegistroAuditoria() {
     const StatusBadge = ({ action }: { action: string }) => {
         const act = action?.toUpperCase() || '';
 
-        let colorClasses = 'text-slate-500 bg-slate-400/10';
-        if (act.includes('SUCESSO') || act.includes('CRIAR') || act.includes('LOGIN')) colorClasses = 'text-emerald-600 bg-emerald-500/10';
-        if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) colorClasses = 'text-rose-600 bg-rose-500/10';
-        if (act.includes('ATUALIZAR') || act.includes('EDITAR')) colorClasses = 'text-amber-600 bg-amber-500/10';
+        let colorClasses = 'text-slate-500 bg-slate-400/10 border-slate-200';
+        let Icone = Terminal;
+
+        if (act.includes('SUCESSO') || act.includes('LOGIN')) {
+            colorClasses = 'text-emerald-600 bg-emerald-500/10 border-emerald-100';
+            Icone = Activity;
+        }
+        if (act.includes('CRIAR') || act.includes('ADICIONAR')) {
+            colorClasses = 'text-indigo-600 bg-indigo-500/10 border-indigo-100';
+            Icone = RefreshCw;
+        }
+        if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) {
+            colorClasses = 'text-rose-600 bg-rose-500/10 border-rose-100';
+            Icone = ShieldOff;
+        }
+        if (act.includes('ATUALIZAR') || act.includes('EDITAR')) {
+            colorClasses = 'text-amber-600 bg-amber-500/10 border-amber-100';
+            Icone = RefreshCw;
+        }
 
         return (
-            <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${colorClasses}`}>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${colorClasses}`}>
+                <Icone size={12} strokeWidth={3} />
                 {action}
-            </span>
+            </div>
         );
     };
 
@@ -159,44 +175,65 @@ export default function RegistroAuditoria() {
 
     return (
         <LayoutAdministrativo
-            titulo="Histórico de Atividades"
-            subtitulo="Veja tudo o que foi feito no sistema para garantir a segurança dos dados"
-            acoes={<Botao variante="secundario" tamanho="sm" icone={RefreshCw} loading={carregando} onClick={carregarLogs}>Sincronizar</Botao>}
+            titulo="Trilha de Auditoria"
+            subtitulo="Segurança total: rastro forense de todas as operações realizadas"
+            acoes={<Botao variante="secundario" tamanho="sm" icone={RefreshCw} carregando={carregando} onClick={carregarLogs}>Atualizar</Botao>}
             carregando={carregando}
         >
+            {/* Quick Stats Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-2">
+                {[
+                    { label: 'Fluxo Total', val: logsFiltrados.length, icon: Activity, col: 'indigo' },
+                    { label: 'Operações Ok', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('SUCESSO') || l.acao?.toUpperCase().includes('LOGIN')).length, icon: Activity, col: 'emerald' },
+                    { label: 'Avisos/Edições', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ATUALIZAR') || l.acao?.toUpperCase().includes('EDITAR')).length, icon: Code, col: 'amber' },
+                    { label: 'Alertas Críticos', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ERRO') || l.acao?.toUpperCase().includes('DELETAR')).length, icon: AlertTriangle, col: 'rose' }
+                ].map((stat, i) => (
+                    <div key={i} className="bg-white border border-slate-200/60 p-5 rounded-[2rem] shadow-suave hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                        <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-2xl bg-${stat.col}-50 text-${stat.col}-600 flex items-center justify-center border border-${stat.col}-100 shadow-sm group-hover:scale-110 transition-transform`}>
+                                <stat.icon size={20} strokeWidth={2.5} />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">{stat.label}</span>
+                                <span className="text-xl font-black text-slate-900 tracking-tighter">{stat.val}</span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
 
-            <div className="mb-6 flex items-center bg-white border border-slate-200 shadow-sm p-4 rounded-3xl gap-6">
+            <div className="mb-8 flex items-center bg-white border border-slate-200/60 shadow-suave p-5 rounded-[2rem] gap-8">
                 <div className="flex flex-col gap-2 flex-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 leading-none">Rastrear Atividade</label>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em] ml-2 leading-none">Rastrear Evento</label>
                     <div className="relative group">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-eletrico transition-colors" />
+                        <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-all duration-300" />
                         <input 
-                            placeholder="Ação, usuário, contexto ou rastro..."
+                            placeholder="Buscar por usuário, ação ou tipo de dado..."
                             value={busca}
-                            className="w-full bg-slate-50 border border-slate-100 focus:bg-white focus:border-eletrico transition-all h-11 pl-12 pr-4 rounded-2xl text-[12px] font-bold text-slate-700 outline-none"
+                            className="w-full bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-200 transition-all h-12 pl-14 pr-4 rounded-2xl text-[13px] font-bold text-slate-700 outline-none shadow-inner"
                             readOnly 
                         />
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-2 shrink-0">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Classificação</label>
-                    <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1 leading-none">Severidade</label>
+                    <div className="flex items-center bg-slate-50/80 p-1.5 rounded-[1.2rem] border border-slate-200/60 h-12">
                         {[
                             { id: 'todos', label: 'Todos', icone: Terminal },
                             { id: 'sucesso', label: 'Sucesso', icone: Activity },
-                            { id: 'aviso', label: 'Avisos', icone: Activity },
+                            { id: 'aviso', label: 'Logs', icone: Code },
                             { id: 'critico', label: 'Críticos', icone: AlertTriangle }
                         ].map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => definirFiltroAcao(item.id as any)}
-                                className={`px-4 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroAcao === item.id
-                                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/10'
-                                    : 'text-slate-400 border-transparent hover:text-slate-600'
+                                className={`px-5 h-full rounded-2xl text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 flex items-center gap-2 border ${filtroAcao === item.id
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/20'
+                                    : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-white'
                                     }`}
                             >
-                                <item.icone size={12} />
+                                <item.icone size={14} />
                                 {item.label}
                             </button>
                         ))}
@@ -204,107 +241,110 @@ export default function RegistroAuditoria() {
                 </div>
             </div>
 
-            <CartaoConteudo className="flex flex-col h-[calc(100vh-270px)] overflow-hidden bg-white border-slate-100 shadow-[0_15px_60px_rgba(0,0,0,0.03)] rounded-2xl">
+            <CartaoConteudo className="flex flex-col h-[calc(100vh-290px)] overflow-hidden bg-white border border-slate-200/60 shadow-suave rounded-[2.5rem]">
                 {/* Table Area */}
                 <div className="flex-1 overflow-auto relative custom-scrollbar">
-                    <table className="w-full text-left border-collapse whitespace-nowrap">
-                        <thead className="bg-slate-50/80 sticky top-0 z-10 border-b border-slate-200 shadow-sm">
+                    {/* Linha da Timeline (Movida para fora do tbody) */}
+                    <div className="absolute left-[34px] top-[60px] bottom-0 w-[2px] bg-slate-100 z-0" />
+
+                    <table className="w-full text-left border-separate border-spacing-0 relative z-10">
+                        <thead className="bg-slate-50/50 backdrop-blur-md sticky top-0 z-20 border-b border-slate-100">
                             <tr>
-                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[180px] text-center">Ação</th>
-                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-left">Responsável</th>
-                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center w-[140px]">Contexto</th>
-                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center w-[200px]">Data e Hora</th>
-                                <th scope="col" className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center w-[100px]">Ações</th>
+                                <th scope="col" className="pl-12 pr-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest w-[220px]">Operação</th>
+                                <th scope="col" className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Autor da Ação</th>
+                                <th scope="col" className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center w-[160px]">Entidade</th>
+                                <th scope="col" className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center w-[220px]">Timestamp</th>
+                                <th scope="col" className="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right w-[120px]">Detalhes</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="relative">
                             {carregandoInicial ? (
-                                Array.from({ length: 8 }).map((_, i) => (
-                                    <tr key={i} className="animate-fade-in">
-                                        <td className="py-4 px-8"><Esqueleto className="w-24 h-5 rounded-lg" /></td>
-                                        <td className="py-4 px-8">
-                                            <div className="flex items-center gap-3">
-                                                <Esqueleto className="w-9 h-9 rounded-2xl" />
+                                Array.from({ length: 10 }).map((_, i) => (
+                                    <tr key={i} className="animate-fade-in relative z-10">
+                                        <td className="py-6 pl-12"><Esqueleto className="w-32 h-6 rounded-xl" /></td>
+                                        <td className="py-6 px-6">
+                                            <div className="flex items-center gap-4">
+                                                <Esqueleto className="w-10 h-10 rounded-2xl" />
                                                 <div className="space-y-2">
-                                                    <Esqueleto className="w-32 h-3" />
-                                                    <Esqueleto className="w-24 h-2 opacity-60" />
+                                                    <Esqueleto className="w-40 h-3" />
+                                                    <Esqueleto className="w-28 h-2 opacity-60" />
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-8 text-center"><Esqueleto className="w-16 h-5 mx-auto rounded-2xl" /></td>
-                                        <td className="py-4 px-8"><Esqueleto className="w-32 h-4" /></td>
-                                        <td className="py-4 px-8 text-right"><Esqueleto className="w-24 h-8 ml-auto" /></td>
+                                        <td colSpan={3} className="px-6 py-6"><Esqueleto className="w-full h-4 rounded-lg" /></td>
                                     </tr>
                                 ))
                             ) : logsPaginados.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-24 text-center">
-                                        <div className="flex flex-col items-center justify-center opacity-40 grayscale gap-4">
-                                            <Activity size={48} className="text-slate-400" />
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Nenhuma atividade registrada no momento</span>
+                                    <td colSpan={5} className="py-32 text-center relative z-10">
+                                        <div className="flex flex-col items-center justify-center gap-6">
+                                            <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200">
+                                                <Activity size={48} />
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Varredura concluída: Sem registros</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
                                 logsPaginados.map((log: any) => (
-                                    <tr key={log.id} className="hover:bg-slate-50/40 transition-all group/row border-b border-slate-50 last:border-0">
-                                        <td className="px-8 py-5 align-middle text-center">
-                                            <div className="flex items-center justify-center">
+                                    <tr key={log.id} className="group/row transition-all duration-300 hover:bg-slate-50/50 relative z-10">
+                                        <td className="pl-12 py-6 align-middle relative">
+                                            {/* Ponto da Timeline */}
+                                            <div className="absolute left-[30px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-slate-200 group-hover/row:border-indigo-400 group-hover/row:scale-125 transition-all duration-300 z-10" />
+                                            
+                                            <div className="flex items-center">
                                                 <StatusBadge action={log.acao} />
                                             </div>
                                         </td>
-                                        <td className="px-8 py-5 align-middle">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 shadow-inner">
-                                                    <User size={16} strokeWidth={2.5} />
+                                        <td className="px-6 py-6 align-middle">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 shadow-inner group-hover/row:bg-white group-hover/row:text-indigo-500 transition-colors">
+                                                    <User size={18} strokeWidth={2.5} />
                                                 </div>
                                                 <div className="flex flex-col text-left truncate">
-                                                    <span className="text-[13px] font-bold text-slate-700 leading-tight">
+                                                    <span className="text-[13px] font-black text-slate-800 tracking-tight leading-tight uppercase">
                                                         {mapaUsuarios[log.usuario_email] || log.usuario_email.split('@')[0]}
                                                     </span>
-                                                    <span className="text-[11px] text-slate-400 font-medium">
+                                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
                                                         {mascararEmail(log.usuario_email)}
                                                     </span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-5 align-middle text-center">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                                        <td className="px-6 py-6 align-middle text-center">
+                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-100 shadow-sm group-hover/row:border-slate-200 transition-all">
                                                 {log.entidade_tipo}
                                             </span>
                                         </td>
-                                        <td className="px-8 py-5 align-middle text-center">
-                                            { (log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp) ? (
-                                                <div className="flex flex-col gap-0.5 leading-none text-center">
-                                                    <span className="text-[13px] text-slate-600 font-bold whitespace-nowrap">
-                                                        {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "dd/MM/yyyy", { locale: ptBR })}
-                                                    </span>
-                                                    <span className="text-[10px] text-slate-400 font-mono tracking-wider">
+                                        <td className="px-6 py-6 align-middle text-center">
+                                            <div className="flex flex-col items-center gap-1">
+                                                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 group-hover/row:bg-white transition-all">
+                                                    <Clock size={12} className="text-slate-400" />
+                                                    <span className="text-[11px] text-slate-700 font-black tracking-tight">
                                                         {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "HH:mm:ss")}
                                                     </span>
                                                 </div>
-                                            ) : (
-                                                <span className="text-[11px] text-slate-300 uppercase font-black tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg">Sem Data</span>
-                                            )}
+                                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                                                    {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "dd/MM/yyyy", { locale: ptBR })}
+                                                </span>
+                                            </div>
                                         </td>
-                                        <td className="px-8 py-5 align-middle text-center">
-                                            <div className="flex justify-center gap-1.5 transition-all" onClick={(e) => e.stopPropagation()}>
-                                                <Botao
-                                                    variante="ghost"
-                                                    tamanho="sm"
-                                                    icone={Eye}
+                                        <td className="px-10 py-6 align-middle text-right">
+                                            <div className="flex justify-end gap-2 opactiy-80 group-hover/row:opacity-100 transition-all">
+                                                <button
                                                     onClick={() => { definirLogSelecionado(log); definirMostrarRastroCompleto(false); }}
-                                                    className="text-slate-400 hover:text-eletrico hover:bg-white shadow-sm rounded-lg w-9 h-9 p-0 border border-slate-200 transition-all"
-                                                />
+                                                    className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
 
                                                 {EH_ADMIN_SUPREMO && (
-                                                    <Botao
-                                                        variante="ghost"
-                                                        tamanho="sm"
-                                                        icone={Trash2}
+                                                    <button
                                                         onClick={() => excluirLog(log.id)}
-                                                        className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 shadow-sm rounded-lg w-9 h-9 p-0 border border-slate-200 transition-all"
-                                                    />
+                                                        className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:shadow-lg hover:shadow-rose-500/10 transition-all duration-300"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>

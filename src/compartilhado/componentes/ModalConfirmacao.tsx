@@ -9,9 +9,14 @@ interface ModalConfirmacaoProps {
     textoCancelar?: string;
     aoConfirmar: () => void;
     aoCancelar: () => void;
-    variante?: 'perigoso' | 'padrao';
+    variante?: 'perigo' | 'padrao';
+    carregando?: boolean;
 }
 
+/**
+ * ModalConfirmacao — Diálogo de confirmação padronizado com visual premium.
+ * Utilizado para substituir o window.confirm em ações críticas.
+ */
 export default function ModalConfirmacao({
     titulo,
     mensagem,
@@ -19,7 +24,8 @@ export default function ModalConfirmacao({
     textoCancelar = 'Cancelar',
     aoConfirmar,
     aoCancelar,
-    variante = 'padrao'
+    variante = 'padrao',
+    carregando = false
 }: ModalConfirmacaoProps) {
     return (
         <ModalUniversal
@@ -28,23 +34,34 @@ export default function ModalConfirmacao({
             aoFechar={aoCancelar}
             tamanho="sm"
         >
-            <div className="flex flex-col gap-6 py-2">
-                <p className="text-slate-500 text-sm leading-relaxed px-1">
-                    {mensagem}
-                </p>
+            <div className="flex flex-col gap-8 py-4">
+                <div className="flex flex-col gap-2">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-2 ${
+                        variante === 'perigo' ? 'bg-rose-50 text-rose-500' : 'bg-indigo-50 text-indigo-600'
+                    }`}>
+                        <AlertTriangle size={24} strokeWidth={2.5} />
+                    </div>
+                    <p className="text-slate-500 text-[13px] font-medium leading-relaxed">
+                        {mensagem}
+                    </p>
+                </div>
 
                 <div className="flex gap-3">
                     <Botao
                         variante="secundario"
-                        className="flex-1"
+                        fullWidth
+                        tamanho="lg"
                         onClick={aoCancelar}
+                        disabled={carregando}
                     >
                         {textoCancelar}
                     </Botao>
                     <Botao
-                        variante={variante === 'perigoso' ? 'primario' : 'primario'}
-                        className={`flex-1 ${variante === 'perigoso' ? 'bg-rose-600 hover:bg-rose-700 border-rose-600' : ''}`}
+                        variante={variante === 'perigo' ? 'perigo' : 'primario'}
+                        fullWidth
+                        tamanho="lg"
                         onClick={aoConfirmar}
+                        carregando={carregando}
                     >
                         {textoConfirmar}
                     </Botao>

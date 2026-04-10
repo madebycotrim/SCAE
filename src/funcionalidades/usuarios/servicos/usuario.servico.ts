@@ -8,7 +8,7 @@ const log = criarRegistrador('UsuarioServico');
 /**
  * SERVIÇO DE USUÁRIOS (Online-First)
  * Módulo Administrativo: Operações 100% online.
- * O banco local não é mais utilizado para gerenciar equipe.
+ * O banco local não é mais utilizado para gerenciar usuários.
  */
 export const usuarioServico = {
     /**
@@ -34,7 +34,7 @@ export const usuarioServico = {
         };
 
         if (!navigator.onLine) {
-            throw new Error('Sem conexão com a internet. A gestão de equipe requer conexão ativa.');
+            throw new Error('Sem conexão com a internet. A gestão de acesso requer conexão ativa.');
         }
 
         try {
@@ -85,7 +85,7 @@ export const usuarioServico = {
      */
     async excluirUsuario(email: string): Promise<void> {
         if (!navigator.onLine) {
-            throw new Error('Sem conexão. A exclusão de equipe requer conexão ativa.');
+            throw new Error('Sem conexão. A exclusão de acesso requer conexão ativa.');
         }
 
         try {

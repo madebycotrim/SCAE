@@ -146,7 +146,7 @@ export default function ImportacaoAlunosModal({ aoFechar, onImport }: Importacao
                                 <Botao
                                     onClick={processarColagem}
                                     disabled={!textoColado.trim()}
-                                    loading={importando}
+                                    carregando={importando}
                                     fullWidth
                                     tamanho="lg"
                                     icone={ChevronRight}

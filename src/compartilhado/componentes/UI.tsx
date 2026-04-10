@@ -12,8 +12,7 @@ interface BotaoProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     variante?: 'primario' | 'secundario' | 'perigo' | 'ghost';
     tamanho?: 'sm' | 'md' | 'lg';
     icone?: LucideIcon;
-    loading?: boolean;
-    carregando?: boolean; // Alias para compatibilidade
+    carregando?: boolean;
     fullWidth?: boolean;
     aoClicar?: (evento: React.MouseEvent<HTMLButtonElement>) => void;
 }
@@ -23,7 +22,6 @@ export const Botao: React.FC<BotaoProps> = ({
     variante = 'primario',
     tamanho = 'md',
     icone: Icone,
-    loading,
     carregando,
     fullWidth,
     aoClicar,
@@ -32,7 +30,7 @@ export const Botao: React.FC<BotaoProps> = ({
     onClick,
     ...props
 }) => {
-    const estaCarregando = loading || carregando;
+    const estaCarregando = carregando;
     const cliqueFinal = aoClicar || onClick;
 
     const baseStyles = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-tight transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer";

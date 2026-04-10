@@ -93,7 +93,7 @@ export default function PromocaoLoteModal({ quantidade, turmas, aoFechar, aoProm
                         icone={CheckCircle}
                         onClick={manipularPromover}
                         disabled={!novaTurma}
-                        loading={carregando}
+                        carregando={carregando}
                     >
                         Confirmar Movimentação
                     </Botao>

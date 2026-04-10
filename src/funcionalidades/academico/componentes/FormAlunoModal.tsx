@@ -233,7 +233,7 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                             tamanho="lg"
                             icone={CheckCircle}
                             onClick={manipularSalvar}
-                            loading={carregando}
+                            carregando={carregando}
                             disabled={!dadosFormulario.nome_completo || !dadosFormulario.matricula}
                         >
                             {aluno ? 'Salvar Alterações' : 'Finalizar Matrícula'}

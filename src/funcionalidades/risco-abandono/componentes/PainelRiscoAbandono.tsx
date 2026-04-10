@@ -86,7 +86,7 @@ export default function PainelRiscoAbandono() {
             variante="primario"
             tamanho="sm"
             icone={Zap}
-            loading={processando || carregando}
+            carregando={processando || carregando}
             onClick={rodarMotorRiscoAbandono}
         >
             {processando ? "Atualizando..." : "Atualizar Lista"}

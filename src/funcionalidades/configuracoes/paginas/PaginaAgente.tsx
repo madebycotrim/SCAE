@@ -46,6 +46,7 @@ interface StatusAgente {
 }
 
 import { ModalComunicacaoVisual } from '@/funcionalidades/configuracoes/componentes/ModalComunicacaoVisual';
+import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
 export default function PaginaAgente() {
     const navegar = useNavigate();
@@ -64,6 +65,18 @@ export default function PaginaAgente() {
     const [termoBusca, setTermoBusca] = useState('');
     const [cadastrandoPara, setCadastrandoPara] = useState<string | null>(null);
     const [biometriasConfirmadas, setBiometriasConfirmadas] = useState<Set<string>>(new Set());
+    const [estadoConfirmacao, setEstadoConfirmacao] = useState<{
+        aberto: boolean;
+        titulo: string;
+        mensagem: string;
+        aoConfirmar: () => void;
+        variante?: 'perigo' | 'padrao';
+    }>({
+        aberto: false,
+        titulo: '',
+        mensagem: '',
+        aoConfirmar: () => {},
+    });
 
     const { dados: dataAlunos, recarregar: atualizarAlunos } = usarConsulta(
         ['alunos-agente-busca', slugEscola],
@@ -153,15 +166,23 @@ export default function PaginaAgente() {
     };
 
     const limparHistorico = async () => {
-        if (!window.confirm('Atenção: Isso removerá TODOS os registros de acesso da nuvem. Continuar?')) return;
-        try {
-            await api.remover('/acesso/registros');
-            try { await fetch('http://127.0.0.1:1912/reset-stats', { method: 'POST' }); } catch {}
-            toast.success('Histórico removido!');
-            verificarAgenteLocal();
-        } catch (e) {
-            toast.error('Falha ao limpar histórico.');
-        }
+        setEstadoConfirmacao({
+            aberto: true,
+            titulo: 'Limpar Todo Histórico?',
+            mensagem: 'Atenção: Isso removerá TODOS os registros de acesso da nuvem permanentemente. Esta ação não pode ser desfeita.',
+            variante: 'perigo',
+            aoConfirmar: async () => {
+                setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                try {
+                    await api.remover('/acesso/registros');
+                    try { await fetch('http://127.0.0.1:1912/reset-stats', { method: 'POST' }); } catch { }
+                    toast.success('Histórico removido!');
+                    verificarAgenteLocal();
+                } catch (e) {
+                    toast.error('Falha ao limpar histórico.');
+                }
+            }
+        });
     };
 
     useEffect(() => {
@@ -208,10 +229,17 @@ export default function PaginaAgente() {
                                 </div>
                                 <div className="p-3 flex flex-col gap-2">
                                     <Botao variante="secundario" tamanho="sm" fullWidth icone={Power} aoClicar={() => {
-                                        if(confirm('Deseja reiniciar o AGENTE agora? Isso cortará a conexão por alguns segundos.')) {
-                                            enviarComandoRemoto('REBOOT_AGENT');
-                                            setModalConfigAberto(false);
-                                        }
+                                        setEstadoConfirmacao({
+                                            aberto: true,
+                                            titulo: 'Reiniciar Agente?',
+                                            mensagem: 'Deseja reiniciar o AGENTE agora? Isso cortará a conexão por alguns segundos e pode interromper leituras em andamento.',
+                                            variante: 'perigo',
+                                            aoConfirmar: () => {
+                                                enviarComandoRemoto('REBOOT_AGENT');
+                                                setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                                                setModalConfigAberto(false);
+                                            }
+                                        });
                                     }}>Reiniciar Agente</Botao>
                                     <Botao variante="ghost" tamanho="sm" fullWidth icone={RefreshCw} aoClicar={() => {
                                         enviarComandoRemoto('FORCE_SYNC');
@@ -284,9 +312,16 @@ export default function PaginaAgente() {
                                                     {leitor.online && (
                                                         <button 
                                                             onClick={() => {
-                                                                if(confirm(`Reiniciar o hardware ${leitor.nome}?`)) {
-                                                                    enviarComandoRemoto('REBOOT_HARDWARE', { id: leitor.id });
-                                                                }
+                                                                setEstadoConfirmacao({
+                                                                    aberto: true,
+                                                                    titulo: 'Reiniciar Hardware?',
+                                                                    mensagem: `Deseja reiniciar o hardware ${leitor.nome} agora?`,
+                                                                    variante: 'padrao',
+                                                                    aoConfirmar: () => {
+                                                                        enviarComandoRemoto('REBOOT_HARDWARE', { id: leitor.id });
+                                                                        setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                                                                    }
+                                                                });
                                                             }}
                                                             className="p-1.5 rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-rose-500 hover:border-rose-100 transition-all opacity-0 group-hover:opacity-100"
                                                             title="Reiniciar este hardware"
@@ -308,7 +343,16 @@ export default function PaginaAgente() {
                                         icone={Brush} 
                                         fullWidth
                                         aoClicar={() => {
-                                            if(confirm('Executar Faxina de Hardware? Isso remove IDs órfãos.')) enviarComandoRemoto('CLEAN_HARDWARE');
+                                            setEstadoConfirmacao({
+                                                aberto: true,
+                                                titulo: 'Faxina de Hardware?',
+                                                mensagem: 'Deseja executar a Faxina de Hardware? Isso remove IDs órfãos do chip e sincroniza a lista de usuários autorizados.',
+                                                variante: 'perigo',
+                                                aoConfirmar: () => {
+                                                    enviarComandoRemoto('CLEAN_HARDWARE');
+                                                    setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                                                }
+                                            });
                                         }}
                                     >
                                         Fazer Faxina Geral
@@ -457,6 +501,16 @@ export default function PaginaAgente() {
                 aoFechar={() => setModalVisualAberto(false)}
                 enviarComandoRemoto={enviarComandoRemoto}
             />
+
+            {estadoConfirmacao.aberto && (
+                <ModalConfirmacao
+                    titulo={estadoConfirmacao.titulo}
+                    mensagem={estadoConfirmacao.mensagem}
+                    aoConfirmar={estadoConfirmacao.aoConfirmar}
+                    aoCancelar={() => setEstadoConfirmacao(prev => ({ ...prev, aberto: false }))}
+                    variante={estadoConfirmacao.variante}
+                />
+            )}
         </LayoutAdministrativo>
     );
 }

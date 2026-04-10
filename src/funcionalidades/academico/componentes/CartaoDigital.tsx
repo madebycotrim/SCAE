@@ -16,13 +16,13 @@ export default function CartaoDigital() {
     const [mostrarCartao, setMostrarCartao] = useState(false);
     const cartaoRef = useRef<HTMLDivElement>(null);
 
-    const { data: cartao, isLoading, error, refetch } = useQuery({
+    const { data: cartao, isLoading: carregando, error: erro, refetch: recarregar } = useQuery({
         queryKey: ['cartao-aluno', matricula, nascimento],
         queryFn: async () => {
             const res = await fetch(`/api/publico/cartao?slug=${slugEscola}&matricula=${matricula}&nascimento=${nascimento}`);
             if (!res.ok) {
-                const erro = await res.json();
-                throw new Error(erro.mensagem || 'Falha ao carregar cartão');
+                const erroServidor = await res.json();
+                throw new Error(erroServidor.mensagem || 'Falha ao carregar cartão');
             }
             const dados = await res.json();
             localStorage.setItem(`scae_cartao_${slugEscola}`, JSON.stringify(dados));
@@ -35,13 +35,13 @@ export default function CartaoDigital() {
         let intervalo: any;
         if (mostrarCartao && cartao?.dados?.qrDinamico && navigator.onLine) {
             intervalo = setInterval(() => {
-                refetch();
+                recarregar();
             }, 15000);
         }
         return () => clearInterval(intervalo);
-    }, [mostrarCartao, cartao?.dados?.qrDinamico, refetch]);
+    }, [mostrarCartao, cartao?.dados?.qrDinamico, recarregar]);
 
-    const handleAcessar = (e: React.FormEvent) => {
+    const aoAcessar = (e: React.FormEvent) => {
         e.preventDefault();
         if (!navigator.onLine) {
             const cache = localStorage.getItem(`scae_cartao_${slugEscola}`);
@@ -55,12 +55,12 @@ export default function CartaoDigital() {
             toast.error('Sem internet e sem dados salvos. Acesse online uma vez.');
             return;
         }
-        refetch().then((result) => {
+        recarregar().then((result) => {
             if (result.data) setMostrarCartao(true);
         });
     };
 
-    const handleDownload = () => {
+    const aoBaixar = () => {
         const canvas = document.getElementById('qr-aluno') as HTMLCanvasElement;
         if (!canvas) return;
         const url = canvas.toDataURL('image/png');
@@ -85,7 +85,7 @@ export default function CartaoDigital() {
                     className="w-full max-w-[1000px] rounded-2xl overflow-hidden flex flex-col md:flex-row min-h-[560px] bg-white"
                     style={{ boxShadow: '0 32px 64px rgba(6,13,31,0.18), 0 0 0 1px rgba(15,23,42,0.06)' }}
                 >
-                    {/* ─── PAINEL ESQUERDO (Mesmo estilo do Login de Equipe) ─── */}
+                    {/* ─── PAINEL ESQUERDO ─── */}
                     <div 
                         className="md:w-[52%] p-14 relative flex flex-col justify-between overflow-hidden"
                         style={{ background: 'linear-gradient(145deg, #060d1f 0%, #0a1628 60%, #0d1f3c 100%)' }}
@@ -178,7 +178,7 @@ export default function CartaoDigital() {
                                         </p>
                                     </div>
 
-                                    <form onSubmit={handleAcessar} className="space-y-4">
+                                    <form onSubmit={aoAcessar} className="space-y-4">
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Matrícula</label>
                                             <div className="relative">
@@ -208,18 +208,18 @@ export default function CartaoDigital() {
                                             </div>
                                         </div>
 
-                                        {error && (
+                                        {erro && (
                                             <div className="mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-black rounded-2xl text-center uppercase tracking-tight">
-                                                {(error as Error).message}
+                                                {(erro as Error).message}
                                             </div>
                                         )}
 
                                         <button 
                                             type="submit"
-                                            disabled={isLoading}
+                                            disabled={carregando}
                                             className="w-full bg-[#0d1f3c] hover:bg-[#0a1628] text-white font-black text-xs uppercase tracking-[0.2em] py-4 rounded-2xl shadow-suave hover:shadow-media transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
                                         >
-                                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'GERAR CARTÃO'}
+                                            {carregando ? <Loader2 className="w-5 h-5 animate-spin" /> : 'GERAR CARTÃO'}
                                         </button>
                                     </form>
                                 </motion.div>
@@ -300,7 +300,7 @@ export default function CartaoDigital() {
 
                                     <div className="flex gap-3 w-full max-w-[300px]">
                                         <button 
-                                            onClick={handleDownload}
+                                            onClick={aoBaixar}
                                             className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-black text-[10px] uppercase tracking-widest py-3 rounded-2xl transition-all border border-slate-200 flex items-center justify-center gap-2 shadow-sm"
                                         >
                                             <Download className="w-3.5 h-3.5" /> Salvar

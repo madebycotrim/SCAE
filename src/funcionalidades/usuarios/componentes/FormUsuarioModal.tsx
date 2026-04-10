@@ -69,8 +69,8 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
 
     return (
         <ModalUniversal
-            titulo={usuario ? "Ajustar Privilégios" : "Convidar para a Equipe"}
-            subtitulo={usuario ? `Gerenciando permissões de ${mascararDadoPessoal(usuario.email, 'email')}` : "Adicione um novo integrante à equipe administrativa da unidade."}
+            titulo={usuario ? "Ajustar Privilégios" : "Conceder Acesso"}
+            subtitulo={usuario ? `Gerenciando permissões de ${mascararDadoPessoal(usuario.email, 'email')}` : "Adicione uma nova conta à gestão da unidade."}
             icone={usuario ? Shield : Plus}
             aoFechar={aoFechar}
             tamanho="lg"
@@ -142,7 +142,7 @@ export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUs
                         tamanho="lg"
                         icone={usuario ? UserCheck : Plus}
                         onClick={manipularSalvar}
-                        loading={carregando}
+                        carregando={carregando}
                     >
                         {usuario ? 'Atualizar Permissões' : 'Confirmar Convite'}
                     </Botao>

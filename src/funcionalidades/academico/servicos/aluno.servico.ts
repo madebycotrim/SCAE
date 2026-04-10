@@ -12,8 +12,9 @@ const log = criarRegistrador('AlunoServico');
  */
 export const alunoServico = {
     /**
-     * Busca dados diretamente da API (D1) para o Painel Administrativo.
-     * Não há fallback para banco local aqui para evitar dados obsoletos no Admin.
+     * Busca os dados acadêmicos (alunos e turmas) diretamente do servidor central.
+     * @returns {Promise<{ alunos: Aluno[], turmas: any[] }>} Objeto contendo listas de alunos e turmas ordenadas.
+     * @throws {Error} Caso a requisição ao servidor falhe.
      */
     async carregarOnline() {
         try {
@@ -33,7 +34,11 @@ export const alunoServico = {
     },
 
     /**
-     * Salva ou atualiza um aluno diretamente no servidor.
+     * Realiza o cadastro ou edição de um aluno no servidor.
+     * @param aluno - Objeto com os dados do aluno a serem salvos.
+     * @param ehEdicao - Booleano indicando se é uma atualização de registro existente.
+     * @param alunoAnterior - (Opcional) Dados prévios do aluno para fins de auditoria em caso de edição.
+     * @throws {Error} Caso o sistema esteja offline ou a API retorne erro.
      */
     async salvarAluno(aluno: Aluno, ehEdicao: boolean, alunoAnterior?: Aluno): Promise<void> {
         if (!navigator.onLine) {
@@ -47,14 +52,12 @@ export const alunoServico = {
         };
 
         try {
-            // Se for edição, usa PATCH (api.atualizar). Se for novo, usa POST (api.enviar).
             if (ehEdicao) {
                 await api.atualizar('/academico/alunos', alunoFinal);
             } else {
                 await api.enviar('/academico/alunos', alunoFinal);
             }
             
-            // Auditoria completa: Novo vs Anterior
             await Registrador.registrar(
                 ehEdicao ? 'EDITAR_ALUNO' : 'CRIAR_ALUNO', 
                 'aluno', 
@@ -65,7 +68,6 @@ export const alunoServico = {
             
             log.info(`Aluno ${ehEdicao ? 'atualizado' : 'cadastrado'} online com sucesso`);
 
-            // --- Gatilho Instantâneo p/ Agente Local (Sync Real-Time) ---
             fetch('http://127.0.0.1:1912/sync-now', { 
                 method: 'POST',
                 mode: 'no-cors' 
@@ -77,7 +79,9 @@ export const alunoServico = {
     },
 
     /**
-     * Remove um aluno diretamente no servidor.
+     * Remove um registro de aluno do servidor central.
+     * @param matricula - Número de matrícula único do aluno.
+     * @throws {Error} Caso falte conexão ou a remoção seja bloqueada pelo servidor.
      */
     async excluirAluno(matricula: string): Promise<void> {
         if (!navigator.onLine) {
@@ -89,7 +93,6 @@ export const alunoServico = {
             await Registrador.registrar('DELETAR_ALUNO', 'aluno', matricula, { status: 'online_admin' });
             log.info('Aluno removido do servidor com sucesso');
 
-            // --- Gatilho Instantâneo p/ Agente Local (Sync Real-Time) ---
             fetch('http://127.0.0.1:1912/sync-now', { 
                 method: 'POST',
                 mode: 'no-cors' 
@@ -102,7 +105,9 @@ export const alunoServico = {
     },
 
     /**
-     * Promove um lote de alunos diretamente no servidor.
+     * Atualiza a enturmação de múltiplos alunos simultaneamente.
+     * @param matriculas - Lista de matrículas dos alunos a serem promovidos.
+     * @param novaTurmaId - Identificador da nova turma de destino.
      */
     async promoverEmLote(matriculas: string[], novaTurmaId: string): Promise<void> {
         if (!navigator.onLine) {
@@ -126,7 +131,10 @@ export const alunoServico = {
     },
 
     /**
-     * Importa alunos enviando lote diretamente para o servidor.
+     * Processa a importação de uma lista de alunos, validando duplicatas localmente antes do envio.
+     * @param dados - Array de dados brutos (objetos ou matrizes) vindos da planilha.
+     * @param alunosExistentes - Lista atual de alunos para verificação de duplicidade de matrícula.
+     * @returns {Promise<ResultadoImportacao>} Resumo do processamento (total, sucessos, erros e detalhes).
      */
     async importarAlunos(dados: any[], alunosExistentes: Aluno[]): Promise<ResultadoImportacao> {
         if (!navigator.onLine) {
@@ -183,7 +191,6 @@ export const alunoServico = {
                 await api.enviar('/academico/alunos', novosAlunos);
                 log.info(`Importação concluída: ${novosAlunos.length} alunos salvos no servidor.`);
                 
-                // --- Gatilho Instantâneo p/ Agente Local (Sync Real-Time) ---
                 fetch('http://127.0.0.1:1912/sync-now', { method: 'POST', mode: 'no-cors' }).catch(() => {});
             } catch (erro) {
                 log.error('Falha ao importar lote no servidor', erro);

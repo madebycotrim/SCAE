@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Loader2 } from 'lucide-react';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
+import { EMAIL_RAIZ } from '@/compartilhado/constantes/seguranca';
 
 export default function LoginCentral() {
     const [loading, definirLoading] = useState(false);
@@ -12,7 +13,7 @@ export default function LoginCentral() {
 
     useEffect(() => {
         if (usuarioAtual) {
-            if (usuarioAtual.email === 'madebycotrim@gmail.com') {
+            if (usuarioAtual.email === EMAIL_RAIZ) {
                 navigate('/central/escolas', { replace: true });
             } else {
                 definirErro(`Acesso Negado. Email não autorizado: ${usuarioAtual.email}`);

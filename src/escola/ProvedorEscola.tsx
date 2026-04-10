@@ -16,6 +16,7 @@ export interface PerfilEscola {
     tipoEscola?: 'publica' | 'privada';
     foro?: string;
     nomeDPO?: string;
+    emailDPO?: string;
     qrDinamico: boolean;
     saidaObrigatoria: boolean;
     ttsFraseSucesso?: string;
@@ -58,6 +59,8 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                     saidaObrigatoria: dados.saida_obrigatoria ?? true,
                     metodosAcesso: (dados.metodoAcesso || dados.metodo_acesso || 'QRCODE').split(',').map((s: string) => s.trim()).filter(Boolean),
                     logoUrl: dados.logo_url || dados.logoUrl,
+                    nomeDPO: dados.nome_dpo || dados.nomeDPO || 'Encarregado SCAE',
+                    emailDPO: dados.email_dpo || dados.emailDPO || 'privacidade@catraki.com.br',
                     provedorAuth: dados.provedorAuth || 'google',
                 };
 

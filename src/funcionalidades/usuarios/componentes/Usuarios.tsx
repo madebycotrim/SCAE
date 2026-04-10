@@ -130,7 +130,7 @@ export default function Usuarios() {
 
     return (
         <LayoutAdministrativo
-            titulo="Equipe da Escola"
+            titulo="Gestão de Usuários"
             subtitulo="Gerencie quem pode acessar e operar o sistema na unidade"
             acoes={AcoesHeader}
             carregando={carregando}

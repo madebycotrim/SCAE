@@ -14,7 +14,6 @@ export const PaginaLogin = lazy(() => import('@/funcionalidades/usuarios/compone
 export const PaginaPainel = lazy(() => import('@/funcionalidades/dashboard/componentes/Painel'));
 export const PaginaAlunos = lazy(() => import('@/funcionalidades/academico/componentes/Alunos'));
 export const PaginaTurmas = lazy(() => import('@/funcionalidades/academico/componentes/Turmas'));
-export const PaginaTerminalAcesso = lazy(() => import('@/funcionalidades/controle-acesso/componentes/TerminalAcesso'));
 export const PaginaQuiosqueAutoatendimento = lazy(() => import('@/funcionalidades/controle-acesso/componentes/QuiosqueAutoatendimento'));
 export const PaginaRelatorios = lazy(() => import('@/funcionalidades/relatorios/componentes/Relatorios'));
 export const PaginaAuditoria = lazy(() => import('@/funcionalidades/auditoria/componentes/RegistroAuditoria'));

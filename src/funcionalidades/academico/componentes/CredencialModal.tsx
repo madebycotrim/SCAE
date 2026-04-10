@@ -206,7 +206,7 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                                         tamanho="lg"
                                         icone={Fingerprint}
                                         onClick={iniciarCadastro}
-                                        loading={carregandoBio}
+                                        carregando={carregandoBio}
                                     >
                                         {statusBio === 'CADASTRADO' ? 'Recadastrar' : 'Capturar'}
                                     </Botao>
