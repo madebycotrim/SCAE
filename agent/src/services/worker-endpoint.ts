@@ -106,10 +106,11 @@ export class WorkerApi {
         const rawHardwareId = partes[partes.length - 1] || '0';
         const hardwareIdNum = parseInt(rawHardwareId, 10) || 0;
 
-        // Garante que o timestamp esteja em formato ISO para o Worker (YYYY-MM-DDTHH:MM:SSZ)
+        // Garante que o timestamp esteja em formato ISO para o Worker (YYYY-MM-DDTHH:MM:SS)
+        // Removido o 'Z' para evitar que o worker aplique offset de timezone desnecessariamente
         let dataIso = e.timestamp_acesso;
         if (dataIso && !dataIso.includes('T')) {
-            dataIso = dataIso.replace(' ', 'T') + 'Z';
+            dataIso = dataIso.replace(' ', 'T');
         }
 
         // Sanitização total para evitar 500 na Nuvem (D1)

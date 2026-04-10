@@ -225,8 +225,8 @@ async function monitorarLeitor(leitor: ILeitor) {
         
         try {
             await runSql(`
-                INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, sincronizado)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+                INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
             `, [
                 idUnico,
                 leitor.id,
@@ -234,7 +234,8 @@ async function monitorarLeitor(leitor: ILeitor) {
                 String(matriculaParaBusca),
                 nomeAcesso,
                 statusAcesso,
-                ev.autorizado ? 1 : 0
+                ev.autorizado ? 1 : 0,
+                new Date().toISOString()
             ]);
 
             // ⚡ SÓ PROCESSA SE FOR UM REGISTRO NOVO (Não duplicado)

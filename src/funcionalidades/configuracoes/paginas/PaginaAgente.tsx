@@ -494,28 +494,52 @@ export default function PaginaAgente() {
                     <div className="space-y-6">
                         <CartaoConteudo className="p-6">
                              <div className="flex items-center justify-between mb-6 px-2">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fluxo Real-Time</h4>
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Radar</h4>
                                 <button onClick={limparHistorico} className="text-[9px] font-black text-rose-500 uppercase flex items-center gap-1.5"><Trash2 size={12} /> Limpar</button>
                             </div>
                             <div className="space-y-3">
-                                {(statusLocal?.stats?.ultimosEventos || []).map((ev, i) => (
-                                    <div key={i} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col gap-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black text-eletrico bg-white border border-slate-100 px-2 py-0.5 rounded-md uppercase tracking-tighter">
-                                                {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                            <div className={`w-2 h-2 rounded-full ${ev.tipo === 'NEGADO' || ev.tipo === 'TURNO_ERRADO' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
-                                        </div>
-                                        <div>
-                                            <p className="text-[11px] font-black text-slate-800 uppercase truncate leading-none mb-1">{ev.nome}</p>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase truncate">{ev.tipo} • {ev.detalhe || 'OK'}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                {(statusLocal?.stats?.ultimosEventos || []).map((ev, i) => {
+                                    const isErro = ev.tipo === 'NEGADO' || ev.tipo === 'TURNO_ERRADO' || ev.tipo === 'FORA_HORARIO';
+                                    const isSaida = ev.tipo === 'SAIDA';
+
+                                    return (
+                                        <motion.div 
+                                            key={i} 
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            className="p-3 bg-white border border-slate-100 rounded-2xl flex items-center justify-between group hover:border-eletrico/20 hover:shadow-sm transition-all"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${isErro ? 'bg-rose-50 text-rose-500' : isSaida ? 'bg-amber-50 text-amber-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                                    {isErro ? <XCircle size={16} /> : isSaida ? <Zap size={16} /> : <Activity size={16} />}
+                                                </div>
+                                                <div>
+                                                    <p className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">{ev.nome}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-[8px] font-bold text-slate-400 uppercase">
+                                                            {ev.matricula}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="text-right">
+                                                <p className="text-[11px] font-black text-slate-900 leading-none mb-1">
+                                                    {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase ${isErro ? 'bg-rose-100 text-rose-600' : isSaida ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                                    {ev.tipo}
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
                                 {(!statusLocal?.stats?.ultimosEventos || statusLocal.stats.ultimosEventos.length === 0) && (
-                                    <div className="py-10 text-center">
-                                        <Clock className="mx-auto text-slate-200 mb-2" size={24} />
-                                        <p className="text-[9px] font-black text-slate-300 uppercase">Aguardando acessos...</p>
+                                    <div className="py-12 text-center">
+                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <Clock className="text-slate-200" size={20} />
+                                        </div>
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Aguardando atividade...</p>
                                     </div>
                                 )}
                             </div>

@@ -108,7 +108,16 @@ async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Respons
         const [countResult, dataResult] = await contexto.env.DB_SCAE.batch([
             contexto.env.DB_SCAE.prepare(`SELECT COUNT(*) as total ${queryBase}`).bind(...params),
             contexto.env.DB_SCAE.prepare(
-                `SELECT id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura as metodo_validacao, timestamp_acesso as timestamp, sincronizado ${queryBase} ORDER BY timestamp_acesso DESC LIMIT ? OFFSET ?`
+                `SELECT 
+                    r.id, r.escola_id, r.aluno_matricula, r.tipo_movimentacao, 
+                    r.metodo_leitura as metodo_validacao, r.timestamp_acesso as timestamp, r.sincronizado,
+                    a.nome_completo as aluno_nome,
+                    t.nome as turma_nome
+                 FROM registros_acesso r
+                 LEFT JOIN alunos a ON r.aluno_matricula = a.matricula AND r.escola_id = a.escola_id
+                 LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
+                 ${queryBase.replace('WHERE', 'WHERE r.')} 
+                 ORDER BY r.timestamp_acesso DESC LIMIT ? OFFSET ?`
             ).bind(...params, porPagina, offset)
         ]);
 

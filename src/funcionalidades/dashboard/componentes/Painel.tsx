@@ -140,16 +140,13 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                     <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover/card:scale-110 ${isSaida ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'}`}>
                                         {isSaida ? <LogOut size={20} /> : <Activity size={20} />}
                                     </div>
-                                    <div className="max-w-[150px] overflow-hidden">
-                                        <p className="text-[12px] font-black text-slate-800 uppercase leading-none mb-1 truncate">
+                                    <div>
+                                        <p className="text-[12px] font-black text-slate-800 uppercase leading-none mb-1">
                                             {alunoData?.nome_completo || reg.aluno_nome || 'Acesso Identificado'}
                                         </p>
                                         <div className="flex items-center gap-2">
-                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                                {reg.tipo_movimentacao}
-                                            </span>
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight truncate">
-                                                {alunoData?.turma_id || '---'}
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                                                {reg.aluno_matricula} • {reg.turma_nome || alunoData?.turma_id || 'SEM TURMA'}
                                             </span>
                                         </div>
                                     </div>
@@ -159,9 +156,9 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                     <p className="text-[11px] font-black text-slate-900 leading-none mb-1">
                                         {new Date(reg.timestamp || reg.timestamp_acesso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
-                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
-                                        {reg.metodo_leitura || 'Biometria'}
-                                    </p>
+                                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                        {reg.tipo_movimentacao}
+                                    </span>
                                 </div>
                             </motion.div>
                         );
