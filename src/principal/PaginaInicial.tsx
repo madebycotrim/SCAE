@@ -11,6 +11,7 @@ import { ModalSobre } from './componentes/ModalSobre';
 import { ModalContato } from './componentes/ModalContato';
 import { RodapeInicial } from './componentes/RodapeInicial';
 import { SEO } from './componentes/SEO';
+import { api } from '@/compartilhado/servicos/api';
 
 interface EscolaCadastrada {
     id: string;
@@ -29,10 +30,8 @@ export default function PaginaInicial() {
 
     // Carrega todas as escolas cadastradas ao montar a página
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL || '/api';
-        fetch(`${apiUrl}/publico/escolas`)
-            .then(r => r.ok ? r.json() : { dados: [] })
-            .then(dados => definirEscolasCadastradas(dados.dados || []))
+        api.obter<any>('/publico/escolas')
+            .then(dados => definirEscolasCadastradas(dados || []))
             .catch(() => definirEscolasCadastradas([]));
     }, []);
 
@@ -40,12 +39,10 @@ export default function PaginaInicial() {
         definirCarregandoDadosEscola(true);
         
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || '/api';
-            const resposta = await fetch(`${apiUrl}/publico/escolas/${slug}`);
+            // Usando a api centralizada para evitar erros de parsing HTML
+            const infoEscola = await api.obter<any>(`/publico/escola/${slug}`);
             
-            if (resposta.ok) {
-                const dados = await resposta.json();
-                const infoEscola = dados.dados;
+            if (infoEscola) {
                 
                 // 🚀 PRIORIDADE 1: Se o método NÃO for QRCODE, redireciona IMEDIATAMENTE
                 if (infoEscola?.metodo_entrada !== 'QRCODE') {

@@ -178,20 +178,31 @@ export default function TelaAcesso() {
                     </div>
 
                     {/* ─── PAINEL DIREITO (Login) ─── */}
-                    <div className="flex-1 p-12 md:p-20 flex flex-col items-center justify-center bg-white relative">
-                        <div className="w-full max-w-[320px]">
+                    <div className="flex-1 p-12 md:p-16 flex flex-col items-center justify-center bg-white relative">
+                        <div className="w-full max-w-[360px] flex flex-col items-center">
+                            
+                            {/* Cabeçalho do Login */}
                             <div className="text-center mb-10">
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Acesso Restrito</h3>
-                                <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">Painel Administrativo</p>
+                                <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-3">Acesso Administrativo</h3>
+                                <div className="h-1 w-12 bg-blue-600 mx-auto rounded-full mb-4" />
+                                <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                                    Use o seu **e-mail institucional** para acessar o painel de controle.
+                                </p>
                             </div>
 
+                            {/* Badge do Domínio Autorizado */}
                             {dominioEmail && (
-                                <div className="flex justify-center mb-10">
-                                    <div className="px-5 py-2.5 bg-blue-50 rounded-full flex items-center gap-2.5 border border-blue-100">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-700" />
-                                        <span className="text-[10px] font-black text-blue-700 uppercase tracking-widest">{dominioEmail}</span>
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="flex flex-col items-center gap-2 mb-10 w-full"
+                                >
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Domínio Cadastrado</span>
+                                    <div className="px-5 py-3 bg-blue-50/50 rounded-2xl flex items-center gap-3 border border-blue-100/50 w-full justify-center">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                                        <span className="text-xs font-black text-blue-700 uppercase tracking-widest leading-none">{dominioEmail}</span>
                                     </div>
-                                </div>
+                                </motion.div>
                             )}
 
                             <motion.button
@@ -199,7 +210,7 @@ export default function TelaAcesso() {
                                 whileTap={{ scale: 0.99 }}
                                 onClick={() => handleLogin('user')}
                                 disabled={carregando}
-                                className="w-full flex items-center justify-center gap-4 py-4 px-6 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all disabled:opacity-50"
+                                className="w-full flex items-center justify-center gap-4 py-4 px-6 bg-slate-950 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-slate-900/10 hover:bg-slate-900 transition-all disabled:opacity-50"
                             >
                                 {provedorAuth === 'microsoft' ? (
                                     <svg width="18" height="18" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
@@ -221,12 +232,7 @@ export default function TelaAcesso() {
                                 )}
                             </AnimatePresence>
 
-                            <div className="mt-14 pt-8 border-t border-slate-50 text-center">
-                                <div className="flex justify-center gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                                    <span onClick={() => navegar(`/${slugEscola}/privacidade`)} className="hover:text-sky-600 cursor-pointer transition-colors">Privacidade</span>
-                                    <span onClick={() => navegar(`/${slugEscola}/suporte`)} className="hover:text-sky-600 cursor-pointer transition-colors">Suporte</span>
-                                </div>
-                            </div>
+                            <div className="mt-14 pt-8 border-t border-slate-50 text-center" />
                         </div>
                     </div>
                 </motion.div>
