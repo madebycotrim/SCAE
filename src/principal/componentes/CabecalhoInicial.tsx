@@ -21,8 +21,8 @@ export function CabecalhoInicial({ temaEscuro, aoAlternarTema, aoAbrirModalSobre
                         <span className={`text-xl font-black tracking-tight leading-none flex items-center gap-0.5 transition-colors ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
                             CATRAKI
                             <span className="relative flex h-2 w-2 mt-1">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-40"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500 shadow-sm shadow-sky-500/50"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-40"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 shadow-sm shadow-blue-600/50"></span>
                             </span>
                         </span>
                         <span className={`text-[8px] font-bold uppercase tracking-[0.3em] opacity-40 ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>

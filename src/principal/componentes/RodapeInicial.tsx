@@ -58,7 +58,7 @@ export function RodapeInicial({ temaEscuro }: RodapeInicialProps) {
                     <div className="flex items-center gap-3">
                         <div className={`h-px w-8 ${temaEscuro ? 'bg-slate-800/60' : 'bg-slate-100'}`}></div>
                         <a 
-                            href="https://github.com/madebycotrim" 
+                            href="https://linkedin.com/in/mateus-cotrim" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className={`text-[10px] font-bold uppercase tracking-[0.3em] transition-all hover:text-sky-500 ${temaEscuro ? 'text-slate-600' : 'text-slate-300'}`}
