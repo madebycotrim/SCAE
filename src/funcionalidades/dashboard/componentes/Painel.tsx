@@ -69,46 +69,47 @@ interface PropsCardEstatistica {
 }
 
 const CardEstatistica = ({ titulo, valor, subtitulo, icone: Icone, cor, tendencia, inverterTendencia }: PropsCardEstatistica) => {
-    const corAcento = {
-        marinho: 'border-l-marinho',
-        amber: 'border-l-amber-500',
-        rose: 'border-l-rose-500',
-        emerald: 'border-l-emerald-500'
+    const coresTema = {
+        marinho: { barra: 'bg-slate-700', bg: 'bg-slate-50', text: 'text-slate-600' },
+        amber: { barra: 'bg-amber-500', bg: 'bg-amber-50', text: 'text-amber-600' },
+        rose: { barra: 'bg-rose-500', bg: 'bg-rose-50', text: 'text-rose-600' },
+        emerald: { barra: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-600' }
     };
 
-    const corIcone = {
-        marinho: 'text-eletrico border-eletrico/20',
-        amber: 'text-amber-500 border-amber-200',
-        rose: 'text-rose-500 border-rose-200',
-        emerald: 'text-emerald-500 border-emerald-200'
-    };
+    const tema = coresTema[cor];
 
     return (
-        <CartaoConteudo className={`p-5 transition-all relative overflow-hidden group bg-white border border-slate-200 border-l-[6px] ${corAcento[cor]} rounded-none shadow-media-suave`}>
-            <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 bg-white ${corIcone[cor]} z-10 transition-transform group-hover:scale-105`}>
-                    <Icone size={18} strokeWidth={2} />
-                </div>
-                <div className="z-10 flex-1">
-                    <h3 className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mb-0.5 leading-none">{titulo}</h3>
-                    <div className="flex items-baseline gap-2">
-                        <p className="text-xl font-black text-slate-700 leading-tight">{valor}</p>
-                        {subtitulo && (
-                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate">{subtitulo}</p>
-                        )}
-                    </div>
-                </div>
-                {tendencia !== undefined && tendencia !== 0 && (
-                    <div className={`flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-wider ${(tendencia > 0 && !inverterTendencia) || (tendencia < 0 && inverterTendencia)
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        : 'bg-rose-50 text-rose-600 border-rose-100'
-                        }`}>
-                        {tendencia > 0 ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-                        {Math.abs(tendencia)}%
-                    </div>
-                )}
+        <div className="relative bg-white p-5 rounded-r-2xl rounded-l-none border border-slate-200 shadow-sm flex items-center gap-4 group transition-all hover:shadow-md overflow-hidden">
+            {/* Barra de Acento Lateral */}
+            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${tema.barra} opacity-80 group-hover:opacity-100 transition-all`} />
+            
+            {/* Ícone Circular (Sem Borda) */}
+            <div className={`w-12 h-12 rounded-full ${tema.bg} ${tema.text} flex items-center justify-center shrink-0`}>
+                <Icone size={22} strokeWidth={2.5} />
             </div>
-        </CartaoConteudo>
+
+            {/* Conteúdo */}
+            <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{titulo}</span>
+                <div className="flex items-baseline gap-2">
+                    <span className="text-xl font-black text-slate-800 leading-none">{valor}</span>
+                    {subtitulo && (
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate">{subtitulo}</span>
+                    )}
+                </div>
+            </div>
+
+            {/* Tendência (Pequena Tag) */}
+            {tendencia !== undefined && tendencia !== 0 && (
+                <div className={`flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 rounded-md border uppercase tracking-wider shrink-0 ${(tendencia > 0 && !inverterTendencia) || (tendencia < 0 && inverterTendencia)
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                    : 'bg-rose-50 text-rose-600 border-rose-100'
+                    }`}>
+                    {tendencia > 0 ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
+                    {Math.abs(tendencia)}%
+                </div>
+            )}
+        </div>
     );
 };
 
@@ -297,27 +298,31 @@ export default function Painel() {
         }]
     };
 
+    const { usuarioAtual } = usarAutenticacao();
+
     return (
         <LayoutAdministrativo
             titulo="Dashboard Central"
             acoes={
                 <div className="flex gap-3">
-                    <Botao 
-                        variante="secundario" 
-                        icone={Trash2} 
-                        aoClicar={async () => {
-                            if (window.confirm('🚨 CUIDADO: Isso apagará TODO o histórico de acessos (incluindo o de hoje). Deseja continuar?')) {
-                                try {
-                                    await dashboardServico.limparHistorico();
-                                    window.location.reload();
-                                } catch (e) {
-                                    alert('Erro ao limpar histórico. Verifique sua conexão.');
+                    {(usuarioAtual?.cargo === 'administrador' || usuarioAtual?.email === 'madebycotrim@gmail.com') && (
+                        <Botao 
+                            variante="secundario" 
+                            icone={Trash2} 
+                            aoClicar={async () => {
+                                if (window.confirm('🚨 CUIDADO: Isso apagará TODO o histórico de acessos (incluindo o de hoje). Deseja continuar?')) {
+                                    try {
+                                        await dashboardServico.limparHistorico();
+                                        window.location.reload();
+                                    } catch (e) {
+                                        alert('Erro ao limpar histórico. Verifique sua conexão.');
+                                    }
                                 }
-                            }
-                        }}
-                    >
-                        Limpar Logs
-                    </Botao>
+                            }}
+                        >
+                            Limpar Logs
+                        </Botao>
+                    )}
                 </div>
             }
         >

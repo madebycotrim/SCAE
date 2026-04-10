@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import { Botao, CartaoConteudo } from '@/compartilhado/componentes/UI';
-import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorClosed, Fingerprint, Smartphone, Cpu, CheckCircle2, AlertCircle, Settings } from 'lucide-react';
+import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorClosed, Fingerprint, Smartphone, Cpu, CheckCircle2, AlertCircle, Settings, Power, RefreshCw } from 'lucide-react';
 import { usarConfiguracoesEscola } from '@/compartilhado/hooks/usarConfiguracoesEscola';
+import { api } from '@/compartilhado/servicos/api';
 import toast from 'react-hot-toast';
 
 export function PaginaConfiguracoes() {
@@ -18,6 +19,20 @@ export function PaginaConfiguracoes() {
     // --- ESTADO DO AGENTE LOCAL ---
     const [statusAgente, setStatusAgente] = useState<'DESCONHECIDO' | 'RODANDO' | 'AUSENTE'>('DESCONHECIDO');
     const [infoAgente, setInfoAgente] = useState<any>(null);
+    const [enviandoComando, setEnviandoComando] = useState(false);
+
+    const enviarComandoRemoto = async (acao: string, params: any = {}) => {
+        const toastId = toast.loading('Enviando ordem para o Agente...');
+        setEnviandoComando(true);
+        try {
+            await api.enviar('/agente/comandos', { acao, params });
+            toast.success('Comando enfileirado! O Agente executará em instantes.', { id: toastId });
+        } catch (e: any) {
+            toast.error(`Falha ao enviar: ${e.message}`, { id: toastId });
+        } finally {
+            setEnviandoComando(false);
+        }
+    };
 
     const verificarAgente = async (comSync = false) => {
         try {
@@ -301,14 +316,31 @@ export function PaginaConfiguracoes() {
                                 <p className="text-[11px] text-slate-500 font-medium max-w-xl leading-relaxed">Interface técnica para gerenciar o hardware local a partir da nuvem.</p>
                             </div>
                         </div>
-                        <Botao 
-                            variante="secundario" 
-                            tamanho="sm" 
-                            onClick={() => verificarAgente(true)} 
-                            className="rounded-xl border border-slate-200 text-[10px] font-bold uppercase tracking-widest px-6"
-                        >
-                            Atualizar
-                        </Botao>
+                        <div className="flex items-center gap-2">
+                            <Botao 
+                                variante="ghost" 
+                                tamanho="sm" 
+                                onClick={() => verificarAgente(true)} 
+                                icone={RefreshCw}
+                                className="rounded-xl border border-slate-100 text-[10px] font-bold uppercase tracking-widest px-4"
+                            >
+                                Atualizar
+                            </Botao>
+                            <Botao 
+                                variante="secundario" 
+                                tamanho="sm" 
+                                icone={Power}
+                                onClick={() => {
+                                    if(confirm('Reiniciar o Agente remotamente? Isso cortará a conexão por alguns segundos.')) {
+                                        enviarComandoRemoto('REBOOT_AGENT');
+                                    }
+                                }}
+                                carregando={enviandoComando}
+                                className="rounded-xl border border-slate-200 text-[10px] font-bold uppercase tracking-widest px-6"
+                            >
+                                Reiniciar Agente
+                            </Botao>
+                        </div>
                     </div>
                 </div>
             </div>

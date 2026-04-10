@@ -33,6 +33,7 @@ export interface AgenteConfig {
   janelas?: any[]; // Regras de horário para classificação entrada/saída
   ultimo_sinc_alunos?: string; // ISO 8601 do último aluno sincronizado (Delta Sync)
   porta_agente?: number; // Porto local para recebimento de eventos (Padrão 1912)
+  mensagens_no_hardware?: boolean; // Se deve exibir saudações (BOM DIA, NOME) no visor
 }
 
 // Configuração padrão de fábrica

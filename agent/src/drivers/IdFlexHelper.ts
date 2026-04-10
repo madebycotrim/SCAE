@@ -35,13 +35,17 @@ export const IdFlexHelper = {
   /** Realiza requisição REST para o iDFlex */
   async requisitar(cfg: IdFlexConfig, endpoint: string, dados: any = {}, msTimeout = 5000): Promise<any> {
     return new Promise((resolve, reject) => {
-      const payload = JSON.stringify(dados);
-      const url = `http://${cfg.ip}/${endpoint}${cfg.token ? `?session=${cfg.token}` : ''}`;
+      const isBinario = Buffer.isBuffer(dados);
+      const payload = isBinario ? dados : JSON.stringify(dados);
+      
+      // Ajusta a concatenação da sessão (usa & se já houver ? no endpoint)
+      const separator = endpoint.includes('?') ? '&' : '?';
+      const url = `http://${cfg.ip}/${endpoint}${cfg.token ? `${separator}session=${cfg.token}` : ''}`;
 
       const options = {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': isBinario ? 'application/octet-stream' : 'application/json',
           'Content-Length': Buffer.byteLength(payload)
         },
         timeout: msTimeout
@@ -60,18 +64,16 @@ export const IdFlexHelper = {
           }
           
           try {
-            // Alguns endpoints retornam vazio ou texto puro em caso de sucesso (raro mas acontece)
             if (!body) return resolve({});
-            const json = JSON.parse(body);
-            resolve(json);
+            // Se a resposta começar com { ou [ tenta JSON, senão resolve o body bruto
+            if (body.trim().startsWith('{') || body.trim().startsWith('[')) {
+                const json = JSON.parse(body);
+                return resolve(json);
+            }
+            resolve({ status: 'ok', body });
           } catch {
-            // Em caso de erro no JSON, retorna o body bruto se for string de sucesso
             if (body.toLowerCase().includes('ok')) return resolve({ status: 'ok' });
-            
-            const err = new Error(`Resposta iDFlex em ${endpoint} inválida (JSON Malformado): ${body.slice(0, 100)}`);
-            (err as any).code = 'JSON_MALFORMED';
-            (err as any).body = body;
-            reject(err);
+            resolve({ status: 'ok', body }); // Fallback para não quebrar fluxos binários
           }
         });
       });

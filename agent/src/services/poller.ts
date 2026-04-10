@@ -261,6 +261,13 @@ async function monitorarLeitor(leitor: ILeitor) {
                     }
                 });
             }
+
+            // ⚡ EFEITO UAU: Exibe saudação personalizada no visor FÍSICO da catraca
+            if (ev.autorizado && config.mensagens_no_hardware !== false) {
+                const primeiroNome = (aluno?.nome_completo || ev.nomeHardware || '').split(' ')[0].toUpperCase();
+                const saudacao = statusAcesso === 'ENTRADA' ? 'BOM DIA' : 'ATE LOGO';
+                leitor.exibirMensagemHardware?.(`${saudacao}, ${primeiroNome}`, 2500);
+            }
         } catch (e: any) {
             // Se o erro for de restrição de chave única (Unique Constraint), apenas ignoramos 
             // pois significa que esse log já foi processado anteriormente.

@@ -73,14 +73,19 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                     toast.error(`Capturada, mas erro na nuvem: ${errCloud.message}`, { id: toastId });
                 }
             } else {
-                // Tradução amigável
-                const erroBruto = (data.erro || data.mensagem || '').toLowerCase();
-                let msg = 'Falha na captura.';
-                if (erroBruto.includes('cancel') || erroBruto.includes('cancelado')) msg = 'Operação cancelada no leitor.';
-                else if (erroBruto.includes('timeout')) msg = 'Tempo esgotado.';
-                else if (data.erro) msg = data.erro;
+                // Tradução amigável vinda do Agente
+                const msg = data.erro || 'Falha na captura física.';
+                
+                if (msg.toLowerCase().includes('cadastrada') || msg.toLowerCase().includes('already')) {
+                    toast.error(msg, { id: toastId, duration: 5000 });
+                } else {
+                    toast.error(msg, { id: toastId });
+                }
 
-                toast.error(msg, { id: toastId });
+                // Se for um erro crítico de hardware ou conexão, atualiza o status visual
+                if (msg.includes('não detectado') || msg.includes('conexão')) {
+                    setStatusBio('ERRO_AGENTE');
+                }
             }
         } catch (e) {
             toast.error('Erro de conexão com o Agente local.', { id: toastId });
@@ -186,8 +191,16 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                                 </div>
                             </div>
                             
-                            <div className="flex flex-col gap-3">
-                                {statusBio === 'PENDENTE' || statusBio === 'CADASTRADO' ? (
+                        </div>
+                    )}
+
+                    <div className="w-full grid grid-cols-2 gap-3">
+                        {modoDigital ? (
+                            <>
+                                <Botao variante="secundario" tamanho="lg" onClick={aoFechar}>
+                                    Fechar
+                                </Botao>
+                                {(statusBio === 'PENDENTE' || statusBio === 'CADASTRADO') && (
                                     <Botao
                                         variante={statusBio === 'CADASTRADO' ? 'secundario' : 'primario'}
                                         tamanho="lg"
@@ -195,26 +208,25 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                                         onClick={iniciarCadastro}
                                         loading={carregandoBio}
                                     >
-                                        {statusBio === 'CADASTRADO' ? 'Recadastrar Dedo' : 'Iniciar Captura'}
+                                        {statusBio === 'CADASTRADO' ? 'Recadastrar' : 'Capturar'}
                                     </Botao>
-                                ) : statusBio === 'ERRO_AGENTE' ? (
-                                    <Botao variante="secundario" tamanho="lg" onClick={verificarBiometria}>
-                                        Tentar Conectar Novamente
+                                )}
+                                {statusBio === 'ERRO_AGENTE' && (
+                                    <Botao variante="primario" tamanho="lg" onClick={verificarBiometria}>
+                                        Reconectar
                                     </Botao>
-                                ) : null}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="w-full grid grid-cols-2 gap-3">
-                        {!modoDigital && (
-                            <Botao variante="secundario" tamanho="lg" icone={Printer} onClick={handleImprimir}>
-                                Imprimir
-                            </Botao>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <Botao variante="secundario" tamanho="lg" onClick={aoFechar}>
+                                    Fechar
+                                </Botao>
+                                <Botao variante="primario" tamanho="lg" icone={Printer} onClick={handleImprimir}>
+                                    Imprimir
+                                </Botao>
+                            </>
                         )}
-                        <Botao variante={modoDigital ? "secundario" : "primario"} tamanho="lg" onClick={aoFechar}>
-                            Fechar
-                        </Botao>
                     </div>
 
                     {!modoDigital && (

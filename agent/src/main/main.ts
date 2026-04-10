@@ -157,7 +157,7 @@ function createWindow() {
                 res.writeHead(400); res.end(JSON.stringify({ ok: false, erro: 'Hardware não suporta captura.' }));
                 return;
             }
-            const resultado = await leitor.iniciarCaptura(aluno_id);
+            const resultado = await leitor.iniciarCaptura(Number(aluno_id));
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(resultado));
             return;

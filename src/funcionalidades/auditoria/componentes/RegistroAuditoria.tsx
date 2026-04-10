@@ -18,7 +18,9 @@ import {
     RefreshCw,
     ShieldOff,
     Terminal,
-    Fingerprint
+    Fingerprint,
+    Search,
+    AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -101,6 +103,8 @@ export default function RegistroAuditoria() {
     };
 
     const { usuarioAtual } = usarAutenticacao();
+    const [filtroAcao, definirFiltroAcao] = useState<'todos' | 'sucesso' | 'aviso' | 'critico'>('todos');
+
     const logsFiltrados = logs.filter((l: any) => {
         // Regra de privacidade: logs do madebycotrim são invisíveis para outros usuários
         const ehMadeByCotrim = l.usuario_email?.toLowerCase().includes('madebycotrim');
@@ -108,13 +112,20 @@ export default function RegistroAuditoria() {
         
         if (ehMadeByCotrim && !euSouMadeByCotrim) return false;
 
-        return (
-            !busca.trim() ||
+        const matchBusca = !busca.trim() ||
             l.acao?.toLowerCase().includes(busca.toLowerCase()) ||
             l.usuario_email?.toLowerCase().includes(busca.toLowerCase()) ||
             l.entidade_tipo?.toLowerCase().includes(busca.toLowerCase()) ||
-            (mapaUsuarios[l.usuario_email] || '').toLowerCase().includes(busca.toLowerCase())
-        );
+            (mapaUsuarios[l.usuario_email] || '').toLowerCase().includes(busca.toLowerCase());
+
+        const act = l.acao?.toUpperCase() || '';
+        const matchFiltro = filtroAcao === 'todos'
+            ? true
+            : filtroAcao === 'sucesso' ? (act.includes('SUCESSO') || act.includes('CRIAR') || act.includes('LOGIN'))
+            : filtroAcao === 'aviso' ? (act.includes('ATUALIZAR') || act.includes('EDITAR'))
+            : (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR'));
+
+        return matchBusca && matchFiltro;
     });
 
     const totalPaginas = Math.ceil(logsFiltrados.length / LOGS_PER_PAGE) || 1;
@@ -154,7 +165,46 @@ export default function RegistroAuditoria() {
             carregando={carregando}
         >
 
-            <CartaoConteudo className="flex flex-col h-[calc(100vh-165px)] overflow-hidden bg-white border-slate-100 shadow-[0_15px_60px_rgba(0,0,0,0.03)] rounded-2xl">
+            <div className="mb-6 flex items-center bg-white border border-slate-200 shadow-sm p-4 rounded-3xl gap-6">
+                <div className="flex flex-col gap-2 flex-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 leading-none">Rastrear Atividade</label>
+                    <div className="relative group">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-eletrico transition-colors" />
+                        <input 
+                            placeholder="Ação, usuário, contexto ou rastro..."
+                            value={busca}
+                            className="w-full bg-slate-50 border border-slate-100 focus:bg-white focus:border-eletrico transition-all h-11 pl-12 pr-4 rounded-2xl text-[12px] font-bold text-slate-700 outline-none"
+                            readOnly 
+                        />
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-2 shrink-0">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Classificação</label>
+                    <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11">
+                        {[
+                            { id: 'todos', label: 'Todos', icone: Terminal },
+                            { id: 'sucesso', label: 'Sucesso', icone: Activity },
+                            { id: 'aviso', label: 'Avisos', icone: Activity },
+                            { id: 'critico', label: 'Críticos', icone: AlertTriangle }
+                        ].map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => definirFiltroAcao(item.id as any)}
+                                className={`px-4 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroAcao === item.id
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/10'
+                                    : 'text-slate-400 border-transparent hover:text-slate-600'
+                                    }`}
+                            >
+                                <item.icone size={12} />
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <CartaoConteudo className="flex flex-col h-[calc(100vh-270px)] overflow-hidden bg-white border-slate-100 shadow-[0_15px_60px_rgba(0,0,0,0.03)] rounded-2xl">
                 {/* Table Area */}
                 <div className="flex-1 overflow-auto relative custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">

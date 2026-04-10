@@ -43,6 +43,56 @@ export async function processarComandosNuvem(comandos: any[]) {
                     sucesso = true;
                     break;
 
+                case 'SET_HARDWARE_BANNER':
+                    const b64 = cmd.params?.base64;
+                    // Note: b64 pode ser string vazia para resetar para o padrão
+                    if (b64 === undefined || b64 === null) {
+                        console.warn('[Comandos] ⚠ Banner inválido (parâmetro base64 ausente).');
+                        break;
+                    }
+                    
+                    console.log(`[Comandos] 🎨 ${b64 === '' ? 'Resetando' : 'Aplicando novo'} banner de standby nos leitores...`);
+                    const leitoresB = obterLeitoresAtivos();
+                    for (const l of leitoresB) {
+                        if ((l as any).setLogo) {
+                            await (l as any).setLogo(b64);
+                        }
+                    }
+                    sucesso = true;
+                    break;
+
+                case 'SET_DISPLAY_MESSAGE':
+                    const msg = cmd.params?.mensagem || 'BEM-VINDO!';
+                    const time = cmd.params?.timeout || 5000;
+                    console.log(`[Comandos] 💬 Exibindo mensagem nos leitores: "${msg}"`);
+                    const leitoresMsg = obterLeitoresAtivos();
+                    for (const l of leitoresMsg) {
+                        l.exibirMensagemHardware?.(msg, time);
+                    }
+                    sucesso = true;
+                    break;
+
+                case 'CLEAN_HARDWARE':
+                    console.warn('[Comandos] 🧹 INICIANDO FAXINA DE HARDWARE (ZUMBI CLEANER)...');
+                    const { getSql } = require('../infra/db');
+                    const leitoresF = obterLeitoresAtivos();
+                    for (const l of leitoresF) {
+                        if (l.listarAlunos) {
+                            const alunosHardware = await l.listarAlunos();
+                            console.log(`[Cleaner] ${l.nome}: Verificando ${alunosHardware.length} usuários...`);
+                            for (const ah of alunosHardware) {
+                                // O registration no iDFlex é o link com a nossa matrícula
+                                const existe = await getSql('SELECT 1 FROM alunos_cache WHERE matricula = ?', [ah.registration]);
+                                if (!existe && ah.registration) {
+                                    console.log(`[Cleaner] 🚫 Removendo zumbi: ${ah.name} (Matrícula: ${ah.registration})`);
+                                    await l.removerAluno(ah.registration);
+                                }
+                            }
+                        }
+                    }
+                    sucesso = true;
+                    break;
+
                 case 'ABRIR_CATRACA':
                     const leitorId = cmd.params?.leitorId;
                     const leitores = obterLeitoresAtivos();

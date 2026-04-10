@@ -250,7 +250,7 @@ export class IdflexLeitor implements ILeitor {
           } catch {}
 
           await this.requisitarComToken('create_objects.fcgi', {
-            values: aluno.templates.map(t => ({ user_id: idExistente, template: t })),
+            values: aluno.templates.map(t => ({ user_id: Number(idExistente), template: t })),
             object: 'fingerprints'
           });
         }
@@ -275,7 +275,7 @@ export class IdflexLeitor implements ILeitor {
       // Cadastra Digitais se fornecidas
       if (aluno.templates && aluno.templates.length > 0) {
         await this.requisitarComToken('create_objects.fcgi', {
-          values: aluno.templates.map(t => ({ user_id: idPretendido, template: t })),
+          values: aluno.templates.map(t => ({ user_id: Number(idPretendido), template: t })),
           object: 'fingerprints'
         });
       }
@@ -367,14 +367,14 @@ export class IdflexLeitor implements ILeitor {
       try {
         await this.requisitarComToken('destroy_objects.fcgi', {
           object: 'fingerprints',
-          where: { fingerprints: { user_id: userId } }
+          where: { fingerprints: { user_id: Number(userId) } }
         });
       } catch {}
 
       // 1. TENTATIVA DIRETA DE ENROLL
       // Usamos sync:true e timeout de 60s para esperar a interação física completa
       await this.requisitarComToken('remote_enroll.fcgi', {
-        user_id: userId,
+        user_id: Number(userId),
         type: 'biometry',
         save: true,
         sync: true,
@@ -388,10 +388,22 @@ export class IdflexLeitor implements ILeitor {
       let bodyErro: any = {};
       try { if (e.body) bodyErro = JSON.parse(e.body); } catch {}
 
+      const erroHardware = (bodyErro.error || msgErro || "").toLowerCase();
+
+      // 1. MAPEAMENTO DE ERROS AMIGÁVEIS
+      if (erroHardware.includes('already') || erroHardware.includes('exists') || erroHardware.includes('duplicat')) {
+          msgErro = "Digital já cadastrada neste ou em outro aluno.";
+      } else if (erroHardware.includes('timeout') || erroHardware.includes('tempo esgotado')) {
+          msgErro = "Tempo esgotado. O aluno não colocou o dedo no leitor.";
+      } else if (erroHardware.includes('not found') || erroHardware.includes('inexistente')) {
+          // Mantém a lógica de self-healing abaixo se for not found
+      } else {
+          msgErro = `Erro no Leitor: ${bodyErro.error || msgErro}`;
+      }
+
       // 2. SE O USUÁRIO NÃO EXISTIR NO HARDWARE: Cria e Tenta Novamente (Self-Healing)
-      const userNotFound = msgErro.toLowerCase().includes('not found') || 
-                           bodyErro.error?.toLowerCase().includes('not found') ||
-                           bodyErro.error?.toLowerCase().includes('inexistente');
+      const userNotFound = erroHardware.includes('not found') || 
+                           erroHardware.includes('inexistente');
 
       if (userNotFound) {
         console.warn(`[iDFlex][${this.id}] Aluno ${userId} não existe no hardware. Criando registro fantasma e repetindo...`);
@@ -406,7 +418,7 @@ export class IdflexLeitor implements ILeitor {
 
           // Nova tentativa de Enroll
           await this.requisitarComToken('remote_enroll.fcgi', {
-            user_id: userId,
+            user_id: Number(userId),
             type: 'biometry',
             save: true,
             sync: true
@@ -415,12 +427,17 @@ export class IdflexLeitor implements ILeitor {
           console.log(`[iDFlex][${this.id}] Biometria vinculada com sucesso após auto-criação do ID ${userId}.`);
           return true;
         } catch (errRetry: any) {
-           msgErro = errRetry.message;
+           let msgRetry = errRetry.message;
+           try { 
+               const bodyRetry = JSON.parse(errRetry.body); 
+               if ((bodyRetry.error || "").toLowerCase().includes("already")) msgRetry = "Digital já cadastrada.";
+           } catch {}
+           msgErro = msgRetry;
         }
       }
       
       console.error(`[iDFlex][${this.id}] Falha na captura biometria: ${msgErro}`);
-      throw new Error(msgErro || 'Falha na captura física.');
+      throw new Error(msgErro);
     }
   }
 
@@ -436,7 +453,7 @@ export class IdflexLeitor implements ILeitor {
       });
 
       if (!resp.users || resp.users.length === 0) return false;
-      const idInterno = resp.users[0].id;
+      const idInterno = Number(resp.users[0].id);
       
       // 2. Limpeza Preventiva: Remove biometrias antes do usuário
       try {
@@ -589,6 +606,63 @@ export class IdflexLeitor implements ILeitor {
       return true;
     } catch (e: any) {
       console.error(`[iDFlex][${this.id}] Erro ao comandar reboot: ${e.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Altera o logo de standby do equipamento (Estratégia de 2 passos: Upload + Config)
+   */
+  async setLogo(base64: string): Promise<boolean> {
+    try {
+      if (!base64) {
+          console.log(`[iDFlex][${this.id}] Comando de RESET visual recebido...`);
+          
+          const tentativas = [
+              { general: { show_logo: "0" } },
+              { general: { show_logo: 0 } },
+              { general: { logo_mode: "0" } },
+              { general: { show_logo: "off" } }
+          ];
+
+          let sucesso = false;
+          for (const payload of tentativas) {
+              try {
+                  await this.requisitarComToken('set_configuration.fcgi', payload);
+                  console.log(`[iDFlex][${this.id}] ✓ Reset visual aplicado via:`, JSON.stringify(payload));
+                  sucesso = true;
+                  break;
+              } catch (err: any) {
+                  // Continua tentando os outros payloads
+              }
+          }
+
+          // Tenta também forçar o upload de um slot vazio se nada funcionou
+          if (!sucesso) {
+              try {
+                  await this.requisitarComToken('logo_change.fcgi?id=1', Buffer.alloc(0));
+                  sucesso = true;
+              } catch {}
+          }
+
+          return sucesso;
+      }
+
+      console.log(`[iDFlex][${this.id}] Iniciando UPLOAD de nova imagem de standby...`);
+      const buffer = Buffer.from(base64, 'base64');
+      
+      // 1. Faz o upload da imagem binária para o slot 1
+      await this.requisitarComToken('logo_change.fcgi?id=1', buffer, 15000);
+      
+      // 2. Ativa a exibição do slot 1 nas configurações gerais
+      await this.requisitarComToken('set_configuration.fcgi', { 
+        general: { show_logo: "1" } 
+      });
+
+      console.log(`[iDFlex][${this.id}] ✓ Banner atualizado com sucesso.`);
+      return true;
+    } catch (e: any) {
+      console.error(`[iDFlex][${this.id}] Erro ao atualizar logo: ${e.message}`);
       return false;
     }
   }

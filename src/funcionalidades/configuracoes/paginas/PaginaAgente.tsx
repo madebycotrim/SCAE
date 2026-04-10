@@ -6,7 +6,8 @@ import { CartaoConteudo, Botao } from '@/compartilhado/componentes/UI';
 import { 
     Activity, ArrowUp, XCircle, Clock, 
     CheckCircle2, Search, Fingerprint, Trash2,
-    User, ArrowRightCircle, Wifi, WifiOff, RefreshCw, Power, Lock, Zap, Radar, Cpu
+    User, ArrowRightCircle, Wifi, WifiOff, RefreshCw, Power, Lock, Zap, Radar, Cpu,
+    MessageSquare, Brush, Settings
 } from 'lucide-react';
 import { usarEscola } from '@/escola/ProvedorEscola';
 import { usarConsulta } from '@/compartilhado/hooks/usarConsulta';
@@ -44,6 +45,8 @@ interface StatusAgente {
     }>;
 }
 
+import { ModalComunicacaoVisual } from '@/funcionalidades/configuracoes/componentes/ModalComunicacaoVisual';
+
 export default function PaginaAgente() {
     const navegar = useNavigate();
     const escola = usarEscola();
@@ -52,6 +55,10 @@ export default function PaginaAgente() {
     const [statusNuvem, setStatusNuvem] = useState<any>(null);
     const [carregando, setCarregando] = useState(true);
     const [erroLocal, setErroLocal] = useState<string | null>(null);
+
+    // Estados para Modais
+    const [modalVisualAberto, setModalVisualAberto] = useState(false);
+    const [modalConfigAberto, setModalConfigAberto] = useState(false);
 
     // Estado para Busca de Alunos
     const [termoBusca, setTermoBusca] = useState('');
@@ -175,66 +182,144 @@ export default function PaginaAgente() {
     const onlineCount = leitores.filter((l: any) => l.online).length;
 
     const BotoesAcao = (
-        <div className="relative">
-            <button
-                onClick={() => setRadarAberto(!radarAberto)}
-                className={`
-                    flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all
-                    ${radarAberto ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}
-                `}
-            >
-                <div className="relative">
-                    <Radar size={16} className={radarAberto || onlineCount > 0 ? 'animate-pulse' : ''} />
-                    {onlineCount > 0 && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
-                    )}
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-tight">Radar</span>
-            </button>
+        <div className="flex items-center gap-2">
+            {/* BOTÃO CONFIGURAÇÕES (AGENTE) */}
+            <div className="relative">
+                <button
+                    onClick={() => setModalConfigAberto(!modalConfigAberto)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${modalConfigAberto ? 'bg-slate-200 text-slate-800' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
+                >
+                    <Settings size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-tight">Agente</span>
+                </button>
 
-            <AnimatePresence>
-                {radarAberto && (
-                    <>
-                        <div className="fixed inset-0 z-[45]" onClick={() => setRadarAberto(false)} />
-                        <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
-                        >
-                            <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
-                                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipamentos Ativos</h4>
-                                <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase">
-                                    {onlineCount} Online
-                                </span>
-                            </div>
-                            <div className="p-2 space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                {leitores.length === 0 ? (
-                                    <div className="py-8 text-center">
-                                        <Search size={24} className="mx-auto text-slate-200 mb-2" />
-                                        <p className="text-[9px] font-black text-slate-300 uppercase">Procurando...</p>
-                                    </div>
-                                ) : (
-                                    leitores.map((leitor: any) => (
-                                        <div key={leitor.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${leitor.online ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                                                    {leitor.online ? <Wifi size={14} /> : <WifiOff size={14} />}
+                <AnimatePresence>
+                    {modalConfigAberto && (
+                        <>
+                            <div className="fixed inset-0 z-[45]" onClick={() => setModalConfigAberto(false)} />
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
+                            >
+                                <div className="p-4 bg-slate-50/50 border-b border-slate-100">
+                                    <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Ferramentas de Sistema</h4>
+                                </div>
+                                <div className="p-3 flex flex-col gap-2">
+                                    <Botao variante="secundario" tamanho="sm" fullWidth icone={Power} aoClicar={() => {
+                                        if(confirm('Deseja reiniciar o AGENTE agora? Isso cortará a conexão por alguns segundos.')) {
+                                            enviarComandoRemoto('REBOOT_AGENT');
+                                            setModalConfigAberto(false);
+                                        }
+                                    }}>Reiniciar Agente</Botao>
+                                    <Botao variante="ghost" tamanho="sm" fullWidth icone={RefreshCw} aoClicar={() => {
+                                        enviarComandoRemoto('FORCE_SYNC');
+                                        setModalConfigAberto(false);
+                                    }}>Forçar Sincronia</Botao>
+                                    <Botao variante="ghost" tamanho="sm" fullWidth icone={MessageSquare} aoClicar={() => {
+                                        setModalVisualAberto(true);
+                                        setModalConfigAberto(false);
+                                    }}>Telas e Visor</Botao>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* BOTÃO RADAR */}
+            <div className="relative">
+                <button
+                    onClick={() => setRadarAberto(!radarAberto)}
+                    className={`
+                        flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all
+                        ${radarAberto ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}
+                    `}
+                >
+                    <div className="relative">
+                        <Radar size={16} className={radarAberto || onlineCount > 0 ? 'animate-pulse' : ''} />
+                        {onlineCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
+                        )}
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-tight">Radar</span>
+                </button>
+
+                <AnimatePresence>
+                    {radarAberto && (
+                        <>
+                            <div className="fixed inset-0 z-[45]" onClick={() => setRadarAberto(false)} />
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
+                            >
+                                <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                                    <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipamentos Ativos</h4>
+                                    <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase">
+                                        {onlineCount} Online
+                                    </span>
+                                </div>
+                                <div className="p-2 space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                    {leitores.length === 0 ? (
+                                        <div className="py-8 text-center">
+                                            <Search size={24} className="mx-auto text-slate-200 mb-2" />
+                                            <p className="text-[9px] font-black text-slate-300 uppercase">Procurando...</p>
+                                        </div>
+                                    ) : (
+                                        leitores.map((leitor: any) => (
+                                            <div key={leitor.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${leitor.online ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                                        {leitor.online ? <Wifi size={14} /> : <WifiOff size={14} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">{leitor.nome}</p>
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase">{leitor.ip}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">{leitor.nome}</p>
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">{leitor.ip}</p>
+                                                <div className="flex items-center gap-2">
+                                                    {leitor.online && (
+                                                        <button 
+                                                            onClick={() => {
+                                                                if(confirm(`Reiniciar o hardware ${leitor.nome}?`)) {
+                                                                    enviarComandoRemoto('REBOOT_HARDWARE', { id: leitor.id });
+                                                                }
+                                                            }}
+                                                            className="p-1.5 rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-rose-500 hover:border-rose-100 transition-all opacity-0 group-hover:opacity-100"
+                                                            title="Reiniciar este hardware"
+                                                        >
+                                                            <RefreshCw size={12} />
+                                                        </button>
+                                                    )}
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${leitor.online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-400'}`} />
                                                 </div>
                                             </div>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${leitor.online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-400'}`} />
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
+                                        ))
+                                    )}
+                                </div>
+
+                                <div className="p-3 bg-slate-50 border-t border-slate-100 flex flex-col gap-2">
+                                    <Botao 
+                                        variante="ghost" 
+                                        tamanho="sm" 
+                                        icone={Brush} 
+                                        fullWidth
+                                        aoClicar={() => {
+                                            if(confirm('Executar Faxina de Hardware? Isso remove IDs órfãos.')) enviarComandoRemoto('CLEAN_HARDWARE');
+                                        }}
+                                    >
+                                        Fazer Faxina Geral
+                                    </Botao>
+                                    <p className="text-[8px] text-center text-slate-400 font-bold uppercase tracking-widest">Remove usuários antigos do chip</p>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 
@@ -246,46 +331,49 @@ export default function PaginaAgente() {
         >
             <div className="space-y-6">
                 
-                {/* STATUS BAR */}
-                <div className="flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                {/* STATUS BAR SIMPLIFICADA */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between overflow-hidden">
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
                             <div className={`w-3 h-3 rounded-full ${statusLocal ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Local: {statusLocal ? 'Conectado' : 'Offline'}</span>
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Agente Local: {statusLocal ? 'Conectado' : 'Buscando...'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className={`w-3 h-3 rounded-full ${isOnlineNuvem ? 'bg-eletrico animate-pulse' : 'bg-rose-500'}`} />
-                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Nuvem: {isOnlineNuvem ? 'Ativo' : 'Desconectado'}</span>
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Sincronia Nuvem: {isOnlineNuvem ? 'Ativo' : 'Desconectado'}</span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <Botao variante="ghost" tamanho="sm" icone={RefreshCw} onClick={() => enviarComandoRemoto('FORCE_SYNC')}>Sincronizar Agora</Botao>
-                        <Botao variante="ghost" tamanho="sm" icone={Power} onClick={() => { if(confirm('Reiniciar o Agente remotamente?')) enviarComandoRemoto('REBOOT_AGENT'); }}>Reiniciar Agente</Botao>
-                        <Botao variante="ghost" tamanho="sm" icone={Cpu} onClick={() => { if(confirm('Reiniciar o Hardware remotamente?')) enviarComandoRemoto('REBOOT_HARDWARE'); }}>Reiniciar Hardware</Botao>
+                    <div className="flex items-center gap-4 text-slate-300">
+                        <span className="text-[9px] font-black uppercase tracking-tighter">Versão {statusLocal?.versao || '?.?'}</span>
+                        <div className="w-1 h-1 bg-slate-100 rounded-full" />
+                        <span className="text-[9px] font-black uppercase tracking-tighter truncate max-w-[150px]">{statusLocal?.escola || ''}</span>
                     </div>
                 </div>
 
                 {/* MÉTRICAS (MISTO LOCAL/NUVEM) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        {[
-                            { label: 'Entradas', valor: statusLocal?.stats?.entradas || 0, cor: 'bg-emerald-500', icone: ArrowUp, bg: 'bg-emerald-50', text: 'text-emerald-600' },
-                            { label: 'Negados/Erros', valor: statusLocal?.stats?.negados || 0, cor: 'bg-rose-500', icone: XCircle, bg: 'bg-rose-50', text: 'text-rose-600' },
-                            { label: 'Uptime', valor: statusNuvem?.uptime_seconds ? `${Math.floor(statusNuvem.uptime_seconds/3600)}h` : '--', cor: 'bg-amber-500', icone: Clock, bg: 'bg-amber-50', text: 'text-amber-600' },
-                            { label: 'Último Acesso', valor: statusLocal?.stats?.ultimoAcesso || '--:--', cor: 'bg-eletrico', icone: Activity, bg: 'bg-eletrico/10', text: 'text-eletrico' }
-                        ].map((item, i) => (
-                            <CartaoConteudo key={i} className="relative p-5 overflow-hidden">
-                                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${item.cor}`} />
-                                <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.text} flex items-center justify-center`}>
-                                    <item.icone size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
-                                    <h4 className="text-2xl font-black text-slate-800 leading-none">{item.valor}</h4>
-                                </div>
+                    {[
+                        { label: 'Fluxo Hoje', valor: statusLocal?.stats?.entradas || 0, cor: 'bg-emerald-500', icone: ArrowUp, bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100' },
+                        { label: 'Alertas / Negados', valor: statusLocal?.stats?.negados || 0, cor: 'bg-rose-500', icone: XCircle, bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100' },
+                        { label: 'Tempo de Uptime', valor: statusNuvem?.uptime_seconds ? `${Math.floor(statusNuvem.uptime_seconds/3600)}h` : '--', cor: 'bg-amber-500', icone: Clock, bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100' },
+                        { label: 'Sinal Úl. Acesso', valor: statusLocal?.stats?.ultimoAcesso || '--:--', cor: 'bg-indigo-500', icone: Activity, bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-100' }
+                    ].map((item, i) => (
+                        <div key={i} className="relative bg-white p-5 rounded-r-2xl rounded-l-none border border-slate-100 shadow-sm flex items-center gap-4 group transition-all hover:shadow-md overflow-hidden">
+                            {/* Barra de Acento Lateral */}
+                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${item.cor} opacity-60 group-hover:opacity-100 transition-all`} />
+                            
+                            {/* Ícone Circular (Sem Borda) */}
+                            <div className={`w-12 h-12 rounded-full ${item.bg} ${item.text} flex items-center justify-center shrink-0`}>
+                                <item.icone size={22} strokeWidth={2.5} />
                             </div>
-                        </CartaoConteudo>
+
+                            {/* Conteúdo */}
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
+                                <span className="text-xl font-black text-slate-800 leading-none">{item.valor}</span>
+                            </div>
+                        </div>
                     ))}
                 </div>
 
@@ -364,6 +452,11 @@ export default function PaginaAgente() {
                     </div>
                 </div>
             </div>
+            <ModalComunicacaoVisual 
+                aberto={modalVisualAberto} 
+                aoFechar={() => setModalVisualAberto(false)}
+                enviarComandoRemoto={enviarComandoRemoto}
+            />
         </LayoutAdministrativo>
     );
 }
