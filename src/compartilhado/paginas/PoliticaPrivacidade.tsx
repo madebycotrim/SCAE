@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usarEscolaOpcional } from '@/escola/ProvedorEscola';
 import { usarConteudoLegal } from '@/funcionalidades/usuarios/hooks/usarConteudoLegal';
 import { Botao } from '@/compartilhado/componentes/UI';
+import { motion } from 'framer-motion';
 
 /**
  * Página pública de Política de Privacidade.
@@ -29,10 +30,10 @@ export default function PoliticaPrivacidade() {
     return (
         <div className="min-h-screen bg-slate-100 font-[Arial,Helvetica,sans-serif] selection:bg-indigo-100 pb-12">
             {/* Header Funcional - Alinhado a h-18 (72px) */}
-            <header className="h-[72px] bg-white border-b border-slate-200 sticky top-0 z-50 shadow-suave print:hidden">
+            <header className="h-[72px] bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm print:hidden">
                 <div className="max-w-5xl h-full mx-auto px-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center border border-emerald-100 shadow-suave">
+                        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100 shadow-sm">
                             <ShieldCheck className="text-emerald-600 w-6 h-6" />
                         </div>
                         <div>
@@ -52,7 +53,11 @@ export default function PoliticaPrivacidade() {
             </header>
 
             {/* Documento Formato A4 (ABNT) */}
-            <div className="max-w-[210mm] mx-auto bg-white shadow-2xl mt-8 sm:mt-12 px-8 py-12 sm:px-[3cm] sm:py-[3cm] text-black">
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-[210mm] mx-auto bg-white shadow-2xl mt-8 sm:mt-12 px-8 py-12 sm:px-[3cm] sm:py-[3cm] text-black"
+            >
 
                 {/* Cabeçalho do Documento */}
                 <div className="text-center mb-12 font-bold uppercase">
@@ -98,14 +103,16 @@ export default function PoliticaPrivacidade() {
                             <strong>Tipo de movimentação (entrada/saída)</strong> — Finalidade: distinção entre eventos de entrada e saída nos relatórios de controle de acesso.
                         </li>
                         <li className="mb-2">
-                            <strong>Método de leitura (QR Code do celular, carteirinha ou manual)</strong> — Finalidade: auditoria e rastreabilidade do registro, permitindo identificar a origem de cada leitura realizada.
+                            <strong>Método de leitura (Biometria, QR Code ou manual)</strong> — Finalidade: auditoria e rastreabilidade do registro, permitindo identificar a origem de cada leitura realizada.
+                        </li>
+                        <li className="mb-2">
+                            <strong>Template Biométrico (Impressão Digital)</strong> — Finalidade: identificação única e segura do aluno. Nota: O sistema armazena apenas representações matemáticas (hashes) da digital, sendo tecnicamente impossível reconstruir a imagem real a partir desses dados.
                         </li>
                     </ul>
 
                     <p className="indent-[1.25cm] font-bold mt-4">
-                        O sistema NÃO coleta, em hipótese alguma, os seguintes dados: fotografia ou imagem do aluno;
-                        número de telefone; CPF; biometria de
-                        qualquer tipo; localização GPS; dados de saúde; dados bancários ou financeiros; nem qualquer
+                        O sistema NÃO coleta, em hipótese alguma, os seguintes dados: fotografia do rosto ou imagem real da digital;
+                        número de telefone; CPF; endereço residencial; localização GPS; dados de saúde; dados bancários ou financeiros; nem qualquer
                         outro dado além dos expressamente listados acima.
                     </p>
 
@@ -159,17 +166,14 @@ export default function PoliticaPrivacidade() {
                     </p>
 
                     {/* ─── SEÇÃO 4 ─── */}
-                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. INFRAESTRUTURA E TRATAMENTO DE DADOS</h2>
+                    <h2 className="font-bold uppercase mt-8 mb-4 text-[12pt]">4. INFRAESTRUTURA E SEGURANÇA NO EDGE</h2>
                     <p className="indent-[1.25cm]">
-                        Os dados são processados em infraestrutura de nuvem segura — Cloudflare e Google
-                        Firebase —, com configurações de residência de dados priorizando servidores localizados
-                        no Brasil, em conformidade com as exigências de soberania de dados para órgãos públicos.
-                        Por tratar-se de sistema desenvolvido por pessoa física independente, o <strong>{nomeFornecedor}</strong> não possui infraestrutura
-                        física própria; todo o processamento ocorre nos serviços citados, cujas políticas de
-                        privacidade e segurança são de responsabilidade dos respectivos provedores.
+                        O sistema utiliza arquitetura de <strong>Processamento de Borda (Edge Computing)</strong>. Isso significa que os dados biométricos
+                        mais sensíveis permanecem armazenados localmente no hardware da escola através do <strong>Catraki Edge Agent</strong>, protegidos por banco de dados cifrado (SQLCipher AES-256).
                     </p>
                     <p className="indent-[1.25cm]">
-                        Todas as informações são protegidas por criptografia AES-256 em repouso e TLS 1.2+ em trânsito.
+                        A sincronização de nuvem para gestão administrativa é realizada via <strong>Cloudflare Workers e D1 SQL</strong>, utilizando túneis de segurança criptografados.
+                        Todas as informações em trânsito são protegidas por protocolos TLS 1.3 de última geração.
                     </p>
                     <p className="indent-[1.25cm]">
                         O sistema é projetado para minimizar o tráfego internacional de dados, utilizando as
@@ -191,13 +195,12 @@ export default function PoliticaPrivacidade() {
                     </p>
                     <ol className="list-decimal pl-[2.5cm]">
                         <li className="mb-2">
-                            Com os provedores de infraestrutura (Cloudflare e Google Firebase), que atuam
+                            Com os provedores de infraestrutura (Cloudflare), que atuam
                             exclusivamente como Operadores de Dados, sob obrigação contratual de sigilo.
                         </li>
                         <li className="mb-2">
                             Com órgãos governamentais de educação, exclusivamente por meio de dados estatísticos
-                            agregados e anonimizados — nunca dados individuais identificáveis — e somente após
-                            a formalização de instrumento contratual de operação de dados, nos termos do Art. 39 da LGPD.
+                            agregados e anonimizados — nunca dados individuais identificáveis.
                         </li>
                         <li className="mb-2">
                             Mediante ordem judicial formal de autoridade competente.
@@ -247,7 +250,7 @@ export default function PoliticaPrivacidade() {
                     {!emailEncarregadoDPO && daEscola && (
                         <p className="indent-[1.25cm]">
                             Para exercer seus direitos, compareça presencialmente à secretaria
-                            do <strong>{nomeEscola}</strong> com documento de identificação with foto e solicite
+                            do <strong>{nomeEscola}</strong> com documento de identificação com foto e solicite
                             a abertura de "Chamado — Direitos do Titular".
                         </p>
                     )}
@@ -283,7 +286,7 @@ export default function PoliticaPrivacidade() {
                     </div>
 
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }

@@ -142,19 +142,6 @@ export default function PaginaInicial() {
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     className="relative"
                 >
-                    {/* Badge de Status Live */}
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-eletrico/10 border border-eletrico/20 mb-8 backdrop-blur-md"
-                    >
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        <span className="text-[10px] font-black text-eletrico uppercase tracking-[0.2em]">Sistema Bio-Identitário Ativo</span>
-                    </motion.div>
 
                     <h1 className={`text-6xl md:text-[6.5rem] font-black tracking-tighter mb-8 leading-[0.95] transition-colors ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
                         Sua escola sabe<br />
@@ -176,7 +163,7 @@ export default function PaginaInicial() {
                     </h1>
 
                     <p className={`text-xl md:text-[1.4rem] max-w-2xl mx-auto mb-16 font-medium leading-relaxed transition-colors ${temaEscuro ? 'text-slate-500' : 'text-slate-500'}`}>
-                        A plataforma definitiva para controle de acesso, biometria e <span className={temaEscuro ? 'text-slate-300' : 'text-slate-900'}>segurança proativa</span> na educação brasileira.
+                        Você escolhe: <span className={temaEscuro ? 'text-eletrico' : 'text-slate-900 font-bold'}>Biometria de Alta Precisão</span> ou <span className={temaEscuro ? 'text-eletrico' : 'text-slate-900 font-bold'}>QR Code Digital</span>. Segurança de borda com inteligência Cloudflare para as melhores instituições de ensino.
                     </p>
                 </motion.div>
 
@@ -322,9 +309,9 @@ export default function PaginaInicial() {
                             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300 ${temaEscuro ? 'bg-slate-800 text-white border border-slate-700 group-hover:bg-slate-700' : 'bg-slate-100 text-eletrico border border-slate-200 group-hover:bg-eletrico group-hover:text-white'}`}>
                                 <Users className="w-8 h-8" />
                             </div>
-                            <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-eletrico">1.</span> O Aluno Chega</h3>
+                            <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-eletrico">1.</span> Identificação Híbrida</h3>
                             <p className={`text-sm font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                                Aproxima o crachá ou o celular do tablet na portaria. Sem fila, sem espera.
+                                A escola escolhe o método: <strong>Biometria iDFlex</strong> para segurança máxima ou <strong>QR Code Digital</strong> para agilidade total. O sistema reconhece o aluno instantaneamente.
                             </p>
                         </div>
 
@@ -333,9 +320,9 @@ export default function PaginaInicial() {
                             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-suave transition-colors duration-300 ${temaEscuro ? 'bg-slate-800 text-white border border-slate-700 group-hover:bg-slate-700' : 'bg-slate-100 text-eletrico border border-slate-200 group-hover:bg-eletrico group-hover:text-white'}`}>
                                 <Zap className="w-8 h-8" />
                             </div>
-                            <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-eletrico">2.</span> Validação Instantânea</h3>
+                            <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-eletrico">2.</span> Processamento Edge</h3>
                             <p className={`text-sm font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                                O tablet valida a assinatura digital do crachá e libera o acesso em milissegundos — sem atrasos na entrada.
+                                O <strong>Catraki Edge Agent</strong> valida o acesso localmente via criptografia AES-256. Identificação por digital ou QR Code processada em milissegundos, com ou sem internet.
                             </p>
                         </div>
 
@@ -344,9 +331,9 @@ export default function PaginaInicial() {
                             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-suave transition-colors duration-300 ${temaEscuro ? 'bg-slate-800 text-white border border-slate-700 group-hover:bg-slate-700' : 'bg-slate-100 text-eletrico border border-slate-200 group-hover:bg-eletrico group-hover:text-white'}`}>
                                 <Smartphone className="w-8 h-8" />
                             </div>
-                            <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-eletrico">3.</span> Gestão Ativa</h3>
+                            <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-eletrico">3.</span> Radar 360º Central</h3>
                             <p className={`text-sm font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                                A coordenação acompanha em tempo real o histórico de entradas e saídas dos alunos — com horário exato e fotos (opcional).
+                                Todos os acessos (Biometria ou QR) são canalizados para o seu Live Radar. Monitore a segurança da escola em tempo real, de qualquer lugar do mundo.
                             </p>
                         </div>
                     </div>
@@ -361,17 +348,17 @@ export default function PaginaInicial() {
                             Mais do que um controle de portão
                         </h2>
                         <p className={`text-lg max-w-2xl mx-auto font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                            O Catraki é uma plataforma completa de gestão de acesso, frequência e segurança escolar.
+                            O Catraki é uma força-tarefa digital: Hardware IDFlex, Cloudflare SQL e Edge Agent trabalhando em uníssono.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                         <div className={`p-8 rounded-2xl border transition-all ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-rose-900/30 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
-                                <AlertTriangle className="w-6 h-6" />
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                                <Users className="w-6 h-6" />
                             </div>
-                            <h3 className={`text-lg font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Alertas de Evasão</h3>
-                            <p className={`text-sm font-medium leading-relaxed ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Identifica alunos com faltas consecutivas e avisa a coordenação antes que o quadro se agrave.</p>
+                            <h3 className={`text-lg font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Acesso Versátil</h3>
+                            <p className={`text-sm font-medium leading-relaxed ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Escolha o método ideal: Hardware iDFlex para biometria ou tablets para leitura de QR Code. A escola decide a estratégia.</p>
                         </div>
 
                         <div className={`p-8 rounded-2xl border transition-all ${temaEscuro ? 'bg-slate-900/60 border-slate-800/60 hover:border-slate-700' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
@@ -394,8 +381,8 @@ export default function PaginaInicial() {
                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${temaEscuro ? 'bg-eletrico/20 text-eletrico' : 'bg-eletrico/10 text-eletrico'}`}>
                                 <ShieldCheck className="w-6 h-6" />
                             </div>
-                            <h3 className={`text-lg font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>LGPD desde o Início</h3>
-                            <p className={`text-sm font-medium leading-relaxed ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Proteção reforçada para dados de menores, com logs imutáveis e coleta mínima de dados.</p>
+                            <h3 className={`text-lg font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Privacidade de Bordas</h3>
+                            <p className={`text-sm font-medium leading-relaxed ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>Templates biométricos nunca tocam a nuvem pública. Segurança extrema conforme a LGPD e privacidade por design.</p>
                         </div>
                     </div>
 
@@ -437,12 +424,12 @@ export default function PaginaInicial() {
                                 r: 'Não na portaria. O terminal de leitura opera 100% offline e sincroniza os registros automaticamente quando a rede volta.'
                             },
                             {
-                                p: 'Os dados ficam seguros?',
-                                r: 'Sim. Cumprimos rigorosamente a LGPD, coletando o mínimo necessário (sem biometria) e mantendo logs imutáveis no Brasil.'
+                                p: 'Posso escolher o tipo de leitura?',
+                                r: 'Sim! O gestor configura no painel se deseja operar com Biometria (IDFlex), QR Code Digital ou ambos simultaneamente, adaptando o sistema à infraestrutura local.'
                             },
                             {
-                                p: 'Como a gestão acessa?',
-                                r: 'A equipe pedagógica e de portaria acessa o painel pelo computador ou celular via conta Google institucional (@Seduc/@SEEDF).'
+                                p: 'Qual a URL de acesso do gestor?',
+                                r: 'O acesso administrativo centralizado é feito através do portal exclusivo catraki.com.br, com autenticação segura via Google OAuth.'
                             }
                         ].map((faq, index) => (
                             <details key={index} className={`group rounded-2xl border transition-all ${temaEscuro ? 'bg-slate-800/40 border-slate-700/50 hover:border-slate-600' : 'bg-white border-slate-200 hover:border-slate-300'}`}>

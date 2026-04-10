@@ -63,7 +63,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                             ${temaEscuro ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-slate-50/50'}`}>
                                 <div>
                                     <h2 id="modal-sobre-titulo" className={`text-2xl md:text-3xl font-extrabold ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
-                                        Como o SCAE facilita a sua vida?
+                                        Como o Catraki facilita a sua vida?
                                     </h2>
                                     <p className={`mt-1 font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
                                         Entenda como revolucionamos a entrada, saída e a segurança dos alunos.
@@ -149,9 +149,9 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                     {/* 6 — Modo Offline */}
                                     <div className="flex flex-col md:flex-row gap-6 items-start">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-suave relative
-                                        ${temaEscuro ? 'bg-orange-900/30 border-orange-800/50 text-orange-400' : 'bg-orange-50 border-orange-100 text-orange-600'}`}>
+                                        ${temaEscuro ? 'bg-sky-900/30 border-sky-800/50 text-sky-400' : 'bg-sky-50 border-sky-100 text-sky-600'}`}>
                                             <WifiOff className="w-8 h-8" />
-                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">5</div>
+                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-sky-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">5</div>
                                         </div>
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Funciona Mesmo Sem Internet</h3>
@@ -188,7 +188,7 @@ export function ModalSobre({ aberto, aoFechar, temaEscuro, aoAbrirModalContato }
                                         <div>
                                             <h3 className={`text-xl font-bold mb-2 ${temaEscuro ? 'text-slate-200' : 'text-slate-900'}`}>Conformidade LGPD desde o Primeiro Dia</h3>
                                             <p className={`leading-relaxed text-base ${temaEscuro ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                <em className="block mb-2 opacity-80">Dados de menores exigem cuidado redobrado — e o SCAE foi construído com isso em mente.</em>
+                                                <em className="block mb-2 opacity-80">Dados de menores exigem cuidado redobrado — e o Catraki foi construído com isso em mente.</em>
                                                 O sistema coleta apenas o <strong>mínimo necessário</strong> para funcionar (matrícula, nome, turma e horário). Cada ação administrativa é registrada em <strong>logs de auditoria imutáveis</strong>, permitindo rastrear quem acessou o quê e quando. A base legal de tratamento segue o Art. 14 da LGPD, com proteção reforçada para dados de crianças e adolescentes.
                                             </p>
                                         </div>

@@ -11,13 +11,24 @@ export function CabecalhoInicial({ temaEscuro, aoAlternarTema, aoAbrirModalSobre
     return (
         <header className={`sticky top-0 z-[100] w-full border-b backdrop-blur-xl transition-all duration-300 ${temaEscuro ? 'bg-[#0B0F19]/80 border-slate-800/60' : 'bg-white border-slate-100 shadow-suave'}`}>
             <div className="h-16 px-6 md:px-8 flex items-center justify-between max-w-7xl mx-auto w-full">
-                <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${temaEscuro ? 'bg-slate-800 border bg-slate-700/60' : 'bg-[#0d1f3c]'}`}>
-                        <ShieldCheck className="w-5 h-5 text-white" />
+                {/* Logo CATRAKI Premium */}
+                <div className="flex items-center gap-3.5 group cursor-pointer select-none">
+                    <div className={`relative w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 ${temaEscuro ? 'bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-900/20' : 'bg-[#0d1f3c] shadow-lg shadow-blue-900/20'}`}>
+                        <ShieldCheck className="w-5 h-5 text-white relative z-10" />
+                        <div className="absolute inset-0 bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
-                    <span className={`text-xl font-bold tracking-tight transition-colors ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
-                        CATRAKI<span className="text-orange-500">.</span>
-                    </span>
+                    <div className="flex flex-col -gap-1">
+                        <span className={`text-xl font-black tracking-tight leading-none flex items-center gap-0.5 transition-colors ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
+                            CATRAKI
+                            <span className="relative flex h-2 w-2 mt-1">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-40"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500 shadow-sm shadow-sky-500/50"></span>
+                            </span>
+                        </span>
+                        <span className={`text-[8px] font-bold uppercase tracking-[0.3em] opacity-40 ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
+                            Inteligência Edge
+                        </span>
+                    </div>
                 </div>
                 <div className="flex items-center gap-4 md:gap-6">
                     <div className="hidden md:flex items-center gap-8 text-sm font-semibold">

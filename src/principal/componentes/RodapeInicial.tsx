@@ -19,13 +19,13 @@ export function RodapeInicial({ temaEscuro }: RodapeInicialProps) {
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="flex items-center gap-2 mb-8"
+                        className="flex items-center gap-2 mb-8 group cursor-default"
                     >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${temaEscuro ? 'bg-slate-800' : 'bg-[#0d1f3c]'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-500 group-hover:scale-110 ${temaEscuro ? 'bg-slate-800' : 'bg-[#0d1f3c]'}`}>
                             <ShieldCheck className="w-4 h-4 text-white" />
                         </div>
                         <span className={`text-lg font-bold tracking-tight ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
-                            Catraki<span className="text-orange-500">.</span>
+                            Catraki<span className="text-sky-500">.</span>
                         </span>
                     </motion.div>
 
@@ -61,7 +61,7 @@ export function RodapeInicial({ temaEscuro }: RodapeInicialProps) {
                             href="https://github.com/madebycotrim" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className={`text-[10px] font-bold uppercase tracking-[0.3em] transition-all hover:text-orange-500 ${temaEscuro ? 'text-slate-600' : 'text-slate-300'}`}
+                            className={`text-[10px] font-bold uppercase tracking-[0.3em] transition-all hover:text-sky-500 ${temaEscuro ? 'text-slate-600' : 'text-slate-300'}`}
                         >
                             madebycotrim
                         </a>

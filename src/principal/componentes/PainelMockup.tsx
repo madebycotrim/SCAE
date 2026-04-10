@@ -31,7 +31,7 @@ export function PainelMockup({ temaEscuro }: PainelMockupProps) {
                                 <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
                             </div>
                             <div className={`mx-auto h-6 px-12 rounded-md flex items-center justify-center text-xs font-semibold ${temaEscuro ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-400'}`}>
-                                scae.com.br/painel
+                                catraki.com.br/painel
                             </div>
                         </div>
                         {/* Fake App Body */}
