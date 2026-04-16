@@ -23,7 +23,7 @@ export async function onRequestGet(contexto: ContextoCatraki) {
         const paramsAlunos: any[] = [escolaId];
         
         if (desde && desde !== 'undefined' && desde.length > 5) {
-            filtroDelta = " AND (atualizado_em > ? OR criado_em > ?)";
+            filtroDelta = " AND (a.atualizado_em > ? OR a.criado_em > ?)";
             paramsAlunos.push(desde, desde);
         }
 

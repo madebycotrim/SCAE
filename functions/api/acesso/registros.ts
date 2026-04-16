@@ -103,13 +103,13 @@ async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Respons
 
         // Buscar total + dados em batch (1 round-trip)
         const [countResult, dataResult] = await contexto.env.DB_SCAE.batch([
-            contexto.env.DB_SCAE.prepare(`SELECT COUNT(*) as total FROM registros_acesso ${whereClause}`).bind(...params),
+            contexto.env.DB_SCAE.prepare(`SELECT COUNT(*) as total FROM registros_acesso r ${whereClause.replace(/WHERE\s+/i, 'WHERE r.').replace(/AND\s+/g, 'AND r.')}`).bind(...params),
             contexto.env.DB_SCAE.prepare(
                 `SELECT 
                     r.id, r.escola_id, r.aluno_matricula, r.tipo_movimentacao, 
                     r.metodo_leitura as metodo_validacao, r.timestamp_acesso as timestamp, r.sincronizado,
                     a.nome_completo as aluno_nome,
-                    t.nome as turma_nome
+                    t.id as turma_nome
                  FROM registros_acesso r
                  LEFT JOIN alunos a ON r.aluno_matricula = a.matricula AND r.escola_id = a.escola_id
                  LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
