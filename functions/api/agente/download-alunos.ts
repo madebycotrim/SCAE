@@ -14,24 +14,35 @@ export async function onRequestGet(contexto: ContextoCatraki) {
         etapa = "VALIDAR_AGENTE";
         const escolaId = validarAgente(contexto.request, contexto.env);
         
-        // 1. Busca Alunos
+        // 1. Busca Alunos (Suporte a Delta Sync)
         etapa = "BUSCAR_ALUNOS";
+        const { searchParams } = new URL(contexto.request.url);
+        const desde = searchParams.get('desde');
+        
+        let filtroDelta = "";
+        const paramsAlunos: any[] = [escolaId];
+        
+        if (desde && desde !== 'undefined' && desde.length > 5) {
+            filtroDelta = " AND (atualizado_em > ? OR criado_em > ?)";
+            paramsAlunos.push(desde, desde);
+        }
+
         let alunos: any = { results: [] };
         try {
             alunos = await db.prepare(`
                 SELECT a.matricula, a.nome_completo, a.turma_id, t.turno, a.ativo, a.biometria_cadastrada
                 FROM alunos a
                 LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
-                WHERE a.escola_id = ? AND a.ativo = 1
-            `).bind(escolaId).all();
+                WHERE a.escola_id = ? AND a.ativo = 1 ${filtroDelta}
+            `).bind(...paramsAlunos).all();
         } catch (e: any) {
              // Fallback se biometria_cadastrada não existir
              alunos = await db.prepare(`
                 SELECT a.matricula, a.nome_completo, a.turma_id, t.turno, a.ativo
                 FROM alunos a
                 LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
-                WHERE a.escola_id = ? AND a.ativo = 1
-            `).bind(escolaId).all();
+                WHERE a.escola_id = ? AND a.ativo = 1 ${filtroDelta}
+            `).bind(...paramsAlunos).all();
         }
 
         // 2. Busca Configurações da Escola

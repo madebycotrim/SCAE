@@ -85,28 +85,25 @@ async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Respons
             day: '2-digit'
         }).format(new Date()).split('/').reverse().join('-');
 
-        let queryBase = "FROM registros_acesso WHERE escola_id = ?";
+        let whereClause = "WHERE escola_id = ?";
         const params: (string | number)[] = [idEscola];
 
         if (data) {
-            queryBase += " AND date(timestamp_acesso, '-3 hours') = ?";
+            whereClause += " AND date(timestamp_acesso, '-3 hours') = ?";
             params.push(data);
         } else if (desde) {
-            queryBase += " AND timestamp_acesso > ?";
+            whereClause += " AND timestamp_acesso > ?";
             params.push(desde);
-        } else {
-            // Removida a trava de 'hojeLocal' para permitir ver registros recentes 
-            // mesmo na virada de meia-noite ou fusos diferentes.
         }
 
         if (matricula) {
-            queryBase += " AND aluno_matricula = ?";
+            whereClause += " AND aluno_matricula = ?";
             params.push(matricula);
         }
 
         // Buscar total + dados em batch (1 round-trip)
         const [countResult, dataResult] = await contexto.env.DB_SCAE.batch([
-            contexto.env.DB_SCAE.prepare(`SELECT COUNT(*) as total ${queryBase}`).bind(...params),
+            contexto.env.DB_SCAE.prepare(`SELECT COUNT(*) as total FROM registros_acesso ${whereClause}`).bind(...params),
             contexto.env.DB_SCAE.prepare(
                 `SELECT 
                     r.id, r.escola_id, r.aluno_matricula, r.tipo_movimentacao, 
@@ -116,7 +113,7 @@ async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Respons
                  FROM registros_acesso r
                  LEFT JOIN alunos a ON r.aluno_matricula = a.matricula AND r.escola_id = a.escola_id
                  LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
-                  ${queryBase.substring(queryBase.indexOf('WHERE')).replace('WHERE', 'WHERE r.')} 
+                 ${whereClause.replace(/WHERE\s+/i, 'WHERE r.').replace(/AND\s+/g, 'AND r.')} 
                  ORDER BY r.timestamp_acesso DESC LIMIT ? OFFSET ?`
             ).bind(...params, porPagina, offset)
         ]);
