@@ -41,7 +41,7 @@ export const dashboardServico = {
                 })(),
                 (async () => {
                     try {
-                        const logs = await servicoAgente.obterRegistrosRecentes();
+                        const logs = await servicoAgente.obterRegistrosRecentes(desde);
                         return Array.isArray(logs) ? logs : [];
                     } catch (e) {
                         console.warn('[Radar] Agente Local inacessível.');

@@ -69,10 +69,6 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
             try {
                 // Busca via serviço que já injeta os headers necessários
                 const novos = await dashboardServico.buscarRegistrosRecentes(ultimaDataRef.current || undefined);
-                
-                if (novos.length > 0) {
-                    console.log(`[Painel] Radar recebeu ${novos.length} registros para processar.`);
-                }
 
                 if (montado && novos && novos.length > 0) {
                     // Atualiza a referência da última data para o próximo poll
@@ -87,8 +83,9 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                             const idsExistentes = new Set(prev.map(r => r.id).filter(id => !!id));
                             const unicos = novos.filter((n: any) => n.id && !idsExistentes.has(n.id));
                             
-                            if (unicos.length > 0 && inicializadoRef.current) {
-                                aoReceberNovos(); // Notifica o pai para atualizar KPIs (Presentes Hoje, etc)
+                            if (unicos.length > 0) {
+                                console.log(`[Painel] Radar identificou ${unicos.length} novos acessos.`);
+                                if (inicializadoRef.current) aoReceberNovos(); // Notifica o pai para atualizar KPIs (Presentes Hoje, etc)
                             }
                             
                             return [...unicos, ...prev].slice(0, 15);
@@ -138,21 +135,29 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                 key={reg.id}
                                 initial={{ opacity: 0, x: -20, scale: 0.95 }}
                                 animate={{ opacity: 1, x: 0, scale: 1 }}
-                                className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-emerald-200 transition-colors flex items-center justify-between group/card"
+                                className={`p-4 bg-white border border-slate-100 rounded-2xl shadow-sm transition-colors flex items-center justify-between group/card ${
+                                    reg.tipo_movimentacao === 'NEGADO' ? 'hover:border-rose-200' : 'hover:border-emerald-200'
+                                }`}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover/card:scale-110 ${isSaida ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'}`}>
-                                        {isSaida ? <LogOut size={20} /> : <Activity size={20} />}
+                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover/card:scale-110 ${
+                                        reg.tipo_movimentacao === 'NEGADO' 
+                                            ? 'bg-rose-50 text-rose-500' 
+                                            : isSaida ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'
+                                    }`}>
+                                        {reg.tipo_movimentacao === 'NEGADO' ? <AlertTriangle size={20} /> : isSaida ? <LogOut size={20} /> : <Activity size={20} />}
                                     </div>
                                     <div>
                                         <p className="text-[12px] font-black text-slate-800 uppercase leading-none mb-1">
                                             {alunoData?.nome_completo || reg.aluno_nome || 'Acesso Identificado'}
                                         </p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-                                                {reg.aluno_matricula} • {reg.turma_nome || alunoData?.turma_id || 'SEM TURMA'}
-                                            </span>
-                                        </div>
+                                        {reg.tipo_movimentacao !== 'NEGADO' && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                                                    {reg.aluno_matricula} • {reg.turma_nome || alunoData?.turma_id || 'SEM TURMA'}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 
@@ -164,7 +169,11 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                         <span className={`text-[7px] font-black px-1 py-0.5 rounded-sm uppercase tracking-tighter ${reg.fonte === 'agente' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                                             {reg.fonte === 'agente' ? '⚡ Local' : '☁ Nuvem'}
                                         </span>
-                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${
+                                            reg.tipo_movimentacao === 'NEGADO'
+                                                ? 'bg-rose-100 text-rose-700'
+                                                : isSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+                                        }`}>
                                             {reg.tipo_movimentacao}
                                         </span>
                                     </div>

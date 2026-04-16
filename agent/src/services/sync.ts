@@ -286,7 +286,7 @@ export async function sincronizarCacheAlunos(forcar = false) {
 
         if (configHash !== ultimaConfigHash) {
             if (!forcar) {
-                console.log(`[Sync] 🔗 ATUALIZAÇÃO AUTOMÁTICA: Novas configurações de horários/regras detectadas.`);
+                console.log(`[Sync] 🔗 ATUALIZAÇÃO AUTOMÁTICA: Novas configurações detectadas. Aplicando ${escola_config.janelas?.length || 0} regras de fluxo (Horários).`);
             }
 
             config.nome_escola = escola_config.nome_escola;

@@ -55,6 +55,8 @@ function enviarStatusParaUI() {
             nome_escola: config.nome_escola,
             total_alunos: config.total_alunos,
             tts_ativado: config.tts_ativado,
+            tts_sucesso: config.tts_sucesso,
+            tts_erro: config.tts_erro,
             stats: stats.obterSnapshot(),
             leitores: leitores.map(l => ({
                 id: l.id,
@@ -107,17 +109,30 @@ function createWindow() {
             return;
         }
 
-        if (req.url === '/acesso/recentes') {
+        if (req.url?.startsWith('/acesso/recentes')) {
+            const urlObj = new URL(req.url, `http://${req.headers.host}`);
+            const desde = urlObj.searchParams.get('desde');
+            
             // Log de diagnóstico para confirmar comunicação com o Dashboard
-            console.log(`[Agente] 🛰️ Dashboard solicitando logs recentes...`);
+            // console.log(`[Agente] 🛰️ Dashboard solicitando logs recentes... desde: ${desde || 'inicio'}`);
+            
             const { allSql } = require('../infra/db');
-            const registros = await allSql(`
+            
+            let query = `
                 SELECT id, leitor_id, matricula as aluno_matricula, nome as aluno_nome, 
                 tipo as tipo_movimentacao, autorizado, timestamp_acesso
                 FROM registros_acesso 
-                ORDER BY timestamp_acesso DESC 
-                LIMIT 30
-            `);
+            `;
+            
+            const params: any[] = [];
+            if (desde && desde !== 'undefined') {
+                query += ` WHERE timestamp_acesso > ? `;
+                params.push(desde);
+            }
+            
+            query += ` ORDER BY timestamp_acesso DESC LIMIT 30 `;
+            
+            const registros = await allSql(query, params);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(registros));
             return;
@@ -204,7 +219,7 @@ function createWindow() {
                 const { classificarAcesso } = require('../services/classificador');
 
                 const aluno = (idUsuario !== '0' && idUsuario !== '') 
-                    ? await getSql('SELECT nome_completo, turma_id, turno FROM alunos_cache WHERE matricula = ?', [matriculaParaExibir])
+                    ? await getSql('SELECT nome_completo, turma_id, turno, mensagem_aviso FROM alunos_cache WHERE matricula = ?', [matriculaParaExibir])
                     : null;
                 
                 const classificacao = classificarAcesso(matriculaParaExibir, aluno?.turno);
@@ -238,8 +253,15 @@ function createWindow() {
                 if (mainWindow) {
                     mainWindow.webContents.send('new-access', { 
                         nome: `${nomeParaExibir} (${matriculaParaExibir})`, 
+                        nomePuro: nomeParaExibir,
                         turma: turmaAcesso,
-                        sucesso: statusAcesso !== 'NEGADO'
+                        sucesso: statusAcesso !== 'NEGADO',
+                        mensagemAviso: aluno?.mensagem_aviso || null,
+                        ttsAtivo: config.tts_ativado,
+                        ttsParams: {
+                            sucesso: config.tts_sucesso,
+                            erro: config.tts_erro
+                        }
                     });
                     enviarStatusParaUI();
                     
@@ -261,9 +283,17 @@ function createWindow() {
     }
   });
 
-  server.listen(1912, '0.0.0.0', () => {
-      console.log(`[Local API] Servidor Ativo na porta 1912.`);
-  });
+  server.on('error', (e: any) => {
+    if (e.code === 'EADDRINUSE') {
+        console.error(`[Agente] ❌ ERRO: Porta 1912 já está em uso!`);
+    } else {
+        console.error(`[Agente] ❌ ERRO CRÍTICO NO SERVIDOR:`, e.message);
+    }
+});
+
+server.listen(config.porta_agente || 1912, '0.0.0.0', () => {
+    console.log(`[Agente] 🌐 API LOCAL ATIVA: http://localhost:${config.porta_agente || 1912}`);
+});
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
   

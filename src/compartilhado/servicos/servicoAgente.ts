@@ -84,9 +84,10 @@ export const servicoAgente = {
     /**
      * Busca os registros de acesso mais recentes diretamente do banco local do Agente.
      */
-    async obterRegistrosRecentes(): Promise<any[]> {
+    async obterRegistrosRecentes(desde?: string): Promise<any[]> {
         try {
-            const resp = await fetchAgente('/acesso/recentes');
+            const query = desde ? `?desde=${encodeURIComponent(desde)}` : '';
+            const resp = await fetchAgente(`/acesso/recentes${query}`);
             return await resp.json();
         } catch {
             return [];
