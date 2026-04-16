@@ -181,7 +181,10 @@ async function monitorarLeitor(leitor: ILeitor) {
         console.warn(`[Watchdog] 🌐 REDE ALTERADA: Agente agora em ${ipAtualLocal}. Atualizando catracas...`);
     }
 
-    if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > 5 * 60 * 1000) || ipMudou) {
+    // Aumenta o intervalo do watchdog se o equipamento estiver instável (backoff)
+    const intervaloWatchdog = falha ? 15 * 60 * 1000 : 5 * 60 * 1000;
+
+    if (!(global as any)[tagCheck] || (agora - (global as any)[tagCheck] > intervaloWatchdog) || ipMudou) {
         if (ipAtualLocal && st.online) {
             // Log simplificado
             console.log(`[Watchdog][${leitor.nome}] Sincronizando modo escola.`);
@@ -226,8 +229,9 @@ async function monitorarLeitor(leitor: ILeitor) {
         const statusAcesso = ev.autorizado ? classificacao.tipo : 'NEGADO';
         const detalheAcesso = classificacao.mensagem;
 
-            const { randomUUID } = require('crypto');
-            const idRegistro = randomUUID();
+            // ⚡ ANTI-DUPLICIDADE: Usa o ID real do log no hardware para o registro local
+            const idRegistro = `${leitor.id}-${ev.id}`;
+            const timestampLocal = ev.time ? new Date(ev.time * 1000).toISOString() : new Date().toISOString();
 
             try {
                 await runSql(`
@@ -241,7 +245,7 @@ async function monitorarLeitor(leitor: ILeitor) {
                     nomeAcesso,
                     statusAcesso,
                     ev.autorizado ? 1 : 0,
-                    new Date().toISOString()
+                    timestampLocal
                 ]);
 
                 // ⚡ SÓ PROCESSA SE FOR UM REGISTRO NOVO (Não duplicado)

@@ -14,6 +14,7 @@ export class IdflexLeitor implements ILeitor {
   readonly tipo: TipoLeitor;
   public online: boolean = false;
   private tokenSessao?: string;
+  private promessaLogin?: Promise<string>;
   private ultimoErroLogado?: string;
   private cacheNomes = new Map<string, { nome: string, matricula: string }>();
   private lastCacheSync = 0;
@@ -27,9 +28,28 @@ export class IdflexLeitor implements ILeitor {
   get ip() { return this.cfg.ip; }
   get porta() { return this.cfg.porta; }
 
-  private async requisitarComToken(endpoint: string, dados: any = {}, timeout?: number) {
+  /**
+   * Realiza login no iDFlex com trava de concorrência (Mutex).
+   * Garante que múltiplas requisições paralelas usem a mesma tentativa de login.
+   */
+  private async realizarLoginSeguro(): Promise<string> {
+    if (this.promessaLogin) return this.promessaLogin;
+
+    this.promessaLogin = (async () => {
+      try {
+        const token = await IdFlexHelper.login({ ip: this.cfg.ip });
+        return token;
+      } finally {
+        this.promessaLogin = undefined;
+      }
+    })();
+
+    return this.promessaLogin;
+  }
+
+  private async requisitarComToken(endpoint: string, dados: any = {}, timeout = 10000) {
     if (!this.tokenSessao) {
-      this.tokenSessao = await IdFlexHelper.login({ ip: this.cfg.ip });
+      this.tokenSessao = await this.realizarLoginSeguro();
     }
     try {
       const resp = await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados, timeout);
@@ -45,10 +65,10 @@ export class IdflexLeitor implements ILeitor {
           this.online = false;
       }
 
-      // Se erro for 401 ou sessão inválida, tenta re-logar uma vez
+      // Se erro for 401 ou sessão inválida, tenta re-logar uma vez com trava
       if (e.message.includes('401') || e.message.includes('session') || e.body?.includes('invalid session')) {
         try {
-            this.tokenSessao = await IdFlexHelper.login({ ip: this.cfg.ip });
+            this.tokenSessao = await this.realizarLoginSeguro();
             this.online = true; 
             return await IdFlexHelper.requisitar({ ip: this.cfg.ip, token: this.tokenSessao }, endpoint, dados, timeout);
         } catch (loginErr: any) {
@@ -146,6 +166,8 @@ export class IdflexLeitor implements ILeitor {
           matricula: info.matricula, // Novo campo habilitado
           nomeHardware: info.nome,   // Novo campo habilitado
           timestamp: new Date(l.time * 1000),
+          time: l.time,
+          event: l.event,
           tipo: 'ENTRADA',
           // Sucessos: 6(Identificado por Regra), 7(Identificado), 10(Remoto), 11(Botao), 12(Web), 14(QR), 15(Interfone), 16(QR), 31(Soft)
           autorizado: [6, 7, 10, 11, 12, 14, 15, 16, 31].includes(l.event),

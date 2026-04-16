@@ -107,6 +107,22 @@ function createWindow() {
             return;
         }
 
+        if (req.url === '/acesso/recentes') {
+            // Log de diagnóstico para confirmar comunicação com o Dashboard
+            console.log(`[Agente] 🛰️ Dashboard solicitando logs recentes...`);
+            const { allSql } = require('../infra/db');
+            const registros = await allSql(`
+                SELECT id, leitor_id, matricula as aluno_matricula, nome as aluno_nome, 
+                tipo as tipo_movimentacao, autorizado, timestamp_acesso
+                FROM registros_acesso 
+                ORDER BY timestamp_acesso DESC 
+                LIMIT 30
+            `);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(registros));
+            return;
+        }
+
         if (req.url === '/ping') {
             const leitores = obterLeitoresAtivos();
             const leitoresOnline = leitores.filter(l => (l as any).online !== false).length;
@@ -172,11 +188,13 @@ function createWindow() {
             const leitor = obterLeitoresAtivos().find((l: any) => l.ip.split(':')[0] === clientIp) as any;
 
             if (leitor && ev.event !== undefined) {
-                const idUsuario = ev.user_id || 0;
+                const idUsuario = ev.user_id !== undefined ? String(ev.user_id) : '0';
+                console.log(`[Agente] 📟 Push Recebido de ${leitor.nome} [IP ${leitor.ip}]: Evento ${ev.event}, Usuário ${idUsuario}`);
+                
                 let nomeParaExibir = 'ACESSO NÃO RECONHECIDO';
                 let matriculaParaExibir = '—';
 
-                if (idUsuario !== 0 && idUsuario !== '0') {
+                if (idUsuario !== '0' && idUsuario !== '') {
                     const info = leitor.obterDadosUsuarioHardware(String(idUsuario));
                     nomeParaExibir = info.nome;
                     matriculaParaExibir = info.matricula;
@@ -185,7 +203,7 @@ function createWindow() {
                 const { runSql, getSql } = require('../infra/db');
                 const { classificarAcesso } = require('../services/classificador');
 
-                const aluno = (idUsuario !== 0 && idUsuario !== '0') 
+                const aluno = (idUsuario !== '0' && idUsuario !== '') 
                     ? await getSql('SELECT nome_completo, turma_id, turno FROM alunos_cache WHERE matricula = ?', [matriculaParaExibir])
                     : null;
                 
@@ -196,13 +214,24 @@ function createWindow() {
                 if (statusAcesso !== 'NEGADO') leitor.emitirBeep();
 
                 const agoraIso = new Date().toISOString();
-                const { randomUUID } = require('crypto');
-                const idRegistro = randomUUID();
+                
+                // ⚡ ANTI-DUPLICIDADE: Gera um ID fixo baseado no ID do evento do hardware
+                // Se o hardware não enviou ID (raro), usa o timestamp + matricula como fallback
+                const idEventoHardware = ev.id || `${agoraIso}-${matriculaParaExibir}`;
+                const idRegistro = `${leitor.id}-${idEventoHardware}`;
 
-                await runSql(`
-                    INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
-                `, [idRegistro, leitor.id, config.escola_id, String(matriculaParaExibir), nomeParaExibir, statusAcesso, statusAcesso !== 'NEGADO' ? 1 : 0, agoraIso]);
+                try {
+                    await runSql(`
+                        INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                    `, [idRegistro, leitor.id, config.escola_id, String(matriculaParaExibir), nomeParaExibir, statusAcesso, statusAcesso !== 'NEGADO' ? 1 : 0, agoraIso]);
+                } catch (e: any) {
+                    if (e.message.includes('UNIQUE')) {
+                        // console.log(`[Agente] Registro duplicado ignorado: ${idRegistro}`);
+                        res.writeHead(200); res.end(); return;
+                    }
+                    throw e;
+                }
 
                 stats.registrarAcesso(nomeParaExibir, String(matriculaParaExibir), statusAcesso, turmaAcesso);
 

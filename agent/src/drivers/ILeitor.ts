@@ -17,6 +17,8 @@ export interface EventoAcesso {
   matricula?: string; // Matrícula Real (registration)
   nomeHardware?: string; // Nome vindo do hardware
   timestamp: Date;
+  time?: number; // Unix timestamp vindo do hardware
+  event?: number; // ID do evento raw vindo do hardware
   tipo: TipoMovimentacao;
   autorizado: boolean;
   leitorId?: string;

@@ -12,52 +12,34 @@ export function IndicadorConexao() {
     if (carregando) return null;
 
     return (
-        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3">
+        <div className="fixed bottom-4 right-4 z-[9999] flex items-center gap-2 opacity-40 hover:opacity-100 transition-opacity duration-300 pointer-events-auto cursor-help bg-white/50 dark:bg-black/20 backdrop-blur-sm p-1.5 px-3 rounded-full border border-black/5 dark:border-white/5">
             <AnimatePresence mode="popLayout">
                 {/* Status da Internet */}
                 <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-2xl shadow-lg backdrop-blur-md border ${
-                        internet 
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' 
-                            : 'bg-rose-500/10 border-rose-500/20 text-rose-600'
-                    }`}
+                    key="status-internet"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="flex items-center gap-1.5"
+                    title={internet ? 'Nuvem Online' : 'Nuvem Offline'}
                 >
-                    {internet ? <Globe size={16} /> : <WifiOff size={16} />}
-                    <span className="text-[10px] font-bold uppercase tracking-wider">
-                        {internet ? 'Nuvem Online' : 'Nuvem Offline'}
-                    </span>
-                    <div className={`w-2 h-2 rounded-full animate-pulse ${internet ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                    <Globe size={12} className={internet ? 'text-emerald-500' : 'text-rose-500'} />
+                    <div className={`w-1.5 h-1.5 rounded-full ${internet ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                 </motion.div>
+
+                <div key="divisor" className="w-[1px] h-3 bg-black/10 dark:bg-white/10 mx-1" />
 
                 {/* Status do Agente Local */}
                 <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: 0.1 }}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-2xl shadow-lg backdrop-blur-md border ${
-                        agente.online 
-                            ? 'bg-blue-500/10 border-blue-500/20 text-blue-600' 
-                            : 'bg-slate-500/10 border-slate-500/20 text-slate-400'
-                    }`}
+                    key="status-agente"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="flex items-center gap-1.5"
+                    title={agente.online ? `Agente Local Ativo: ${agente.nomeEscola || 'SCAE'}` : 'Agente Não Detectado'}
                 >
-                    <Cpu size={16} />
-                    <div className="flex flex-col">
-                        <span className="text-[10px] font-bold uppercase tracking-wider">
-                            {agente.online ? 'Agente Local Ativo' : 'Agente Não Detectado'}
-                        </span>
-                        {agente.online && agente.nomeEscola && (
-                            <span className="text-[8px] opacity-70 truncate max-w-[120px]">
-                                {agente.nomeEscola}
-                            </span>
-                        )}
-                    </div>
-                    {agente.online && (
-                        <div className="w-2 h-2 rounded-full animate-ping bg-blue-500" />
-                    )}
+                    <Cpu size={12} className={agente.online ? 'text-blue-500' : 'text-slate-400'} />
+                    <div className={`w-1.5 h-1.5 rounded-full ${agente.online ? 'bg-blue-500' : 'bg-slate-400'}`} />
                 </motion.div>
             </AnimatePresence>
         </div>

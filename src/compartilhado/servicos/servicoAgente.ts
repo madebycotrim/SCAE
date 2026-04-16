@@ -4,7 +4,7 @@
  * delegar comandos de hardware.
  */
 
-const URL_AGENTE = 'http://localhost:1912';
+const PORTA_AGENTE = '1912';
 
 export interface StatusAgente {
     online: boolean;
@@ -13,25 +13,41 @@ export interface StatusAgente {
     leitores?: any[];
 }
 
+/**
+ * Helper para realizar fetch com timeout e failover entre 127.0.0.1 e localhost.
+ */
+async function fetchAgente(endpoint: string, options: any = {}) {
+    const urls = [`http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`];
+    
+    for (const baseUrl of urls) {
+        try {
+            const resp = await fetch(`${baseUrl}${endpoint}`, {
+                ...options,
+                signal: AbortSignal.timeout(options.timeout || 2000),
+                mode: 'cors'
+            });
+            if (resp.ok) return resp;
+        } catch (e) {
+            // Continua para a próxima URL
+        }
+    }
+    throw new Error('Agente Inacessível');
+}
+
 export const servicoAgente = {
     /**
      * Verifica se o Agente local está respondendo na porta 1912.
      */
     async ping(): Promise<StatusAgente> {
         try {
-            const resp = await fetch(`${URL_AGENTE}/ping`, { 
-                signal: AbortSignal.timeout(2000) 
-            });
-            if (resp.ok) {
-                const dados = await resp.json();
-                return {
-                    online: true,
-                    versao: dados.versao,
-                    nomeEscola: dados.nome_escola,
-                    leitores: dados.leitores
-                };
-            }
-            return { online: false };
+            const resp = await fetchAgente('/ping');
+            const dados = await resp.json();
+            return {
+                online: true,
+                versao: dados.versao,
+                nomeEscola: dados.nome_escola,
+                leitores: dados.leitores
+            };
         } catch {
             return { online: false };
         }
@@ -42,7 +58,7 @@ export const servicoAgente = {
      */
     async registrarAcesso(registro: any): Promise<boolean> {
         try {
-            const resp = await fetch(`${URL_AGENTE}/idflex-push`, {
+            const resp = await fetchAgente('/idflex-push', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(registro)
@@ -58,10 +74,22 @@ export const servicoAgente = {
      */
     async abrirCatraca(): Promise<boolean> {
         try {
-            const resp = await fetch(`${URL_AGENTE}/hardware/reiniciar`, { method: 'POST' }); // Nota: O endpoint de abrir porta pode ser diferente, usando o de reiniciar como exemplo de rota de hardware existente
+            const resp = await fetchAgente('/hardware/reiniciar', { method: 'POST' });
             return resp.ok;
         } catch {
             return false;
+        }
+    },
+
+    /**
+     * Busca os registros de acesso mais recentes diretamente do banco local do Agente.
+     */
+    async obterRegistrosRecentes(): Promise<any[]> {
+        try {
+            const resp = await fetchAgente('/acesso/recentes');
+            return await resp.json();
+        } catch {
+            return [];
         }
     }
 };

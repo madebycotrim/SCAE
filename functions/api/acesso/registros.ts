@@ -116,7 +116,7 @@ async function processarBuscaAcessos(contexto: ContextoCatraki): Promise<Respons
                  FROM registros_acesso r
                  LEFT JOIN alunos a ON r.aluno_matricula = a.matricula AND r.escola_id = a.escola_id
                  LEFT JOIN turmas t ON a.turma_id = t.id AND a.escola_id = t.escola_id
-                 ${queryBase.replace('WHERE', 'WHERE r.')} 
+                  ${queryBase.substring(queryBase.indexOf('WHERE')).replace('WHERE', 'WHERE r.')} 
                  ORDER BY r.timestamp_acesso DESC LIMIT ? OFFSET ?`
             ).bind(...params, porPagina, offset)
         ]);

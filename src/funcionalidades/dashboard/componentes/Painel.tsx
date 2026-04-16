@@ -69,6 +69,10 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
             try {
                 // Busca via serviço que já injeta os headers necessários
                 const novos = await dashboardServico.buscarRegistrosRecentes(ultimaDataRef.current || undefined);
+                
+                if (novos.length > 0) {
+                    console.log(`[Painel] Radar recebeu ${novos.length} registros para processar.`);
+                }
 
                 if (montado && novos && novos.length > 0) {
                     // Atualiza a referência da última data para o próximo poll
@@ -79,9 +83,9 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                         ultimaDataRef.current = ultimaData;
                         
                         setRegistros(prev => {
-                            // Evita duplicados comparando IDs
-                            const idsExistentes = new Set(prev.map(r => r.id));
-                            const unicos = novos.filter((n: any) => !idsExistentes.has(n.id));
+                            // Evita duplicados comparando IDs e garante que o ID existe
+                            const idsExistentes = new Set(prev.map(r => r.id).filter(id => !!id));
+                            const unicos = novos.filter((n: any) => n.id && !idsExistentes.has(n.id));
                             
                             if (unicos.length > 0 && inicializadoRef.current) {
                                 aoReceberNovos(); // Notifica o pai para atualizar KPIs (Presentes Hoje, etc)
@@ -96,7 +100,7 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
             } finally {
                 setCarregando(false);
                 inicializadoRef.current = true;
-                if (montado) timerId = setTimeout(buscarNovos, 4000); // Poll a cada 4s
+                if (montado) timerId = setTimeout(buscarNovos, 2000); // Poll a cada 2s
             }
         };
 
@@ -123,7 +127,7 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar scroll-smooth">
                 <AnimatePresence initial={false}>
                     {registros.map((reg) => {
                         const alunoData = alunos?.find(a => a.matricula === reg.aluno_matricula);
@@ -152,13 +156,18 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                     </div>
                                 </div>
                                 
-                                <div className="text-right">
+                                <div className="text-right flex flex-col items-end">
                                     <p className="text-[11px] font-black text-slate-900 leading-none mb-1">
-                                        {new Date(reg.timestamp || reg.timestamp_acesso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        {new Date(reg.timestamp || reg.timestamp_acesso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                     </p>
-                                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                        {reg.tipo_movimentacao}
-                                    </span>
+                                    <div className="flex gap-1 items-center">
+                                        <span className={`text-[7px] font-black px-1 py-0.5 rounded-sm uppercase tracking-tighter ${reg.fonte === 'agente' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                                            {reg.fonte === 'agente' ? '⚡ Local' : '☁ Nuvem'}
+                                        </span>
+                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                            {reg.tipo_movimentacao}
+                                        </span>
+                                    </div>
                                 </div>
                             </motion.div>
                         );
