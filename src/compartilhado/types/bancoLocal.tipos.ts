@@ -1,0 +1,139 @@
+export type PapelUsuario = 'CENTRAL' | 'ADMIN' | 'COORDENACAO' | 'SECRETARIA' | 'PORTEIRO' | 'VISUALIZACAO';
+import type { ConfiguracaoHorarios } from '@/funcionalidades/configuracao-horarios/types/regrasHorarios.tipos';
+
+export interface AlunoLocal {
+    matricula: string;
+    escola_id: string;
+    nome_completo: string;
+    turma_id: string;
+    ativo: boolean;
+    // LGPD
+    criado_em?: string;
+    atualizado_em?: string;
+    sincronizado?: number; // 0 = pendente | 1 = sincronizado
+    // Aliases legados
+    id?: string;
+    nome?: string;
+}
+
+export interface TurmaLocal {
+    id: string;
+    escola_id: string;
+    ano_letivo: string;
+    serie: string;
+    letra?: string;              // Ex: 'A', 'B'
+    turno: string;
+    sala: string;
+    professor_regente?: string;
+    sincronizado?: number;       // 0 = pendente | 1 = sincronizado
+    criado_em?: string;
+}
+
+export interface RegistroAcessoLocal {
+    id: string;
+    escola_id: string;
+    aluno_matricula: string;
+    tipo_movimentacao: 'ENTRADA' | 'SAIDA';
+    timestamp_acesso: string;    // campo do servidor
+    timestamp?: string;          // campo local
+    metodo_leitura?: string;     // FINGERPRINT, QRCODE, RFID, MANUAL
+    sincronizado: number;        // 0 = pendente | 1 = sincronizado
+}
+
+export interface UsuarioLocal {
+    email: string;
+    escola_id: string;
+    papel: PapelUsuario;
+    ativo: boolean;
+    nome_completo?: string;
+    criado_em?: string;
+    atualizado_em?: string;
+    criado_por?: string;         // email de quem criou (nullable)
+    pendente?: boolean;          // aguardando aprovação
+    // Alias legado
+    role?: PapelUsuario;
+}
+
+export interface AlunoPresente extends RegistroAcessoLocal {
+    nome_completo: string;
+    matricula: string;
+    turma_id: string;
+}
+
+export interface EsquemaSCAE {
+    turmas: {
+        key: string;
+        value: TurmaLocal;
+        indexes: { escola_id: string; ano_letivo: string; serie: string; turno: string; sala: string };
+    };
+    alunos: {
+        key: string;
+        value: AlunoLocal;
+        indexes: { escola_id: string; turma_id: string; ativo: boolean; sincronizado: number };
+    };
+    registros_acesso: {
+        key: string;
+        value: RegistroAcessoLocal;
+        indexes: { escola_id: string; aluno_matricula: string; tipo_movimentacao: string; timestamp_acesso: string; timestamp: string; sincronizado: number };
+    };
+    fila_pendencias: {
+        key: string;
+        value: {
+            id: string;
+            escola_id?: string;
+            acao: string;
+            colecao: string;
+            dado_id: string;
+            dados_extras: Record<string, unknown> | null;
+            timestamp: string;
+        };
+        indexes: { escola_id: string; colecao: string; timestamp: string };
+    };
+    logs_auditoria: {
+        key: string;
+        value: {
+            id: string;
+            escola_id?: string;          // nullable: logs offline podem não ter escola
+            timestamp: string;            // campo local
+            created_at: string;           // alias — preenchido junto com timestamp
+            data_criacao?: string;        // campo canônico do servidor
+            usuario_email: string;
+            acao: string;
+            entidade_tipo: string;
+            entidade_id: string;
+            dados_anteriores: string | null;
+            dados_novos: string | null;
+            ip_address: string;
+            user_agent: string;
+            sincronizado: number;         // 0 = pendente | 1 = enviado
+        };
+        indexes: {
+            escola_id: string;
+            timestamp: string;
+            usuario_email: string;
+            acao: string;
+            entidade_tipo: string;
+            entidade_id: string;
+            sincronizado: number;
+        };
+    };
+    usuarios: {
+        key: string;
+        value: UsuarioLocal;
+        indexes: { escola_id: string; papel: string; ativo: boolean };
+    };
+    configuracao_horarios: {
+        key: string;
+        value: ConfiguracaoHorarios & { id: string };
+        indexes: {};
+    };
+}
+
+export interface FiltrosAuditoria {
+    usuarioEmail?: string;
+    acao?: string;
+    entidadeTipo?: string;
+    dataInicio?: string;
+    dataFim?: string;
+}
+

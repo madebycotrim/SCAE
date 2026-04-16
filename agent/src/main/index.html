@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CATRAKI EDGE AGENT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="catraki.ico" type="image/x-icon" />
+    <style>
+        :root {
+            --bg: #0e0f13;
+            --s1: #141519;
+            --s2: #1a1c22;
+            --s3: #20222a;
+            --s4: #272931;
+            --b1: rgba(255, 255, 255, 0.045);
+            --b2: rgba(255, 255, 255, 0.08);
+            --b3: rgba(255, 255, 255, 0.13);
+            --t1: #d6dae6;
+            --t2: #878fa2;
+            --t3: #4e5568;
+            --ok: #4d9e7c;
+            --ok-dim: rgba(77, 158, 124, 0.1);
+            --ok-glow: rgba(77, 158, 124, 0.25);
+            --warn: #a8934a;
+            --warn-dim: rgba(168, 147, 74, 0.1);
+            --err: #a85050;
+            --err-dim: rgba(168, 80, 80, 0.1);
+            --info: #4a6ea8;
+            --info-dim: rgba(74, 110, 168, 0.1);
+            --acc: #7a6fff;
+            --acc-dim: rgba(122, 111, 255, 0.1);
+            --mono: 'IBM Plex Mono', monospace;
+            --sans: 'Poppins', sans-serif;
+            --r: 6px;
+            --r2: 10px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--t1);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── SCROLLBARS ─── */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--b2);
+            border-radius: 4px;
+            border: 2px solid var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--b3);
+        }
+
+        /* ── TOASTS ─── */
+        #toast-area {
+            position: fixed;
+            bottom: 36px;
+            right: 14px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--s3);
+            border: 1px solid var(--b2);
+            border-radius: var(--r);
+            padding: 8px 14px;
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            color: var(--t1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            animation: toastIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .toast.ok {
+            border-color: rgba(77, 158, 124, 0.35);
+            color: var(--ok);
+        }
+
+        .toast.err {
+            border-color: rgba(168, 80, 80, 0.35);
+            color: var(--err);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+        }
+
+        /* ── HEADER ─── */
+        .header {
+            height: 64px;
+            background: var(--s1);
+            border-bottom: 1px solid var(--b1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .h-brand {
+            font-family: var(--sans);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--t1);
+        }
+
+        .h-sep {
+            width: 1px;
+            height: 14px;
+            background: var(--b2);
+        }
+
+        .h-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--ok);
+            box-shadow: 0 0 6px var(--ok-glow);
+            animation: pulse 2.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 6px var(--ok-glow);
+            }
+
+            55% {
+                opacity: .4;
+                box-shadow: none;
+            }
+        }
+
+        .h-school {
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            color: var(--t2);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .icon-btn {
+            height: 27px;
+            padding: 0 10px;
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+            background: transparent;
+            color: var(--t3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--sans);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--b2);
+            color: var(--t2);
+            background: var(--s2);
+        }
+
+        .icon-btn.danger:hover {
+            color: var(--err);
+            border-color: rgba(168, 80, 80, 0.4);
+            background: var(--err-dim);
+        }
+
+        .icon-btn.accent:hover {
+            color: var(--acc);
+            border-color: rgba(122, 111, 255, 0.4);
+            background: var(--acc-dim);
+        }
+
+        .icon-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ── LAYOUT ─── */
+        .layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ── SIDEBAR ─── */
+        .sidebar {
+            width: 300px;
+            background: var(--s1);
+            border-right: 1px solid var(--b1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sb-block {
+            padding: 16px;
+            border-bottom: 1px solid var(--b1);
+        }
+
+        .section-title {
+            font-family: var(--sans);
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            color: var(--t1);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        /* ── MÉTRICAS DO DIA ─── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .metric-card {
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            transition: border-color 0.2s;
+        }
+
+        .metric-card:hover {
+            border-color: var(--b2);
+        }
+
+        .metric-n {
+            font-family: var(--mono);
+            font-size: 1.4rem;
+            font-weight: 600;
+            line-height: 1;
+            color: var(--t1);
+        }
+
+        .metric-n.green {
+            color: var(--ok);
+        }
+
+        .metric-n.red {
+            color: var(--err);
+        }
+
+        .metric-n.blue {
+            color: var(--info);
+        }
+
+        .metric-n.acc {
+            color: var(--acc);
+        }
+
+        .metric-l {
+            font-size: 0.7rem;
+            color: var(--t2);
+            font-family: var(--sans);
+            letter-spacing: 0.02em;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .metric-bar {
+            height: 2px;
+            background: var(--b1);
+            border-radius: 1px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .metric-bar-fill {
+            height: 100%;
+            border-radius: 1px;
+            transition: width 0.5s ease;
+        }
+
+        .metric-bar-fill.green {
+            background: var(--ok);
+        }
+
+        .metric-bar-fill.red {
+            background: var(--err);
+        }
+
+        /* ── PICO ─── */
+        .pico-row {
+            display: flex;
+            gap: 4px;
+            margin-top: 10px;
+            align-items: flex-end;
+            height: 30px;
+        }
+
+        .pico-bar {
+            flex: 1;
+            background: var(--b1);
+            border-radius: 2px 2px 0 0;
+            transition: background 0.2s;
+        }
+
+        .pico-bar.active {
+            background: var(--acc-dim);
+            border: 1px solid rgba(122, 111, 255, 0.3);
+            border-bottom: none;
+        }
+
+        .pico-bar.peak {
+            background: var(--acc);
+        }
+
+        .pico-label {
+            font-family: var(--sans);
+            font-size: 0.65rem;
+            color: var(--t3);
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* ── HARDWARE ─── */
+        .hw-card {
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            border-radius: var(--r);
+            padding: 10px 12px;
+            transition: all 0.2s;
+        }
+
+        .hw-card:hover {
+            border-color: var(--b2);
+        }
+
+        .hw-card.offline {
+            border-color: rgba(168, 80, 80, 0.25);
+            background: rgba(168, 80, 80, 0.04);
+        }
+
+        .hw-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .hw-name-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .hw-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .hw-dot.on {
+            background: var(--ok);
+            box-shadow: 0 0 5px var(--ok-glow);
+        }
+
+        .hw-dot.off {
+            background: var(--err);
+        }
+
+        .hw-dot.verificando {
+            background: var(--t3);
+            animation: pulse-gray 2s infinite;
+        }
+
+        @keyframes pulse-gray {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .hw-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .hw-meta {
+            font-size: 0.72rem;
+            color: var(--t2);
+            font-family: var(--sans);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .hw-meta span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .hw-latency {
+            font-family: var(--sans);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .hw-latency.fast {
+            background: var(--ok-dim);
+            color: var(--ok);
+        }
+
+        .hw-latency.slow {
+            background: var(--warn-dim);
+            color: var(--warn);
+        }
+
+        .hw-latency.dead {
+            background: var(--err-dim);
+            color: var(--err);
+        }
+
+        .hw-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .hw-btn {
+            font-family: var(--sans);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--b2);
+            background: var(--s3);
+            color: var(--t3);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .hw-btn:hover {
+            color: var(--t2);
+            border-color: var(--b3);
+        }
+
+        .hw-btn.reconnect:hover {
+            color: var(--ok);
+            border-color: rgba(77, 158, 124, 0.4);
+            background: var(--ok-dim);
+        }
+
+        .hw-btn.users:hover {
+            color: var(--info);
+            border-color: rgba(74, 110, 168, 0.4);
+            background: var(--info-dim);
+        }
+
+        /* ── CLOUD INFO ─── */
+        .cloud-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--b1);
+        }
+
+        .cloud-row:last-child {
+            border-bottom: none;
+        }
+
+        .cloud-key {
+            font-size: 0.7rem;
+            color: var(--t2);
+            font-family: var(--sans);
+            font-weight: 500;
+        }
+
+        .cloud-val {
+            font-size: 0.75rem;
+            color: var(--t1);
+            font-family: var(--sans);
+            font-weight: 600;
+        }
+
+        .cloud-val.ok {
+            color: var(--ok);
+        }
+
+        /* ── MAIN ─── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── LOG TOOLBAR ─── */
+        .log-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--b1);
+            background: var(--s1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .log-search {
+            flex: 1;
+            min-width: 140px;
+            height: 26px;
+            background: var(--s3);
+            border: 1px solid var(--b2);
+            border-radius: var(--r);
+            color: var(--t1);
+            padding: 0 10px;
+            font-family: var(--sans);
+            font-size: 0.8rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .log-search:focus {
+            border-color: var(--b3);
+        }
+
+        .log-search::placeholder {
+            color: var(--t3);
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 4px;
+        }
+
+        .pill {
+            height: 22px;
+            padding: 0 8px;
+            border-radius: 3px;
+            border: 1px solid var(--b1);
+            background: transparent;
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            color: var(--t3);
+            transition: all 0.12s;
+        }
+
+        .pill:hover {
+            border-color: var(--b2);
+            color: var(--t2);
+        }
+
+        .pill.active-ok {
+            background: var(--ok-dim);
+            color: var(--ok);
+            border-color: rgba(77, 158, 124, 0.4);
+        }
+
+        .pill.active-err {
+            background: var(--err-dim);
+            color: var(--err);
+            border-color: rgba(168, 80, 80, 0.4);
+        }
+
+        .pill.active-warn {
+            background: var(--warn-dim);
+            color: var(--warn);
+            border-color: rgba(168, 147, 74, 0.4);
+        }
+
+        .pill.active-info {
+            background: var(--info-dim);
+            color: var(--info);
+            border-color: rgba(74, 110, 168, 0.4);
+        }
+
+        .log-count {
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            color: var(--t2);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ── LOG SYSTEM ─── */
+        #log-container {
+            flex: 1;
+            background: var(--bg);
+            padding: 14px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5px;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            line-height: 1.4;
+            letter-spacing: -0.01em;
+            scroll-behavior: smooth;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 2.5px 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+            cursor: default;
+            white-space: pre-wrap;
+            word-break: break-all;
+            animation: logIn 0.2s ease-out;
+        }
+
+        .log-entry:hover {
+            background: var(--b1);
+        }
+
+        .log-entry.hidden { display: none; }
+
+        @keyframes logIn {
+            from { opacity: 0; transform: translateX(-4px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-ts {
+            color: var(--t3);
+            width: 58px;
+            flex-shrink: 0;
+            user-select: none;
+            font-weight: 500;
+        }
+
+        .log-lv {
+            width: 38px;
+            flex-shrink: 0;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.62rem;
+            text-align: center;
+            border-radius: 3px;
+            padding: 0 4px;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .lv-info { background: var(--info-dim); color: var(--info); }
+        .lv-warn { background: var(--warn-dim); color: var(--warn); }
+        .lv-err  { background: var(--err-dim);  color: var(--err); }
+        .lv-ok   { background: var(--ok-dim);   color: var(--ok); }
+
+        .log-txt { color: var(--t1); flex: 1; }
+
+        /* ── LOG HIGHLIGHTS ─── */
+        .tag-base {
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.68rem;
+            margin-right: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .tag-sync     { background: rgba(122, 111, 255, 0.15); color: #9c92ff; border-color: rgba(122, 111, 255, 0.2); }
+        .tag-idflex   { background: rgba(255, 107, 107, 0.15); color: #ff8e8e; border-color: rgba(255, 107, 107, 0.2); }
+        .tag-hardware { background: rgba(255, 230, 0, 0.1);    color: #ffd900; border-color: rgba(255, 230, 0, 0.2); }
+        .tag-worker   { background: rgba(77, 158, 124, 0.15);  color: #72cfab; border-color: rgba(77, 158, 124, 0.2); }
+        .tag-gari     { background: rgba(135, 143, 162, 0.15); color: #d6dae6; border-color: rgba(135, 143, 162, 0.2); }
+        .tag-poller   { background: rgba(74, 110, 168, 0.15);  color: #7ea8f0; border-color: rgba(74, 110, 168, 0.2); }
+        .tag-watchdog { background: rgba(168, 147, 74, 0.15);  color: #f0d57e; border-color: rgba(168, 147, 74, 0.2); }
+        .tag-api      { background: rgba(168, 80, 80, 0.15);   color: #f07e7e; border-color: rgba(168, 80, 80, 0.2); }
+
+        .hl-ok    { color: var(--ok); font-weight: 600; text-shadow: 0 0 8px var(--ok-glow); }
+        .hl-err   { color: var(--err); font-weight: 600; text-decoration: underline wavy rgba(168, 80, 80, 0.3); }
+        .hl-url   { color: var(--acc); border-bottom: 1px dashed var(--acc-dim); }
+        .hl-ip    { color: #ffd900; font-family: var(--mono); }
+        .hl-id    { color: #72cfab; font-weight: 500; }
+
+        .log-counter {
+            background: var(--s4);
+            color: var(--t2);
+            font-size: 0.6rem;
+            padding: 1px 5px;
+            border-radius: 10px;
+            margin-left: 8px;
+            border: 1px solid var(--b2);
+            font-weight: 700;
+            vertical-align: middle;
+        }
+
+        /* ── MODAL BASE ─── */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.15s ease;
+            backdrop-filter: blur(2px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            background: var(--s2);
+            border: 1px solid var(--b2);
+            border-radius: var(--r2);
+            padding: 24px;
+            width: 460px;
+            max-width: 92vw;
+            animation: modalIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-family: var(--sans);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--t1);
+            letter-spacing: 0.04em;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--t3);
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            transition: color 0.1s;
+        }
+
+        .modal-close:hover {
+            color: var(--t1);
+        }
+
+        /* ── CONFIRM MODAL ─── */
+        .confirm-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--err-dim);
+            border: 1px solid rgba(168, 80, 80, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 1.1rem;
+        }
+
+        .confirm-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .confirm-desc {
+            font-size: 0.72rem;
+            color: var(--t2);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .confirm-input-label {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--t3);
+            margin-bottom: 6px;
+        }
+
+        .confirm-input {
+            width: 100%;
+            background: var(--s3);
+            border: 1px solid var(--b2);
+            color: var(--t1);
+            padding: 8px 12px;
+            border-radius: var(--r);
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            outline: none;
+            margin-bottom: 16px;
+            transition: border-color 0.15s;
+        }
+
+        .confirm-input:focus {
+            border-color: var(--err);
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            height: 34px;
+            padding: 0 16px;
+            border-radius: var(--r);
+            border: 1px solid var(--b2);
+            background: var(--s3);
+            color: var(--t2);
+            cursor: pointer;
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            border-color: var(--b3);
+            color: var(--t1);
+        }
+
+        .btn.danger {
+            border-color: rgba(168, 80, 80, 0.4);
+            background: var(--err-dim);
+            color: var(--err);
+        }
+
+        .btn.danger:hover {
+            background: rgba(168, 80, 80, 0.2);
+        }
+
+        .btn.danger:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .btn.primary {
+            border-color: rgba(77, 158, 124, 0.5);
+            background: var(--ok-dim);
+            color: var(--ok);
+        }
+
+        .btn.primary:hover {
+            background: rgba(77, 158, 124, 0.2);
+        }
+
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* ── SETTINGS ─── */
+        #settings-list {
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .settings-item {
+            background: var(--s3);
+            border: 1px solid var(--b1);
+            padding: 12px;
+            border-radius: var(--r);
+            margin-bottom: 8px;
+        }
+
+        .f-input {
+            background: var(--s4);
+            border: 1px solid var(--b2);
+            color: var(--t1);
+            padding: 7px 10px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            width: 100%;
+            outline: none;
+            font-family: var(--mono);
+            transition: border-color 0.15s;
+        }
+
+        .f-input:focus {
+            border-color: var(--b3);
+        }
+
+        .f-name {
+            background: none;
+            border: none;
+            color: var(--t2);
+            font-size: 0.62rem;
+            font-weight: 700;
+            font-family: var(--mono);
+            outline: none;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── USERS MODAL ─── */
+        #users-modal-list {
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .user-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 4px;
+            border-bottom: 1px solid var(--b1);
+            font-family: var(--mono);
+            font-size: 0.68rem;
+        }
+
+        .user-row:last-child {
+            border-bottom: none;
+        }
+
+        .user-id {
+            color: var(--t3);
+            margin-right: 8px;
+        }
+
+        .user-reg {
+            font-size: 0.58rem;
+            color: var(--t3);
+        }
+
+        /* ── STATUS BAR ─── */
+        .statusbar {
+            height: 32px;
+            background: var(--s1);
+            border-top: 1px solid var(--b1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            font-family: var(--sans);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--t3);
+            flex-shrink: 0;
+        }
+
+        .sb-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .sb-pill {
+            padding: 1px 7px;
+            border-radius: 3px;
+            background: var(--s2);
+            border: 1px solid var(--b1);
+            font-size: 0.55rem;
+        }
+
+        .sb-pill.online {
+            background: var(--ok-dim);
+            border-color: rgba(77, 158, 124, 0.3);
+            color: var(--ok);
+        }
+
+
+
+        /* ── MISC ─── */
+        .hidden {
+            display: none !important;
+        }
+
+        .main-content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 8px;
+            color: var(--t3);
+            font-family: var(--sans);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .empty-state span {
+            font-size: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .tts-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 0.55rem;
+            font-family: var(--mono);
+        }
+
+        .tts-badge.on {
+            background: var(--ok-dim);
+            color: var(--ok);
+            border: 1px solid rgba(77, 158, 124, 0.3);
+        }
+
+        .tts-badge.off {
+            background: var(--s3);
+            color: var(--t3);
+            border: 1px solid var(--b1);
+        }
+
+        .offline-banner {
+            padding: 6px 12px;
+            background: var(--err-dim);
+            border: 1px solid rgba(168, 80, 80, 0.3);
+            border-radius: var(--r);
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--err);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            animation: toastIn 0.2s ease;
+        }
+
+        .offline-banner .reconnect-link {
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.58rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toast-area"></div>
+
+
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <span class="h-brand">CATRAKI BETA</span>
+            <div class="h-sep"></div>
+            <div class="h-status-dot"></div>
+            <span class="h-school" id="school-badge">MODO LOCAL</span>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" id="btn-export-log" title="Exportar log como CSV">
+                <svg viewBox="0 0 16 16">
+                    <path d="M8 2v8M5 7l3 3 3-3M3 13h10" />
+                </svg>
+                EXPORTAR LOG
+            </button>
+
+
+
+            <button class="icon-btn accent" id="btn-backup-db" title="Salvar cópia do banco">
+                <svg viewBox="0 0 16 16">
+                    <path d="M4 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4 6h8M4 10h8" />
+                </svg>
+                BACKUP DB
+            </button>
+            <button class="icon-btn danger" id="btn-reset-db" title="Resetar banco local">
+                <svg viewBox="0 0 16 16">
+                    <path d="M3 5h10M6 5V3h4v2M5 5l.5 8h5L11 5" />
+                </svg>
+                RESET DB
+            </button>
+            <button class="icon-btn" id="btn-settings-open" title="Configurar hardware">
+                <svg viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="2.5" />
+                    <path
+                        d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M11.2 4.8l1.4-1.4M3.4 12.6l1.4-1.4" />
+                </svg>
+                CONFIG
+            </button>
+        </div>
+    </div>
+
+    <div class="layout">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+
+            <!-- MÉTRICAS DO DIA -->
+            <div class="sb-block">
+                <div class="section-title">Métricas (24h)</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-n green" id="m-ok">0</div>
+                        <div class="metric-l">ACESSOS OK</div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill green" id="m-ok-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-n red" id="m-err">0</div>
+                        <div class="metric-l">NEGADOS</div>
+                        <div class="metric-bar">
+                            <div class="metric-bar-fill red" id="m-err-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-n acc" id="m-total">0</div>
+                        <div class="metric-l">TOTAL (24H)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-n blue" id="m-pico">—</div>
+                        <div class="metric-l">PICO (HORA)</div>
+                    </div>
+                </div>
+
+                <!-- Histograma de horas -->
+                <div style="margin-top:12px">
+                    <div class="section-title" style="margin-bottom:6px">Distribuição por hora</div>
+                    <div class="pico-row" id="histo-bars"></div>
+                    <div style="display:flex; justify-content:space-between">
+                        <span class="pico-label">06h</span>
+                        <span class="pico-label">12h</span>
+                        <span class="pico-label">18h</span>
+                        <span class="pico-label">24h</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SISTEMA CLOUD -->
+            <div class="sb-block">
+                <div class="section-title">Sistema Web (Nuvem)</div>
+                <div
+                    style="background:var(--s2); border:1px solid var(--b1); border-radius:var(--r); padding:10px 12px;">
+                    <div class="cloud-row">
+                        <span class="cloud-key">ESCOLA</span>
+                        <div style="display:flex; align-items:center; gap:6px">
+                            <span class="cloud-val ok" id="c-escola">NÃO SYNC</span>
+                            <span id="sync-spinner" class="hidden" style="font-size:10px; animation: spin 1s linear infinite;">🔄</span>
+                        </div>
+                    </div>
+                    <div class="cloud-row">
+                        <span class="cloud-key">ALUNOS OFFLINE</span>
+                        <div style="display:flex; align-items:center; gap:8px">
+                            <span class="cloud-val" id="c-pendentes">0</span>
+                            <button class="btn accent" onclick="forcarSinc()" style="padding:4px 8px; font-size:10px; height:auto">SINCRONIZAR</button>
+                        </div>
+                    </div>
+                    <div class="cloud-row">
+                        <span class="cloud-key">VOZ (TTS)</span>
+                        <span id="c-tts-badge" class="tts-badge off">OFF</span>
+                    </div>
+                    <div id="c-tts-msgs" class="hidden">
+                        <div class="cloud-row">
+                            <span class="cloud-key">MSG OK</span>
+                            <span class="cloud-val" id="c-msg-ok"
+                                style="max-width:150px; overflow:hidden; text-overflow:ellipsis; font-size:0.58rem;">—</span>
+                        </div>
+                        <div class="cloud-row">
+                            <span class="cloud-key">MSG ERRO</span>
+                            <span class="cloud-val" id="c-msg-err"
+                                style="max-width:150px; overflow:hidden; text-overflow:ellipsis; font-size:0.58rem;">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- HARDWARE -->
+            <div class="sb-block" style="flex:1; min-height:0;">
+                <div class="section-title">Equipamentos/Leitores</div>
+                <div id="offline-banners"></div>
+                <div id="hardware-list">
+                    <div class="empty-state">
+                        <span>⬡</span>
+                        Buscando leitores...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN -->
+        <div class="main">
+            <div class="main-content-area">
+                <!-- LOG TOOLBAR -->
+                <div class="log-toolbar">
+                    <div class="section-title" style="margin:0; white-space:nowrap">Log em Tempo Real</div>
+                    <input type="text" class="log-search" id="log-search" placeholder="buscar nos logs...">
+                    <div class="filter-pills">
+                        <button class="pill" id="pill-ok" data-lv="ok">OK</button>
+                        <button class="pill" id="pill-err" data-lv="err">ERR</button>
+                        <button class="pill" id="pill-warn" data-lv="warn">WARN</button>
+                        <button class="pill" id="pill-info" data-lv="info">INFO</button>
+                    </div>
+                    <span class="log-count" id="log-count">0 entradas</span>
+                </div>
+
+                <div id="log-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="statusbar">
+        <div class="sb-left">
+            <span>Agent v2.0.0</span>
+            <span id="status-clock">--:--:--</span>
+            <span class="sb-pill online" id="hw-online-count">0 online</span>
+        </div>
+        <span id="uptime-val">uptime: 00:00:00</span>
+    </div>
+
+    <!-- MODAL: CONFIGURAÇÕES -->
+    <div id="settings-screen" class="modal-bg hidden">
+        <div class="modal">
+            <div class="modal-head">
+                <span class="modal-title">GESTOR DE HARDWARE LOCAL</span>
+                <button class="modal-close" onclick="closeSettings()">✕</button>
+            </div>
+            <div class="field-group" style="padding: 12px; background: var(--s3); border-radius: var(--r); margin-bottom: 16px; border: 1px solid var(--b1)">
+                <div class="section-title" style="margin-bottom: 8px">IP DE SERVIDOR (ESTE COMPUTADOR)</div>
+                <input type="text" id="ipt-agente-ip" style="width:100%; height:32px; background:var(--s4); border:1px solid var(--b2); border-radius:4px; padding:0 10px; color:var(--acc); font-family:var(--mono); font-size:0.8rem;" placeholder="Deixe vazio para auto-detectar">
+                <div style="font-size:0.65rem; color:var(--t3); margin-top:4px;">Se vazio, usaremos o IP automático da rede local.</div>
+            </div>
+
+            <div class="section-title" style="margin-bottom: 8px">LISTA DE HARDWARES (LEITORES)</div>
+            <div id="settings-list" style="max-height:280px; overflow-y:auto; margin-bottom:8px;"></div>
+            <button onclick="addNewHardware()" class="btn btn-full" style="border-style:dashed; margin-bottom:16px;">+
+                ADICIONAR NOVO IP</button>
+            <button onclick="saveHardware()" class="btn primary btn-full">SALVAR E REINICIAR CONEXÕES</button>
+        </div>
+    </div>
+
+    <!-- MODAL: USUÁRIOS -->
+    <div id="users-screen" class="modal-bg hidden">
+        <div class="modal" style="width:500px;">
+            <div class="modal-head">
+                <span class="modal-title" id="users-modal-title">USUÁRIOS NO DISPOSITIVO</span>
+                <button class="modal-close" onclick="closeUsers()">✕</button>
+            </div>
+            <div id="users-modal-list" style="max-height:380px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+
+
+    <!-- MODAL: PIN DE SEGURANÇA -->
+    <div id="pin-screen" class="modal-bg hidden">
+        <div class="modal" style="width:340px; text-align:center;">
+            <div class="section-title" style="margin-bottom:20px;">Acesso Restrito</div>
+            <div class="confirm-desc">Digite o PIN de administrador para continuar.</div>
+            <input type="password" class="confirm-input" id="pin-input" placeholder="••••••" maxlength="6"
+                style="text-align:center; font-size:1.5rem; letter-spacing:4px;">
+            <div class="confirm-actions">
+                <button class="btn" onclick="closePin()" style="flex:1">CANCELAR</button>
+                <button class="btn primary" id="btn-confirm-pin" onclick="verifyPinAction()" style="flex:1">ENTRAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ══════════════════════════════════════
+        //  ESTADO GLOBAL
+        // ══════════════════════════════════════
+        let configAtiva = [];
+        let uptime = 0;
+        const hwLatency = {}; // State para latência dos leitores
+        const verificandoStart = {}; // Rastreio de tempo para conexão
+
+
+
+        // Métricas do dia
+        const metrics = { ok: 0, err: 0, horas: new Array(24).fill(0) };
+        let metricsDay = new Date().getDate();
+
+        // Log state
+        const MAX_LOG = 500;
+        let logEntries = [];       // { el, ts, lv, txt }
+        let activeFilters = new Set();
+        let searchQuery = '';
+        let totalVisible = 0;
+
+        // TTS queue (sem cancel constante)
+        const ttsQueue = [];
+        let ttsSpeaking = false;
+
+
+
+        // ══════════════════════════════════════
+        //  CLOCK + UPTIME
+        // ══════════════════════════════════════
+        function pad(n) { return String(n).padStart(2, '0'); }
+
+        setInterval(() => {
+            const now = new Date();
+            const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            document.getElementById('status-clock').textContent = ts;
+            const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+            uptime++;
+            const h = pad(Math.floor(uptime / 3600));
+            const m = pad(Math.floor((uptime % 3600) / 60));
+            const s = pad(uptime % 60);
+            document.getElementById('uptime-val').textContent = `uptime: ${h}:${m}:${s}`;
+
+            // MANTIDO: O Agente (backend) agora gerencia a janela deslizante de 24h
+            // a sincronização ocorre via evento status-hardware.
+        }, 1000);
+
+        // --- SISTEMA DE GROUPING DE LOGS ---
+        let ultimoLogInfo = { msg: '', el: null, count: 1 };
+
+        function colorizarTags(txt) {
+            // 🏷️ TAGS PRINCIPAIS (Suporta formato [Tag] ou Emoji Tag)
+            let resp = txt
+                .replace(/(\[Sync\]|🔄 SYNC)/gi,      '<span class="tag-base tag-sync">🔄 SYNC</span>')
+                .replace(/(\[iDFlex\]|📟 LEITOR)/gi,   '<span class="tag-base tag-idflex">📟 LEITOR</span>')
+                .replace(/(\[Watchdog\]|🐕 WATCHDOG)/gi, '<span class="tag-base tag-watchdog">🐕 WATCHDOG</span>')
+                .replace(/(\[Hardware\]|🧩 LEITOR)/gi, '<span class="tag-base tag-hardware">🧩 LEITOR</span>')
+                .replace(/(\[WorkerApi\]|☁ CLOUD)/gi, '<span class="tag-base tag-worker">☁ CLOUD</span>')
+                .replace(/(\[Config\]|⚙ CONFIG)/gi,    '<span class="tag-base tag-config">⚙ CONFIG</span>')
+                .replace(/(\[Enroll\]|👆 MATRÍCULA)/gi,  '<span class="tag-base tag-enroll">👆 MATRÍCULA</span>')
+                .replace(/(\[Beep\]|🔔 BEEP)/gi,      '<span class="tag-base tag-beep">🔔 BEEP</span>')
+                .replace(/(\[Gari Digital\]|🧹 GARI)/gi, '<span class="tag-base tag-gari">🧹 GARI</span>')
+                .replace(/(\[Poller\]|📡 POLLER)/gi,    '<span class="tag-base tag-poller">📡 POLLER</span>')
+                .replace(/(\[Local API\]|🌐 API)/gi,   '<span class="tag-base tag-api">🌐 API</span>');
+
+            // ✨ DESTAQUES DE ESTADO
+            resp = resp
+                .replace(/\b(sucesso|ok|concluída|ativo|online|conectado|identificada|autorizado)\b/gi, '<span class="hl-ok">$&</span>')
+                .replace(/\b(erro|falha|bloqueio|negado|inacessível|desconectado|divergência|cancelada)\b/gi, '<span class="hl-err">$&</span>');
+
+            // 📍 DADOS TÉCNICOS
+            resp = resp
+                .replace(/https?:\/\/[^\s]+/g,   '<span class="hl-url">$&</span>')
+                .replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?/g, '<span class="hl-ip">$&</span>');
+
+            return resp;
+        }
+
+        // ══════════════════════════════════════
+        //  TOAST
+        // ══════════════════════════════════════
+        function showToast(msg, type = 'info') {
+            const area = document.getElementById('toast-area');
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            area.appendChild(t);
+            setTimeout(() => {
+                t.style.animation = 'toastOut 0.2s ease forwards';
+                setTimeout(() => t.remove(), 200);
+            }, 3000);
+        }
+
+        // ══════════════════════════════════════
+        //  LOG
+        // ══════════════════════════════════════
+        function pushLog(msg, type = 'info') {
+            const container = document.getElementById('log-container');
+            if (!container) return;
+
+            // ⚡ AGRUPAMENTO (ITEM 2): Evita spam de logs idênticos (Repetição consecutiva)
+            if (msg === ultimoLogInfo.msg && ultimoLogInfo.el) {
+                ultimoLogInfo.count++;
+                const countBadge = ultimoLogInfo.el.querySelector('.log-counter');
+                if (countBadge) {
+                    countBadge.textContent = `x${ultimoLogInfo.count}`;
+                } else {
+                    const badge = document.createElement('span');
+                    badge.className = 'log-counter';
+                    badge.textContent = `x${ultimoLogInfo.count}`;
+                    ultimoLogInfo.el.appendChild(badge);
+                }
+                container.scrollTop = container.scrollHeight;
+                return;
+            }
+
+            const now = new Date();
+            const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.dataset.lv = type;
+            entry.dataset.txt = msg.toLowerCase();
+            
+            const htmlColorizado = colorizarTags(escapeHtml(msg));
+            entry.innerHTML = `<span class="log-ts">${ts}</span><span class="log-lv lv-${type}">${type.toUpperCase().padEnd(4)}</span><span class="log-txt">${htmlColorizado}</span>`;
+
+            // Virtualização: manter no máximo MAX_LOG entradas
+            if (logEntries.length >= MAX_LOG) {
+                const oldest = logEntries.shift();
+                if (oldest && oldest.el && oldest.el.parentNode) oldest.el.remove();
+            }
+
+            logEntries.push({ el: entry, ts, lv: type, txt: msg });
+            container.appendChild(entry);
+            
+            // Atualiza o rastreio do último log para o próximo ciclo de agrupamento
+            ultimoLogInfo = { msg, el: entry, count: 1 };
+
+            applyVisibility(entry);
+            updateLogCount();
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function applyVisibility(entry) {
+            const lv = entry.dataset.lv;
+            const txt = entry.dataset.txt;
+            const filterPass = activeFilters.size === 0 || activeFilters.has(lv);
+            const searchPass = searchQuery === '' || txt.includes(searchQuery);
+            if (filterPass && searchPass) {
+                entry.classList.remove('hidden');
+            } else {
+                entry.classList.add('hidden');
+            }
+        }
+
+        function applyAllFilters() {
+            logEntries.forEach(e => applyVisibility(e.el));
+            updateLogCount();
+        }
+
+        function updateLogCount() {
+            const visible = logEntries.filter(e => !e.el.classList.contains('hidden')).length;
+            document.getElementById('log-count').textContent = `${visible} / ${logEntries.length} entradas`;
+        }
+
+        // Filtros
+        document.querySelectorAll('.pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const lv = pill.dataset.lv;
+                if (activeFilters.has(lv)) {
+                    activeFilters.delete(lv);
+                    pill.className = 'pill';
+                } else {
+                    activeFilters.add(lv);
+                    pill.className = `pill active-${lv}`;
+                }
+                applyAllFilters();
+            });
+        });
+
+        // Busca com debounce
+        let searchTimeout;
+        document.getElementById('log-search').addEventListener('input', e => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                applyAllFilters();
+            }, 120);
+        });
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ══════════════════════════════════════
+        //  EXPORTAR LOG
+        // ══════════════════════════════════════
+        document.getElementById('btn-export-log').addEventListener('click', () => {
+            if (logEntries.length === 0) { showToast('Log vazio.', 'err'); return; }
+            const lines = ['timestamp,nivel,mensagem'];
+            logEntries.forEach(e => {
+                lines.push(`"${e.ts}","${e.lv}","${e.txt.replace(/"/g, '""')}"`);
+            });
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `catraki-log-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Log exportado!', 'ok');
+        });
+
+        // ══════════════════════════════════════
+        //  MÉTRICAS
+        // ══════════════════════════════════════
+        function updateMetricsUI() {
+            const total = metrics.ok + metrics.err;
+            document.getElementById('m-ok').textContent = metrics.ok;
+            document.getElementById('m-err').textContent = metrics.err;
+            document.getElementById('m-total').textContent = total;
+
+            const pct = total > 0 ? Math.round((metrics.ok / total) * 100) : 0;
+            document.getElementById('m-ok-bar').style.width = pct + '%';
+            document.getElementById('m-err-bar').style.width = (100 - pct) + '%';
+
+            // Pico horário
+            const maxHora = metrics.horas.reduce((a, b) => Math.max(a, b), 0);
+            const picoIdx = metrics.horas.indexOf(maxHora);
+            document.getElementById('m-pico').textContent = maxHora > 0 ? `${pad(picoIdx)}h` : '—';
+
+            // Histograma
+            renderHistogram(maxHora);
+        }
+
+        function renderHistogram(maxVal) {
+            const container = document.getElementById('histo-bars');
+            if (!container) return;
+            // 18 barras cobrindo 06h-24h (a cada hora)
+            const start = 6;
+            const bars = 18;
+            let html = '';
+            for (let i = 0; i < bars; i++) {
+                const hora = start + i;
+                const val = metrics.horas[hora % 24] || 0;
+                const pct = maxVal > 0 ? Math.round((val / maxVal) * 100) : 0;
+                const isPeak = val === maxVal && maxVal > 0;
+                const isActive = val > 0;
+                html += `<div class="pico-bar ${isPeak ? 'peak' : isActive ? 'active' : ''}" style="height:${Math.max(4, pct)}%" title="${hora}h: ${val}"></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function registerAccess(sucesso) {
+            if (sucesso) metrics.ok++; else metrics.err++;
+            const hora = new Date().getHours();
+            metrics.horas[hora] = (metrics.horas[hora] || 0) + 1;
+            updateMetricsUI();
+        }
+
+        // ══════════════════════════════════════
+        //  TTS — MOTOR ROBUSTO (Anti-Bug Chromium)
+        // ══════════════════════════════════════
+        let vozPtBr = null;
+
+        // Pré-carrega vozes (Chromium pode demorar para disponibilizá-las)
+        function carregarVozes() {
+            const vozes = window.speechSynthesis.getVoices();
+            if (vozes.length > 0) {
+                // Prioridade: Google pt-BR > qualquer pt-BR > qualquer pt
+                vozPtBr = vozes.find(v => v.lang === 'pt-BR' && v.name.includes('Google'))
+                       || vozes.find(v => v.lang === 'pt-BR')
+                       || vozes.find(v => v.lang.startsWith('pt'))
+                       || null;
+            }
+        }
+        carregarVozes();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = carregarVozes;
+        }
+
+        function enqueueTTS(texto) {
+            ttsQueue.push(texto);
+            if (!ttsSpeaking) drainTTS();
+        }
+
+        function drainTTS() {
+            if (ttsQueue.length === 0) { ttsSpeaking = false; return; }
+            ttsSpeaking = true;
+            const frase = ttsQueue.shift();
+
+            // Destravar fila caso o Chromium tenha congelado
+            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+            window.speechSynthesis.cancel();
+
+            const u = new SpeechSynthesisUtterance(frase);
+            u.lang = 'pt-BR';
+            if (vozPtBr) u.voice = vozPtBr;
+            u.rate = 1.05;
+            u.onend = () => setTimeout(drainTTS, 150);
+            u.onerror = () => setTimeout(drainTTS, 150);
+
+            // Watchdog: Se a fala não terminar em 10s, força próxima
+            const watchdog = setTimeout(() => {
+                window.speechSynthesis.cancel();
+                ttsSpeaking = false;
+                drainTTS();
+            }, 10000);
+
+            const origEnd = u.onend;
+            u.onend = () => { clearTimeout(watchdog); setTimeout(drainTTS, 150); };
+            u.onerror = () => { clearTimeout(watchdog); setTimeout(drainTTS, 150); };
+
+            window.speechSynthesis.speak(u);
+        }
+
+        // ══════════════════════════════════════
+        //  HARDWARE STATUS
+        // ══════════════════════════════════════
+        window.scaeApi.onHardwareStatus(status => {
+            document.getElementById('sync-spinner').classList.add('hidden');
+            configAtiva = status.leitores || [];
+
+            // Nome da Escola
+            if (status.nome_escola) {
+                document.getElementById('school-badge').textContent = status.nome_escola.toUpperCase();
+                document.getElementById('c-escola').textContent = status.nome_escola.toUpperCase();
+            }
+
+            // Alunos no Cache Offline
+            if (status.total_alunos !== undefined) {
+                document.getElementById('c-pendentes').textContent = status.total_alunos;
+            }
+
+            // Indicador de Voz (TTS) + Frases na Sidebar
+            if (status.tts_ativado !== undefined) {
+                const badge = document.getElementById('c-tts-badge');
+                const msgsDiv = document.getElementById('c-tts-msgs');
+                if (badge) {
+                    badge.textContent = status.tts_ativado ? 'ON' : 'OFF';
+                    badge.className = status.tts_ativado ? 'tts-badge on' : 'tts-badge off';
+                }
+                if (msgsDiv) {
+                    if (status.tts_ativado) {
+                        msgsDiv.classList.remove('hidden');
+                        document.getElementById('c-msg-ok').textContent = status.tts_sucesso || '(silêncio)';
+                        document.getElementById('c-msg-err').textContent = status.tts_erro || '(silêncio)';
+                    } else {
+                        msgsDiv.classList.add('hidden');
+                    }
+                }
+            }
+
+            // Métricas 24h
+            if (status.stats) {
+                metrics.ok = (status.stats.entradas || 0) + (status.stats.saidas || 0);
+                metrics.err = (status.stats.negados || 0);
+                if (status.stats.horas) metrics.horas = [...status.stats.horas];
+                updateMetricsUI();
+            }
+
+            // IP do Agente (para tela de Configurações)
+            if (status.ip_agente_config !== undefined) {
+                document.getElementById('ipt-agente-ip').value = status.ip_agente_config;
+            }
+
+            renderHardware();
+        });
+
+        // 🆕 Handler para atualizações imediatas vindo da nuvem (sem esperar o pulso de 5s)
+        window.scaeApi.onConfigUpdated(data => {
+            if (data.nomeEscola) {
+                document.getElementById('school-badge').textContent = data.nomeEscola.toUpperCase();
+                document.getElementById('c-escola').textContent = data.nomeEscola.toUpperCase();
+            }
+
+            // Atualiza indicador TTS + frases na sidebar
+            if (data.ttsAtivo !== undefined) {
+                const badge = document.getElementById('c-tts-badge');
+                const msgsDiv = document.getElementById('c-tts-msgs');
+                if (badge) {
+                    badge.textContent = data.ttsAtivo ? 'ON' : 'OFF';
+                    badge.className = data.ttsAtivo ? 'tts-badge on' : 'tts-badge off';
+                }
+                if (msgsDiv) {
+                    if (data.ttsAtivo) {
+                        msgsDiv.classList.remove('hidden');
+                        if (data.ttsSucesso !== undefined) document.getElementById('c-msg-ok').textContent = data.ttsSucesso || '(silêncio)';
+                        if (data.ttsErro !== undefined) document.getElementById('c-msg-err').textContent = data.ttsErro || '(silêncio)';
+                    } else {
+                        msgsDiv.classList.add('hidden');
+                    }
+                }
+            }
+
+            pushLog(`☁ Configuração atualizada via Nuvem.`, 'info');
+        });
+
+
+        // ACESSO
+        window.scaeApi.onNewAccess(data => {
+            registerAccess(data.sucesso);
+
+            const tipo = data.sucesso ? 'ok' : 'err';
+            const label = data.sucesso ? 'ACESSO' : 'NEGADO';
+            showToast(`${label}: ${data.nome}`, tipo);
+
+            // TTS via fila
+            if (data.ttsAtivo) {
+                const ttsParams = {
+                    sucesso: data.ttsParams?.sucesso ?? 'Bem-vindo, {nome}!',
+                    erro: data.ttsParams?.erro ?? 'Acesso negado, {nome}!'
+                };
+                
+                // 📢 RECADO PERSONALIZADO: Se houver mensagemAviso, ela tem prioridade sobre o padrão
+                const tpl = data.mensagemAviso || (data.sucesso ? ttsParams.sucesso : ttsParams.erro);
+                
+                if (tpl && tpl.trim() !== '') {
+                    const frase = tpl.replace('{nome}', data.nomePuro || 'Visitante');
+                    enqueueTTS(frase);
+                }
+            }
+        });
+
+        // LOG
+        window.scaeApi.onNewLog(log => pushLog(log));
+
+        // ══════════════════════════════════════
+        //  RENDER HARDWARE
+        // ══════════════════════════════════════
+        window.forcarSinc = async () => {
+            showToast('Sincronização forçada...', 'info');
+            pushLog('🚀 Solicitando atualização imediata da nuvem...', 'info');
+            document.getElementById('sync-spinner').classList.remove('hidden');
+            try {
+                // Chama o endpoint de sync do main process
+                await fetch('http://localhost:1912/sync-now', { method: 'POST' });
+                showToast('Sync finalizado!', 'ok');
+            } catch {
+                showToast('Erro no sync local', 'err');
+            } finally {
+                document.getElementById('sync-spinner').classList.add('hidden');
+            }
+        };
+
+        function renderHardware() {
+            const list = document.getElementById('hardware-list');
+            const bannersDiv = document.getElementById('offline-banners');
+            if (!list) return;
+
+            if (configAtiva.length === 0) {
+                list.innerHTML = '<div class="empty-state"><span>⬡</span>Nenhum hardware no radar.</div>';
+                bannersDiv.innerHTML = '';
+                document.getElementById('hw-online-count').textContent = '0 online';
+                return;
+            }
+
+            const online = configAtiva.filter(l => l.online === true).length;
+            document.getElementById('hw-online-count').textContent = `${online}/${configAtiva.length} online`;
+            const pill = document.getElementById('hw-online-count');
+            pill.className = online === configAtiva.length ? 'sb-pill online' : 'sb-pill';
+
+            // Banners de offline (Apenas se online === false, ignorando 'verificando')
+            const offlines = configAtiva.filter(l => l.online === false);
+            bannersDiv.innerHTML = offlines.map(l => `
+            <div class="offline-banner">
+                <span>⚠ ${l.nome} está offline</span>
+                <span class="reconnect-link" onclick="tentarReconectar('${l.id}', '${l.nome}')">reconectar</span>
+            </div>
+        `).join('');
+
+            list.innerHTML = configAtiva.map(l => {
+                const lat = hwLatency[l.id];
+                let latBadge = '';
+                let statusCls = '';
+                let dotCls = '';
+
+                // Lógica de Timeout para "conectando..."
+                if (l.online === undefined || l.online === null) {
+                    if (!verificandoStart[l.id]) verificandoStart[l.id] = Date.now();
+                    const decorrido = Date.now() - verificandoStart[l.id];
+                    
+                    if (decorrido > 30000) { // 30 segundos
+                        statusCls = 'offline';
+                        dotCls = 'off';
+                        latBadge = `<span class="hw-latency dead">inacessível (timeout)</span>`;
+                    } else {
+                        dotCls = 'verificando';
+                        latBadge = `<span class="hw-latency" style="opacity:0.5">conectando... (${Math.floor((30000 - decorrido) / 1000)}s)</span>`;
+                    }
+                } else if (l.online === true) {
+                    verificandoStart[l.id] = null; // Reset
+                    dotCls = 'on';
+                    if (lat) {
+                        const cls = lat.ms < 50 ? 'fast' : 'slow';
+                        latBadge = `<span class="hw-latency ${cls}">${lat.ms}ms</span>`;
+                    } else {
+                        latBadge = `<span class="hw-latency fast">—</span>`;
+                    }
+                } else {
+                    verificandoStart[l.id] = null; // Reset
+                    statusCls = 'offline';
+                    dotCls = 'off';
+                    latBadge = `<span class="hw-latency dead">offline</span>`;
+                }
+
+                const lastSeen = lat ? formatLastSeen(lat.lastSeen) : '';
+
+                return `
+            <div class="hw-card ${statusCls}">
+                <div class="hw-top">
+                    <div class="hw-name-row">
+                        <div class="hw-dot ${dotCls}"></div>
+                        <span class="hw-name">${escapeHtml(l.nome)}</span>
+                    </div>
+                    ${latBadge}
+                </div>
+                <div class="hw-meta">
+                    <span>${l.ip || '0.0.0.0'}:${l.porta || 80}</span>
+                    <span>${l.totalUsuarios || 0} ${l.totalUsuarios === 1 ? 'usuário' : 'usuários'}</span>
+                </div>
+                <div class="hw-actions">
+                    <button class="hw-btn users" onclick="verUsuarios('${l.id}','${escapeHtml(l.nome)}')">PESSOAS</button>
+                    ${l.online === false ? `<button class="hw-btn reconnect" onclick="tentarReconectar('${l.id}','${escapeHtml(l.nome)}')">RECONECTAR</button>` : ''}
+                </div>
+            </div>`;
+            }).join('');
+        }
+
+        function formatLastSeen(ts) {
+            const diff = Math.floor((Date.now() - ts) / 1000);
+            if (diff < 5) return 'agora';
+            if (diff < 60) return `há ${diff}s`;
+            if (diff < 3600) return `há ${Math.floor(diff / 60)}min`;
+            return `há ${Math.floor(diff / 3600)}h`;
+        }
+
+        // Simula ping para latência (quando scaeApi disponível deve ser feito no backend)
+        function simulateLatencyPing() {
+            configAtiva.forEach(l => {
+                if (l.online) {
+                    const fakeMs = 8 + Math.floor(Math.random() * 40);
+                    hwLatency[l.id] = { ms: fakeMs, lastSeen: Date.now() };
+                }
+            });
+            if (configAtiva.length > 0) renderHardware();
+        }
+        setInterval(simulateLatencyPing, 5000);
+
+        window.tentarReconectar = async (id, nome) => {
+            pushLog(`Tentando reconectar: ${nome}...`, 'warn');
+            if (window.scaeApi) {
+                const res = await window.scaeApi.reconectar(id);
+                if (res && res.ok) {
+                    showToast(`${nome} reconectado!`, 'ok');
+                    pushLog(`Hardware ${nome} respondeu com sucesso.`, 'ok');
+                } else {
+                    showToast(`Falha ao conectar ${nome}.`, 'err');
+                    pushLog(`Hardware ${nome} continua inacessível.`, 'err');
+                }
+            }
+        };
+
+        // ══════════════════════════════════════
+        //  USUÁRIOS
+        // ══════════════════════════════════════
+        window.verUsuarios = async (leitorId, leitorNome) => {
+            pushLog(`Consultando usuários de: ${leitorNome}`, 'info');
+            const modal = document.getElementById('users-screen');
+            const listArea = document.getElementById('users-modal-list');
+            document.getElementById('users-modal-title').textContent = `HARDWARE: ${leitorNome}`;
+            listArea.innerHTML = '<div class="empty-state" style="height:120px"><span>⬡</span>Lendo banco de dados...</div>';
+            modal.classList.remove('hidden');
+
+            try {
+                if (!window.scaeApi) throw new Error('API não disponível');
+                const users = await window.scaeApi.listarAlunos(leitorId);
+                if (users && users.length > 0) {
+                    listArea.innerHTML = users.map(u => `
+                    <div class="user-row">
+                        <span><span class="user-id">[${u.id}]</span> ${escapeHtml(u.name)}</span>
+                        <span class="user-reg">${u.registration || '—'}</span>
+                    </div>
+                `).join('');
+                } else {
+                    listArea.innerHTML = '<div class="empty-state" style="height:100px"><span>⬡</span>Ninguém cadastrado neste leitor.</div>';
+                }
+            } catch (e) {
+                listArea.innerHTML = '<div class="empty-state" style="height:80px; color:var(--err)"><span>⚠</span>Falha ao comunicar com equipamento.</div>';
+            }
+        };
+
+        window.closeUsers = () => document.getElementById('users-screen').classList.add('hidden');
+
+        // ══════════════════════════════════════
+        //  SETTINGS
+        // ══════════════════════════════════════
+        // ══════════════════════════════════════
+        //  SETTINGS & PIN
+        // ══════════════════════════════════════
+        let pendingAction = null;
+
+        document.getElementById('btn-settings-open').onclick = () => {
+            askForPin(() => {
+                renderSettings();
+                document.getElementById('settings-screen').classList.remove('hidden');
+            });
+        };
+
+        function askForPin(onSuccess) {
+            pendingAction = onSuccess;
+            document.getElementById('pin-input').value = '';
+            document.getElementById('pin-screen').classList.remove('hidden');
+            setTimeout(() => document.getElementById('pin-input').focus(), 100);
+        }
+
+        window.closePin = () => document.getElementById('pin-screen').classList.add('hidden');
+
+        window.verifyPinAction = async () => {
+            const pin = document.getElementById('pin-input').value;
+            if (!window.scaeApi) return;
+            
+            const res = await window.scaeApi.verificarPin(pin);
+            if (res && res.ok) {
+                closePin();
+                if (pendingAction) pendingAction();
+            } else {
+                showToast('PIN Incorreto!', 'err');
+                document.getElementById('pin-input').value = '';
+                document.getElementById('pin-input').focus();
+            }
+        };
+
+        // Atalho de Enter no PIN
+        document.getElementById('pin-input').onkeydown = e => { if (e.key === 'Enter') verifyPinAction(); };
+
+        // ══════════════════════════════════════
+        //  BACKUP DB
+        // ══════════════════════════════════════
+        document.getElementById('btn-backup-db').onclick = async () => {
+            if (!window.scaeApi) return;
+            const res = await window.scaeApi.backupDb();
+            if (res.ok) {
+                showToast(`Backup salvo em: ${res.path.split('\\').pop()}`, 'ok');
+                pushLog(`Backup do banco exportado para: ${res.path}`, 'info');
+            } else if (res.erro) {
+                showToast(`Erro no backup: ${res.erro}`, 'err');
+            }
+        };
+
+        function closeSettings() {
+            document.getElementById('settings-screen').classList.add('hidden');
+        }
+
+        function renderSettings() {
+            const list = document.getElementById('settings-list');
+            if (configAtiva.length === 0) {
+                list.innerHTML = `<div class="empty-state" style="padding:10px; opacity:0.6; font-size:0.7rem;">Nenhum leitor cadastrado. Clique no botão abaixo para adicionar.</div>`;
+                return;
+            }
+            list.innerHTML = configAtiva.map((l, i) => `
+            <div class="settings-item">
+                <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:8px; align-items:center;">
+                    <input type="text" class="f-name" value="${escapeHtml(l.nome)}" placeholder="Nome do Leitor" style="flex:1">
+                    <select class="f-tipo" style="background:var(--s3); border:1px solid var(--b2); border-radius:4px; color:var(--t2); font-size:0.65rem; padding:2px 5px; outline:none;">
+                        <option value="ID_FLEX" ${l.tipo === 'ID_FLEX' ? 'selected' : ''}>iD Flex</option>
+                        <option value="ID_NANO" ${l.tipo === 'ID_NANO' ? 'selected' : ''}>iD Nano</option>
+                    </select>
+                    <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size:0.62rem; font-family:var(--mono);">excluir</button>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
+                    <input type="text" class="f-input f-ip" value="${l.ip}" placeholder="IP">
+                    <input type="number" class="f-input f-porta" value="${l.porta}" placeholder="Porta">
+                    <input type="hidden" class="f-id" value="${l.id}">
+                </div>
+            </div>
+        `).join('');
+        }
+
+        window.addNewHardware = () => {
+            const list = document.getElementById('settings-list');
+            const id = `idflex-${Date.now()}`;
+            const item = document.createElement('div');
+            item.className = 'settings-item';
+            item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:8px; align-items:center;">
+                <input type="text" class="f-name" value="Novo Leitor" placeholder="Nome do Leitor" style="flex:1">
+                <select class="f-tipo" style="background:var(--s3); border:1px solid var(--b2); border-radius:4px; color:var(--t2); font-size:0.65rem; padding:2px 5px; outline:none;">
+                    <option value="ID_FLEX">iD Flex</option>
+                    <option value="ID_NANO">iD Nano</option>
+                </select>
+                <button onclick="this.closest('.settings-item').remove()" style="background:none; border:none; color:var(--err); cursor:pointer; font-size:0.62rem; font-family:var(--mono);">excluir</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px">
+                <input type="text" class="f-input f-ip" value="" placeholder="IP">
+                <input type="number" class="f-input f-porta" value="80" placeholder="Porta">
+                <input type="hidden" class="f-id" value="${id}">
+            </div>
+        `;
+            list.appendChild(item);
+            item.querySelector('.f-ip').focus();
+        };
+
+        async function saveHardware() {
+            const items = document.querySelectorAll('.settings-item');
+            const novosLeitores = [];
+            items.forEach(el => {
+                const nome = el.querySelector('.f-name').value;
+                const ip = el.querySelector('.f-ip').value.trim();
+                const porta = el.querySelector('.f-porta').value;
+                const tipo = el.querySelector('.f-tipo').value;
+                    const id = el.querySelector('.f-id')?.value || `idflex-${Date.now()}`;
+                    
+                    if (ip !== '' && ip.length > 5) {
+                        novosLeitores.push({ 
+                            id, 
+                            nome: nome || 'Leitor Biométrico', 
+                            ip, 
+                            porta: parseInt(porta) || 80, 
+                            tipo 
+                        });
+                    }
+            });
+            if (novosLeitores.length === 0) {
+                if (!confirm("Você está salvando a lista de equipamentos VAZIA. Todas as catracas serão desconectadas. Deseja continuar?")) return;
+            }
+
+            try {
+                if (!window.scaeApi) throw new Error();
+                const ipAgente = document.getElementById('ipt-agente-ip').value.trim();
+                console.log('[UI] Enviando salvarLeitores:', { count: novosLeitores.length, ipAgente });
+                const res = await window.scaeApi.salvarLeitores(novosLeitores, ipAgente);
+                if (res.ok) { 
+                    showToast('Configuração salva!', 'ok'); 
+                    closeSettings(); 
+                }
+                else showToast('Erro ao salvar.', 'err');
+            } catch { showToast('Falha na operação.', 'err'); }
+        }
+
+        // ══════════════════════════════════════
+        //  CONFIRM RESET MODAL
+        // ══════════════════════════════════════
+        document.getElementById('btn-reset-db').onclick = () => {
+            askForPin(() => {
+                document.getElementById('confirm-text').value = '';
+                document.getElementById('btn-confirm-reset').disabled = true;
+                document.getElementById('confirm-screen').classList.remove('hidden');
+                setTimeout(() => document.getElementById('confirm-text').focus(), 100);
+            });
+        };
+
+        document.getElementById('confirm-text').addEventListener('input', e => {
+            document.getElementById('btn-confirm-reset').disabled = e.target.value !== 'RESETAR';
+        });
+
+        function closeConfirm() {
+            document.getElementById('confirm-screen').classList.add('hidden');
+        }
+
+        async function doReset() {
+            closeConfirm();
+            try {
+                if (window.scaeApi) {
+                    await window.scaeApi.resetDb();
+                    showToast('Banco resetado. Reiniciando...', 'ok');
+                    pushLog('RESET DB executado pelo usuário.', 'warn');
+                }
+            } catch { showToast('Falha ao enviar comando.', 'err'); }
+        }
+
+
+
+        // ══════════════════════════════════════
+        //  MODO QUIOSQUE / PORTARIA
+        // ══════════════════════════════════════
+        let kioskMode = false;
+        // document.getElementById('btn-kiosk').onclick = toggleKiosk; // Removido por enquanto
+
+        // ESC para sair do modo quiosque
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && kioskMode) toggleKiosk();
+        });
+    </script>
+</body>
+
+</html>

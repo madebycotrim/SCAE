@@ -1,0 +1,38 @@
+{
+  "name": "catraki-agent",
+  "version": "1.1.0",
+  "description": "Agente local Catraki - Comunicação Modular de Hardware",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "dev": "npm run build && npx electron .",
+    "build": "tsc && copy src\\main\\index.html dist\\main\\index.html && copy src\\CATRAKI.ico dist\\main\\CATRAKI.ico",
+    "package": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "node-cron": "^3.0.3",
+    "@journeyapps/sqlcipher": "^5.3.1",
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/node-cron": "^3.0.11",
+    "electron": "^29.0.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=22.22.2"
+  },
+  "build": {
+    "appId": "br.com.catraki.agent",
+    "productName": "Catraki Agent",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

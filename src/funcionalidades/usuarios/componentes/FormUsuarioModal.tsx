@@ -1,0 +1,154 @@
+import { useState, useEffect } from 'react';
+import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
+import { Users, Shield, UserCheck, Plus, Lock, Mail, GraduationCap } from 'lucide-react';
+import { Botao } from '@/compartilhado/componentes/UI';
+import { mascararDadoPessoal } from '@/compartilhado/utils/registrarLocal';
+import { usarEscola } from '@/escola/ProvedorEscola';
+import { UsuarioVisualizacao, PapelUsuario, usuarioSchema } from '../tipos/usuario.esquema';
+
+interface FormUsuarioModalProps {
+    usuario?: UsuarioVisualizacao | null;
+    aoFechar: () => void;
+    aoSalvar: (dados: UsuarioVisualizacao) => Promise<void>;
+}
+
+export default function FormUsuarioModal({ usuario, aoFechar, aoSalvar }: FormUsuarioModalProps) {
+    const { dominioEmail } = usarEscola();
+    const [email, definirEmail] = useState('');
+    const [papel, definirPapel] = useState('VISUALIZACAO');
+    const [carregando, definirCarregando] = useState(false);
+
+    const PapeisDisponiveis = [
+        { id: 'ADMIN', nome: 'Administrador', desc: 'Acesso total irrestrito', icone: Shield },
+        { id: 'COORDENACAO', nome: 'Coordenação', desc: 'Gestão pedagógica e turmas', icone: GraduationCap },
+        { id: 'SECRETARIA', nome: 'Secretaria', desc: 'Matrículas e documentos', icone: Users },
+        { id: 'PORTEIRO', nome: 'Portaria', desc: 'Apenas registro de acesso', icone: UserCheck },
+        { id: 'VISUALIZACAO', nome: 'Auditor', desc: 'Apenas consulta de dados', icone: Lock }
+    ];
+
+    useEffect(() => {
+        if (usuario) {
+            // Se for edição, removemos o domínio para exibir apenas o prefixo se combinar
+            const emailLimpo = (dominioEmail && usuario.email.endsWith(dominioEmail))
+                ? usuario.email.replace(dominioEmail, '')
+                : usuario.email;
+            definirEmail(emailLimpo);
+            definirPapel(usuario.papel || 'VISUALIZACAO');
+        } else {
+            definirEmail('');
+            definirPapel('VISUALIZACAO');
+        }
+    }, [usuario, dominioEmail]);
+
+    const manipularSalvar = async () => {
+        try {
+            definirCarregando(true);
+            
+            // Reconstroi o e-mail com o domínio se for um novo convite
+            const emailFinal = (!usuario && dominioEmail && !email.includes('@')) 
+                ? `${email}${dominioEmail}` 
+                : email;
+
+            const payloadBruto = {
+                email: emailFinal,
+                papel,
+                ativo: usuario ? usuario.ativo : true
+            };
+
+            // Zod Validation explícita (Dimensão 3)
+            const payloadValidado = usuarioSchema.parse(payloadBruto);
+
+            await aoSalvar(payloadValidado as UsuarioVisualizacao);
+        } catch (erro) {
+            console.error('Falha de validação Zod no formulário:', erro);
+            // Poderíamos adicionar toast() erro de UI aqui futuramente
+        } finally {
+            definirCarregando(false);
+        }
+    };
+
+    return (
+        <ModalUniversal
+            titulo={usuario ? "Ajustar Privilégios" : "Conceder Acesso"}
+            subtitulo={usuario ? `Gerenciando permissões de ${mascararDadoPessoal(usuario.email, 'email')}` : "Adicione uma nova conta à gestão da unidade."}
+            icone={usuario ? Shield : Plus}
+            aoFechar={aoFechar}
+            tamanho="lg"
+        >
+            <div className="space-y-8 pb-4">
+                {/* Email Input */}
+                <div className="relative group">
+                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5 ml-1 transition-colors group-focus-within:text-indigo-600">
+                        <Mail size={14} /> E-mail Institucional (Google)
+                    </label>
+                    <div className="relative flex items-center">
+                        <input
+                            type="text"
+                            value={email}
+                            onChange={(e) => definirEmail(e.target.value.toLowerCase().trim())}
+                            disabled={!!usuario}
+                            placeholder="usuario"
+                            className="flex-1 px-5 h-12 bg-slate-50 border border-slate-200 rounded-l-2xl text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all placeholder:text-slate-400 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                        />
+                        {dominioEmail && (
+                            <div className="h-12 px-4 flex items-center bg-slate-100 border border-l-0 border-slate-200 rounded-r-2xl text-xs font-black text-slate-400 uppercase tracking-tight">
+                                {dominioEmail}
+                            </div>
+                        )}
+                    </div>
+                    {usuario && <p className="mt-2 ml-1 text-[10px] font-bold text-slate-400 uppercase tracking-tight italic">O identificador de segurança não pode ser alterado.</p>}
+                </div>
+
+                {/* Roles Selector - Visual Cards */}
+                <div className="space-y-4">
+                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5 ml-1">
+                        <Shield size={14} /> Atribuição de Responsabilidades
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {PapeisDisponiveis.map((p) => (
+                            <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => definirPapel(p.id as PapelUsuario)}
+                                className={`flex items-start gap-4 p-4 rounded-2xl border text-left transition-all active:scale-[0.98] ${papel === p.id
+                                    ? 'bg-indigo-50 border-indigo-200 shadow-suave'
+                                    : 'bg-white border-slate-200/60 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                    }`}
+                            >
+                                <div className={`p-2.5 rounded-2xl shrink-0 border transition-colors ${papel === p.id ? 'bg-white border-indigo-100 text-indigo-600 shadow-suave' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                    <p.icone size={18} />
+                                </div>
+                                <div className="min-w-0 pr-2">
+                                    <p className={`text-[11px] font-black uppercase tracking-tight ${papel === p.id ? 'text-indigo-700' : 'text-slate-800'}`}>{p.nome}</p>
+                                    <p className={`text-[10px] font-bold mt-0.5 truncate uppercase tracking-tighter ${papel === p.id ? 'text-indigo-400' : 'text-slate-400/80'}`}>{p.desc}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Footer Ações */}
+                <div className="flex gap-4 pt-8 mt-4 border-t border-slate-100 justify-end">
+                    <Botao
+                        variante="secundario"
+                        tamanho="lg"
+                        onClick={aoFechar}
+                        disabled={carregando}
+                    >
+                        Cancelar
+                    </Botao>
+                    <Botao
+                        variante="primario"
+                        tamanho="lg"
+                        icone={usuario ? UserCheck : Plus}
+                        onClick={manipularSalvar}
+                        carregando={carregando}
+                    >
+                        {usuario ? 'Atualizar Permissões' : 'Confirmar Convite'}
+                    </Botao>
+                </div>
+            </div>
+        </ModalUniversal>
+    );
+}
+

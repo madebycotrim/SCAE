@@ -1,0 +1,44 @@
+import { Plus, Printer } from 'lucide-react';
+
+interface BarraSelecaoLoteProps {
+    quantidade: number;
+    aoPromover: () => void;
+    aoImprimir: () => void;
+    aoCancelar: () => void;
+}
+
+export default function BarraSelecaoLote({ quantidade, aoPromover, aoImprimir, aoCancelar }: BarraSelecaoLoteProps) {
+    if (quantidade === 0) return null;
+
+    return (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in-up">
+            <div className="bg-marinho text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-5 border border-white/5 backdrop-blur-lg bg-opacity-95">
+                <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-eletrico uppercase tracking-widest leading-none mb-1">Status do Lote</span>
+                    <span className="text-sm font-black leading-none">{quantidade} Alunos</span>
+                </div>
+                <div className="h-6 w-px bg-slate-800"></div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={aoImprimir}
+                        className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 border border-slate-700"
+                    >
+                        <Printer size={14} className="text-eletrico" /> Imprimir
+                    </button>
+                    <button
+                        onClick={aoPromover}
+                        className="px-4 py-2 bg-eletrico text-white hover:brightness-110 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-eletrico/20"
+                    >
+                        <Plus size={14} /> Enturmar
+                    </button>
+                    <button
+                        onClick={aoCancelar}
+                        className="px-4 py-2 bg-transparent text-slate-500 hover:text-slate-300 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}

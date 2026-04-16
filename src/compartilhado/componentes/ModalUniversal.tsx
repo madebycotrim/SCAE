@@ -1,0 +1,134 @@
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { X, Info } from 'lucide-react';
+import { ReactNode } from 'react';
+
+interface ModalUniversalProps {
+    aberto?: boolean;
+    fechavel?: boolean;
+    aoFechar: () => void;
+    titulo: string;
+    subtitulo?: string;
+    icone?: React.ElementType;
+    children: ReactNode;
+    tamanho?: 'sm' | 'md' | 'lg' | 'xl' | 'auto';
+    cor?: string;
+}
+
+export default function ModalUniversal({
+    aberto = true,
+    fechavel = false,
+    aoFechar,
+    titulo,
+    subtitulo,
+    icone: Icone = Info,
+    children,
+    tamanho = 'md',
+    cor = 'indigo'
+}: ModalUniversalProps) {
+    if (!aberto) return null;
+
+    const larguras = {
+        sm: 'max-w-md',
+        md: 'max-w-lg',
+        lg: 'max-w-2xl',
+        xl: 'max-w-4xl',
+        auto: 'w-auto max-w-[95vw]' // Adaptável ao conteúdo
+    };
+
+    const cores = {
+        indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-100', ring: 'border-indigo-200' },
+        blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100', ring: 'border-blue-200' },
+        red: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100', ring: 'border-red-200' },
+        emerald: { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-100', ring: 'border-green-200' },
+        amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100', ring: 'border-amber-200' },
+        rose: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100', ring: 'border-rose-200' },
+        violet: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-100', ring: 'border-violet-200' },
+        slate: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-100', ring: 'border-gray-200' }
+    };
+
+    const tema = cores[cor] || cores.indigo;
+
+    // Fechar com ESC e Bloquear Scroll
+    useEffect(() => {
+        if (aberto) {
+            // Bloquear scroll
+            document.body.style.overflow = 'hidden';
+
+            // Listener para ESC
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') aoFechar();
+            };
+            window.addEventListener('keydown', handleEsc);
+
+            return () => {
+                document.body.style.overflow = 'unset';
+                window.removeEventListener('keydown', handleEsc);
+            };
+        }
+    }, [aberto, aoFechar]);
+
+    return createPortal(
+        <div
+            className="fixed inset-0 bg-slate-900/60 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) aoFechar();
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-titulo"
+            aria-describedby={subtitulo ? "modal-subtitulo" : undefined}
+        >
+            <div className={`
+                bg-white rounded-2xl shadow-md w-full ${larguras[tamanho] || larguras.md} 
+                flex flex-col max-h-[90vh] border border-slate-100 ring-1 ring-black/5 overflow-hidden
+                animate-zoom-in relative transform transition-all
+            `}>
+                {/* Header Universal - Sticky */}
+                <div className={`
+                    shrink-0 p-5 flex items-center gap-4 border-b border-slate-100 
+                    ${tema.bg} bg-opacity-60 backdrop-blur-sm relative z-20
+                `}>
+                    <div className={`
+                        p-2.5 rounded-2xl bg-white ring-1 ${tema.ring} shrink-0 
+                        ${tema.text} flex items-center justify-center
+                    `}>
+                        <Icone size={24} strokeWidth={2} aria-hidden="true" />
+                    </div>
+
+                    <div className="flex-1 pt-0.5 min-w-0">
+                        <h2 id="modal-titulo" className="text-lg font-bold text-slate-800 leading-tight tracking-tight truncate">
+                            {titulo}
+                        </h2>
+                        {subtitulo && (
+                            <p id="modal-subtitulo" className="text-sm text-slate-400 mt-0.5 leading-relaxed font-medium truncate">
+                                {subtitulo}
+                            </p>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={aoFechar}
+                        aria-label="Fechar diálogo"
+                        className="
+                            group shrink-0 p-2 rounded-2xl transition-all duration-200
+                            text-slate-400 hover:text-rose-500 hover:bg-white hover:ring-1 hover:ring-rose-100
+                        "
+                        title="Fechar (ESC)"
+                    >
+                        <X size={20} strokeWidth={2.5} aria-hidden="true" />
+                    </button>
+                </div>
+
+                {/* Conteúdo Scrollável */}
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar scroll-smooth relative z-10 bg-white">
+                    {children}
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+}
+
+
+

@@ -1,0 +1,320 @@
+@import "tailwindcss";
+
+@theme {
+  --radius-xs: 1rem;
+  --radius-sm: 1rem;
+  --radius-md: 1rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1rem;
+  --radius-4xl: 1rem;
+
+  --color-marinho: #0A1121;
+  --color-eletrico: #2B59FF;
+}
+@import "@fontsource/outfit/100.css";
+@import "@fontsource/outfit/300.css";
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/700.css";
+@import "@fontsource/outfit/900.css";
+
+:root {
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --cor-primaria: #2B59FF;
+  --cor-secundaria: #0A1121;
+
+  --color-primary: #2B59FF;
+  --color-primary-dark: #1E40AF;
+  --color-secondary: #0A1121;
+
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-surface: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 8px 32px 0 rgba(10, 17, 33, 0.05);
+
+  --shadow-sm: 0 1px 1px rgba(0, 0, 0, 0.01), 0 0 1px rgba(0, 0, 0, 0.01);
+  --shadow-md: 0 2px 4px -2px rgba(10, 17, 33, 0.02), 0 1px 2px -1px rgba(10, 17, 33, 0.01);
+  --shadow-premium: 0 4px 6px -4px rgba(10, 17, 33, 0.04), 0 2px 4px -2px rgba(10, 17, 33, 0.02);
+}
+
+/* ═══════════════════════════════════════════
+   Utility Classes — Identidade Visual Escola
+   Usam --cor-primaria definida por escola
+   ═══════════════════════════════════════════ */
+.bg-escola {
+  background-color: var(--cor-primaria);
+}
+
+.text-escola {
+  color: var(--cor-primaria);
+}
+
+.border-escola {
+  border-color: var(--cor-primaria);
+}
+
+.bg-escola-claro {
+  background-color: color-mix(in srgb, var(--cor-primaria) 10%, transparent);
+}
+
+.bg-escola-hover:hover {
+  background-color: color-mix(in srgb, var(--cor-primaria) 90%, black);
+}
+
+.border-escola-claro {
+  border-color: color-mix(in srgb, var(--cor-primaria) 20%, transparent);
+}
+
+.text-escola-claro {
+  color: color-mix(in srgb, var(--cor-primaria) 70%, white);
+}
+
+.shadow-escola {
+  box-shadow: 0 8px 20px -12px color-mix(in srgb, var(--cor-primaria) 15%, transparent);
+}
+
+/* Premium Shadows Utilities */
+.shadow-suave {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-media {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-premium {
+  box-shadow: var(--shadow-premium);
+}
+
+.ring-escola {
+  --tw-ring-color: color-mix(in srgb, var(--cor-primaria) 30%, transparent);
+}
+
+body {
+  background-color: var(--bg-app);
+  color: #111827;
+  /* Gray 900 - Alto contraste para leitura */
+}
+
+/* ═══════════════════════════════════════════
+   Acessibilidade (WCAG 2.1 / e-MAG)
+   ═══════════════════════════════════════════ */
+
+/* Indicador de Foco Visível — Essencial para navegação por teclado */
+*:focus-visible {
+  outline: 2px solid var(--cor-primaria) !important;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--cor-primaria) 20%, transparent);
+  transition: outline-offset 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Inputs e botões com estilização própria não precisam do focus-visible global */
+input:focus-visible,
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Esconde o foco padrão apenas para cliques (preserva para teclado) */
+*:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+/* Conteúdo exclusivo para leitores de tela (e-MAG) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Link de Pulo (Skip Link) — WCAG 2.4.1 */
+.pular-conteudo {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--cor-primaria);
+  color: white;
+  padding: 12px 24px;
+  z-index: 9999;
+  border-radius: 0 0 12px 12px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: top 0.3s ease;
+}
+
+.pular-conteudo:focus {
+  top: 0;
+}
+
+/* Remove tap highlight no mobile */
+*,
+*::before,
+*::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Polished Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Glassmorphism Utilities - Deprecated in Clean SaaS Design
+.glass, .glass-dark, .text-gradient, .text-gradient-gold were removed. */
+
+
+/* Force Html5Qrcode video to fill container */
+#reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit !important;
+}
+
+/* Hide potential shaded region overlay if present */
+#qr-shaded-region {
+  display: none !important;
+}
+
+/* Animations */
+@keyframes varredura {
+
+  0%,
+  100% {
+    top: 10%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  50% {
+    top: 90%;
+  }
+
+  90% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.7s ease-out forwards;
+}
+
+.animate-zoom-in {
+  animation: zoom-in 0.4s ease-out forwards;
+}
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+/* Utility Classes for Premium UI */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Remove seta nativa do datalist (input[list]) */
+input::-webkit-calendar-picker-indicator {
+  display: none !important;
+  opacity: 0 !important;
+}
