@@ -15,7 +15,7 @@ let dbPronto = false;
 let dbPromessa: Promise<any> | null = null;
 
 /**
- * Fecha o banco e deleta o arquivo físico se solicitado
+ * Fecha o banco e deleta o arquivo físico se solicitado.
  */
 export async function resetarBancoLocal() {
     if (database) {
@@ -99,6 +99,7 @@ export async function inicializarBanco(): Promise<any> {
                 db.run('PRAGMA synchronous = NORMAL');
 
                 // 1. Tabela de Registros
+                // Finalidade: Controle de frequência e segurança escolar | Base Legal: Execução de contrato (Art. 7º, V - LGPD)
                 db.run(`
                     CREATE TABLE IF NOT EXISTS registros_acesso (
                         id TEXT PRIMARY KEY,
@@ -108,15 +109,16 @@ export async function inicializarBanco(): Promise<any> {
                         nome TEXT,
                         tipo TEXT DEFAULT 'ENTRADA',
                         autorizado INTEGER DEFAULT 1,
-                        timestamp_acesso DATETIME DEFAULT (datetime('now')),
+                        timestamp_acesso DATETIME DEFAULT (CURRENT_TIMESTAMP),
                         sincronizado INTEGER DEFAULT 0
                     )
                 `);
 
                 // 2. Tabela de Cursores
-                db.run(`CREATE TABLE IF NOT EXISTS cursores_leitura (leitor_id TEXT PRIMARY KEY, ultimo_evento_id TEXT, atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')))`);
+                db.run(`CREATE TABLE IF NOT EXISTS cursores_leitura (leitor_id TEXT PRIMARY KEY, ultimo_evento_id TEXT, atualizado_em DATETIME DEFAULT (CURRENT_TIMESTAMP))`);
                 
                 // 3. Tabela de Alunos
+                // Finalidade: Identificação para controle de acesso físico | Base Legal: Execução de contrato (Art. 7º, V - LGPD)
                 db.run(`CREATE TABLE IF NOT EXISTS alunos_cache (
                     matricula TEXT NOT NULL, 
                     escola_id TEXT NOT NULL, 
@@ -125,7 +127,7 @@ export async function inicializarBanco(): Promise<any> {
                     turno TEXT,
                     mensagem_aviso TEXT,
                     ativo INTEGER DEFAULT 1, 
-                    atualizado_em DATETIME DEFAULT (datetime('now', 'localtime')), 
+                    atualizado_em DATETIME DEFAULT (CURRENT_TIMESTAMP), 
                     PRIMARY KEY (matricula, escola_id)
                 )`);
 
@@ -136,7 +138,7 @@ export async function inicializarBanco(): Promise<any> {
                 db.run(`CREATE TABLE IF NOT EXISTS turmas_cache (
                     id TEXT PRIMARY KEY,
                     turno TEXT,
-                    atualizado_em DATETIME DEFAULT (datetime('now', 'localtime'))
+                    atualizado_em DATETIME DEFAULT (CURRENT_TIMESTAMP)
                 )`, () => {
                     db.run(`CREATE INDEX IF NOT EXISTS idx_alunos_matricula ON alunos_cache (matricula)`);
                     db.run(`CREATE INDEX IF NOT EXISTS idx_registros_sinc ON registros_acesso (sincronizado)`);
@@ -172,6 +174,12 @@ export function getDb(): any {
   return database;
 }
 
+/**
+ * Executa uma instrução SQL (INSERT, UPDATE, DELETE).
+ * @param sql - Comando SQL com placeholders (?)
+ * @param params - Lista de valores para os placeholders
+ * @returns Promessa resolvida após execução
+ */
 export async function runSql(sql: string, params: any[] = []): Promise<void> {
   const db = await inicializarBanco();
   return new Promise((resolve, reject) => {
@@ -182,6 +190,12 @@ export async function runSql(sql: string, params: any[] = []): Promise<void> {
   });
 }
 
+/**
+ * Busca uma única linha do banco de dados.
+ * @param sql - Comando SELECT
+ * @param params - Lista de valores para os placeholders
+ * @returns A linha encontrada ou undefined
+ */
 export async function getSql<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
   const db = await inicializarBanco();
   return new Promise((resolve, reject) => {

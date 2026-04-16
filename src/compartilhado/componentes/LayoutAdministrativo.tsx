@@ -46,6 +46,7 @@ import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { BarraProgressoGlobal } from '@/compartilhado/componentes/UI';
+import { IndicadorConexao } from '@/compartilhado/componentes/IndicadorConexao';
 import { ReactNode } from 'react';
 
 const log = criarRegistrador('Layout');
@@ -123,60 +124,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         }
     }, [localizacao, navegar]);
 
-    // Status do Agente Local
-    const [agenteOnline, definirAgenteOnline] = useState(false);
-    const [agenteTemHardware, definirAgenteTemHardware] = useState(false);
-
-    useEffect(() => {
-        let timer: NodeJS.Timeout;
-        let falhasConsecutivas = 0;
-
-        const checkAgente = async () => {
-            // 🔇 Silenciador: Não tenta se a aba não estiver visível
-            if (document.visibilityState !== 'visible') {
-                timer = setTimeout(checkAgente, 10000);
-                return;
-            }
-
-            try {
-                const tentarFetch = async (url: string) => {
-                    const controlador = new AbortController();
-                    const timeoutId = setTimeout(() => controlador.abort(), 800);
-                    try {
-                        const res = await fetch(url, { signal: controlador.signal });
-                        clearTimeout(timeoutId);
-                        return res;
-                    } catch {
-                        clearTimeout(timeoutId);
-                        return null;
-                    }
-                };
-
-                let res = await tentarFetch('http://127.0.0.1:1912/ping');
-                if (!res) res = await tentarFetch('http://localhost:1912/ping');
-                
-                if (res && res.ok) {
-                    const dados = await res.json();
-                    definirAgenteOnline(dados.ok === true);
-                    definirAgenteTemHardware(dados.leitoresAtivos > 0);
-                    falhasConsecutivas = 0; // Reseta o back-off
-                } else {
-                    throw new Error();
-                }
-            } catch (e) {
-                definirAgenteOnline(false);
-                definirAgenteTemHardware(false);
-                falhasConsecutivas++;
-            } finally {
-                // 🧠 Back-off: Se falhou, espera mais tempo (mín 5s, máx 30s)
-                const proximoIntervalo = falhasConsecutivas > 3 ? 30000 : 5000;
-                timer = setTimeout(checkAgente, proximoIntervalo);
-            }
-        };
-
-        checkAgente();
-        return () => clearTimeout(timer);
-    }, []);
 
     const gruposMenu = [
         {
@@ -206,7 +153,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
                 ...(pode('visualizar', 'auditoria') ? [{ icone: Activity, texto: 'Logs', rota: '/logs' }] : []),
-                ...(pode('visualizar', 'configuracoes') && agenteTemHardware ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
+                ...(pode('visualizar', 'configuracoes') ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
                 ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
             ]
         }
@@ -294,6 +241,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     return (
         <div className="flex h-screen bg-marinho font-sans overflow-hidden selection:bg-eletrico/20 selection:text-eletrico">
             <BarraProgressoGlobal ativa={!!carregando} />
+            <IndicadorConexao />
 
             {/* Link de Pulo para Acessibilidade (WCAG 2.4.1) */}
             <a href="#conteudo-principal" className="pular-conteudo">

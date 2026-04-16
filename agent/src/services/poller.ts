@@ -15,7 +15,7 @@ import { config } from '../infra/config';
 // Lista de leitores em monitoramento
 let leitoresAtivos: ILeitor[] = [];
 export function obterLeitoresAtivos() { return leitoresAtivos; }
-let notificadorGlobal: any = null;
+let notificadorGlobal: { webContents: { send: (canal: string, data: unknown) => void } } | null = null;
 
 // Controle de Backoff e Travas de Execução (Lock)
 const falhasLeitores = new Map<string, { contador: number, proximaTentativa: number }>();
@@ -26,8 +26,11 @@ let ultimoIpLocalDetectado: string | null = null;
 
 let pollingAtivo = false;
 
-/** Inicializa o monitoramento de todos os leitores configurados */
-export function iniciarPolling(notificador: any) {
+/** 
+ * Inicializa o monitoramento de todos os leitores configurados. 
+ * @param notificador - Canal de comunicação com a UI do Electron.
+ */
+export function iniciarPolling(notificador: { webContents: { send: (canal: string, data: unknown) => void } }) {
   if (pollingAtivo) return;
   pollingAtivo = true;
 
@@ -137,6 +140,10 @@ function executarCicloMonitoramento() {
     leitoresAtivos.forEach(leitor => monitorarLeitor(leitor));
 }
 
+/**
+ * Monitora um leitor específico, verificando status e coletando eventos.
+ * @param leitor - Instância do driver do hardware.
+ */
 async function monitorarLeitor(leitor: ILeitor) {
   // ⚡ LOCK PREVENTION: Evita que o mesmo leitor seja processado em paralelo se a varredura anterior demorar.
   // Isso era a causa principal de logs triplicados (Race Condition no Cursor de Leitura).
@@ -219,63 +226,62 @@ async function monitorarLeitor(leitor: ILeitor) {
         const statusAcesso = ev.autorizado ? classificacao.tipo : 'NEGADO';
         const detalheAcesso = classificacao.mensagem;
 
-        // --- GRAVAÇÃO DETERMINÍSTICA (Source of Truth) ---
-        // Usamos um ID baseado no ID real do hardware para evitar duplicatas reais
-        const idUnico = `HW-${leitor.id}-${ev.id}`;
-        
-        try {
-            await runSql(`
-                INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
-            `, [
-                idUnico,
-                leitor.id,
-                config.escola_id,
-                String(matriculaParaBusca),
-                nomeAcesso,
-                statusAcesso,
-                ev.autorizado ? 1 : 0,
-                new Date().toISOString()
-            ]);
+            const { randomUUID } = require('crypto');
+            const idRegistro = randomUUID();
 
-            // ⚡ SÓ PROCESSA SE FOR UM REGISTRO NOVO (Não duplicado)
-            // Isso garante que o Poling não gere logs repetidos se o Push já disparou
-
-            // 1. Atualiza estatísticas em memória do Agente (Gráfico e Métricas)
-            stats.registrarAcesso(nomeAcesso, String(matriculaParaBusca), statusAcesso, turmaAcesso);
-
-            // 2. Notifica o Front-End para atualizar a UI e tocar o som (TTS)
-            if (notificadorGlobal) {
-                notificadorGlobal.webContents.send('new-access', {
-                    nome: matriculaParaBusca === '0' ? nomeAcesso : `${nomeAcesso} (${matriculaParaBusca})`,
-                    nomePuro: nomeAcesso,
-                    turma: turmaAcesso,
-                    matricula: String(matriculaParaBusca),
-                    sucesso: statusAcesso !== 'NEGADO' && statusAcesso !== 'TURNO_ERRADO' && statusAcesso !== 'FORA_DE_HORARIO',
+            try {
+                await runSql(`
+                    INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                `, [
+                    idRegistro,
+                    leitor.id,
+                    config.escola_id,
+                    String(matriculaParaBusca),
+                    nomeAcesso,
                     statusAcesso,
-                    detalhe: detalheAcesso,
-                    mensagemAviso: aluno?.mensagem_aviso || null, // Novo campo para TTS de recados
-                    ttsAtivo: config.tts_ativado,
-                    ttsParams: {
-                        sucesso: config.tts_sucesso ?? 'Bem-vindo, {nome}!',
-                        erro: config.tts_erro ?? 'Acesso negado, {nome}!'
-                    }
-                });
-            }
+                    ev.autorizado ? 1 : 0,
+                    new Date().toISOString()
+                ]);
 
-            // ⚡ EFEITO UAU: Exibe saudação personalizada no visor FÍSICO da catraca
-            if (ev.autorizado && config.mensagens_no_hardware !== false) {
-                const primeiroNome = (aluno?.nome_completo || ev.nomeHardware || '').split(' ')[0].toUpperCase();
-                const saudacao = statusAcesso === 'ENTRADA' ? 'BOM DIA' : 'ATE LOGO';
-                leitor.exibirMensagemHardware?.(`${saudacao}, ${primeiroNome}`, 2500);
+                // ⚡ SÓ PROCESSA SE FOR UM REGISTRO NOVO (Não duplicado)
+                // Isso garante que o Poling não gere logs repetidos se o Push já disparou
+
+                // 1. Atualiza estatísticas em memória do Agente (Gráfico e Métricas)
+                stats.registrarAcesso(nomeAcesso, String(matriculaParaBusca), statusAcesso, turmaAcesso);
+
+                // 2. Notifica o Front-End para atualizar a UI e tocar o som (TTS)
+                if (notificadorGlobal) {
+                    notificadorGlobal.webContents.send('new-access', {
+                        nome: matriculaParaBusca === '0' ? nomeAcesso : `${nomeAcesso} (${matriculaParaBusca})`,
+                        nomePuro: nomeAcesso,
+                        turma: turmaAcesso,
+                        matricula: String(matriculaParaBusca),
+                        sucesso: statusAcesso !== 'NEGADO' && statusAcesso !== 'TURNO_ERRADO' && statusAcesso !== 'FORA_DE_HORARIO',
+                        statusAcesso,
+                        detalhe: detalheAcesso,
+                        mensagemAviso: aluno?.mensagem_aviso || null, // Novo campo para TTS de recados
+                        ttsAtivo: config.tts_ativado,
+                        ttsParams: {
+                            sucesso: config.tts_sucesso ?? 'Bem-vindo, {nome}!',
+                            erro: config.tts_erro ?? 'Acesso negado, {nome}!'
+                        }
+                    });
+                }
+
+                // ⚡ EFEITO UAU: Exibe saudação personalizada no visor FÍSICO da catraca
+                if (ev.autorizado && config.mensagens_no_hardware !== false) {
+                    const primeiroNome = (aluno?.nome_completo || ev.nomeHardware || '').split(' ')[0].toUpperCase();
+                    const saudacao = statusAcesso === 'ENTRADA' ? 'BOM DIA' : 'ATE LOGO';
+                    leitor.exibirMensagemHardware?.(`${saudacao}, ${primeiroNome}`, 2500);
+                }
+            } catch (e: any) {
+                // Se o erro for de restrição de chave única (Unique Constraint), apenas ignoramos 
+                // pois significa que esse log já foi processado anteriormente.
+                if (!e.message.includes('UNIQUE')) {
+                    console.error(`[Poller] Erro ao inserir log ${idRegistro}:`, e.message);
+                }
             }
-        } catch (e: any) {
-            // Se o erro for de restrição de chave única (Unique Constraint), apenas ignoramos 
-            // pois significa que esse log já foi processado anteriormente.
-            if (!e.message.includes('UNIQUE')) {
-                console.error(`[Poller] Erro ao inserir log ${idUnico}:`, e.message);
-            }
-        }
         
         const idNum = parseInt(ev.id, 10);
         if (!isNaN(idNum) && idNum > parseInt(maxId, 10)) maxId = ev.id;

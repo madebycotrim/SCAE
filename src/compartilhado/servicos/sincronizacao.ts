@@ -7,14 +7,15 @@ const log = criarRegistrador('Sync');
 
 export interface RespostaSincronizacao {
     sucesso: boolean;
-    modo: 'ONLINE' | 'OFFLINE';
+    modo: 'ONLINE' | 'OFFLINE' | 'AGENTE';
     id: string;
 }
 
+import { servicoAgente } from './servicoAgente';
+
 /**
- * SERVIÇO DE SINCRONIZAÇÃO (Versão Simplificada)
- * Focado na resiliência da Portaria (Quiosque).
- * Admin utiliza API Online diretamente.
+ * SERVIÇO DE SINCRONIZAÇÃO (Versão Híbrida)
+ * Gerencia a comunicação entre Nuvem, Agente Local e Banco do Navegador.
  */
 export const servicoSincronizacao = {
     _sincronizando: false,
@@ -36,32 +37,54 @@ export const servicoSincronizacao = {
     },
 
     /**
-     * Registra um acesso (Usado pelo TerminalAcesso).
-     * Estratégia: Network-First com Fallback Offline imediato.
+     * Registra um acesso físico ou via software.
+     * Estratégia: 
+     * 1. Tentar Agente Local (Se estiver no mesmo PC/Rede)
+     * 2. Tentar Nuvem Direta (Se houver internet)
+     * 3. Fallback Offline (IndexedDB)
+     * @param registro - Dados do acesso
+     * @returns Resposta com o modo de gravação utilizado
      */
     registrarAcesso: async (registro: Omit<RegistroAcessoLocal, 'sincronizado'>): Promise<RespostaSincronizacao> => {
+        const idRegistro = (registro as any).id || crypto.randomUUID();
+        
+        // 1. TENTATIVA: Agente Local (Hardware Bridge)
+        const statusAgente = await servicoAgente.ping();
+        if (statusAgente.online) {
+            const okAgente = await servicoAgente.registrarAcesso({
+                user_id: registro.aluno_matricula,
+                event: 31, // Evento "Soft" (via Software)
+                time: Math.floor(Date.now() / 1000)
+            });
+            if (okAgente) return { sucesso: true, modo: 'AGENTE', id: idRegistro };
+        }
+
         try {
-            // 1. Tentar salvar Online primeiro
-            await api.enviar('/acesso/registros', [{
-                ...registro,
-                timestamp_acesso: (registro as any).timestamp_acesso || (registro as any).timestamp
-            }]);
+            // 2. TENTATIVA: Salvar Online na Nuvem
+            if (navigator.onLine) {
+                await api.enviar('/acesso/registros', [{
+                    ...registro,
+                    id: idRegistro,
+                    timestamp_acesso: (registro as any).timestamp || new Date().toISOString()
+                }]);
 
-            // Espelhar localmente como sincronizado
-            const banco = await bancoLocal.iniciarBanco();
-            await banco.put('registros_acesso', { ...registro, sincronizado: 1 });
+                // Espelhar localmente como sincronizado
+                const banco = await bancoLocal.iniciarBanco();
+                await banco.put('registros_acesso', { ...registro, id: idRegistro, sincronizado: 1 });
 
-            return { sucesso: true, modo: 'ONLINE', id: (registro as any).id };
+                return { sucesso: true, modo: 'ONLINE', id: idRegistro };
+            }
+            throw new Error('Offline');
         } catch (erro) {
-            log.warn('Falha no registro online. Salvando localmente para posterior sincronização.', erro);
+            log.warn('Falha no registro direto. Salvando localmente para posterior sincronização.', erro);
 
-            // 2. Fallback: Salvar Localmente como não-sincronizado
+            // 3. TENTATIVA: Fallback Offline Local
             try {
-                await bancoLocal.salvarRegistro(registro);
-                return { sucesso: true, modo: 'OFFLINE', id: (registro as any).id };
+                await bancoLocal.salvarRegistro({ ...registro, id: idRegistro });
+                return { sucesso: true, modo: 'OFFLINE', id: idRegistro };
             } catch (erroLocal) {
                 log.error('Erro crítico: Falha ao salvar no banco local.', erroLocal);
-                return { sucesso: false, modo: 'OFFLINE', id: (registro as any).id };
+                return { sucesso: false, modo: 'OFFLINE', id: idRegistro };
             }
         }
     },

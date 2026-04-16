@@ -13,6 +13,10 @@ let estaSincronizandoBatidas = false; // Bloqueio para evitar acúmulo se a inte
 
 let motoresIniciados = false;
 
+/**
+ * Inicia os motores de sincronização do Agente.
+ * Realiza handshake de identidade, inicia ciclos de push e polling.
+ */
 export async function iniciarSync() {
   if (motoresIniciados) return;
   motoresIniciados = true;
@@ -158,6 +162,10 @@ async function tentarDescobrirIdentidade() {
  * Gari Digital: Limpeza de registros sincronizados com mais de 30 dias.
  * Mantém o banco local leve.
  */
+/**
+ * Realiza a limpeza de registros antigos no banco local (Gari Digital).
+ * Remove registros sincronizados com mais de 30 dias para manter a performance.
+ */
 async function realizarLimpezaGariDigital() {
     try {
         console.log('[Gari Digital] Iniciando varredura de manutenção...');
@@ -175,6 +183,10 @@ async function realizarLimpezaGariDigital() {
 
 /**
  * Envia as presenças coletadas localmente para o sistema web (Cloudflare)
+ */
+/**
+ * Envia as presenças coletadas localmente para o sistema web (Cloudflare).
+ * @returns Verdadeiro se a sincronização foi bem sucedida ou se não há pendências.
  */
 export async function sincronizarRegistrosPendentes(): Promise<boolean> {
   if (estaSincronizandoBatidas) return true;
@@ -221,6 +233,10 @@ export async function obterContagemPendentes(): Promise<number> {
     } catch { return 0; }
 }
 
+/**
+ * Sincroniza o cache local de alunos e configurações da escola com a nuvem.
+ * @param forcar - Se verdadeiro, ignora o cache de ETag/Hash e baixa tudo novamente.
+ */
 export async function sincronizarCacheAlunos(forcar = false) {
   if (estaSincronizando) return;
   
@@ -377,7 +393,17 @@ export async function forcarSincronizacaoImediata() {
  * Sincronização Delta para o Hardware: Apenas envia/remove o que mudou agora.
  * Muito mais leve que uma convergência total em horários de pico.
  */
-async function sincronizarHardwareDelta(alunosAlterados: any[]) {
+interface AlunoAlterado {
+    matricula: string | number;
+    nome_completo: string;
+    ativo: boolean | number;
+}
+
+/**
+ * Sincroniza alterações de alunos (Delta) para os hardwares conectados.
+ * @param alunosAlterados - Lista de alunos que sofreram mudança no último sync.
+ */
+async function sincronizarHardwareDelta(alunosAlterados: AlunoAlterado[]) {
     const leitores = obterLeitoresAtivos();
     if (!leitores || leitores.length === 0) return;
 
@@ -393,7 +419,7 @@ async function sincronizarHardwareDelta(alunosAlterados: any[]) {
 
                 if (deveEstarNoHardware) {
                     const res = await leitor.cadastrarAluno({
-                        matricula: aluno.matricula,
+                        matricula: String(aluno.matricula),
                         nomeCompleto: aluno.nome_completo
                     });
                     if (res.ok) cadastros++;

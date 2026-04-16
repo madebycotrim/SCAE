@@ -196,10 +196,13 @@ function createWindow() {
                 if (statusAcesso !== 'NEGADO') leitor.emitirBeep();
 
                 const agoraIso = new Date().toISOString();
+                const { randomUUID } = require('crypto');
+                const idRegistro = randomUUID();
+
                 await runSql(`
                     INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
-                `, [`PUSH-${leitor.id}-${ev.time}`, leitor.id, config.escola_id, String(matriculaParaExibir), nomeParaExibir, statusAcesso, statusAcesso !== 'NEGADO' ? 1 : 0, agoraIso]);
+                `, [idRegistro, leitor.id, config.escola_id, String(matriculaParaExibir), nomeParaExibir, statusAcesso, statusAcesso !== 'NEGADO' ? 1 : 0, agoraIso]);
 
                 stats.registrarAcesso(nomeParaExibir, String(matriculaParaExibir), statusAcesso, turmaAcesso);
 
