@@ -47,6 +47,7 @@ import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { BarraProgressoGlobal } from '@/compartilhado/componentes/UI';
 import { IndicadorConexao } from '@/compartilhado/componentes/IndicadorConexao';
+import { AgenteStatusBadge } from './AgenteStatusBadge';
 import { ReactNode } from 'react';
 
 const log = criarRegistrador('Layout');
@@ -412,6 +413,9 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
 
                     <div className="flex items-center gap-5">
+                        {/* Agente Status */}
+                        <AgenteStatusBadge />
+
                         {/* Busca */}
                         <div className="hidden md:flex items-center relative group h-8">
                             <label htmlFor="input-busca-global" className="sr-only">Pesquisar no sistema</label>

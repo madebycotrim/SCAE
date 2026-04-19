@@ -67,8 +67,15 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
 
         const buscarNovos = async () => {
             try {
+                // Se for a primeira busca, define o ponto de partida como o início do dia de hoje (UTC)
+                if (!ultimaDataRef.current) {
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    ultimaDataRef.current = hoje.toISOString();
+                }
+
                 // Busca via serviço que já injeta os headers necessários
-                const novos = await dashboardServico.buscarRegistrosRecentes(ultimaDataRef.current || undefined);
+                const novos = await dashboardServico.buscarRegistrosRecentes(ultimaDataRef.current);
 
                 if (montado && novos && novos.length > 0) {
                     // Atualiza a referência da última data para o próximo poll

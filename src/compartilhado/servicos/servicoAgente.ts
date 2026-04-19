@@ -12,13 +12,16 @@ export interface StatusAgente {
     versao?: string;
     nomeEscola?: string;
     leitores?: any[];
+    erroPin?: boolean;
 }
 
-/**
- * Helper para realizar fetch com timeout e failover entre 127.0.0.1 e localhost.
- */
 async function fetchAgente(endpoint: string, options: any = {}) {
-    const urls = [`http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`];
+    // Prioridade: Túnel Cloudflare (Seguro/HTTPS) -> Localhost (Desenvolvimento)
+    const urls = [
+        'https://agente.catraki.com.br',
+        `http://127.0.0.1:${PORTA_AGENTE}`,
+        `http://localhost:${PORTA_AGENTE}`
+    ];
     
     // Recupera o PIN salvo para as rotas críticas do agente
     const pin = localStorage.getItem(CHAVE_PIN_AGENTE);
@@ -79,8 +82,9 @@ export const servicoAgente = {
                 nomeEscola: dados.nome_escola,
                 leitores: dados.leitores
             };
-        } catch {
-            return { online: false };
+        } catch (e: any) {
+            const erroPin = e.message?.includes('Não Autorizado');
+            return { online: false, erroPin };
         }
     },
 
