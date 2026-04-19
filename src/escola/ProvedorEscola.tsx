@@ -40,7 +40,7 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                 return;
             }
 
-            const apiUrl = import.meta.env.VITE_API_URL || '/api';
+            const apiUrl = '/api';
 
             try {
                 const resposta = await fetch(`${apiUrl}/publico/detalhes?slug=${slug}`);

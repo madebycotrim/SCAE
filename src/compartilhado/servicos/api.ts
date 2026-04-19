@@ -4,9 +4,8 @@
  */
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 
-const envUrl = import.meta.env.VITE_API_URL;
-// Se a URL do ambiente for o domínio problemático, forçamos o uso do caminho relativo '/api'
-const URL_BASE = (envUrl && !envUrl.includes('//catraki.com.br')) ? envUrl : '/api';
+// URL_BASE é sempre relativa para garantir que o sistema funcione em qualquer domínio (Pages ou Custom Domain)
+const URL_BASE = '/api';
 
 /** Erro da API que preserva o status HTTP para uso em catches */
 export class ErroApi extends Error {
