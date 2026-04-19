@@ -5,6 +5,7 @@
  */
 
 const PORTA_AGENTE = '1912';
+const CHAVE_PIN_AGENTE = 'scae_agente_pin';
 
 export interface StatusAgente {
     online: boolean;
@@ -19,22 +20,52 @@ export interface StatusAgente {
 async function fetchAgente(endpoint: string, options: any = {}) {
     const urls = [`http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`];
     
+    // Recupera o PIN salvo para as rotas críticas do agente
+    const pin = localStorage.getItem(CHAVE_PIN_AGENTE);
+    
+    const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+        ...(pin ? { 'x-admin-pin': pin } : {})
+    };
+
     for (const baseUrl of urls) {
         try {
             const resp = await fetch(`${baseUrl}${endpoint}`, {
                 ...options,
+                headers,
                 signal: AbortSignal.timeout(options.timeout || 2000),
                 mode: 'cors'
             });
             if (resp.ok) return resp;
-        } catch (e) {
-            // Continua para a próxima URL
+            
+            // Se retornar 401, significa PIN inválido ou ausente
+            if (resp.status === 401) {
+                throw new Error('Não Autorizado: PIN do Agente inválido.');
+            }
+        } catch (e: any) {
+            if (e.message.includes('Não Autorizado')) throw e;
+            // Continua para a próxima URL em caso de erro de conexão
         }
     }
     throw new Error('Agente Inacessível');
 }
 
 export const servicoAgente = {
+    /**
+     * Define o PIN administrativo para as chamadas locais.
+     */
+    definirPin(pin: string) {
+        localStorage.setItem(CHAVE_PIN_AGENTE, pin);
+    },
+
+    /**
+     * Remove o PIN administrativo.
+     */
+    removerPin() {
+        localStorage.removeItem(CHAVE_PIN_AGENTE);
+    },
+
     /**
      * Verifica se o Agente local está respondendo na porta 1912.
      */

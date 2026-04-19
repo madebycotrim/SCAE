@@ -92,6 +92,20 @@ function createWindow() {
             res.writeHead(200); res.end(); return;
         }
 
+        // 🛡️ SEGURANÇA: Bloqueia ações críticas sem o PIN administrativo
+        const rotasCriticas = ['/sync-now', '/hardware/reiniciar', '/enroll', '/acesso/recentes'];
+        const urlPura = req.url?.split('?')[0];
+        
+        if (rotasCriticas.includes(urlPura || '')) {
+            const pinEnviado = req.headers['x-admin-pin'];
+            if (pinEnviado !== config.admin_pin) {
+                console.warn(`[Segurança] 🔒 Tentativa de acesso não autorizado à rota ${urlPura} de ${req.socket.remoteAddress}`);
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, erro: 'Acesso Negado: PIN Administrativo obrigatório.' }));
+                return;
+            }
+        }
+
         if (req.url === '/sync-now') {
             const { iniciarSync } = require('../services/sync');
             iniciarSync(true); // Força sincronização imediata

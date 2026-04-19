@@ -98,19 +98,19 @@ export default defineConfig(({ mode }) => {
           categories: ['education', 'utilities'],
           icons: [
             {
-              src: '/icones/pwa-192x192.svg',
+              src: '/icons/icon-192x192.png',
               sizes: '192x192',
-              type: 'image/svg+xml',
+              type: 'image/png',
             },
             {
-              src: '/icones/pwa-512x512.svg',
+              src: '/icons/icon-512x512.png',
               sizes: '512x512',
-              type: 'image/svg+xml',
+              type: 'image/png',
             },
             {
-              src: '/icones/pwa-512x512.svg',
+              src: '/icons/icon-512x512.png',
               sizes: '512x512',
-              type: 'image/svg+xml',
+              type: 'image/png',
               purpose: 'maskable',
             },
           ],
@@ -130,11 +130,11 @@ export default defineConfig(({ mode }) => {
     server: {
       allowedHosts: ['agente.catraki.com.br'],
       headers: {
-        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+        'Cross-Origin-Opener-Policy': 'unsafe-none',
       },
       proxy: {
         '/api': {
-          target: env.VITE_PROXY_TARGET || 'https://catraki.com.br/',
+          target: env.VITE_PROXY_TARGET || 'http://localhost:8788/',
           changeOrigin: true,
           secure: false,
         },

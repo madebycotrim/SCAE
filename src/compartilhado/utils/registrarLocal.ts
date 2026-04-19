@@ -29,8 +29,9 @@ const originais = {
 
 const criarOverride = (metodo: keyof typeof originais) => {
     return (...args: unknown[]) => {
-        // Bloqueia silenciosamente a emissão do console se não for o e-mail exato do dev.
-        if (usuarioDevAutorizado()) {
+        // Sempre permite erros e avisos para facilitar a depuração reportada por usuários.
+        // Bloqueia silenciosamente a emissão do console para outros métodos se não for o dev.
+        if (metodo === 'error' || metodo === 'warn' || usuarioDevAutorizado()) {
             originais[metodo](...args);
         }
     };
