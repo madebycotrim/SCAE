@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "catraki",
+=======
+  "name": "scae",
+>>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
   "private": true,
   "version": "0.0.0",
   "type": "module",
