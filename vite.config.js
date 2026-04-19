@@ -39,6 +39,7 @@ export default defineConfig(({ mode }) => {
   });
 
   return {
+    base: './',
     plugins: [
       bloqueioAgentePlugin(),
       react(),
