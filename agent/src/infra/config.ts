@@ -49,9 +49,9 @@ const configPadrao: AgenteConfig = {
   janelas: [],
   intervalo_polling_ms: 2000,
   intervalo_sync_ms: 10000,
-  endpoint_worker: process.env.CATRAKI_API_URL || 'https://catraki.com.br',
+  endpoint_worker: process.env.CATRAKI_API_URL || 'https://www.catraki.com.br',
   admin_pin: '123456',
-  agente_secret: process.env.AGENTE_SECRET || 'catraki-secret-token-default',
+  agente_secret: process.env.AGENTE_SECRET || 'agente-secret-token',
   porta_agente: 1912
 };
 
