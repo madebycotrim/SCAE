@@ -4,7 +4,9 @@
  */
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 
-const URL_BASE = import.meta.env.VITE_API_URL || '/api';
+const envUrl = import.meta.env.VITE_API_URL;
+// Se a URL do ambiente for o domínio problemático, forçamos o uso do caminho relativo '/api'
+const URL_BASE = (envUrl && !envUrl.includes('//catraki.com.br')) ? envUrl : '/api';
 
 /** Erro da API que preserva o status HTTP para uso em catches */
 export class ErroApi extends Error {

@@ -34,7 +34,8 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
         const delayBusca = setTimeout(async () => {
             definirCarregando(true);
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || '/api';
+                const envUrl = import.meta.env.VITE_API_URL;
+                const apiUrl = (envUrl && !envUrl.includes('//catraki.com.br')) ? envUrl : '/api';
                 const resposta = await fetch(`${apiUrl}/publico/escolas?q=${encodeURIComponent(termoBusca)}`);
                 if (resposta.ok) {
                     const dados = await resposta.json();
