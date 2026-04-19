@@ -182,11 +182,11 @@ export default function TelaAcesso() {
                         <div className="w-full max-w-[360px] flex flex-col items-center">
                             
                             {/* Cabeçalho do Login */}
-                            <div className="text-center mb-10">
+                            <div className="text-center mb-8">
                                 <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-3">Acesso Administrativo</h3>
                                 <div className="h-1 w-12 bg-blue-600 mx-auto rounded-full mb-4" />
                                 <p className="text-slate-500 text-sm font-medium leading-relaxed">
-                                    Use o seu **e-mail institucional** para acessar o painel de controle.
+                                    Use o seu e-mail institucional {dominioEmail ? <span className="text-blue-700 font-bold">@{dominioEmail}</span> : 'cadastrado'} para acessar o painel de controle.
                                 </p>
                             </div>
 
@@ -195,12 +195,19 @@ export default function TelaAcesso() {
                                 <motion.div 
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="flex flex-col items-center gap-2 mb-10 w-full"
+                                    className="flex flex-col items-center gap-3 mb-10 w-full"
                                 >
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Domínio Cadastrado</span>
-                                    <div className="px-5 py-3 bg-blue-50/50 rounded-2xl flex items-center gap-3 border border-blue-100/50 w-full justify-center">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                                        <span className="text-xs font-black text-blue-700 uppercase tracking-widest leading-none">{dominioEmail}</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-[1px] bg-slate-200" />
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Domínio Autorizado</span>
+                                        <div className="w-8 h-[1px] bg-slate-200" />
+                                    </div>
+                                    <div className="px-5 py-4 bg-slate-50 rounded-2xl flex flex-col items-center gap-2 border border-slate-100 w-full group hover:border-blue-200 transition-all">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                                            <span className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">@{dominioEmail}</span>
+                                        </div>
+                                        <span className="text-[9px] font-bold text-slate-400 group-hover:text-blue-500 transition-colors">exemplo: seu-nome@{dominioEmail}</span>
                                     </div>
                                 </motion.div>
                             )}
