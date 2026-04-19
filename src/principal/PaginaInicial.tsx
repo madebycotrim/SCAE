@@ -40,7 +40,7 @@ export default function PaginaInicial() {
         
         try {
             // Usando a api centralizada para evitar erros de parsing HTML
-            const infoEscola = await api.obter<any>(`/publico/escola/${slug}`);
+            const infoEscola = await api.obter<any>(`/publico/detalhes?slug=${slug}`);
             
             if (infoEscola) {
                 
