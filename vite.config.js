@@ -98,7 +98,6 @@ export default defineConfig(({ mode }) => {
           categories: ['education', 'utilities'],
           icons: [
             {
-<<<<<<< HEAD
               src: '/icons/icon-192x192.png',
               sizes: '192x192',
               type: 'image/png',
@@ -112,21 +111,6 @@ export default defineConfig(({ mode }) => {
               src: '/icons/icon-512x512.png',
               sizes: '512x512',
               type: 'image/png',
-=======
-              src: '/icones/pwa-192x192.svg',
-              sizes: '192x192',
-              type: 'image/svg+xml',
-            },
-            {
-              src: '/icones/pwa-512x512.svg',
-              sizes: '512x512',
-              type: 'image/svg+xml',
-            },
-            {
-              src: '/icones/pwa-512x512.svg',
-              sizes: '512x512',
-              type: 'image/svg+xml',
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
               purpose: 'maskable',
             },
           ],
@@ -146,19 +130,11 @@ export default defineConfig(({ mode }) => {
     server: {
       allowedHosts: ['agente.catraki.com.br'],
       headers: {
-<<<<<<< HEAD
         'Cross-Origin-Opener-Policy': 'unsafe-none',
       },
       proxy: {
         '/api': {
           target: env.VITE_PROXY_TARGET || 'http://localhost:8788/',
-=======
-        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
-      },
-      proxy: {
-        '/api': {
-          target: env.VITE_PROXY_TARGET || 'https://catraki.com.br/',
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
           changeOrigin: true,
           secure: false,
         },

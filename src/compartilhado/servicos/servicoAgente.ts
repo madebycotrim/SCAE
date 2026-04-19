@@ -5,10 +5,7 @@
  */
 
 const PORTA_AGENTE = '1912';
-<<<<<<< HEAD
 const CHAVE_PIN_AGENTE = 'scae_agente_pin';
-=======
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
 
 export interface StatusAgente {
     online: boolean;
@@ -23,7 +20,6 @@ export interface StatusAgente {
 async function fetchAgente(endpoint: string, options: any = {}) {
     const urls = [`http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`];
     
-<<<<<<< HEAD
     // Recupera o PIN salvo para as rotas críticas do agente
     const pin = localStorage.getItem(CHAVE_PIN_AGENTE);
     
@@ -33,21 +29,15 @@ async function fetchAgente(endpoint: string, options: any = {}) {
         ...(pin ? { 'x-admin-pin': pin } : {})
     };
 
-=======
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
     for (const baseUrl of urls) {
         try {
             const resp = await fetch(`${baseUrl}${endpoint}`, {
                 ...options,
-<<<<<<< HEAD
                 headers,
-=======
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
                 signal: AbortSignal.timeout(options.timeout || 2000),
                 mode: 'cors'
             });
             if (resp.ok) return resp;
-<<<<<<< HEAD
             
             // Se retornar 401, significa PIN inválido ou ausente
             if (resp.status === 401) {
@@ -56,10 +46,6 @@ async function fetchAgente(endpoint: string, options: any = {}) {
         } catch (e: any) {
             if (e.message.includes('Não Autorizado')) throw e;
             // Continua para a próxima URL em caso de erro de conexão
-=======
-        } catch (e) {
-            // Continua para a próxima URL
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
         }
     }
     throw new Error('Agente Inacessível');
@@ -67,7 +53,6 @@ async function fetchAgente(endpoint: string, options: any = {}) {
 
 export const servicoAgente = {
     /**
-<<<<<<< HEAD
      * Define o PIN administrativo para as chamadas locais.
      */
     definirPin(pin: string) {
@@ -82,8 +67,6 @@ export const servicoAgente = {
     },
 
     /**
-=======
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
      * Verifica se o Agente local está respondendo na porta 1912.
      */
     async ping(): Promise<StatusAgente> {

@@ -92,7 +92,6 @@ function createWindow() {
             res.writeHead(200); res.end(); return;
         }
 
-<<<<<<< HEAD
         // 🛡️ SEGURANÇA: Bloqueia ações críticas sem o PIN administrativo
         const rotasCriticas = ['/sync-now', '/hardware/reiniciar', '/enroll', '/acesso/recentes'];
         const urlPura = req.url?.split('?')[0];
@@ -106,9 +105,6 @@ function createWindow() {
                 return;
             }
         }
-
-=======
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
         if (req.url === '/sync-now') {
             const { iniciarSync } = require('../services/sync');
             iniciarSync(true); // Força sincronização imediata

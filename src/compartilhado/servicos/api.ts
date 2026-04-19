@@ -88,7 +88,6 @@ export const api = {
     obter: async <T = unknown>(rota: string, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
         const cabecalhosPadrao = await obterCabecalhos();
         const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
-<<<<<<< HEAD
         const urlCompleta = `${URL_BASE}${rota}`;
         
         try {
@@ -117,29 +116,6 @@ export const api = {
         } catch (erro: any) {
             console.error(`[API] Falha no fetch em: ${urlCompleta}`, erro);
             throw erro;
-=======
-        const resposta = await fetch(`${URL_BASE}${rota}`, { headers: cabecalhos });
-        if (!resposta.ok) {
-            const textoErro = await resposta.text();
-            let codigo: string | undefined;
-            try {
-                const parsed = JSON.parse(textoErro);
-                codigo = parsed?.erro?.codigo;
-            } catch { /* não é JSON */ }
-            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${textoErro}`, resposta.status, codigo);
-        }
-
-        const contentType = resposta.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            const json = await resposta.json();
-            return (json && typeof json === 'object' && 'dados' in json) ? json.dados : json;
-        } else {
-            const texto = await resposta.text();
-            if (texto.trim().startsWith('<')) {
-                throw new Error(`A API retornou HTML em vez de JSON em ${rota}. Verifique se o endpoint existe.`);
-            }
-            return texto as unknown as T;
->>>>>>> 1ce918e3c7ccce3f17306bf481729ae201d0e03c
         }
     },
 
@@ -230,4 +206,3 @@ export const api = {
         return true;
     }
 };
-
