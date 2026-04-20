@@ -4,8 +4,9 @@
  * delegar comandos de hardware.
  */
 
+import { storageEscola } from '../utils/utilidades-slug';
+
 const PORTA_AGENTE = '1912';
-const CHAVE_PIN_AGENTE = 'scae_agente_pin';
 
 export interface StatusAgente {
     online: boolean;
@@ -24,7 +25,7 @@ async function fetchAgente(endpoint: string, options: any = {}) {
     ];
     
     // Recupera o PIN salvo para as rotas críticas do agente
-    const pin = localStorage.getItem(CHAVE_PIN_AGENTE);
+    const pin = storageEscola.get('agente_pin', '');
     
     const headers = {
         'Content-Type': 'application/json',
@@ -59,14 +60,11 @@ export const servicoAgente = {
      * Define o PIN administrativo para as chamadas locais.
      */
     definirPin(pin: string) {
-        localStorage.setItem(CHAVE_PIN_AGENTE, pin);
+        storageEscola.set('agente_pin', pin);
     },
 
-    /**
-     * Remove o PIN administrativo.
-     */
     removerPin() {
-        localStorage.removeItem(CHAVE_PIN_AGENTE);
+        storageEscola.remover('agente_pin');
     },
 
     /**

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { dispararToast } from '@/compartilhado/componentes/NotificacaoPremium';
+import { storageEscola } from '../utils/utilidades-slug';
 
 const log = criarRegistrador('Notificacoes');
 
@@ -32,36 +33,22 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
     const [notificacoes, definirNotificacoes] = useState<Notificacao[]>([]);
     const [naoLidas, definirNaoLidas] = useState(0);
 
-    // Chave única por usuário para não misturar notificações no mesmo PC
-    const chaveStorage = usuarioAtual?.email
-        ? `notificacoes_${usuarioAtual.email}`
-        : 'notificacoes_visitante';
+    const chaveDependencia = usuarioAtual?.email || 'visitante';
 
-    // Carregar notificações do localStorage ao iniciar ou mudar de usuário
+    // Carregar notificações ao iniciar ou mudar de escola/usuário
     useEffect(() => {
-        const salvas = localStorage.getItem(chaveStorage);
-        if (salvas) {
-            try {
-                const parsed = JSON.parse(salvas);
-                definirNotificacoes(parsed);
-            } catch (e) {
-                log.error('Erro ao carregar notificações', e);
-                definirNotificacoes([]);
-            }
-        } else {
-            definirNotificacoes([]);
-        }
-    }, [chaveStorage]);
+        const salvas = storageEscola.get<Notificacao[]>('notificacoes', []);
+        definirNotificacoes(salvas);
+    }, [chaveDependencia]);
 
-    // Atualizar contador e salvar
+    // Atualizar contador e salvar com blindagem de slug
     useEffect(() => {
         const count = notificacoes.filter(n => !n.lida).length;
         definirNaoLidas(count);
-        localStorage.setItem(chaveStorage, JSON.stringify(notificacoes));
-    }, [notificacoes, chaveStorage]);
+        storageEscola.set('notificacoes', notificacoes);
+    }, [notificacoes, chaveDependencia]);
 
     const adicionarNotificacao = useCallback((dados: string | Partial<Notificacao>) => {
-        // Suporta string simples ou objeto
         const conteudo = typeof dados === 'string' ? { titulo: 'Novo Aviso', mensagem: dados } : dados;
 
         const nova: Notificacao = {
@@ -74,16 +61,13 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
             timestamp: new Date().toISOString()
         };
 
-        // Adiciona e mantém no máximo as últimas 50 notificações para não pesar o storage
         definirNotificacoes(anterior => {
             const novaLista = [nova, ...anterior];
             if (novaLista.length > 50) return novaLista.slice(0, 50);
             return novaLista;
         });
 
-        // Feedback Visual Imediato via Toast Premium
         dispararToast(nova.titulo, nova.mensagem, nova.tipo);
-        
     }, []);
 
     const marcarComoLida = (id: string) => {
@@ -97,8 +81,7 @@ export function ProvedorNotificacoes({ children }: { children: ReactNode }) {
     };
 
     const removerNotificacao = (id: string) => {
-        definirNotificacoes(anterior => anterior.filter
-            (n => n.id !== id));
+        definirNotificacoes(anterior => anterior.filter(n => n.id !== id));
     };
 
     const limparTodas = () => {
