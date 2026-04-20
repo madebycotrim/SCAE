@@ -59,7 +59,7 @@ export default function TelaAcesso() {
                 }
 
                 toast.success('Login realizado com sucesso!', {
-                    style: { background: '#10b981', color: '#fff' },
+                    style: { background: '#0f172a', color: '#fff' }, // Slate-900 (Corporate)
                     iconTheme: { primary: '#fff', secondary: '#10b981' }
                 });
                 
@@ -111,43 +111,41 @@ export default function TelaAcesso() {
     };
 
     return (
-        <div className="flex min-h-screen w-full font-sans overflow-hidden relative bg-[#0B0F19] text-white selection:bg-blue-500/30">
+        <div className="flex min-h-screen w-full font-sans overflow-hidden relative bg-[#F8FAFC] text-slate-900 selection:bg-blue-500/20">
             
-            {/* --- PREMIUM DYNAMIC BACKGROUND --- */}
+            {/* --- INSTITUTIONAL DYNAMIC BACKGROUND --- */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                {/* Tech GridHUD */}
+                {/* Clean Dot Grid */}
                 <div 
-                    className="absolute inset-0 opacity-[0.15]"
+                    className="absolute inset-0 opacity-[0.5]"
                     style={{
-                        backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(43, 89, 255, 0.4) 1px, transparent 0)',
-                        backgroundSize: '40px 40px'
+                        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.04) 1px, transparent 0)',
+                        backgroundSize: '32px 32px'
                     }}
                 />
                 
-                {/* Animated Orbs */}
+                {/* Pure Corporate Soft Blobs (Blue/Indigo) */}
+                <motion.div 
+                    animate={{ 
+                        scale: [1, 1.1, 1],
+                        opacity: [0.15, 0.25, 0.15],
+                        x: [0, 60, 0],
+                        y: [0, -30, 0]
+                    }}
+                    transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                    className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-blue-300 blur-[130px] rounded-full" 
+                />
+                
                 <motion.div 
                     animate={{ 
                         scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.4, 0.3],
-                        x: [0, 100, 0],
-                        y: [0, -50, 0]
+                        opacity: [0.1, 0.2, 0.1],
+                        x: [0, -40, 0],
+                        y: [0, 50, 0]
                     }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                    className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-blue-600/30 blur-[140px] rounded-full" 
+                    transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+                    className="absolute bottom-[10%] right-[5%] w-[40%] h-[40%] bg-indigo-300 blur-[130px] rounded-full" 
                 />
-                
-                <motion.div 
-                    animate={{ 
-                        scale: [1, 1.3, 1],
-                        opacity: [0.2, 0.3, 0.2],
-                        x: [0, -80, 0],
-                        y: [0, 80, 0]
-                    }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute -bottom-[20%] -right-[10%] w-[70%] h-[70%] bg-indigo-700/20 blur-[150px] rounded-full" 
-                />
-
-                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0B0F19] via-[#0B0F19]/80 to-transparent" />
             </div>
 
             {/* --- MAIN CONTENT --- */}
@@ -156,16 +154,13 @@ export default function TelaAcesso() {
                     initial={{ opacity: 0, y: 30, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full max-w-[1100px] rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row min-h-[650px] bg-[#111827]/60 backdrop-blur-2xl border border-white/10 shadow-[0_0_80px_-20px_rgba(43,89,255,0.2)] relative"
+                    className="w-full max-w-[1100px] rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row min-h-[600px] bg-white border border-slate-200/60 shadow-[0_40px_100px_-20px_rgba(15,23,42,0.08)] relative"
                 >
-                    {/* Linha de brilho no topo do card */}
-                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-
                     {/* Left Column (Branding) */}
-                    <div className="lg:w-[45%] p-10 lg:p-16 relative flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/5 overflow-hidden">
+                    <div className="lg:w-[45%] p-10 lg:p-16 relative flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-100 overflow-hidden bg-slate-50/50">
                         
-                        {/* Brilho interno sutil */}
-                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
+                        {/* Brilho interno sutil p/ quebrar o tom sólido */}
+                        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-blue-50/50 to-transparent pointer-events-none" />
 
                         <div className="relative z-10">
                             {/* Logo */}
@@ -175,12 +170,12 @@ export default function TelaAcesso() {
                                 transition={{ delay: 0.2 }}
                                 className="flex items-center gap-4"
                             >
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/10 relative overflow-hidden group">
-                                    <ShieldCheck className="w-6 h-6 text-white relative z-10" />
-                                    <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />
+                                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md shadow-blue-900/5 border border-slate-200 relative overflow-hidden group">
+                                    <ShieldCheck className="w-6 h-6 text-blue-600 relative z-10" />
+                                    <div className="absolute inset-0 bg-blue-50 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />
                                 </div>
-                                <span className="text-2xl font-black text-white tracking-tighter uppercase italic">
-                                    Catraki<span className="text-blue-500">.</span>
+                                <span className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic">
+                                    Catraki<span className="text-blue-600 animate-pulse">.</span>
                                 </span>
                             </motion.div>
 
@@ -188,21 +183,21 @@ export default function TelaAcesso() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
-                                className="mt-20"
+                                className="mt-16 sm:mt-20"
                             >
-                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 shadow-sm mb-8 backdrop-blur-md">
-                                    <Building2 className="w-4 h-4 text-blue-400" />
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{nomeEscola}</span>
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-sm mb-6">
+                                    <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{nomeEscola}</span>
                                 </div>
-                                <h2 className="text-4xl sm:text-5xl font-black text-white leading-[1.1] tracking-tight mb-6">
+                                <h2 className="text-4xl sm:text-5xl font-black text-slate-900 leading-[1.05] tracking-tight mb-5">
                                     Segurança<br />
-                                    inteligente da<br />
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 animate-gradient-x">
-                                        borda à nuvem.
+                                    institucional<br />
+                                    <span className="text-blue-700">
+                                        inteligente.
                                     </span>
                                 </h2>
-                                <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-sm">
-                                    Painel administrativo unificado. Gerencie acessos, controle evasões e extraia relatórios em tempo real.
+                                <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-sm">
+                                    Acesso restrito à gestão e secretaria. Identifique e acompanhe o fluxo escolar em tempo real, num só lugar.
                                 </p>
                             </motion.div>
                         </div>
@@ -214,54 +209,49 @@ export default function TelaAcesso() {
                             transition={{ delay: 0.6 }}
                             className="relative z-10 mt-12 lg:mt-0"
                         >
-                            <div className="flex items-center gap-4 p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md w-fit group cursor-default shadow-xl shadow-black/20">
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 w-fit group cursor-default shadow-lg shadow-slate-200/50">
                                 <div className="flex items-center gap-2">
-                                    <div className="p-2 bg-[#0B0F19] rounded-xl border border-white/10 text-blue-400 group-hover:text-white transition-colors group-hover:bg-blue-500 group-hover:border-blue-400">
-                                        <Fingerprint size={18} strokeWidth={2.5} />
+                                    <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                        <Fingerprint size={16} strokeWidth={2.5} />
                                     </div>
-                                    <div className="p-2 bg-[#0B0F19] rounded-xl border border-white/10 text-indigo-400 group-hover:text-white transition-colors group-hover:bg-indigo-500 group-hover:border-indigo-400">
-                                        <QrCode size={18} strokeWidth={2.5} />
+                                    <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                        <QrCode size={16} strokeWidth={2.5} />
                                     </div>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Tecnologia Híbrida</span>
-                                    <span className="text-[11px] font-black text-white uppercase tracking-widest leading-none">Biometria & QR Code</span>
+                                <div className="flex flex-col pr-4">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Tecnologia</span>
+                                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest leading-none">Biometria & QR Code</span>
                                 </div>
                             </div>
                         </motion.div>
                     </div>
 
                     {/* Right Column (Auth Action) */}
-                    <div className="flex-1 p-10 lg:p-16 flex flex-col items-center justify-center relative bg-[#0B0F19]/40">
-                        {/* Blob de destaque sutil atrás do formulário */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-600/10 blur-[100px] rounded-full" />
-
+                    <div className="flex-1 p-10 lg:p-16 flex flex-col items-center justify-center relative bg-white">
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.3 }}
-                            className="w-full max-w-[380px] flex flex-col items-center relative z-10"
+                            className="w-full max-w-[360px] flex flex-col items-center relative z-10"
                         >
                             <div className="text-center mb-10 w-full">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 flex items-center justify-center mx-auto mb-6 border border-white/10">
-                                    <ShieldCheck className="w-8 h-8 text-blue-400" />
-                                </div>
-                                <h3 className="text-2xl font-black text-white tracking-tight mb-3">Portal Administrativo</h3>
-                                <p className="text-slate-400 text-sm font-medium leading-relaxed">
-                                    Utilize seu e-mail institucional {dominioEmail ? <span className="text-blue-400 font-bold">@{dominioEmail}</span> : 'cadastrado'} <br/>para validar sua credencial.
+                                <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-3">Portal Administrativo</h3>
+                                <div className="h-1 w-12 bg-blue-600 mx-auto rounded-full mb-4" />
+                                <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                                    Utilize seu e-mail corporativo institucional {dominioEmail ? <span className="text-blue-600 font-bold">@{dominioEmail}</span> : ''} <br className="hidden sm:block"/>para validar as suas credenciais.
                                 </p>
                             </div>
 
                             <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
                                 onClick={() => handleLogin('user')}
                                 disabled={carregando}
-                                className="group w-full flex items-center justify-between gap-4 py-4 px-6 bg-white text-slate-900 rounded-2xl font-black uppercase text-[11px] tracking-[0.15em] shadow-xl shadow-white/5 hover:shadow-white/10 transition-all disabled:opacity-70 disabled:cursor-not-allowed border border-white/20"
+                                className="group w-full flex items-center justify-between gap-4 py-4 px-6 bg-slate-900 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.15em] shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed border border-transparent hover:border-slate-700"
                             >
                                 <div className="flex items-center gap-4">
                                     {carregando ? (
-                                        <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                                        <Loader2 className="w-5 h-5 animate-spin text-white" />
                                     ) : (
                                         provedorAuth === 'microsoft' ? (
                                             <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
@@ -269,9 +259,9 @@ export default function TelaAcesso() {
                                             <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                                         )
                                     )}
-                                    <span className="mt-0.5">{carregando ? 'Validando Credencial...' : `Entrar com ${provedorAuth === 'microsoft' ? 'Microsoft' : 'Google'}`}</span>
+                                    <span className="mt-0.5">{carregando ? 'Validando...' : `Entrar com ${provedorAuth === 'microsoft' ? 'Microsoft' : 'Google'}`}</span>
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors group-hover:translate-x-1" />
+                                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors group-hover:translate-x-1" />
                             </motion.button>
 
                             <AnimatePresence>
@@ -282,18 +272,18 @@ export default function TelaAcesso() {
                                         exit={{ opacity: 0, height: 0, y: -10 }}
                                         className="w-full overflow-hidden mt-6"
                                     >
-                                        <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-400 text-[10px] font-black uppercase tracking-widest text-center shadow-lg shadow-rose-500/5">
+                                        <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-[10px] font-black uppercase tracking-widest text-center">
                                             {erro}
                                         </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
-                            {/* Decorative lock line */}
-                            <div className="w-full flex items-center justify-center gap-4 mt-12 opacity-40">
-                                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/20" />
-                                <span className="text-[9px] uppercase tracking-widest font-black text-slate-400">Ambiente Seguro</span>
-                                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/20" />
+                            {/* Decorative line */}
+                            <div className="w-full flex items-center justify-center gap-4 mt-12 opacity-60">
+                                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-slate-200" />
+                                <span className="text-[9px] uppercase tracking-widest font-black text-slate-400">Acesso Restrito</span>
+                                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-slate-200" />
                             </div>
                         </motion.div>
                     </div>
@@ -303,7 +293,7 @@ export default function TelaAcesso() {
                 <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 opacity-40 hover:opacity-100 transition-opacity z-20">
                     <span
                         onClick={lidarComCliqueAdmin}
-                        className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] cursor-default select-none hover:text-blue-400 transition-colors"
+                        className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] cursor-default select-none hover:text-slate-600 transition-colors"
                     >
                         Catraki Operational Edge v4.5
                     </span>
