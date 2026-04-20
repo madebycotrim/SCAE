@@ -5,6 +5,11 @@ import { createRoot } from 'react-dom/client';
 import '@/compartilhado/utils/registrarLocal';
 import { registerSW } from 'virtual:pwa-register';
 
+// Lida com erros de chunks ao atualizar a versão (Vite SPA cache issue)
+window.addEventListener('vite:preloadError', () => {
+    window.location.reload();
+});
+
 // Registra o Service Worker do PWA
 registerSW({ immediate: true });
 
