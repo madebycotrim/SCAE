@@ -39,7 +39,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
         const saidasHojeCount = registros.filter(r => r.tipo_movimentacao === 'SAIDA').length;
 
         // Cálculos Server/Worker-Side (Preservando Client Thread)
-        let atrasos = 0;
+        const alunosComAtraso = new Set<string>();
         let totalMinutos = 0;
         let contagemPares = 0;
         const registrosPorAluno: Record<string, { ENTRADA?: number, SAIDA?: number }> = {};
@@ -48,9 +48,10 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
             if (r.tipo_movimentacao === 'ENTRADA') {
                 const ts = new Date(r.timestamp);
                 const minutosDia = ts.getHours() * 60 + ts.getMinutes();
-                // Regra aproximada do front: entre 07:15 (435) e 12:00 ou 13:15 (795) e 18:00
+                
+                // Regra de atraso: entre 07:15 e 12:00 OU entre 13:15 e 18:00
                 if ((minutosDia > 435 && minutosDia < 720) || (minutosDia > 795 && minutosDia < 1080)) {
-                    atrasos++;
+                    alunosComAtraso.add(r.aluno_matricula);
                 }
             }
 
@@ -87,7 +88,7 @@ export async function onRequestGet(contexto: ContextoCatraki): Promise<Response>
                 totalAlunos,
                 totalTurmas,
                 presentesHoje: entradasHoje,
-                atrasosHoje: atrasos,
+                atrasosHoje: alunosComAtraso.size,
                 saidasHoje: saidasHojeCount,
                 alunosEmRisco,
                 permanenciaMedia: contagemPares > 0 ? `${(totalMinutos / contagemPares / 60).toFixed(1)}h` : '---',

@@ -34,6 +34,7 @@ export interface AgenteConfig {
   janelas?: any[]; // Regras de horário para classificação entrada/saída
   ultimo_sinc_alunos?: string; // ISO 8601 do último aluno sincronizado (Delta Sync)
   porta_agente?: number; // Porto local para recebimento de eventos (Padrão 1912)
+  url_agente?: string; // URL pública para acesso remoto (Ex: Túnel Cloudflare)
   mensagens_no_hardware?: boolean; // Se deve exibir saudações (BOM DIA, NOME) no visor
 }
 
@@ -52,7 +53,8 @@ const configPadrao: AgenteConfig = {
   endpoint_worker: process.env.CATRAKI_API_URL || 'https://www.catraki.com.br',
   admin_pin: '123456',
   agente_secret: process.env.AGENTE_SECRET || 'agente-secret-token',
-  porta_agente: 1912
+  porta_agente: 1912,
+  url_agente: process.env.CATRAKI_AGENTE_URL || ''
 };
 
 // Singleton em memória
@@ -73,6 +75,7 @@ export function carregarConfiguracaoHardware() {
         if (process.env.CATRAKI_API_URL) config.endpoint_worker = process.env.CATRAKI_API_URL;
         if (process.env.ESCOLA_ID) config.escola_id = process.env.ESCOLA_ID;
         if (process.env.AGENTE_SECRET) config.agente_secret = process.env.AGENTE_SECRET;
+        if (process.env.CATRAKI_AGENTE_URL) config.url_agente = process.env.CATRAKI_AGENTE_URL;
 
         // Prioridade 2: Persistência em disco (configurações via UI do Agente)
         if (fs.existsSync(configPath)) {
@@ -98,6 +101,7 @@ export function carregarConfiguracaoHardware() {
                 if (data.tts_sucesso !== undefined) config.tts_sucesso = data.tts_sucesso;
                 if (data.tts_erro !== undefined) config.tts_erro = data.tts_erro;
                 if (data.endpoint_worker !== undefined) config.endpoint_worker = data.endpoint_worker;
+                if (data.url_agente !== undefined) config.url_agente = data.url_agente;
 
                 console.log(`[Config] 📂 Estado carregado: ${config.leitores.length} leitores | Escola: ${config.escola_id}`);
             }

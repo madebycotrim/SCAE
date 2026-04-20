@@ -18,25 +18,27 @@ export async function onRequestPost({ request, env }: ContextoCatraki) {
 
     // 2. AUTO-PROVISIONAMENTO (D1)
     // Se o agente enviou hardware, vamos garantir que a nuvem saiba quem eles são.
-    if (corpo.hardware && Array.isArray(corpo.hardware) && corpo.hardware.length > 0) {
+    if (corpo.status && Array.isArray(corpo.status) && corpo.status.length > 0) {
         try {
-            // Verifica se já existe configuração para esta escola
             const existe = await db.prepare("SELECT escola_id FROM terminais WHERE escola_id = ?").bind(escolaId).first();
-
             if (!existe) {
-                // Primeira conexão: Salva a configuração local como a mestre na nuvem
-                console.log(`[Auto-Provisionamento] Cadastrando ${corpo.hardware.length} novos leitores para a escola ${escolaId}`);
-                await db.prepare(`
-                    INSERT INTO terminais (escola_id, config_leitores) 
-                    VALUES (?, ?)
-                `).bind(escolaId, JSON.stringify(corpo.hardware)).run();
-            } else {
-                // Se já existe, poderíamos atualizar, mas por segurança vamos apenas logar ou 
-                // atualizar apenas campos dinâmicos se necessário. 
-                // Por enquanto, o Agente é o mestre se a nuvem estiver vazia.
+                await db.prepare("INSERT INTO terminais (escola_id, config_leitores) VALUES (?, ?)")
+                    .bind(escolaId, JSON.stringify(corpo.status))
+                    .run();
             }
         } catch (e: any) {
             console.error('[Heartbeat] Falha ao auto-provisionar hardware:', e.message);
+        }
+    }
+
+    // 3. ATUALIZAÇÃO DE ENDEREÇO DO AGENTE (Túnel/Localhost)
+    if (corpo.url_agente !== undefined) {
+        try {
+            await db.prepare("UPDATE escolas SET url_agente = ? WHERE id = ?")
+                .bind(corpo.url_agente, escolaId)
+                .run();
+        } catch (e: any) {
+            console.error('[Heartbeat] Falha ao atualizar URL do Agente:', e.message);
         }
     }
     

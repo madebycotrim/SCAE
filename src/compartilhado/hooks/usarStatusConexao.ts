@@ -36,8 +36,8 @@ export function usarStatusConexao() {
         window.addEventListener('online', irOnline);
         window.addEventListener('offline', irOffline);
 
-        // Polling para o Agente (cada 10 segundos)
-        const intervalo = setInterval(verificarConexao, 10000);
+        // Polling para o Agente (cada 2 segundos para ser 'instantâneo')
+        const intervalo = setInterval(verificarConexao, 2000);
 
         return () => {
             window.removeEventListener('online', irOnline);

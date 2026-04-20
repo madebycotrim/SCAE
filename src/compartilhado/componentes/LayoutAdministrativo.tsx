@@ -47,6 +47,8 @@ import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { ReactNode } from 'react';
 
+import { usarAgente } from '@/compartilhado/contextos/ContextoAgente';
+
 const log = criarRegistrador('Layout');
 
 interface LayoutAdministrativoProps {
@@ -59,6 +61,8 @@ interface LayoutAdministrativoProps {
 export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }: LayoutAdministrativoProps) {
     const { usuarioAtual, sair } = usarAutenticacao();
     const { ehAdmin, podeVerLogs, usuario, pode, ehCentral } = usarPermissoes();
+    const { online: agenteOnline } = usarAgente();
+    
     const navegar = useNavigate();
     const localizacao = useLocation();
     const { id: slugEscola, nomeEscola } = usarEscola();
@@ -150,7 +154,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             itens: [
                 ...(pode('visualizar', 'usuarios') ? [{ icone: Shield, texto: 'Usuários', rota: '/usuarios' }] : []),
                 ...(pode('visualizar', 'auditoria') ? [{ icone: Activity, texto: 'Logs', rota: '/logs' }] : []),
-                ...(pode('visualizar', 'configuracoes') ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
+                ...(pode('visualizar', 'configuracoes') && agenteOnline ? [{ icone: Radar, texto: 'Agente', rota: '/agente' }] : []),
                 ...(pode('visualizar', 'configuracoes') ? [{ icone: Settings, texto: 'Configurações', rota: '/configuracoes' }] : []),
             ]
         }

@@ -22,6 +22,7 @@ import { ProvedorEscola } from '@/escola/ProvedorEscola';
 import { ProvedorAutenticacao, usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { ProvedorPermissoes } from './compartilhado/autorizacao/ContextoPermissoes';
 import { ProvedorNotificacoes } from '@compartilhado/contextos/ContextoNotificacoes';
+import { ProvedorAgente } from '@/compartilhado/contextos/ContextoAgente';
 import { ProvedorBuscaGlobal } from '@/compartilhado/contextos/ContextoBuscaGlobal';
 
 // Guardas de rota
@@ -105,10 +106,12 @@ function EscolaShell() {
                 <ProvedorPermissoes>
                     <ProvedorNotificacoes>
                         <ProvedorBuscaGlobal>
-                            <InicializadorSync />
-                            <Suspense fallback={<TelaCarregamento />}>
-                                <Outlet />
-                            </Suspense>
+                            <ProvedorAgente>
+                                <InicializadorSync />
+                                <Suspense fallback={<TelaCarregamento />}>
+                                    <Outlet />
+                                </Suspense>
+                            </ProvedorAgente>
                         </ProvedorBuscaGlobal>
                     </ProvedorNotificacoes>
                 </ProvedorPermissoes>

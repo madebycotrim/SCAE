@@ -5,9 +5,11 @@ import { ShieldAlert, WifiOff, Wifi, Volume2, VolumeX, Loader2, DoorOpen, DoorCl
 import { usarConfiguracoesEscola } from '@/compartilhado/hooks/usarConfiguracoesEscola';
 import { api } from '@/compartilhado/servicos/api';
 import toast from 'react-hot-toast';
+import { usarAgente } from '@/compartilhado/contextos/ContextoAgente';
 
 export function PaginaConfiguracoes() {
     const { configs, salvar, salvando, isLoading } = usarConfiguracoesEscola();
+    const { online: agenteOnline, agente: infoAgente, forcarVerificacao } = usarAgente();
 
     const [protocolo, definirProtocolo] = useState<boolean>(false);
     const [tts, definirTts] = useState<boolean>(false);
@@ -16,9 +18,7 @@ export function PaginaConfiguracoes() {
     const [fraseSucesso, definirFraseSucesso] = useState<string>('');
     const [fraseErro, definirFraseErro] = useState<string>('');
     
-    // --- ESTADO DO AGENTE LOCAL ---
-    const [statusAgente, setStatusAgente] = useState<'DESCONHECIDO' | 'RODANDO' | 'AUSENTE'>('DESCONHECIDO');
-    const [infoAgente, setInfoAgente] = useState<any>(null);
+    // --- ESTADO DE UI ---
     const [enviandoComando, setEnviandoComando] = useState(false);
 
     const enviarComandoRemoto = async (acao: string, params: any = {}) => {
@@ -34,47 +34,16 @@ export function PaginaConfiguracoes() {
         }
     };
 
-    const verificarAgente = async (comSync = false) => {
-        // 🔇 Silenciador: Não tenta se a aba não estiver visível (apenas no automático)
-        if (!comSync && document.visibilityState !== 'visible') return;
-
+    const sincronizarAgora = async () => {
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 800);
-            
-            const res = await fetch('http://127.0.0.1:1912/ping', { signal: controller.signal });
-            clearTimeout(timeoutId);
-            
-            if (res.ok) {
-                const dados = await res.json();
-                setStatusAgente('RODANDO');
-                setInfoAgente(dados);
-                if (comSync) fetch('http://127.0.0.1:1912/sync-now', { method: 'POST', mode: 'no-cors' }).catch(() => {});
-                return true;
-            }
-        } catch (e) {
-            setStatusAgente('AUSENTE');
-            setInfoAgente(null);
-            return false;
+            // Sincronização forçada ignora o circuito se o usuário clicou no botão
+            await fetch('http://localhost:1912/sync-now', { method: 'POST', mode: 'no-cors' });
+            toast.success('Sincronização local iniciada!');
+            forcarVerificacao();
+        } catch {
+            toast.error('Não foi possível falar com o Agente local.');
         }
     };
-
-    useEffect(() => {
-        let timer: NodeJS.Timeout;
-        let falhas = 0;
-
-        const loopCheck = async () => {
-            const sucess = await verificarAgente(false);
-            if (sucess) falhas = 0; else falhas++;
-            
-            // Back-off: 5s normal, 30s se ausente
-            const proximo = falhas > 2 ? 30000 : 5000;
-            timer = setTimeout(loopCheck, proximo);
-        };
-
-        loopCheck();
-        return () => clearTimeout(timer);
-    }, []);
 
     useEffect(() => {
         if (configs) {
@@ -299,7 +268,7 @@ export function PaginaConfiguracoes() {
                             <Cpu size={12} className="text-slate-300" />
                             Serviço Local (On-Premise)
                         </h2>
-                        {statusAgente === 'RODANDO' && (
+                        {agenteOnline && (
                             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest animate-pulse flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                                 Sistema Live
@@ -319,13 +288,13 @@ export function PaginaConfiguracoes() {
                                     {/* Icone com Pulso Central */}
                                     <div className="relative group/icon">
                                         <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-xl ${
-                                            statusAgente === 'RODANDO' 
+                                            agenteOnline 
                                                 ? 'bg-indigo-500 text-white shadow-indigo-500/20' 
                                                 : 'bg-slate-800 text-slate-500 border border-slate-700'
                                         }`}>
-                                            <Cpu size={40} className={statusAgente === 'RODANDO' ? 'animate-pulse' : ''} />
+                                            <Cpu size={40} className={agenteOnline ? 'animate-pulse' : ''} />
                                         </div>
-                                        {statusAgente === 'RODANDO' && (
+                                        {agenteOnline && (
                                             <div className="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center border-4 border-slate-900 animate-bounce">
                                                 <Wifi size={10} strokeWidth={4} />
                                             </div>
@@ -336,11 +305,11 @@ export function PaginaConfiguracoes() {
                                         <div className="flex flex-col md:flex-row md:items-center gap-3">
                                             <h3 className="text-xl font-black text-white tracking-tighter uppercase italic">Catraki Edge Agent</h3>
                                             <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${
-                                                statusAgente === 'RODANDO' 
+                                                agenteOnline 
                                                     ? 'bg-emerald-500 text-white border-emerald-400' 
                                                     : 'bg-slate-800 text-slate-400 border-slate-700'
                                             }`}>
-                                                {statusAgente === 'RODANDO' ? 'Agente Conectado' : 'Aguardando Agente'}
+                                                {agenteOnline ? 'Agente Conectado' : 'Aguardando Agente'}
                                             </div>
                                         </div>
                                         <p className="text-slate-400 text-xs font-medium max-w-sm leading-relaxed">
@@ -348,7 +317,7 @@ export function PaginaConfiguracoes() {
                                         </p>
 
                                         {/* Telemetria Rápida */}
-                                        {statusAgente === 'RODANDO' && infoAgente && (
+                                        {agenteOnline && infoAgente && (
                                             <div className="flex flex-wrap gap-4 mt-4">
                                                 <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
                                                     <div className="w-2 h-2 rounded-full bg-indigo-400" />
@@ -364,10 +333,10 @@ export function PaginaConfiguracoes() {
                                 </div>
 
                                 <div className="flex flex-col gap-3 w-full lg:w-auto">
-                                    {statusAgente === 'RODANDO' ? (
+                                    {agenteOnline ? (
                                         <>
                                             <button 
-                                                onClick={() => verificarAgente(true)} 
+                                                onClick={sincronizarAgora} 
                                                 className="w-full lg:w-48 h-12 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
                                             >
                                                 <RefreshCw size={14} />

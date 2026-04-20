@@ -84,6 +84,9 @@ function createWindow() {
 
   const server = http.createServer(async (req, res) => {
     try {
+        // Log de Depuração: Mostra quem está tentando falar com o agente
+        console.log(`[Agente] 🛰️ Requisição Recebida: ${req.method} ${req.url} (De: ${req.socket.remoteAddress})`);
+
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PATCH');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-pin, X-Escola-ID, X-Agente-Token');
@@ -307,8 +310,11 @@ function createWindow() {
     }
 });
 
-server.listen(config.porta_agente || 1912, '127.0.0.1', () => {
-    console.log(`[Agente] 🌐 API LOCAL ATIVA: http://127.0.0.1:${config.porta_agente || 1912}`);
+server.listen(config.porta_agente || 1912, () => {
+    const port = config.porta_agente || 1912;
+    console.log(`[Agente] 🚀 SERVIDOR CATRAKI ONLINE!`);
+    console.log(`[Agente] 📋 No Túnel Cloudflare, aponte para: http://localhost:${port}`);
+    console.log(`[Agente] 🛡️ Verifique se o Firewall permite tráfego na porta ${port}.`);
 });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));

@@ -39,7 +39,12 @@ export async function iniciarSync() {
       nome: l.nome,
       online: (l as any).online || false
   }));
-  WorkerApi.enviarStatus(statusBoot);
+
+  WorkerApi.enviarStatus({
+      agente_online: true,
+      url_agente: config.url_agente,
+      status: statusBoot
+  });
   
   // Ciclo 15s: Tenta descobrir identidade se ainda não tem, ou baixa alunos se já tem.
   setInterval(async () => {
@@ -112,6 +117,7 @@ export async function iniciarSync() {
             agente_online: true,
             ultimo_visto: new Date().toISOString(),
             ip_interno: ipLocal,
+            url_agente: config.url_agente,
             uptime_seconds: Math.floor(process.uptime()),
             hardware: obterLeitoresAtivos().map(l => ({
                 id: l.id,

@@ -17,6 +17,7 @@ export interface ConfiguracoesEscola {
     provedorAuth: 'google' | 'microsoft';
     qrDinamico: boolean;
     metodoAcesso: string;
+    urlAgente: string | null;
 }
 
 export interface FeatureFlags {
@@ -63,7 +64,7 @@ export class ServicoCache {
     static async buscarConfiguracoes(escolaId: string, env: AmbienteCatraki): Promise<ConfiguracoesEscola | null> {
         // Ignoramos o KV propositalmente para garantir consistência real (Admin vs Agente)
         const escola = await env.DB_SCAE.prepare(
-            "SELECT nome_escola, cor_primaria, cor_secundaria, logo_url, tts_ativado, dominio_email, provedor_auth, config_qr_dinamico, metodo_acesso FROM escolas WHERE id = ?"
+            "SELECT nome_escola, cor_primaria, cor_secundaria, logo_url, tts_ativado, dominio_email, provedor_auth, config_qr_dinamico, metodo_acesso, url_agente FROM escolas WHERE id = ?"
         ).bind(escolaId).first<{ 
             nome_escola: string, 
             cor_primaria: string, 
@@ -73,7 +74,8 @@ export class ServicoCache {
             dominio_email: string,
             provedor_auth: 'google' | 'microsoft',
             config_qr_dinamico: number,
-            metodo_acesso: string
+            metodo_acesso: string,
+            url_agente: string
         }>();
 
         if (escola) {
@@ -87,7 +89,8 @@ export class ServicoCache {
                 dominioEmail: escola.dominio_email,
                 provedorAuth: escola.provedor_auth || 'google',
                 qrDinamico: Boolean(escola.config_qr_dinamico),
-                metodoAcesso: escola.metodo_acesso || 'QRCODE'
+                metodoAcesso: escola.metodo_acesso || 'QRCODE',
+                urlAgente: escola.url_agente || null
             };
         }
 

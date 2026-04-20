@@ -4,6 +4,7 @@
  */
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { resolverSlugDaUrl } from './resolverSlug';
+import { storageEscola } from '@/compartilhado/utils/utilidades-slug';
 
 export interface PerfilEscola {
     id: string; // Identificador/Slug da escola
@@ -23,6 +24,7 @@ export interface PerfilEscola {
     ttsFraseErro?: string;
     metodosAcesso: string[];  // ['QRCODE', 'DIGITAL']
     provedorAuth: 'google' | 'microsoft';
+    urlAgente?: string;
 }
 
 const EscolaContext = createContext<PerfilEscola | null>(null);
@@ -68,6 +70,7 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                     nomeDPO: dados.nome_dpo || dados.nomeDPO || 'Encarregado SCAE',
                     emailDPO: dados.email_dpo || dados.emailDPO || 'privacidade@catraki.com.br',
                     provedorAuth: dados.provedorAuth || 'google',
+                    urlAgente: dados.url_agente || dados.urlAgente,
                 };
 
                 // Aplica identidade visual da escola via CSS variables
@@ -86,6 +89,9 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
 
                 // Salvar escola_id para uso pelo interceptor da API
                 sessionStorage.setItem('escola_id', data.id);
+                
+                // Cache persistente para o servicoAgente (acesso via Localhost/Túnel)
+                storageEscola.set('perfil', data);
 
                 definirPerfil(data);
             } catch (err) {

@@ -13,6 +13,8 @@ export interface StatusAgente {
     versao?: string;
     nomeEscola?: string;
     leitores?: any[];
+    leitoresAtivos?: number;
+    stats?: any;
     erroPin?: boolean;
 }
 
@@ -27,10 +29,16 @@ async function fetchAgente(endpoint: string, options: any = {}) {
         throw new Error('Agente Inacessível (Circuito em Repouso)');
     }
 
-    // URLs Alvo: Prioriza local se apenasLocal: true
-    const urls = options.apenasLocal 
-        ? [`http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`]
-        : ['https://catraki.com.br', `http://127.0.0.1:${PORTA_AGENTE}`];
+    // URLs Alvo: 
+    // 1. localhost (Prioritário para quem está na mesma máquina)
+    // 2. URL do Túnel (Fallback para acesso de outras máquinas da rede)
+    const urls = [`http://localhost:${PORTA_AGENTE}`];
+    
+    // Se tivermos a URL do túnel configurada para esta escola, adicionamos à lista
+    const perfil = storageEscola.get<any>('perfil', null);
+    if (perfil?.urlAgente) {
+        urls.push(perfil.urlAgente);
+    }
     
     const headers = {
         'Content-Type': 'application/json',
@@ -39,19 +47,22 @@ async function fetchAgente(endpoint: string, options: any = {}) {
 
     for (const baseUrl of urls) {
         try {
+            console.log(`[Agente] 📡 Tentando: ${baseUrl}${endpoint}...`);
             const resp = await fetch(`${baseUrl}${endpoint}`, {
                 ...options,
                 headers,
-                signal: AbortSignal.timeout(options.timeout || 2000),
+                signal: AbortSignal.timeout(options.timeout || 5000),
                 mode: 'cors'
             });
             
             if (resp.ok) {
+                console.log(`[Agente] ✅ Sucesso via: ${baseUrl}`);
                 agenteCircuitoAbertoAte = 0;
                 return resp;
             }
+            console.warn(`[Agente] ⚠️ Resposta inválida de ${baseUrl}: ${resp.status}`);
         } catch (e: any) {
-            // Silencioso: Passa para a próxima URL
+            console.error(`[Agente] ❌ Falha em ${baseUrl}:`, e.name === 'TimeoutError' ? 'Timeout' : e.message);
         }
     }
     
