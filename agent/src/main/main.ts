@@ -83,17 +83,19 @@ function createWindow() {
   mainWindow.setMenuBarVisibility(false);
 
   const server = http.createServer(async (req, res) => {
+    // 🛡️ HEADER DE SEGURANÇA ELITE (CORS)
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-pin, X-Escola-ID, X-Agente-Token, X-PING-ORIGIN');
+
+    // Intercepta Preflight do Navegador
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
+    }
+
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PATCH');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-pin, X-Escola-ID, X-Agente-Token');
-
-        if (req.method === 'OPTIONS') {
-            res.writeHead(204);
-            res.end();
-            return;
-        }
-
         // 🔓 SEGURANÇA LOCAL: Como o agente escuta apenas em 127.0.0.1, removemos a trava de PIN
         // para facilitar a operação do Solo Dev e garantir fluidez no radar.
         

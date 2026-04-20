@@ -40,7 +40,10 @@ async function fetchAgente(endpoint: string, options: any = {}) {
         urls.push(perfil.urlAgente);
     }
 
-    // 🚩 PRIORIDADE 2: O Localhost (Apenas fallback)
+    // 🚩 PRIORIDADE 2: Localhost IP (Evita problemas de DNS no Windows)
+    urls.push(`http://127.0.0.1:${PORTA_AGENTE}`);
+
+    // 🚩 PRIORIDADE 3: Localhost Nome (Fallback)
     urls.push(`http://localhost:${PORTA_AGENTE}`);
     
     const headers = {
