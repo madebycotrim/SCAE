@@ -31,7 +31,7 @@ async function fetchAgente(endpoint: string, options: any = {}) {
     // Se for 'apenasLocal', ignora a nuvem (usado para radar em tempo real)
     const urls = options.apenasLocal 
         ? [`http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`]
-        : ['https://agente.catraki.com.br', `http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`];
+        : ['https://catraki.com.br', `http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`];
     
     // Recupera o PIN salvo para as rotas críticas do agente
     const pin = storageEscola.get('agente_pin', '');
