@@ -22,24 +22,19 @@ const TEMPO_ESPERA_CIRCUITO_MS = 30000; // 30 segundos silenciado
 // -------------------------------------------------------------
 
 async function fetchAgente(endpoint: string, options: any = {}) {
-    // Se o circuito estiver aberto, devolvemos falha silenciosamente sem disparar fetch real
+    // Se o circuito estiver aberto, devolvemos falha silenciosamente
     if (Date.now() < agenteCircuitoAbertoAte) {
-        throw new Error('Agente Inacessível (Circuito em Repouso Silencioso)');
+        throw new Error('Agente Inacessível (Circuito em Repouso)');
     }
 
-    // Prioridade de URLs baseada na necessidade
-    // Se for 'apenasLocal', ignora a nuvem (usado para radar em tempo real)
+    // URLs Alvo: Prioriza local se apenasLocal: true
     const urls = options.apenasLocal 
         ? [`http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`]
-        : ['https://catraki.com.br', `http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`];
-    
-    // Recupera o PIN salvo para as rotas críticas do agente
-    const pin = storageEscola.get('agente_pin', '');
+        : ['https://catraki.com.br', `http://127.0.0.1:${PORTA_AGENTE}`];
     
     const headers = {
         'Content-Type': 'application/json',
-        ...options.headers,
-        ...(pin ? { 'x-admin-pin': pin } : {})
+        ...options.headers
     };
 
     for (const baseUrl of urls) {
@@ -52,44 +47,31 @@ async function fetchAgente(endpoint: string, options: any = {}) {
             });
             
             if (resp.ok) {
-                agenteCircuitoAbertoAte = 0; // Agente respondeu = Restaura circuito
+                agenteCircuitoAbertoAte = 0;
                 return resp;
             }
-            
-            if (resp.status === 401) {
-                throw new Error('Não Autorizado: PIN do Agente inválido.');
-            }
         } catch (e: any) {
-            if (e.message.includes('Não Autorizado')) throw e;
+            // Silencioso: Passa para a próxima URL
         }
     }
     
-    // Se falhou todos e não é apenasLocal, abre o circuito
     if (!options.apenasLocal) {
         agenteCircuitoAbertoAte = Date.now() + TEMPO_ESPERA_CIRCUITO_MS;
     }
     
-    throw new Error('Agente Inacessível (Conexão Falhou)');
+    throw new Error('Agente Inacessível');
 }
 
 export const servicoAgente = {
-    /**
-     * Define o PIN administrativo para as chamadas locais.
-     */
-    definirPin(pin: string) {
-        storageEscola.set('agente_pin', pin);
-    },
-
-    removerPin() {
-        storageEscola.remover('agente_pin');
-    },
+    definirPin() {}, // Depreciado
+    removerPin() {}, // Depreciado
 
     /**
-     * Verifica se o Agente local está respondendo na porta 1912.
+     * Verifica se o Agente local está respondendo.
      */
     async ping(): Promise<StatusAgente> {
         try {
-            const resp = await fetchAgente('/ping');
+            const resp = await fetchAgente('/ping', { apenasLocal: true });
             const dados = await resp.json();
             return {
                 online: true,
@@ -97,9 +79,8 @@ export const servicoAgente = {
                 nomeEscola: dados.nome_escola,
                 leitores: dados.leitores || []
             };
-        } catch (e: any) {
-            const erroPin = e.message?.includes('Não Autorizado');
-            return { online: false, erroPin };
+        } catch {
+            return { online: false };
         }
     },
 

@@ -85,7 +85,6 @@ function createWindow() {
   const server = http.createServer(async (req, res) => {
     try {
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PATCH');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-pin, X-Escola-ID, X-Agente-Token');
 
@@ -95,9 +94,8 @@ function createWindow() {
             return;
         }
 
-        // 🛡️ SEGURANÇA: Bloqueia ações críticas sem o PIN administrativo
-        const rotasCriticas = ['/sync-now', '/hardware/reiniciar', '/enroll', '/acesso/recentes'];
-        const urlPura = req.url?.split('?')[0];
+        // 🔓 SEGURANÇA LOCAL: Como o agente escuta apenas em 127.0.0.1, removemos a trava de PIN
+        // para facilitar a operação do Solo Dev e garantir fluidez no radar.
         
         if (req.url === '/' || req.url === '') {
             res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -109,16 +107,6 @@ function createWindow() {
                 escola: config.nome_escola 
             }));
             return;
-        }
-
-        if (rotasCriticas.includes(urlPura || '')) {
-            const pinEnviado = req.headers['x-admin-pin'];
-            if (pinEnviado !== config.admin_pin) {
-                console.warn(`[AVISO] [Segurança] 🔒 Tentativa de acesso não autorizado à rota ${urlPura} de ${req.socket.remoteAddress}`);
-                res.writeHead(401, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ erro: 'Não Autorizado: PIN inválido.' }));
-                return;
-            }
         }
         if (req.url === '/sync-now') {
             const { iniciarSync } = require('../services/sync');

@@ -23,11 +23,11 @@ export class WorkerApi {
       };
 
       try {
-          console.log(`[WorkerApi] >>> DESCUBRINDO IDENTIDADE ATRAVÉS DO TÚNEL: ${urlCloud}`);
+          console.log(`[WorkerApi] >>> SINCRONIZANDO COM A NUVEM: ${urlCloud}`);
           const resp = await fetch(urlCloud, options as any);
           if (resp.ok) return await resp.json();
       } catch (e) {
-          console.warn(`[WorkerApi] Falha no Túnel Identity. Tentando Localhost...`);
+          console.warn(`[WorkerApi] Nuvem indisponível. Tentando Localhost...`);
       }
 
       try {
