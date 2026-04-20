@@ -8,8 +8,7 @@ import {
     signOut, 
     User, 
     setPersistence, 
-    browserSessionPersistence, 
-    indexedDBLocalPersistence 
+    indexedDBLocalPersistence
 } from 'firebase/auth';
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
@@ -41,26 +40,11 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
     const [carregando, definirCarregando] = useState(true);
 
     useEffect(() => {
-        // 🔐 Configuração Dinâmica de Persistência
-        const configurarPersistencia = async () => {
-            const caminho = window.location.pathname;
-            const ehQuiosque = caminho.includes('/quiosque');
-            
-            try {
-                if (ehQuiosque) {
-                    await setPersistence(autenticacao, indexedDBLocalPersistence);
-                } else {
-                    await setPersistence(autenticacao, browserSessionPersistence);
-                }
-            } catch (err) {
-                log.error('Erro ao configurar persistência de sessão:', err);
-            }
-        };
+        // 🔥 Correção CRÍTICA do Loop de Login: 
+        // Não alterar setPersistence no mount. Isso destrói o estado pendente do signInWithRedirect!
+        // Mantemos o padrão estático (indexedDBLocalPersistence) globalmente.
+        setPersistence(autenticacao, indexedDBLocalPersistence).catch(console.error);
 
-        configurarPersistencia();
-
-        const [carregandoRedirect, definirCarregandoRedirect] = [true, (v: boolean) => {}]; // Apenas controle interno
-        
         let authPronta = false;
         let redirectPronto = false;
 
@@ -87,6 +71,7 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
                 }
             } catch (err: any) {
                 log.error('Erro no retorno do Google Login:', `${err.code} - ${err.message}`);
+                // Ignorar erro do Firebase se for timeout de redirect vazio
                 if (err.code === 'auth/unauthorized-domain') {
                     toast.error('Domínio não autorizado no Firebase!');
                 }
@@ -111,7 +96,7 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
         return cancelarInscricao;
     }, []);
 
-    const entrar = (parametros: Record<string, string> = {}, provedorNome: 'google' | 'microsoft' = 'google') => {
+    const entrar = async (parametros: Record<string, string> = {}, provedorNome: 'google' | 'microsoft' = 'google') => {
         const provedor = provedorNome === 'microsoft' 
             ? new OAuthProvider('microsoft.com') 
             : new GoogleAuthProvider();
@@ -121,6 +106,10 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
             prompt: 'select_account',
             ...parametros
         });
+        
+        // Garante que a persistência está correta antes de disparar o redirect
+        await setPersistence(autenticacao, indexedDBLocalPersistence);
+        
         // Usar Redirect para evitar erros de COOP e bloqueio de popups
         return signInWithRedirect(autenticacao, provedor);
     };
