@@ -80,7 +80,7 @@ export const servicoAgente = {
                 online: true,
                 versao: dados.versao,
                 nomeEscola: dados.nome_escola,
-                leitores: dados.leitores
+                leitores: dados.leitores || []
             };
         } catch (e: any) {
             const erroPin = e.message?.includes('Não Autorizado');

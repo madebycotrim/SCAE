@@ -240,7 +240,12 @@ export default function Painel() {
             alunos: []
         };
 
-        return estatisticasRaw;
+        return {
+            ...estatisticasRaw,
+            historicoPresenca: estatisticasRaw.historicoPresenca || [],
+            registrosRecentes: estatisticasRaw.registrosRecentes || [],
+            alunos: estatisticasRaw.alunos || []
+        };
     }, [estatisticasRaw]);
 
     const dataLine = {
