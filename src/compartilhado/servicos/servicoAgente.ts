@@ -20,7 +20,7 @@ export interface StatusAgente {
 
 // --- CIRCUIT BREAKER PARA EVITAR SPAM DE ERROS NO CONSOLE ---
 let agenteCircuitoAbertoAte = 0;
-const TEMPO_ESPERA_CIRCUITO_MS = 30000; // 30 segundos silenciado
+const TEMPO_ESPERA_CIRCUITO_MS = 15000; // 15 segundos silenciado (antes 30s)
 // -------------------------------------------------------------
 
 async function fetchAgente(endpoint: string, options: any = {}) {
@@ -29,21 +29,18 @@ async function fetchAgente(endpoint: string, options: any = {}) {
         throw new Error('Agente Inacessível (Circuito em Repouso)');
     }
 
-    // URLs Alvo: 
-    // 1. localhost (Prioritário para quem está na mesma máquina)
-    // 2. URL do Túnel (Fallback para acesso de outras máquinas da rede)
     const urls: string[] = [];
     
-    // 🚩 PRIORIDADE 1: O Túnel configurado (agente.catraki.com.br)
-    const perfil = storageEscola.get<any>('perfil', null);
-    if (perfil?.urlAgente) {
-        urls.push(perfil.urlAgente);
+    // Se não for exclusividade local e houver um túnel configurado, prioriza a Nuvem
+    if (!options.apenasLocal) {
+        const perfil = storageEscola.get<any>('perfil', null);
+        if (perfil?.urlAgente) {
+            urls.push(perfil.urlAgente);
+        }
     }
 
-    // 🚩 PRIORIDADE 2: Localhost IP (Evita problemas de DNS no Windows)
+    // 🚩 PRIORIDADE: Localhost IP (Evita problemas de DNS no Windows e CORS injetados por Proxies 502)
     urls.push(`http://127.0.0.1:${PORTA_AGENTE}`);
-
-    // 🚩 PRIORIDADE 3: Localhost Nome (Fallback)
     urls.push(`http://localhost:${PORTA_AGENTE}`);
     
     const headers = {
@@ -56,22 +53,21 @@ async function fetchAgente(endpoint: string, options: any = {}) {
             const resp = await fetch(`${baseUrl}${endpoint}`, {
                 ...options,
                 headers,
-                signal: AbortSignal.timeout(options.timeout || 5000),
+                signal: AbortSignal.timeout(options.timeout || 3000),
                 mode: 'cors'
             });
             
             if (resp.ok) {
-                agenteCircuitoAbertoAte = 0;
+                agenteCircuitoAbertoAte = 0; // Agente voltou, desarma o disjuntor
                 return resp;
             }
         } catch (e: any) {
-            // Silencioso em produção
+            // Silencioso no script, mas o navegador ainda vai injetar a linha vermelha naturalmente
         }
     }
     
-    if (!options.apenasLocal) {
-        agenteCircuitoAbertoAte = Date.now() + TEMPO_ESPERA_CIRCUITO_MS;
-    }
+    // Agente falhou em TODAS as rotas, arma o disjuntor para todas as proteções futuras do app
+    agenteCircuitoAbertoAte = Date.now() + TEMPO_ESPERA_CIRCUITO_MS;
     
     throw new Error('Agente Inacessível');
 }
