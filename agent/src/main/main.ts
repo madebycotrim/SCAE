@@ -96,6 +96,18 @@ function createWindow() {
         const rotasCriticas = ['/sync-now', '/hardware/reiniciar', '/enroll', '/acesso/recentes'];
         const urlPura = req.url?.split('?')[0];
         
+        if (req.url === '/' || req.url === '') {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 
+                ok: true, 
+                agente: 'Catraki Edge Agent', 
+                status: 'online', 
+                versao: '2.0.0', 
+                escola: config.nome_escola 
+            }));
+            return;
+        }
+
         if (rotasCriticas.includes(urlPura || '')) {
             const pinEnviado = req.headers['x-admin-pin'];
             if (pinEnviado !== config.admin_pin) {
