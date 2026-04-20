@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+import toast from 'react-hot-toast';
 
 import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 
@@ -58,21 +59,46 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
 
         configurarPersistencia();
 
-        // 🔗 Tratar resultado esperado de redirecionamento
-        getRedirectResult(autenticacao).catch(err => {
-            if (err.code !== 'auth/redirect-cancelled-by-user') {
-                log.error('Erro ao processar resultado do redirecionamento:', err);
+        const [carregandoRedirect, definirCarregandoRedirect] = [true, (v: boolean) => {}]; // Apenas controle interno
+        
+        let authPronta = false;
+        let redirectPronto = false;
+
+        const verificarProntidao = () => {
+            if (authPronta && redirectPronto) {
+                definirCarregando(false);
             }
-        });
+        };
+
+        // 🔗 Tratar resultado esperado de redirecionamento
+        const tratarRedirect = async () => {
+            try {
+                const resultado = await getRedirectResult(autenticacao);
+                if (resultado) {
+                    log.info('Login via Redirect bem sucedido:', resultado.user.email);
+                    toast.success(`Bem-vindo, ${resultado.user.displayName || 'Usuário'}!`);
+                }
+            } catch (err: any) {
+                log.error('Erro no retorno do Google Login:', `${err.code} - ${err.message}`);
+                if (err.code === 'auth/unauthorized-domain') {
+                    toast.error('Domínio não autorizado no Firebase!');
+                }
+            } finally {
+                redirectPronto = true;
+                verificarProntidao();
+            }
+        };
+
+        tratarRedirect();
 
         const cancelarInscricao = onAuthStateChanged(autenticacao, async (usuario) => {
             if (usuario) {
-                // Atualiza token — preservar referência do objeto User sem mutação via cast
                 const token = await usuario.getIdToken();
                 Object.defineProperty(usuario, 'token', { value: token, writable: true, configurable: true });
             }
             definirUsuarioAtual(usuario);
-            definirCarregando(false);
+            authPronta = true;
+            verificarProntidao();
         });
 
         return cancelarInscricao;

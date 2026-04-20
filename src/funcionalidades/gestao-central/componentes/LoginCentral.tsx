@@ -12,26 +12,27 @@ export default function LoginCentral() {
     const { entrar, usuarioAtual } = usarAutenticacao();
 
     useEffect(() => {
-        if (usuarioAtual) {
-            if (usuarioAtual.email === EMAIL_RAIZ) {
+        if (usuarioAtual && !loading) {
+            const emailLimpo = usuarioAtual.email?.toLowerCase() || '';
+            if (emailLimpo === EMAIL_RAIZ.toLowerCase()) {
                 navigate('/central/escolas', { replace: true });
             } else {
-                definirErro(`Acesso Negado. Email não autorizado: ${usuarioAtual.email}`);
+                definirErro(`Acesso Negado. O e-mail ${emailLimpo} não tem permissão de super-admin.`);
                 definirLoading(false);
             }
         }
-    }, [usuarioAtual, navigate]);
+    }, [usuarioAtual, navigate, loading]);
 
     const lidarComLoginGoogle = async () => {
         definirLoading(true);
         definirErro('');
 
         try {
+            // No modo Redirect, a execução para aqui e a página recarrega
             await entrar();
         } catch (err: any) {
             definirLoading(false);
-            definirErro('Erro ao entrar com Google. Tente novamente.');
-            console.error('Erro de autenticação:', err);
+            definirErro('Erro ao iniciar o login.');
         }
     };
 
