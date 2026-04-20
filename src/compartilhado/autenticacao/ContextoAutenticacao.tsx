@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
     onAuthStateChanged, 
-    signInWithPopup, 
+    signInWithRedirect, 
+    getRedirectResult,
     GoogleAuthProvider, 
     OAuthProvider,
     signOut, 
@@ -57,6 +58,13 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
 
         configurarPersistencia();
 
+        // 🔗 Tratar resultado esperado de redirecionamento
+        getRedirectResult(autenticacao).catch(err => {
+            if (err.code !== 'auth/redirect-cancelled-by-user') {
+                log.error('Erro ao processar resultado do redirecionamento:', err);
+            }
+        });
+
         const cancelarInscricao = onAuthStateChanged(autenticacao, async (usuario) => {
             if (usuario) {
                 // Atualiza token — preservar referência do objeto User sem mutação via cast
@@ -80,7 +88,8 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
             prompt: 'select_account',
             ...parametros
         });
-        return signInWithPopup(autenticacao, provedor);
+        // Usar Redirect para evitar erros de COOP e bloqueio de popups
+        return signInWithRedirect(autenticacao, provedor);
     };
 
     const sair = () => {

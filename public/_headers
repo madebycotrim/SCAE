@@ -1,0 +1,13 @@
+/*
+  Access-Control-Allow-Origin: *
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  # Removemos o Cross-Origin-Opener-Policy restritivo para permitir o fluxo de Auth
+  Cross-Origin-Opener-Policy: unsafe-none
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
