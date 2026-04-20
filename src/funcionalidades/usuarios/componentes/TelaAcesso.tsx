@@ -58,10 +58,7 @@ export default function TelaAcesso() {
                     }
                 }
 
-                toast.success('Login realizado com sucesso!', {
-                    style: { background: '#0f172a', color: '#fff' }, // Slate-900 (Corporate)
-                    iconTheme: { primary: '#fff', secondary: '#10b981' }
-                });
+                toast.success('Login realizado com sucesso!');
                 
                 await Registrador.registrar('LOGIN_SUCESSO', 'sistema', 'auth', { email });
                 navegar(`/${slugEscola}/admin/painel`, { replace: true });

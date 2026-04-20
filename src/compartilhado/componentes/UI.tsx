@@ -152,7 +152,7 @@ export const Esqueleto: React.FC<{ className?: string }> = ({ className = '' }) 
 );
 
 export const TelaCarregamento: React.FC<{ mensagem?: string }> = ({ mensagem = 'Carregando...' }) => (
-    <div className="flex items-center justify-center h-screen w-full bg-slate-50 text-slate-900 absolute inset-0 z-50">
+    <div className="flex items-center justify-center h-screen w-full bg-slate-50 text-slate-900 fixed inset-0 z-[99999]">
         <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-eletrico" />
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{mensagem}</span>
@@ -160,37 +160,7 @@ export const TelaCarregamento: React.FC<{ mensagem?: string }> = ({ mensagem = '
     </div>
 );
 
-export const BarraProgressoGlobal: React.FC<{ ativa: boolean }> = ({ ativa }) => {
-    const [progresso, definirProgresso] = useState(0);
 
-    useEffect(() => {
-        let interval: any;
-        if (ativa) {
-            definirProgresso(10);
-            interval = setInterval(() => {
-                definirProgresso(prev => (prev >= 90 ? 90 : prev + Math.random() * 5));
-            }, 400);
-        } else {
-            definirProgresso(100);
-            setTimeout(() => definirProgresso(0), 500);
-        }
-        return () => clearInterval(interval);
-    }, [ativa]);
-
-    if (progresso === 0) return null;
-
-    return (
-        <div 
-            role="progressbar"
-            aria-valuenow={progresso}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Carregando página"
-            className="fixed top-0 left-0 h-0.5 bg-eletrico z-[9999] transition-all duration-300 ease-out" 
-            style={{ width: `${progresso}%` }}
-        />
-    );
-};
 
 // --- INPUTS PADRONIZADOS ---
 

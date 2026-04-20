@@ -45,9 +45,6 @@ import {
 import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 import toast from 'react-hot-toast';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
-import { BarraProgressoGlobal } from '@/compartilhado/componentes/UI';
-import { IndicadorConexao } from '@/compartilhado/componentes/IndicadorConexao';
-import { AgenteStatusBadge } from './AgenteStatusBadge';
 import { ReactNode } from 'react';
 
 const log = criarRegistrador('Layout');
@@ -57,10 +54,9 @@ interface LayoutAdministrativoProps {
     titulo: string;
     subtitulo?: string;
     acoes?: ReactNode | null;
-    carregando?: boolean;
 }
 
-export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes, carregando }: LayoutAdministrativoProps) {
+export default function LayoutAdministrativo({ children, titulo, subtitulo, acoes }: LayoutAdministrativoProps) {
     const { usuarioAtual, sair } = usarAutenticacao();
     const { ehAdmin, podeVerLogs, usuario, pode, ehCentral } = usarPermissoes();
     const navegar = useNavigate();
@@ -241,8 +237,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
     return (
         <div className="flex h-screen bg-marinho font-sans overflow-hidden selection:bg-eletrico/20 selection:text-eletrico">
-            <BarraProgressoGlobal ativa={!!carregando} />
-            <IndicadorConexao />
 
             {/* Link de Pulo para Acessibilidade (WCAG 2.4.1) */}
             <a href="#conteudo-principal" className="pular-conteudo">
@@ -413,8 +407,6 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     </div>
 
                     <div className="flex items-center gap-5">
-                        {/* Agente Status */}
-                        <AgenteStatusBadge />
 
                         {/* Busca */}
                         <div className="hidden md:flex items-center relative group h-8">

@@ -73,8 +73,8 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
         await setPersistence(autenticacao, indexedDBLocalPersistence);
         
         // 🔄 Usando POPUP ao invés de Redirect.
-        // O COOP (Cross-Origin-Opener-Policy) já foi configurado como 'unsafe-none' no _headers
-        // Isso elimina os erros 404 no handler do Firebase (que ocorrem pois não estamos no Firebase Hosting).
+        // O COOP (Cross-Origin-Opener-Policy) já foi configurado como 'same-origin-allow-popups' no _headers
+        // Isso elimina os erros de bloqueio de janela no fluxo do Firebase SDK.
         try {
             const resultado = await signInWithPopup(autenticacao, provedor);
             if (resultado && resultado.user) {
@@ -82,7 +82,6 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
                 const token = await resultado.user.getIdToken();
                 (resultado.user as any).token = token;
                 definirUsuarioAtual(resultado.user);
-                toast.success('Acesso validado!');
             }
             return resultado;
         } catch (err: any) {

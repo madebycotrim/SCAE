@@ -4,7 +4,7 @@
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
   # Removemos o Cross-Origin-Opener-Policy restritivo para permitir o fluxo de Auth
-  Cross-Origin-Opener-Policy: unsafe-none
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
   # Garante que as páginas HTML e rotas SPA não sejam cacheadas pelo navegador (apenas pelo Service Worker)
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Pragma: no-cache

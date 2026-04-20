@@ -55,18 +55,6 @@ import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 
 import { TelaCarregamento } from '@/compartilhado/componentes/UI';
 
-/**
- * Layout base que envolve as páginas do painel administrativo.
- */
-function Layout({ children }: { children: ReactNode }) {
-    return (
-        <div className="flex flex-col min-h-screen">
-            <main className="flex-grow bg-gray-100">
-                {children}
-            </main>
-        </div>
-    );
-}
 
 const ESTILO_TOAST_PREMIUM = {
     className: 'premium-toast font-sans',
@@ -172,15 +160,13 @@ function App() {
                                     key={caminho}
                                     path={caminho.replace(/^\//, '')}
                                     element={
-                                        <Layout>
-                                            {protegida ? (
-                                                <GuardaRota papeis={papeis}>
-                                                    <Componente />
-                                                </GuardaRota>
-                                            ) : (
+                                        protegida ? (
+                                            <GuardaRota papeis={papeis}>
                                                 <Componente />
-                                            )}
-                                        </Layout>
+                                            </GuardaRota>
+                                        ) : (
+                                            <Componente />
+                                        )
                                     }
                                 />
                             ))}
