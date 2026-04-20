@@ -286,7 +286,7 @@ export default function RegistroAuditoria() {
                                     </td>
                                 </tr>
                             ) : (
-                                logsPaginados.map((log: any) => (
+                                (logsPaginados || []).map((log: any) => (
                                     <tr key={log.id} className="group/row transition-all duration-300 hover:bg-slate-50/50 relative z-10">
                                         <td className="pl-12 py-6 align-middle relative">
                                             {/* Ponto da Timeline */}

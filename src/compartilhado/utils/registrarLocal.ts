@@ -14,7 +14,8 @@ const EMAIL_DEV_PERMITIDO = 'madebycotrim@gmail.com';
  * Função global que verifica instantaneamente via Firebase se o usuário logado é o autor autorizado a debugar.
  */
 function usuarioDevAutorizado(): boolean {
-    return autenticacao.currentUser?.email === EMAIL_DEV_PERMITIDO;
+    const email = autenticacao.currentUser?.email?.toLowerCase();
+    return email === EMAIL_DEV_PERMITIDO.toLowerCase();
 }
 
 // === INTERCEPTADOR GLOBAL DE CONSOLE (APLICA-SE PARA TUDO NO BROWSER) ===

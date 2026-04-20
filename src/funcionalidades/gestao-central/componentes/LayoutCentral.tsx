@@ -1,15 +1,11 @@
-import { ReactNode, useEffect } from 'react';
-import { setPersistence, browserSessionPersistence } from 'firebase/auth';
-import { autenticacao } from '@/compartilhado/servicos/firebase.config';
+import { ReactNode } from 'react';
 import { Toaster } from 'react-hot-toast';
 
+/**
+ * LayoutCentral - Layout minimalista para o painel de gestão global.
+ * Foca em largura total e feedback visual limpo.
+ */
 export function LayoutCentral({ children }: { children: ReactNode }) {
-    useEffect(() => {
-        if (autenticacao) {
-            setPersistence(autenticacao, browserSessionPersistence).catch(console.error);
-        }
-    }, []);
-
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col items-center">
             <Toaster 
@@ -26,7 +22,7 @@ export function LayoutCentral({ children }: { children: ReactNode }) {
                     }
                 }}
             />
-            <main className="flex-1 w-full relative pt-10 pb-20">
+            <main className="flex-1 w-full relative">
                 {children}
             </main>
         </div>

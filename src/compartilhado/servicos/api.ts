@@ -3,6 +3,9 @@
  * Mantém compatibilidade com os métodos existentes: obter, enviar, remover.
  */
 import { autenticacao } from '@/compartilhado/servicos/firebase.config';
+import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
+
+const log = criarRegistrador('API');
 
 // URL_BASE é sempre relativa para garantir que o sistema funcione em qualquer domínio (Pages ou Custom Domain)
 const URL_BASE = '/api';
@@ -79,13 +82,6 @@ async function obterCabecalhos(): Promise<CabecalhosApi> {
  * Implementa automaticamente injeção de tokens JWT e identificação de contexto escolar.
  */
 export const api = {
-    /**
-     * Realiza uma requisição do tipo GET para buscar dados.
-     * @param rota - Caminho do endpoint (ex: '/usuarios').
-     * @param opcoes - Configurações adicionais de cabeçalho.
-     * @returns {Promise<T>} Resposta da API mapeada para o tipo genérico T.
-     * @throws {ErroApi} Caso o status HTTP não seja de sucesso (2xx).
-     */
     obter: async <T = unknown>(rota: string, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
         const cabecalhosPadrao = await obterCabecalhos();
         const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
@@ -93,22 +89,28 @@ export const api = {
         
         try {
             const resposta = await fetch(urlCompleta, { headers: cabecalhos });
+            const texto = await resposta.text();
+
             if (!resposta.ok) {
-                const textoErro = await resposta.text();
                 let codigo: string | undefined;
                 try {
-                    const parsed = JSON.parse(textoErro);
+                    const parsed = JSON.parse(texto);
                     codigo = parsed?.erro?.codigo;
                 } catch { /* não é JSON */ }
-                throw new ErroApi(`Erro na API: ${resposta.statusText} - ${textoErro}`, resposta.status, codigo);
+                throw new ErroApi(`Erro na API: ${resposta.statusText} - ${texto}`, resposta.status, codigo);
             }
 
             const contentType = resposta.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {
-                const json = await resposta.json();
-                return (json && typeof json === 'object' && 'dados' in json) ? json.dados : json;
+                try {
+                    const json = JSON.parse(texto);
+                    // 🛡️ Blindagem: garante retorno de 'dados' ou objeto vazio, nunca null/undefined
+                    return (json && typeof json === 'object' && 'dados' in json) ? (json.dados || []) : (json || {});
+                } catch (e) {
+                    log.error('Falha ao processar JSON da API:', texto.substring(0, 100));
+                    return [] as unknown as T;
+                }
             } else {
-                const texto = await resposta.text();
                 if (texto.trim().startsWith('<')) {
                     throw new Error(`A API retornou HTML em vez de JSON em ${rota}. Verifique se o endpoint existe.`);
                 }
@@ -120,12 +122,6 @@ export const api = {
         }
     },
 
-    /**
-     * Realiza uma requisição do tipo POST para envio de novos dados.
-     * @param rota - Caminho do endpoint.
-     * @param dados - Corpo da requisição (será convertido para JSON).
-     * @param opcoes - Configurações adicionais de cabeçalho.
-     */
     enviar: async <T = unknown>(rota: string, dados: unknown, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
         const cabecalhosPadrao = await obterCabecalhos();
         const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
@@ -134,30 +130,23 @@ export const api = {
             headers: cabecalhos,
             body: JSON.stringify(dados)
         });
+        const texto = await resposta.text();
         if (!resposta.ok) {
-            const textoErro = await resposta.text();
             let codigo: string | undefined;
             try {
-                const parsed = JSON.parse(textoErro);
+                const parsed = JSON.parse(texto);
                 codigo = parsed?.erro?.codigo;
             } catch { /* não é JSON */ }
-            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${textoErro}`, resposta.status, codigo);
+            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${texto}`, resposta.status, codigo);
         }
-        const texto = await resposta.text();
         try {
             const json = JSON.parse(texto);
-            return (json && typeof json === 'object' && 'dados' in json) ? json.dados : json;
+            return (json && typeof json === 'object' && 'dados' in json) ? (json.dados || []) : (json || {});
         } catch {
             return texto as unknown as T;
         }
     },
 
-    /**
-     * Realiza uma requisição do tipo PATCH para atualização parcial de dados.
-     * @param rota - Caminho do endpoint.
-     * @param dados - Campos a serem atualizados no servidor.
-     * @param opcoes - Configurações adicionais de cabeçalho.
-     */
     atualizar: async <T = unknown>(rota: string, dados: unknown, opcoes: { headers?: Record<string, string> } = {}): Promise<T> => {
         const cabecalhosPadrao = await obterCabecalhos();
         const cabecalhos = { ...cabecalhosPadrao, ...opcoes.headers };
@@ -166,29 +155,23 @@ export const api = {
             headers: cabecalhos,
             body: JSON.stringify(dados)
         });
+        const texto = await resposta.text();
         if (!resposta.ok) {
-            const textoErro = await resposta.text();
             let codigo: string | undefined;
             try {
-                const parsed = JSON.parse(textoErro);
+                const parsed = JSON.parse(texto);
                 codigo = parsed?.erro?.codigo;
             } catch { /* não é JSON */ }
-            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${textoErro}`, resposta.status, codigo);
+            throw new ErroApi(`Erro na API: ${resposta.statusText} - ${texto}`, resposta.status, codigo);
         }
-        const texto = await resposta.text();
         try {
             const json = JSON.parse(texto);
-            return (json && typeof json === 'object' && 'dados' in json) ? json.dados : json;
+            return (json && typeof json === 'object' && 'dados' in json) ? (json.dados || []) : (json || {});
         } catch {
             return texto as unknown as T;
         }
     },
 
-    /**
-     * Realiza uma requisição do tipo DELETE para remoção de registros.
-     * @param rota - Caminho do endpoint incluindo query strings se necessário.
-     * @returns {Promise<boolean>} Verdadeiro se a exclusão foi confirmada.
-     */
     remover: async (rota: string): Promise<boolean> => {
         const cabecalhos = await obterCabecalhos();
         const resposta = await fetch(`${URL_BASE}${rota}`, {

@@ -126,9 +126,10 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
             // 🔐 Rotas da Central não têm escola — bypass direto para root
             const ehRotaCentral = window.location.pathname.startsWith('/central');
             if (ehRotaCentral) {
-                if (usuarioAtual.email === EMAIL_RAIZ) {
+                const emailLimpo = usuarioAtual.email?.toLowerCase() || '';
+                if (emailLimpo === EMAIL_RAIZ.toLowerCase()) {
                     definirUsuario({
-                        email: usuarioAtual.email,
+                        email: emailLimpo,
                         nome_completo: 'Administrador Principal (Root)',
                         papel: 'CENTRAL',
                         ativo: true,
@@ -175,7 +176,8 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
      */
     const pode = (acao: string, recurso: string): boolean => {
         // BYPASS: EMAIL_RAIZ tem acesso total sempre se autenticado
-        if (usuarioAtual?.email === EMAIL_RAIZ) return true;
+        const emailAtual = usuarioAtual?.email?.toLowerCase() || '';
+        if (emailAtual === EMAIL_RAIZ.toLowerCase()) return true;
 
         if (!usuario || !usuario.ativo) return false;
 
@@ -191,15 +193,15 @@ export function ProvedorPermissoes({ children }: { children: ReactNode }) {
         carregando,
         pode,
         podeAcessar: pode,
-        temPapel: (papel: string) => usuario?.papel === papel || usuarioAtual?.email === EMAIL_RAIZ,
-        temAlgumPapel: (papeis: string[]) => (!!usuario && papeis.includes(usuario.papel)) || usuarioAtual?.email === EMAIL_RAIZ,
+        temPapel: (papel: string) => usuario?.papel === papel || usuarioAtual?.email?.toLowerCase() === EMAIL_RAIZ.toLowerCase(),
+        temAlgumPapel: (papeis: string[]) => (!!usuario && papeis.includes(usuario.papel)) || usuarioAtual?.email?.toLowerCase() === EMAIL_RAIZ.toLowerCase(),
 
-        ehCentral: usuario?.papel === 'CENTRAL' || usuarioAtual?.email === EMAIL_RAIZ,
-        ehAdmin: usuario?.papel === 'ADMIN' || usuarioAtual?.email === EMAIL_RAIZ,
-        ehCoordenacao: usuario?.papel === 'COORDENACAO' || usuarioAtual?.email === EMAIL_RAIZ,
-        ehSecretaria: usuario?.papel === 'SECRETARIA' || usuarioAtual?.email === EMAIL_RAIZ,
-        ehPorteiro: usuario?.papel === 'PORTEIRO' || usuarioAtual?.email === EMAIL_RAIZ,
-        ehVisualizacao: usuario?.papel === 'VISUALIZACAO' || usuarioAtual?.email === EMAIL_RAIZ,
+        ehCentral: usuario?.papel === 'CENTRAL' || usuarioAtual?.email?.toLowerCase() === EMAIL_RAIZ.toLowerCase(),
+        ehAdmin: usuario?.papel === 'ADMIN' || usuarioAtual?.email?.toLowerCase() === EMAIL_RAIZ.toLowerCase(),
+        ehCoordenacao: usuario?.papel === 'COORDENACAO' || usuarioAtual?.email?.toLowerCase() === EMAIL_RAIZ.toLowerCase(),
+        ehSecretaria: usuario?.papel === 'SECRETARIA' || usuarioAtual?.email?.toLowerCase() === EMAIL_RAIZ.toLowerCase(),
+        ehPorteiro: usuario?.papel === 'PORTEIRO' || usuarioAtual?.email?.toLowerCase() === EMAIL_RAIZ.toLowerCase(),
+        ehVisualizacao: usuario?.papel === 'VISUALIZACAO' || usuarioAtual?.email?.toLowerCase() === EMAIL_RAIZ.toLowerCase(),
 
         podeGerenciarAlunos: pode('editar', 'alunos') || pode('criar', 'alunos'),
         podeGerenciarTurmas: pode('editar', 'turmas') || pode('criar', 'turmas'),

@@ -72,11 +72,18 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
 
         // 🔗 Tratar resultado esperado de redirecionamento
         const tratarRedirect = async () => {
+            log.info('🔍 Verificando se há retorno de login pendente...');
             try {
                 const resultado = await getRedirectResult(autenticacao);
                 if (resultado) {
-                    log.info('Login via Redirect bem sucedido:', resultado.user.email);
-                    toast.success(`Bem-vindo, ${resultado.user.displayName || 'Usuário'}!`);
+                    log.info('✅ Login via Redirect capturado:', resultado.user.email);
+                    
+                    // 🛡️ Injeção manual do token para garantir prontidão
+                    const token = await resultado.user.getIdToken();
+                    (resultado.user as any).token = token;
+                    
+                    definirUsuarioAtual(resultado.user);
+                    toast.success('Acesso validado!');
                 }
             } catch (err: any) {
                 log.error('Erro no retorno do Google Login:', `${err.code} - ${err.message}`);
@@ -94,7 +101,7 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
         const cancelarInscricao = onAuthStateChanged(autenticacao, async (usuario) => {
             if (usuario) {
                 const token = await usuario.getIdToken();
-                Object.defineProperty(usuario, 'token', { value: token, writable: true, configurable: true });
+                (usuario as any).token = token;
             }
             definirUsuarioAtual(usuario);
             authPronta = true;

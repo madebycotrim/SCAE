@@ -45,15 +45,21 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
             try {
                 const resposta = await fetch(`${apiUrl}/publico/detalhes?slug=${slug}`);
                 if (!resposta.ok) throw new Error('Escola não encontrada');
-                const { dados } = await resposta.json();
+                const json = await resposta.json();
+                const dados = json?.dados || json;
+
+                if (!dados || (!dados.id && !dados.nome_escola)) {
+                    throw new Error('Perfil da escola inválido ou incompleto');
+                }
+
                 const data: PerfilEscola = {
                     id: dados.id,
                     nomeEscola: dados.nome_escola || dados.nomeEscola,
                     dominioEmail: dados.dominio_email || dados.dominioEmail,
-                    corPrimaria: dados.cor_primaria || dados.corPrimaria,
-                    corSecundaria: dados.cor_secundaria || dados.corSecundaria,
-                    ttsAtivado: dados.tts_ativado ?? dados.ttsAtivado,
-                    qrDinamico: dados.config_qr_dinamico ?? dados.qrDinamico,
+                    corPrimaria: dados.cor_primaria || dados.corPrimaria || '#2B59FF',
+                    corSecundaria: dados.cor_secundaria || dados.corSecundaria || '#1e293b',
+                    ttsAtivado: !!(dados.tts_ativado ?? dados.ttsAtivado),
+                    qrDinamico: !!(dados.config_qr_dinamico ?? dados.qrDinamico),
                     ttsFraseSucesso: dados.config_tts_frase_sucesso || dados.ttsFraseSucesso,
                     ttsFraseErro: dados.config_tts_frase_erro || dados.ttsFraseErro,
                     saidaObrigatoria: dados.saida_obrigatoria ?? true,

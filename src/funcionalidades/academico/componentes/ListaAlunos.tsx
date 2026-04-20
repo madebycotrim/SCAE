@@ -60,9 +60,9 @@ export default function ListaAlunos({
                                         checked={alunosSelecionados.length === alunos.length && alunos.length > 0}
                                         onChange={(e) => {
                                             if (e.target.checked) {
-                                                alunos.forEach(a => { if (!alunosSelecionados.includes(a.matricula)) aoSelecionar(a.matricula) });
+                                                (alunos || []).forEach(a => { if (!alunosSelecionados.includes(a.matricula)) aoSelecionar(a.matricula) });
                                             } else {
-                                                alunos.forEach(a => { if (alunosSelecionados.includes(a.matricula)) aoSelecionar(a.matricula) });
+                                                (alunos || []).forEach(a => { if (alunosSelecionados.includes(a.matricula)) aoSelecionar(a.matricula) });
                                             }
                                         }}
                                         className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 cursor-pointer transition-all"
@@ -95,21 +95,21 @@ export default function ListaAlunos({
                                         <td className="py-5 px-8 text-right"><Esqueleto className="w-24 h-8 ml-auto" /></td>
                                     </tr>
                                 ))
-                            ) : alunos.map((aluno) => (
-                                <tr key={aluno.matricula} className={`hover:bg-eletrico/5 transition-all group ${alunosSelecionados.includes(aluno.matricula) ? 'bg-eletrico/10' : ''}`}>
-                                    <td className="py-4 px-8 text-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={alunosSelecionados.includes(aluno.matricula)}
-                                            onChange={() => aoSelecionar(aluno.matricula)}
-                                            className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 cursor-pointer transition-all"
-                                        />
-                                    </td>
-                                    <td className="py-4 px-8">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 font-black text-[9px] shrink-0 border border-slate-200 transition-all">
-                                                {aluno.nome_completo.split(' ').map((n, i, arr) => i === 0 || i === arr.length - 1 ? n[0] : '').join('').toUpperCase().substring(0, 2)}
-                                            </div>
+                            ) : (alunos || []).map((aluno) => (
+    <tr key={aluno.matricula} className={`hover:bg-eletrico/5 transition-all group ${alunosSelecionados.includes(aluno.matricula) ? 'bg-eletrico/10' : ''}`}>
+        <td className="py-4 px-8 text-center">
+            <input
+                type="checkbox"
+                checked={alunosSelecionados.includes(aluno.matricula)}
+                onChange={() => aoSelecionar(aluno.matricula)}
+                className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 cursor-pointer transition-all"
+            />
+        </td>
+        <td className="py-4 px-8">
+            <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 font-black text-[9px] shrink-0 border border-slate-200 transition-all">
+                    {(aluno.nome_completo || '').split(' ').map((n, i, arr) => i === 0 || i === arr.length - 1 ? n[0] : '').join('').toUpperCase().substring(0, 2)}
+                </div>
                                             <div className="flex flex-col gap-0.5">
                                                 <span className="font-black text-slate-800 text-xs uppercase tracking-tight group-hover:text-slate-950 transition-colors">{aluno.nome_completo}</span>
                                              </div>

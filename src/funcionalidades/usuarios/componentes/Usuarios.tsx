@@ -195,7 +195,7 @@ export default function Usuarios() {
                                     </td>
                                 </tr>
                             ) : (
-                                usuariosFiltrados.map((u: UsuarioVisualizacao) => {
+                                (usuariosFiltrados || []).map((u: UsuarioVisualizacao) => {
                                     const papelInfo = PapeisDisponiveis.find(p => p.id === u.papel);
                                     const papelNome = papelInfo?.nome || u.papel || 'Portaria';
                                     const papelCor = papelInfo?.cor || 'slate';
