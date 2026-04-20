@@ -1,8 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
     onAuthStateChanged, 
-    signInWithRedirect, 
-    getRedirectResult,
+    signInWithPopup, 
     GoogleAuthProvider, 
     OAuthProvider,
     signOut, 
@@ -40,57 +39,20 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
     const [carregando, definirCarregando] = useState(true);
 
     useEffect(() => {
-        // 🔥 Correção CRÍTICA do Loop de Login: 
-        // Não alterar setPersistence no mount. Isso destrói o estado pendente do signInWithRedirect!
-        // Mantemos o padrão estático (indexedDBLocalPersistence) globalmente.
+        // 🔥 Garantir a persistência local (IndexedDB) como padrão
         setPersistence(autenticacao, indexedDBLocalPersistence).catch(console.error);
-
-        let authPronta = false;
-        let redirectPronto = false;
-
-        const verificarProntidao = () => {
-            if (authPronta && redirectPronto) {
-                definirCarregando(false);
-            }
-        };
-
-        // 🔗 Tratar resultado esperado de redirecionamento
-        const tratarRedirect = async () => {
-            log.info('🔍 Verificando se há retorno de login pendente...');
-            try {
-                const resultado = await getRedirectResult(autenticacao);
-                if (resultado) {
-                    log.info('✅ Login via Redirect capturado:', resultado.user.email);
-                    
-                    // 🛡️ Injeção manual do token para garantir prontidão
-                    const token = await resultado.user.getIdToken();
-                    (resultado.user as any).token = token;
-                    
-                    definirUsuarioAtual(resultado.user);
-                    toast.success('Acesso validado!');
-                }
-            } catch (err: any) {
-                log.error('Erro no retorno do Google Login:', `${err.code} - ${err.message}`);
-                // Ignorar erro do Firebase se for timeout de redirect vazio
-                if (err.code === 'auth/unauthorized-domain') {
-                    toast.error('Domínio não autorizado no Firebase!');
-                }
-            } finally {
-                redirectPronto = true;
-                verificarProntidao();
-            }
-        };
-
-        tratarRedirect();
 
         const cancelarInscricao = onAuthStateChanged(autenticacao, async (usuario) => {
             if (usuario) {
-                const token = await usuario.getIdToken();
-                (usuario as any).token = token;
+                try {
+                    const token = await usuario.getIdToken();
+                    (usuario as any).token = token;
+                } catch (e) {
+                    log.error('Erro ao obter token na inscrição:', e);
+                }
             }
             definirUsuarioAtual(usuario);
-            authPronta = true;
-            verificarProntidao();
+            definirCarregando(false);
         });
 
         return cancelarInscricao;
@@ -101,17 +63,39 @@ export function ProvedorAutenticacao({ children }: { children: ReactNode }) {
             ? new OAuthProvider('microsoft.com') 
             : new GoogleAuthProvider();
             
-        // Opcional: Forçar seleção de conta e permitir restrição de domínio
+        // Forçar seleção de conta e permitir restrição de domínio
         provedor.setCustomParameters({
             prompt: 'select_account',
             ...parametros
         });
         
-        // Garante que a persistência está correta antes de disparar o redirect
+        // Garante que a persistência está correta antes de disparar o popup
         await setPersistence(autenticacao, indexedDBLocalPersistence);
         
-        // Usar Redirect para evitar erros de COOP e bloqueio de popups
-        return signInWithRedirect(autenticacao, provedor);
+        // 🔄 Usando POPUP ao invés de Redirect.
+        // O COOP (Cross-Origin-Opener-Policy) já foi configurado como 'unsafe-none' no _headers
+        // Isso elimina os erros 404 no handler do Firebase (que ocorrem pois não estamos no Firebase Hosting).
+        try {
+            const resultado = await signInWithPopup(autenticacao, provedor);
+            if (resultado && resultado.user) {
+                log.info('✅ Login via Popup capturado:', resultado.user.email);
+                const token = await resultado.user.getIdToken();
+                (resultado.user as any).token = token;
+                definirUsuarioAtual(resultado.user);
+                toast.success('Acesso validado!');
+            }
+            return resultado;
+        } catch (err: any) {
+            log.error('Erro no Google Login Popup:', `${err.code} - ${err.message}`);
+            if (err.code === 'auth/unauthorized-domain') {
+                toast.error('Domínio não autorizado no Firebase!');
+            } else if (err.code === 'auth/popup-closed-by-user') {
+                toast.error('O login foi cancelado.');
+            } else {
+                toast.error('Falha ao autenticar.');
+            }
+            throw err;
+        }
     };
 
     const sair = () => {
