@@ -50,7 +50,6 @@ async function fetchAgente(endpoint: string, options: any = {}) {
 
     for (const baseUrl of urls) {
         try {
-            console.log(`[Agente] 📡 Tentando: ${baseUrl}${endpoint}...`);
             const resp = await fetch(`${baseUrl}${endpoint}`, {
                 ...options,
                 headers,
@@ -59,13 +58,11 @@ async function fetchAgente(endpoint: string, options: any = {}) {
             });
             
             if (resp.ok) {
-                console.log(`[Agente] ✅ Sucesso via: ${baseUrl}`);
                 agenteCircuitoAbertoAte = 0;
                 return resp;
             }
-            console.warn(`[Agente] ⚠️ Resposta inválida de ${baseUrl}: ${resp.status}`);
         } catch (e: any) {
-            console.error(`[Agente] ❌ Falha em ${baseUrl}:`, e.name === 'TimeoutError' ? 'Timeout' : e.message);
+            // Silencioso em produção
         }
     }
     

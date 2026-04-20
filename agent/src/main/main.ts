@@ -84,9 +84,6 @@ function createWindow() {
 
   const server = http.createServer(async (req, res) => {
     try {
-        // Log de Depuração: Mostra quem está tentando falar com o agente
-        console.log(`[Agente] 🛰️ Requisição Recebida: ${req.method} ${req.url} (De: ${req.socket.remoteAddress})`);
-
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PATCH');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-pin, X-Escola-ID, X-Agente-Token');
