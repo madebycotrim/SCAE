@@ -32,13 +32,16 @@ async function fetchAgente(endpoint: string, options: any = {}) {
     // URLs Alvo: 
     // 1. localhost (Prioritário para quem está na mesma máquina)
     // 2. URL do Túnel (Fallback para acesso de outras máquinas da rede)
-    const urls = [`http://localhost:${PORTA_AGENTE}`];
+    const urls: string[] = [];
     
-    // Se tivermos a URL do túnel configurada para esta escola, adicionamos à lista
+    // 🚩 PRIORIDADE 1: O Túnel configurado (agente.catraki.com.br)
     const perfil = storageEscola.get<any>('perfil', null);
     if (perfil?.urlAgente) {
         urls.push(perfil.urlAgente);
     }
+
+    // 🚩 PRIORIDADE 2: O Localhost (Apenas fallback)
+    urls.push(`http://localhost:${PORTA_AGENTE}`);
     
     const headers = {
         'Content-Type': 'application/json',
