@@ -27,12 +27,11 @@ async function fetchAgente(endpoint: string, options: any = {}) {
         throw new Error('Agente Inacessível (Circuito em Repouso Silencioso)');
     }
 
-    // Prioridade: Túnel Cloudflare (Seguro/HTTPS) -> Localhost (Desenvolvimento)
-    const urls = [
-        'https://agente.catraki.com.br',
-        `http://127.0.0.1:${PORTA_AGENTE}`,
-        `http://localhost:${PORTA_AGENTE}`
-    ];
+    // Prioridade de URLs baseada na necessidade
+    // Se for 'apenasLocal', ignora a nuvem (usado para radar em tempo real)
+    const urls = options.apenasLocal 
+        ? [`http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`]
+        : ['https://agente.catraki.com.br', `http://127.0.0.1:${PORTA_AGENTE}`, `http://localhost:${PORTA_AGENTE}`];
     
     // Recupera o PIN salvo para as rotas críticas do agente
     const pin = storageEscola.get('agente_pin', '');
@@ -51,23 +50,24 @@ async function fetchAgente(endpoint: string, options: any = {}) {
                 signal: AbortSignal.timeout(options.timeout || 2000),
                 mode: 'cors'
             });
+            
             if (resp.ok) {
                 agenteCircuitoAbertoAte = 0; // Agente respondeu = Restaura circuito
                 return resp;
             }
             
-            // Se retornar 401, significa PIN inválido ou ausente
             if (resp.status === 401) {
                 throw new Error('Não Autorizado: PIN do Agente inválido.');
             }
         } catch (e: any) {
             if (e.message.includes('Não Autorizado')) throw e;
-            // Continua para a próxima URL em caso de erro de conexão
         }
     }
     
-    // Se falhou todos, abre o circuito para parar de sujar o console do navegador
-    agenteCircuitoAbertoAte = Date.now() + TEMPO_ESPERA_CIRCUITO_MS;
+    // Se falhou todos e não é apenasLocal, abre o circuito
+    if (!options.apenasLocal) {
+        agenteCircuitoAbertoAte = Date.now() + TEMPO_ESPERA_CIRCUITO_MS;
+    }
     
     throw new Error('Agente Inacessível (Conexão Falhou)');
 }
@@ -111,7 +111,8 @@ export const servicoAgente = {
             const resp = await fetchAgente('/idflex-push', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(registro)
+                body: JSON.stringify(registro),
+                apenasLocal: true
             });
             return resp.ok;
         } catch {
@@ -124,7 +125,7 @@ export const servicoAgente = {
      */
     async abrirCatraca(): Promise<boolean> {
         try {
-            const resp = await fetchAgente('/hardware/reiniciar', { method: 'POST' });
+            const resp = await fetchAgente('/hardware/reiniciar', { method: 'POST', apenasLocal: true });
             return resp.ok;
         } catch {
             return false;
@@ -137,7 +138,7 @@ export const servicoAgente = {
     async obterRegistrosRecentes(desde?: string): Promise<any[]> {
         try {
             const query = desde ? `?desde=${encodeURIComponent(desde)}` : '';
-            const resp = await fetchAgente(`/acesso/recentes${query}`);
+            const resp = await fetchAgente(`/acesso/recentes${query}`, { apenasLocal: true });
             return await resp.json();
         } catch {
             return [];

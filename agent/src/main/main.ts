@@ -86,10 +86,13 @@ function createWindow() {
     try {
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-pin');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PATCH');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-pin, X-Escola-ID, X-Agente-Token');
 
         if (req.method === 'OPTIONS') {
-            res.writeHead(200); res.end(); return;
+            res.writeHead(204);
+            res.end();
+            return;
         }
 
         // 🛡️ SEGURANÇA: Bloqueia ações críticas sem o PIN administrativo
@@ -111,9 +114,9 @@ function createWindow() {
         if (rotasCriticas.includes(urlPura || '')) {
             const pinEnviado = req.headers['x-admin-pin'];
             if (pinEnviado !== config.admin_pin) {
-                console.warn(`[Segurança] 🔒 Tentativa de acesso não autorizado à rota ${urlPura} de ${req.socket.remoteAddress}`);
+                console.warn(`[AVISO] [Segurança] 🔒 Tentativa de acesso não autorizado à rota ${urlPura} de ${req.socket.remoteAddress}`);
                 res.writeHead(401, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ ok: false, erro: 'Acesso Negado: PIN Administrativo obrigatório.' }));
+                res.end(JSON.stringify({ erro: 'Não Autorizado: PIN inválido.' }));
                 return;
             }
         }
@@ -316,8 +319,8 @@ function createWindow() {
     }
 });
 
-server.listen(config.porta_agente || 1912, '0.0.0.0', () => {
-    console.log(`[Agente] 🌐 API LOCAL ATIVA: http://localhost:${config.porta_agente || 1912}`);
+server.listen(config.porta_agente || 1912, '127.0.0.1', () => {
+    console.log(`[Agente] 🌐 API LOCAL ATIVA: http://127.0.0.1:${config.porta_agente || 1912}`);
 });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
