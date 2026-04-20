@@ -87,7 +87,8 @@ export const servicoAgente = {
                 online: true,
                 versao: dados.versao,
                 nomeEscola: dados.nome_escola,
-                leitores: dados.leitores || []
+                leitores: dados.leitores || [],
+                leitoresAtivos: dados.leitoresAtivos || 0
             };
         } catch {
             return { online: false };

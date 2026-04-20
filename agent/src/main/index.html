@@ -1464,24 +1464,55 @@
             const container = document.getElementById('log-container');
             if (!container) return;
 
-            // ⚡ AGRUPAMENTO (ITEM 2): Evita spam de logs idênticos (Repetição consecutiva)
-            if (msg === ultimoLogInfo.msg && ultimoLogInfo.el) {
-                ultimoLogInfo.count++;
-                const countBadge = ultimoLogInfo.el.querySelector('.log-counter');
+            const now = new Date();
+            const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            // ⚡ AGRUPAMENTO INTELIGENTE: Impede mensagens repetidas (mesmo alternadas) nos últimos 15 eventos
+            let logExistente = null;
+            let idxExistente = -1;
+            
+            // Busca de trás para frente nos últimos 15 logs
+            const limite = Math.max(0, logEntries.length - 15);
+            for (let i = logEntries.length - 1; i >= limite; i--) {
+                if (logEntries[i].txt === msg && logEntries[i].lv === type) {
+                    logExistente = logEntries[i];
+                    idxExistente = i;
+                    break;
+                }
+            }
+
+            if (logExistente && logExistente.el) {
+                // Descobre ou incializa a contagem
+                let contador = parseInt(logExistente.el.dataset.count || '1');
+                contador++;
+                logExistente.el.dataset.count = contador;
+
+                const countBadge = logExistente.el.querySelector('.log-counter');
                 if (countBadge) {
-                    countBadge.textContent = `x${ultimoLogInfo.count}`;
+                    countBadge.textContent = `x${contador}`;
                 } else {
                     const badge = document.createElement('span');
                     badge.className = 'log-counter';
-                    badge.textContent = `x${ultimoLogInfo.count}`;
-                    ultimoLogInfo.el.appendChild(badge);
+                    badge.textContent = `x${contador}`;
+                    logExistente.el.appendChild(badge);
                 }
+
+                // Atualiza o relógio para o mais novo
+                logExistente.ts = ts;
+                const tsSpan = logExistente.el.querySelector('.log-ts');
+                if (tsSpan) tsSpan.textContent = ts;
+
+                // Move no DOM para o fundão (topo visual do log rolando pra baixo)
+                container.appendChild(logExistente.el);
+
+                // Reordena na memória para ele ficar no final do Array também
+                logEntries.splice(idxExistente, 1);
+                logEntries.push(logExistente);
+                
+                ultimoLogInfo = { msg, el: logExistente.el, count: contador };
                 container.scrollTop = container.scrollHeight;
                 return;
             }
-
-            const now = new Date();
-            const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
             const entry = document.createElement('div');
             entry.className = 'log-entry';
