@@ -16,7 +16,17 @@ export interface StatusAgente {
     erroPin?: boolean;
 }
 
+// --- CIRCUIT BREAKER PARA EVITAR SPAM DE ERROS NO CONSOLE ---
+let agenteCircuitoAbertoAte = 0;
+const TEMPO_ESPERA_CIRCUITO_MS = 30000; // 30 segundos silenciado
+// -------------------------------------------------------------
+
 async function fetchAgente(endpoint: string, options: any = {}) {
+    // Se o circuito estiver aberto, devolvemos falha silenciosamente sem disparar fetch real
+    if (Date.now() < agenteCircuitoAbertoAte) {
+        throw new Error('Agente Inacessível (Circuito em Repouso Silencioso)');
+    }
+
     // Prioridade: Túnel Cloudflare (Seguro/HTTPS) -> Localhost (Desenvolvimento)
     const urls = [
         'https://agente.catraki.com.br',
@@ -41,7 +51,10 @@ async function fetchAgente(endpoint: string, options: any = {}) {
                 signal: AbortSignal.timeout(options.timeout || 2000),
                 mode: 'cors'
             });
-            if (resp.ok) return resp;
+            if (resp.ok) {
+                agenteCircuitoAbertoAte = 0; // Agente respondeu = Restaura circuito
+                return resp;
+            }
             
             // Se retornar 401, significa PIN inválido ou ausente
             if (resp.status === 401) {
@@ -52,7 +65,11 @@ async function fetchAgente(endpoint: string, options: any = {}) {
             // Continua para a próxima URL em caso de erro de conexão
         }
     }
-    throw new Error('Agente Inacessível');
+    
+    // Se falhou todos, abre o circuito para parar de sujar o console do navegador
+    agenteCircuitoAbertoAte = Date.now() + TEMPO_ESPERA_CIRCUITO_MS;
+    
+    throw new Error('Agente Inacessível (Conexão Falhou)');
 }
 
 export const servicoAgente = {
