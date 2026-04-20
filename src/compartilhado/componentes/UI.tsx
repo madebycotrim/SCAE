@@ -151,6 +151,15 @@ export const Esqueleto: React.FC<{ className?: string }> = ({ className = '' }) 
     </div>
 );
 
+export const TelaCarregamento: React.FC<{ mensagem?: string }> = ({ mensagem = 'Carregando...' }) => (
+    <div className="flex items-center justify-center h-screen w-full bg-slate-50 text-slate-900 absolute inset-0 z-50">
+        <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 animate-spin text-eletrico" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{mensagem}</span>
+        </div>
+    </div>
+);
+
 export const BarraProgressoGlobal: React.FC<{ ativa: boolean }> = ({ ativa }) => {
     const [progresso, definirProgresso] = useState(0);
 

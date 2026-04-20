@@ -53,19 +53,7 @@ import {
 // Serviço de sincronização
 import { servicoSincronizacao } from '@/compartilhado/servicos/sincronizacao';
 
-/**
- * Componente de loading exibido enquanto chunks lazy são carregados.
- */
-function CarregandoPagina() {
-    return (
-        <div className="flex items-center justify-center h-screen bg-slate-50">
-            <div className="text-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                <p className="text-sm text-slate-400 font-medium">Carregando...</p>
-            </div>
-        </div>
-    );
-}
+import { TelaCarregamento } from '@/compartilhado/componentes/UI';
 
 /**
  * Layout base que envolve as páginas do painel administrativo.
@@ -130,7 +118,7 @@ function EscolaShell() {
                     <ProvedorNotificacoes>
                         <ProvedorBuscaGlobal>
                             <InicializadorSync />
-                            <Suspense fallback={<CarregandoPagina />}>
+                            <Suspense fallback={<TelaCarregamento />}>
                                 <Outlet />
                             </Suspense>
                         </ProvedorBuscaGlobal>
@@ -148,7 +136,7 @@ function App() {
                 <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} toastOptions={ESTILO_TOAST_PREMIUM} />
                 <Routes>
                     {/* ═══ MÓDULO ROOT - GESTÃO CENTRAL ═══ */}
-                    <Route path="central" element={<ProvedorAutenticacao><ProvedorPermissoes><Suspense fallback={<CarregandoPagina />}><Outlet /></Suspense></ProvedorPermissoes></ProvedorAutenticacao>}>
+                    <Route path="central" element={<ProvedorAutenticacao><ProvedorPermissoes><Suspense fallback={<TelaCarregamento />}><Outlet /></Suspense></ProvedorPermissoes></ProvedorAutenticacao>}>
                         <Route path="login" element={<PaginaLoginCentral />} />
                         <Route index element={<Navigate to="/central/escolas" replace />} />
                         <Route path="escolas" element={
@@ -206,9 +194,9 @@ function App() {
                     </Route>
 
                     {/* Raiz → Landing Page Publica */}
-                    <Route path="/" element={<Suspense fallback={<CarregandoPagina />}><PaginaInicial /></Suspense>} />
-                    <Route path="/termos-de-uso" element={<Suspense fallback={<CarregandoPagina />}><PaginaTermosUso /></Suspense>} />
-                    <Route path="/politica-de-privacidade" element={<Suspense fallback={<CarregandoPagina />}><PaginaPoliticaPrivacidade /></Suspense>} />
+                    <Route path="/" element={<Suspense fallback={<TelaCarregamento />}><PaginaInicial /></Suspense>} />
+                    <Route path="/termos-de-uso" element={<Suspense fallback={<TelaCarregamento />}><PaginaTermosUso /></Suspense>} />
+                    <Route path="/politica-de-privacidade" element={<Suspense fallback={<TelaCarregamento />}><PaginaPoliticaPrivacidade /></Suspense>} />
 
                     {/* Fallback */}
                     <Route path="*" element={<Navigate to="/" replace />} />

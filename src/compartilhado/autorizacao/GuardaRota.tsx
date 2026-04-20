@@ -7,7 +7,7 @@ import { Navigate, useParams } from 'react-router-dom';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { usarPermissoes } from './ContextoPermissoes';
 import { ShieldAlert, UserX, LogOut } from 'lucide-react';
-import { Botao } from '../componentes/UI';
+import { Botao, TelaCarregamento } from '../componentes/UI';
 
 export interface GuardaRotaProps {
     children: ReactNode;
@@ -22,14 +22,7 @@ export default function GuardaRota({ children, papeis, desabilitarEscolaCheck = 
 
     // 1. Carregando estado de auth/permissões
     if (carregando) {
-        return (
-            <div className="flex items-center justify-center h-screen bg-slate-50">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Validando Acesso Segurança</span>
-                </div>
-            </div>
-        );
+        return <TelaCarregamento mensagem="Validando Acesso Segurança" />;
     }
 
     // 2. Não autenticado (Firebase) ? redirecionar para login
