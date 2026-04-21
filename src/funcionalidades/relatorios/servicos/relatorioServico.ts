@@ -56,10 +56,11 @@ export const relatorioServico = {
         doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 44);
         doc.text(`Turma: ${filtros.turma}`, 14, 50);
         
-        // Cores semânticas baseadas no título
-        let headColor: [number, number, number] = [79, 70, 229]; // Indigo
-        if (titulo.includes('Atrasos')) headColor = [217, 119, 6]; // Amber
-        if (titulo.includes('Divergência')) headColor = [220, 38, 38]; // Red
+        // Cores premium SCAE para PDFs
+        let headColor: [number, number, number] = [30, 41, 59]; // Slate 800 (Neutral High-End)
+        if (titulo.includes('Atrasos')) headColor = [180, 83, 9]; // Amber 700
+        if (titulo.includes('Divergência') || titulo.includes('Risco')) headColor = [190, 18, 60]; // Rose 700 (High Alert)
+        if (titulo.includes('Fechamento')) headColor = [79, 70, 229]; // Indigo 600
 
         autoTable(doc, {
             startY: 56,
@@ -144,6 +145,32 @@ export const relatorioServico = {
             doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')} (Dados Online)`, 14, 28);
             autoTable(doc, { startY: 35, head: [['Nome do Aluno', 'Matrícula', 'Turma', 'Total Presenças (Período)']], body: dadosRelatorio.map((d: any) => [d.nome, d.matricula, d.turma, d.total_presencas]), theme: 'grid', headStyles: { fillColor: [59, 130, 246] } });
             doc.save(`Fechamento_Mensal_${Date.now()}.pdf`);
+        } else if (tipo === 'Log de Auditoria') {
+            const logsAuditoria = await api.obter<any[]>(`/auditoria/logs?desde=${filtros.dataInicio}&limite=5000`) || [];
+            const dadosFiltrados = logsAuditoria.filter((l: any) => {
+                const data = (l.criado_em || l.timestamp || '').split('T')[0];
+                return data >= filtros.dataInicio && data <= filtros.dataFim;
+            }).map((l: any) => [
+                format(parseISO(l.criado_em || l.timestamp), 'dd/MM HH:mm'),
+                l.usuario_email.split('@')[0],
+                l.acao,
+                l.entidade_tipo,
+                'Online'
+            ]);
+
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text('Log de Auditoria Técnica - SCAE', 14, 20);
+            doc.setFontSize(10);
+            doc.text(`Protocolo de Segurança: Ciclo ${filtros.anoLetivo}`, 14, 28);
+            autoTable(doc, { 
+                startY: 35, 
+                head: [['Timestamp', 'Usuário', 'Operação', 'Entidade', 'Fonte']], 
+                body: dadosFiltrados, 
+                theme: 'striped', 
+                headStyles: { fillColor: [30, 41, 59] } 
+            });
+            doc.save(`Auditoria_${Date.now()}.pdf`);
         }
     }
 };

@@ -238,167 +238,167 @@ export default function PaginaAgente() {
             <div className="w-px h-5 bg-slate-200 mx-1 hidden md:block" />
 
             <div className="flex items-center gap-2">
-            {/* BOTÃO CONFIGURAÇÕES (AGENTE) */}
-            <div className="relative">
-                <button
-                    onClick={() => setModalConfigAberto(!modalConfigAberto)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all ${modalConfigAberto ? 'bg-slate-200 text-slate-800' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
-                >
-                    <Settings size={16} />
-                    <span className="text-[10px] font-black uppercase tracking-tight">Agente</span>
-                </button>
+                {/* BOTÃO CONFIGURAÇÕES (AGENTE) */}
+                <div className="relative">
+                    <button
+                        onClick={() => setModalConfigAberto(!modalConfigAberto)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all ${modalConfigAberto ? 'bg-slate-200 text-slate-800' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
+                    >
+                        <Settings size={16} />
+                        <span className="text-[10px] font-black uppercase tracking-tight">Agente</span>
+                    </button>
 
-                <AnimatePresence>
-                    {modalConfigAberto && (
-                        <>
-                            <div className="fixed inset-0 z-[45]" onClick={() => setModalConfigAberto(false)} />
-                            <motion.div
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
-                            >
-                                <div className="p-4 bg-slate-50/50 border-b border-slate-100">
-                                    <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Ferramentas de Sistema</h4>
-                                </div>
-                                <div className="p-3 flex flex-col gap-2">
-                                    <Botao variante="secundario" tamanho="sm" fullWidth icone={Power} aoClicar={() => {
-                                        setEstadoConfirmacao({
-                                            aberto: true,
-                                            titulo: 'Reiniciar Agente?',
-                                            mensagem: 'Deseja reiniciar o AGENTE agora? Isso cortará a conexão por alguns segundos e pode interromper leituras em andamento.',
-                                            variante: 'perigo',
-                                            aoConfirmar: () => {
-                                                enviarComandoRemoto('REBOOT_AGENT');
-                                                setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
-                                                setModalConfigAberto(false);
-                                            }
-                                        });
-                                    }}>Reiniciar Agente</Botao>
-                                    <Botao variante="ghost" tamanho="sm" fullWidth icone={RefreshCw} aoClicar={() => {
-                                        enviarComandoRemoto('FORCE_SYNC');
-                                        setModalConfigAberto(false);
-                                    }}>Forçar Sincronia</Botao>
-                                    <Botao variante="ghost" tamanho="sm" fullWidth icone={MessageSquare} aoClicar={() => {
-                                        setModalVisualAberto(true);
-                                        setModalConfigAberto(false);
-                                    }}>Telas e Visor</Botao>
-                                </div>
-                            </motion.div>
-                        </>
-                    )}
-                </AnimatePresence>
-            </div>
-
-            {/* BOTÃO RADAR */}
-            <div className="relative">
-                <button
-                    onClick={() => setRadarAberto(!radarAberto)}
-                    className={`
-                        flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all
-                        ${radarAberto ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}
-                    `}
-                >
-                    <div className="relative">
-                        <Radar size={16} className={radarAberto || onlineCount > 0 ? 'animate-pulse' : ''} />
-                        {onlineCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
-                        )}
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-tight">Radar</span>
-                </button>
-
-                <AnimatePresence>
-                    {radarAberto && (
-                        <>
-                            <div className="fixed inset-0 z-[45]" onClick={() => setRadarAberto(false)} />
-                            <motion.div
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
-                            >
-                                <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
-                                    <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipamentos Ativos</h4>
-                                    <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase">
-                                        {onlineCount} Online
-                                    </span>
-                                </div>
-                                <div className="p-2 space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                    {leitores.length === 0 ? (
-                                        <div className="py-8 text-center">
-                                            <Search size={24} className="mx-auto text-slate-200 mb-2" />
-                                            <p className="text-[9px] font-black text-slate-300 uppercase">Procurando...</p>
-                                        </div>
-                                    ) : (
-                                        leitores.map((leitor: any) => (
-                                            <div key={leitor.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between group">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-2xl flex items-center justify-center ${leitor.online ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                                                        {leitor.online ? <Wifi size={14} /> : <WifiOff size={14} />}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">{leitor.nome}</p>
-                                                        <p className="text-[9px] font-bold text-slate-400 uppercase">{leitor.ip}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {leitor.online && (
-                                                        <button 
-                                                            onClick={() => {
-                                                                setEstadoConfirmacao({
-                                                                    aberto: true,
-                                                                    titulo: 'Reiniciar Hardware?',
-                                                                    mensagem: `Deseja reiniciar o hardware ${leitor.nome} agora?`,
-                                                                    variante: 'padrao',
-                                                                    aoConfirmar: () => {
-                                                                        enviarComandoRemoto('REBOOT_HARDWARE', { id: leitor.id });
-                                                                        setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
-                                                                    }
-                                                                });
-                                                            }}
-                                                            className="p-1.5 rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-rose-500 hover:border-rose-100 transition-all opacity-0 group-hover:opacity-100"
-                                                            title="Reiniciar este hardware"
-                                                        >
-                                                            <RefreshCw size={12} />
-                                                        </button>
-                                                    )}
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${leitor.online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-400'}`} />
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                <div className="p-3 bg-slate-50 border-t border-slate-100 flex flex-col gap-2">
-                                    <Botao 
-                                        variante="ghost" 
-                                        tamanho="sm" 
-                                        icone={Brush} 
-                                        fullWidth
-                                        aoClicar={() => {
+                    <AnimatePresence>
+                        {modalConfigAberto && (
+                            <>
+                                <div className="fixed inset-0 z-[45]" onClick={() => setModalConfigAberto(false)} />
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
+                                >
+                                    <div className="p-4 bg-slate-50/50 border-b border-slate-100">
+                                        <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Ferramentas de Sistema</h4>
+                                    </div>
+                                    <div className="p-3 flex flex-col gap-2">
+                                        <Botao variante="secundario" tamanho="sm" fullWidth icone={Power} aoClicar={() => {
                                             setEstadoConfirmacao({
                                                 aberto: true,
-                                                titulo: 'Faxina de Hardware?',
-                                                mensagem: 'Deseja executar a Faxina de Hardware? Isso remove IDs órfãos do chip e sincroniza a lista de usuários autorizados.',
+                                                titulo: 'Reiniciar Agente?',
+                                                mensagem: 'Deseja reiniciar o AGENTE agora? Isso cortará a conexão por alguns segundos e pode interromper leituras em andamento.',
                                                 variante: 'perigo',
                                                 aoConfirmar: () => {
-                                                    enviarComandoRemoto('CLEAN_HARDWARE');
+                                                    enviarComandoRemoto('REBOOT_AGENT');
                                                     setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                                                    setModalConfigAberto(false);
                                                 }
                                             });
-                                        }}
-                                    >
-                                        Fazer Faxina Geral
-                                    </Botao>
-                                    <p className="text-[8px] text-center text-slate-400 font-bold uppercase tracking-widest">Remove usuários antigos do chip</p>
-                                </div>
-                            </motion.div>
-                        </>
-                    )}
-                </AnimatePresence>
+                                        }}>Reiniciar Agente</Botao>
+                                        <Botao variante="ghost" tamanho="sm" fullWidth icone={RefreshCw} aoClicar={() => {
+                                            enviarComandoRemoto('FORCE_SYNC');
+                                            setModalConfigAberto(false);
+                                        }}>Forçar Sincronia</Botao>
+                                        <Botao variante="ghost" tamanho="sm" fullWidth icone={MessageSquare} aoClicar={() => {
+                                            setModalVisualAberto(true);
+                                            setModalConfigAberto(false);
+                                        }}>Telas e Visor</Botao>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                {/* BOTÃO RADAR */}
+                <div className="relative">
+                    <button
+                        onClick={() => setRadarAberto(!radarAberto)}
+                        className={`
+                            flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all
+                            ${radarAberto ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}
+                        `}
+                    >
+                        <div className="relative">
+                            <Radar size={16} className={radarAberto || onlineCount > 0 ? 'animate-pulse' : ''} />
+                            {onlineCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
+                            )}
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-tight">Radar</span>
+                    </button>
+
+                    <AnimatePresence>
+                        {radarAberto && (
+                            <>
+                                <div className="fixed inset-0 z-[45]" onClick={() => setRadarAberto(false)} />
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
+                                >
+                                    <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                                        <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipamentos Ativos</h4>
+                                        <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase">
+                                            {onlineCount} Online
+                                        </span>
+                                    </div>
+                                    <div className="p-2 space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                        {leitores.length === 0 ? (
+                                            <div className="py-8 text-center">
+                                                <Search size={24} className="mx-auto text-slate-200 mb-2" />
+                                                <p className="text-[9px] font-black text-slate-300 uppercase">Procurando...</p>
+                                            </div>
+                                        ) : (
+                                            leitores.map((leitor: any) => (
+                                                <div key={leitor.id} className="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded-2xl flex items-center justify-center ${leitor.online ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                                            {leitor.online ? <Wifi size={14} /> : <WifiOff size={14} />}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">{leitor.nome}</p>
+                                                            <p className="text-[9px] font-bold text-slate-400 uppercase">{leitor.ip}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {leitor.online && (
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setEstadoConfirmacao({
+                                                                        aberto: true,
+                                                                        titulo: 'Reiniciar Hardware?',
+                                                                        mensagem: `Deseja reiniciar o hardware ${leitor.nome} agora?`,
+                                                                        variante: 'padrao',
+                                                                        aoConfirmar: () => {
+                                                                            enviarComandoRemoto('REBOOT_HARDWARE', { id: leitor.id });
+                                                                            setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                                                                        }
+                                                                    });
+                                                                }}
+                                                                className="p-1.5 rounded-lg bg-white border border-slate-100 text-slate-400 hover:text-rose-500 hover:border-rose-100 transition-all opacity-0 group-hover:opacity-100"
+                                                                title="Reiniciar este hardware"
+                                                            >
+                                                                <RefreshCw size={12} />
+                                                            </button>
+                                                        )}
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${leitor.online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-400'}`} />
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    <div className="p-3 bg-slate-50 border-t border-slate-100 flex flex-col gap-2">
+                                        <Botao 
+                                            variante="ghost" 
+                                            tamanho="sm" 
+                                            icone={Brush} 
+                                            fullWidth
+                                            aoClicar={() => {
+                                                setEstadoConfirmacao({
+                                                    aberto: true,
+                                                    titulo: 'Faxina de Hardware?',
+                                                    mensagem: 'Deseja executar a Faxina de Hardware? Isso remove IDs órfãos do chip e sincroniza a lista de usuários autorizados.',
+                                                    variante: 'perigo',
+                                                    aoConfirmar: () => {
+                                                        enviarComandoRemoto('CLEAN_HARDWARE');
+                                                        setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                                                    }
+                                                });
+                                            }}
+                                        >
+                                            Fazer Faxina Geral
+                                        </Botao>
+                                        <p className="text-[8px] text-center text-slate-400 font-bold uppercase tracking-widest">Remove usuários antigos do chip</p>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
-        </div>
         </div>
     );
 

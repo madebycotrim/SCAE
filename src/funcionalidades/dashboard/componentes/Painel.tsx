@@ -242,6 +242,7 @@ export default function Painel() {
 
         return {
             ...estatisticasRaw,
+            totalAlunos: estatisticasRaw.totalAlunos || (estatisticasRaw.alunos?.length || 0),
             historicoPresenca: estatisticasRaw.historicoPresenca || [],
             registrosRecentes: estatisticasRaw.registrosRecentes || [],
             alunos: estatisticasRaw.alunos || []
@@ -274,18 +275,17 @@ export default function Painel() {
 
     return (
         <LayoutAdministrativo
-            titulo="Dashboard Central"
+            titulo="Centro de Comando"
+            subtitulo="Monitoramento estratégico e inteligência de dados em tempo real"
             acoes={
                 <div className="flex gap-3">
                     {ehCentral && (
-                        <Botao 
-                            variante="secundario" 
-                            icone={Trash2} 
+                        <button 
                             onClick={async () => {
                                 setEstadoConfirmacao({
                                     aberto: true,
-                                    titulo: 'Limpar Todo Histórico?',
-                                    mensagem: '🚨 CUIDADO: Isso apagará permanentemente TODO o histórico de acessos da escola na nuvem. Esta operação é irreversível.',
+                                    titulo: 'Hard Reset Cloud Logs?',
+                                    mensagem: '🚨 OPERAÇÃO CRÍTICA: Isso purgará permanentemente TODO o histórico de acessos da nuvem. Esta ação é irreversível e exige autorização administrativa.',
                                     variante: 'perigo',
                                     aoConfirmar: async () => {
                                         setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
@@ -293,119 +293,233 @@ export default function Painel() {
                                             await dashboardServico.limparHistorico();
                                             window.location.reload();
                                         } catch (e) {
-                                            toast.error('Erro ao limpar histórico.');
+                                            toast.error('Erro na purga de dados.');
                                         }
                                     }
                                 });
                             }}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95"
                         >
-                            Limpar Logs
-                        </Botao>
+                            <Trash2 size={14} /> Purga de Histórico
+                        </button>
                     )}
                 </div>
             }
         >
-            <div className="space-y-8 pb-12">
-                {/* --- LINHA DE KPIs --- */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="space-y-10 pb-16">
+                {/* --- LINHA DE KPIs LUXURY 2XL --- */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     <CardMetrica
-                        label="Presentes Hoje"
+                        label="Fluxo Estudantil"
                         valor={estatisticas.presentesHoje}
-                        subtitulo={`${estatisticas.totalAlunos > 0 ? Math.round((estatisticas.presentesHoje / estatisticas.totalAlunos) * 100) : 0}% da escola`}
+                        subtitulo={`${estatisticas.totalAlunos > 0 ? Math.round((estatisticas.presentesHoje / estatisticas.totalAlunos) * 100) : 0}% DA INSTITUIÇÃO`}
                         icone={CheckCircle}
-                        bg="bg-emerald-50"
+                        bg="bg-emerald-50/50"
                         text="text-emerald-600"
                         border="border-emerald-100"
                         tendencia={estatisticas.tendenciaFrequencia}
                     />
                     <CardMetrica
-                        label="Atrasos Detectados"
+                        label="Alertas de Atraso"
                         valor={estatisticas.atrasosHoje}
-                        subtitulo="Entradas pós-tolerância"
+                        subtitulo="ANOMALIAS CRONOLÓGICAS"
                         icone={Clock}
-                        bg="bg-amber-50"
+                        bg="bg-amber-50/50"
                         text="text-amber-600"
                         border="border-amber-100"
                         inverterTendencia
                     />
                     <CardMetrica
-                        label="Saídas Registradas"
+                        label="Evasão Registrada"
                         valor={estatisticas.saidasHoje}
-                        subtitulo="Fluxo total de hoje"
+                        subtitulo="DESCOMPRESSÃO DE FLUXO"
                         icone={LogOut}
-                        bg="bg-indigo-50"
+                        bg="bg-indigo-50/50"
                         text="text-indigo-600"
                         border="border-indigo-100"
                     />
                     <CardMetrica
                         label="Risco de Abandono"
                         valor={estatisticas.alunosEmRisco}
-                        subtitulo="Ações pedagógicas urgentes"
+                        subtitulo="DÉFICIT DE FREQUÊNCIA"
                         icone={AlertTriangle}
-                        bg="bg-rose-50"
+                        bg="bg-rose-50/50"
                         text="text-rose-600"
                         border="border-rose-100"
                         inverterTendencia
                     />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    <div className="lg:col-span-2">
-                        <CartaoConteudo className="p-8 flex flex-col bg-white border border-slate-200 shadow-suave rounded-2xl overflow-hidden min-h-[480px]">
-                            <div className="flex justify-between items-center mb-8">
-                                <div className="flex items-center gap-4 border-l-4 border-slate-900 pl-4">
-                                    <div>
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 leading-none">Tendência Mensal</h3>
-                                        <h4 className="text-lg font-black text-slate-800 uppercase tracking-tight">Frequência da Semana</h4>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-200 shadow-sm">
-                                    <TrendingUp size={16} className="text-eletrico" />
-                                    <span className="text-[11px] font-black text-slate-600 uppercase">Média Geral</span>
-                                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-10 gap-10 items-start">
+                    {/* Gráfico Analítico SaaS de Elite */}
+                    <div className="lg:col-span-6 bg-white/40 backdrop-blur-xl border border-slate-200/60 rounded-[2.5rem] overflow-hidden shadow-2xl p-10 min-h-[550px] flex flex-col relative group">
+                        <div className="absolute top-0 right-0 p-10">
+                            <div className="flex items-center gap-3 bg-slate-900 px-5 py-2.5 rounded-2xl shadow-xl">
+                                <TrendingUp size={16} className="text-emerald-400" />
+                                <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Média de Frequência</span>
                             </div>
+                        </div>
 
-                            <div className="flex-1 w-full relative min-h-[300px]">
-                                <Line data={dataLine} options={{
-                                    maintainAspectRatio: false,
-                                    responsive: true,
-                                    plugins: { legend: { display: false } },
-                                    scales: {
-                                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                                        x: { grid: { display: false } }
+                        <div className="mb-12">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Activity size={18} className="text-indigo-500" />
+                                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none">Análise Volumétrica</h3>
+                            </div>
+                            <h4 className="text-3xl font-black text-slate-900 uppercase tracking-tighter leading-none">Tendência de Acessos</h4>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">Dados processados em tempo real na rede SCAE</p>
+                        </div>
+
+                        <div className="flex-1 w-full relative min-h-[300px]">
+                            <Line data={dataLine} options={{
+                                maintainAspectRatio: false,
+                                responsive: true,
+                                plugins: { 
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: '#0f172a',
+                                        titleFont: { size: 10, weight: 'bold' },
+                                        bodyFont: { size: 12, weight: 'bold' },
+                                        padding: 12,
+                                        cornerRadius: 12,
+                                        displayColors: false
                                     }
-                                }} />
-                            </div>
+                                },
+                                scales: {
+                                    y: { 
+                                        beginAtZero: true, 
+                                        grid: { color: 'rgba(241, 245, 249, 0.5)' },
+                                        border: { display: false },
+                                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+                                    },
+                                    x: { 
+                                        grid: { display: false },
+                                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+                                    }
+                                }
+                            }} />
+                        </div>
 
-                            <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Estudantes</p>
-                                    <p className="text-sm font-black text-slate-700">{estatisticas.totalAlunos}</p>
-                                </div>
-                                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Turmas Ativas</p>
-                                    <p className="text-sm font-black text-slate-700">{estatisticas.totalTurmas}</p>
-                                </div>
-                                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Permanência Média</p>
-                                    <p className="text-sm font-black text-slate-700">{estatisticas.permanenciaMedia}</p>
-                                </div>
-                                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Sistema</p>
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">Ok</p>
-                                    </div>
+                        <div className="mt-10 pt-8 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="space-y-1">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">Massa Crítica</p>
+                                <p className="text-lg font-black text-slate-900">{estatisticas.totalAlunos}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">Células Escolares</p>
+                                <p className="text-lg font-black text-slate-900">{estatisticas.totalTurmas}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">Ciclo Médio</p>
+                                <p className="text-lg font-black text-slate-900">{estatisticas.permanenciaMedia}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">Rede</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Ativo</p>
                                 </div>
                             </div>
-                        </CartaoConteudo>
+                        </div>
                     </div>
 
-                    <div className="lg:col-span-1 h-full min-h-[480px]">
-                        <LiveAccessFeed 
-                            alunos={estatisticas.alunos} 
-                            aoReceberNovos={() => atualizarKPIs()} 
-                        />
+                    {/* Live Radar Lateral (Elite surveillance Terminal) */}
+                    <div className="lg:col-span-4 h-full">
+                        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl h-full min-h-[550px] flex flex-col relative">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(43,89,255,0.1),transparent)] pointer-events-none" />
+                            
+                            <div className="px-8 py-8 border-b border-white/5 flex items-center justify-between relative z-10">
+                                <div className="flex items-center gap-4">
+                                    <div className="relative flex items-center justify-center w-8 h-8">
+                                        <div className="absolute w-full h-full bg-indigo-500 rounded-full animate-ping opacity-20" />
+                                        <div className="absolute w-4 h-4 bg-indigo-500 rounded-full border-2 border-slate-900 shadow-xl" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[11px] font-black text-white uppercase tracking-[0.5em] leading-none mb-1.5">Live Radar</h4>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,1)]" />
+                                            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Monitoramento Ativo</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
+                                    <Wifi size={14} className="text-indigo-400" />
+                                    <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">Sinc v2</span>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar-dark scroll-smooth relative z-10">
+                                <AnimatePresence initial={false}>
+                                    {estatisticas.registrosRecentes.map((reg) => {
+                                        const alunoData = estatisticas.alunos?.find(a => a.matricula === reg.aluno_matricula);
+                                        const isSaida = reg.tipo_movimentacao === 'SAIDA';
+                                        const isLocal = reg.fonte === 'agente';
+
+                                        return (
+                                            <motion.div
+                                                key={reg.id}
+                                                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                className={`p-5 bg-white/5 border border-white/10 rounded-[1.8rem] transition-all duration-300 flex items-center justify-between group/card hover:bg-white/10 hover:scale-[1.02] hover:border-white/20`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                                                        reg.tipo_movimentacao === 'NEGADO' 
+                                                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
+                                                            : isSaida ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                                    }`}>
+                                                        {reg.tipo_movimentacao === 'NEGADO' ? <AlertTriangle size={24} /> : isSaida ? <LogOut size={24} /> : <Activity size={24} />}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[13px] font-black text-white uppercase tracking-tight leading-none mb-1.5">
+                                                            {alunoData?.nome_completo || reg.aluno_nome || 'ID INDEFINIDO'}
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em]">
+                                                                {reg.aluno_matricula} • {reg.turma_nome || alunoData?.turma_id || 'EXTERNO'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="text-right flex flex-col items-end gap-2">
+                                                    <p className="text-[11px] font-black text-white leading-none">
+                                                        {new Date(reg.timestamp || reg.timestamp_acesso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </p>
+                                                    <div className="flex gap-1.5 items-center">
+                                                        {isLocal && (
+                                                            <span className="text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest bg-indigo-500 text-white shadow-[0_0_12px_rgba(79,70,229,0.6)]">
+                                                                ⚡ Local
+                                                            </span>
+                                                        )}
+                                                        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${
+                                                            reg.tipo_movimentacao === 'NEGADO'
+                                                                ? 'border border-rose-500/50 text-rose-400'
+                                                                : isSaida ? 'border border-indigo-500/50 text-indigo-400' : 'border border-emerald-500/50 text-emerald-400'
+                                                        }`}>
+                                                            {reg.tipo_movimentacao}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })}
+
+                                    {estatisticas.registrosRecentes.length === 0 && (
+                                        <div className="h-full flex flex-col items-center justify-center py-24 opacity-30 text-center">
+                                            <div className="w-20 h-20 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center mb-6 animate-spin-slow">
+                                                <Wifi size={32} className="text-white" />
+                                            </div>
+                                            <p className="text-[12px] font-black text-white uppercase tracking-[0.5em]">Scanning Flow...</p>
+                                            <p className="text-[9px] font-bold text-white/40 uppercase mt-2 tracking-widest">Aguatdando Batidas no Hardware</p>
+                                        </div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            <div className="p-6 bg-white/5 border-t border-white/10 text-center">
+                                <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.4em]">SCAE Hardware Interface • v3.0.4</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

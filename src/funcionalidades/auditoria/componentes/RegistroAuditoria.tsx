@@ -176,60 +176,60 @@ export default function RegistroAuditoria() {
     return (
         <LayoutAdministrativo
             titulo="Trilha de Auditoria"
-            subtitulo="Segurança total: rastro forense de todas as operações realizadas"
-            acoes={<Botao variante="secundario" tamanho="sm" icone={RefreshCw} carregando={carregando} onClick={carregarLogs}>Atualizar</Botao>}
+            subtitulo="Segurança total: rastro forense de todas as operações realizadas no sistema"
+            acoes={<Botao variante="secundario" tamanho="sm" icone={RefreshCw} carregando={carregando} onClick={carregarLogs}>Atualizar Cache</Botao>}
         >
-            {/* Quick Stats Summary */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-2">
+            {/* Quick Stats Summary Luxury */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10 mt-2">
                 {[
-                    { label: 'Fluxo Total', val: logsFiltrados.length, icon: Activity, col: 'indigo' },
-                    { label: 'Operações Ok', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('SUCESSO') || l.acao?.toUpperCase().includes('LOGIN')).length, icon: Activity, col: 'emerald' },
-                    { label: 'Avisos/Edições', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ATUALIZAR') || l.acao?.toUpperCase().includes('EDITAR')).length, icon: Code, col: 'amber' },
-                    { label: 'Alertas Críticos', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ERRO') || l.acao?.toUpperCase().includes('DELETAR')).length, icon: AlertTriangle, col: 'rose' }
+                    { label: 'Fluxo Total', val: logsFiltrados.length, icon: Activity, col: 'indigo', glow: 'shadow-[0_0_20px_rgba(79,70,229,0.15)]' },
+                    { label: 'Operações Ok', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('SUCESSO') || l.acao?.toUpperCase().includes('LOGIN')).length, icon: Activity, col: 'emerald', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.15)]' },
+                    { label: 'Avisos/Edições', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ATUALIZAR') || l.acao?.toUpperCase().includes('EDITAR')).length, icon: Code, col: 'amber', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.15)]' },
+                    { label: 'Alertas Críticos', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ERRO') || l.acao?.toUpperCase().includes('DELETAR')).length, icon: AlertTriangle, col: 'rose', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.15)]' }
                 ].map((stat, i) => (
-                    <div key={i} className="bg-white border border-slate-200/60 p-5 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
-                        <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-2xl bg-${stat.col}-50 text-${stat.col}-600 flex items-center justify-center border border-${stat.col}-100 shadow-sm group-hover:scale-110 transition-transform`}>
-                                <stat.icon size={20} strokeWidth={2.5} />
+                    <div key={i} className={`bg-white/40 backdrop-blur-xl border border-white/60 p-6 rounded-[2rem] ${stat.glow} hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group`}>
+                        <div className="flex items-center gap-5">
+                            <div className={`w-14 h-14 rounded-[1.2rem] bg-${stat.col}-500 text-white flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform`}>
+                                <stat.icon size={24} strokeWidth={2.5} />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">{stat.label}</span>
-                                <span className="text-xl font-black text-slate-900 tracking-tighter">{stat.val}</span>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">{stat.label}</span>
+                                <span className="text-2xl font-black text-slate-900 tracking-tighter leading-none">{stat.val}</span>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="mb-8 flex items-center bg-white border border-slate-200/60 shadow-sm p-5 rounded-2xl gap-8">
-                <div className="flex flex-col gap-2 flex-1">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em] ml-2 leading-none">Rastrear Evento</label>
+            <div className="mb-10 flex flex-col md:flex-row items-center bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl p-6 rounded-[2.5rem] gap-8">
+                <div className="flex flex-col gap-2.5 flex-1 w-full">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2 leading-none">Rastrear Evento / Protocolo</label>
                     <div className="relative group">
-                        <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-eletrico transition-all duration-300" />
+                        <Search size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-all duration-300" />
                         <input 
                             placeholder="Buscar por usuário, ação ou tipo de dado..."
                             value={busca}
-                            className="w-full bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-eletrico focus:ring-4 focus:ring-eletrico/5 transition-all h-12 pl-14 pr-4 rounded-2xl text-[13px] font-bold text-slate-700 outline-none shadow-inner"
+                            className="w-full bg-white/50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all h-14 pl-16 pr-6 rounded-2xl text-[13px] font-bold text-slate-700 outline-none shadow-sm"
                             readOnly 
                         />
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2 shrink-0">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1 leading-none">Severidade</label>
-                    <div className="flex items-center bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200/60 h-12">
+                <div className="flex flex-col gap-2.5 shrink-0 w-full md:w-auto">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1 leading-none">Filtro de Severidade</label>
+                    <div className="flex items-center bg-slate-900 p-1.5 rounded-2xl border border-slate-800 h-14 shadow-xl">
                         {[
-                            { id: 'todos', label: 'Todos', icone: Terminal },
-                            { id: 'sucesso', label: 'Sucesso', icone: Activity },
-                            { id: 'aviso', label: 'Logs', icone: Code },
-                            { id: 'critico', label: 'Críticos', icone: AlertTriangle }
+                            { id: 'todos', label: 'TUDO', icone: Terminal },
+                            { id: 'sucesso', label: 'OK', icone: Activity },
+                            { id: 'aviso', label: 'LOGS', icone: Code },
+                            { id: 'critico', label: 'ALERTAS', icone: AlertTriangle }
                         ].map((item) => (
                             <button
                                 key={item.id}
                                 onClick={() => definirFiltroAcao(item.id as any)}
-                                className={`px-5 h-full rounded-2xl text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 flex items-center gap-2 border ${filtroAcao === item.id
-                                    ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/20'
-                                    : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-white'
+                                className={`px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all duration-300 flex items-center gap-2 ${filtroAcao === item.id
+                                    ? 'bg-white text-slate-900 shadow-2xl'
+                                    : 'text-slate-500 hover:text-white'
                                     }`}
                             >
                                 <item.icone size={14} />
@@ -240,109 +240,109 @@ export default function RegistroAuditoria() {
                 </div>
             </div>
 
-            <CartaoConteudo className="flex flex-col h-[calc(100vh-290px)] overflow-hidden bg-white border border-slate-200/60 shadow-sm rounded-2xl">
+            <div className="bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col h-[calc(100vh-320px)]">
                 {/* Table Area */}
                 <div className="flex-1 overflow-auto relative custom-scrollbar">
-                    {/* Linha da Timeline (Movida para fora do tbody) */}
-                    <div className="absolute left-[34px] top-[60px] bottom-0 w-[2px] bg-slate-100 z-0" />
+                    {/* Linha da Timeline Forense */}
+                    <div className="absolute left-[40px] top-[70px] bottom-0 w-[1px] bg-slate-200/50 z-0" />
 
                     <table className="w-full text-left border-separate border-spacing-0 relative z-10">
-                        <thead className="bg-slate-50/50 backdrop-blur-md sticky top-0 z-20 border-b border-slate-100">
+                        <thead className="bg-slate-900 sticky top-0 z-30">
                             <tr>
-                                <th scope="col" className="pl-12 pr-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest w-[220px]">Operação</th>
-                                <th scope="col" className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Autor da Ação</th>
-                                <th scope="col" className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center w-[160px]">Entidade</th>
-                                <th scope="col" className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center w-[220px]">Timestamp</th>
-                                <th scope="col" className="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right w-[120px]">Detalhes</th>
+                                <th scope="col" className="pl-14 pr-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] w-[250px]">Operação Forense</th>
+                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-left">Autor da Ação</th>
+                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-center w-[180px]">Módulo</th>
+                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-center w-[240px]">Cronologia</th>
+                                <th scope="col" className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-right w-[150px]">Rastro</th>
                             </tr>
                         </thead>
                         <tbody className="relative">
                             {carregandoInicial ? (
-                                Array.from({ length: 10 }).map((_, i) => (
-                                    <tr key={i} className="animate-fade-in relative z-10">
-                                        <td className="py-6 pl-12"><Esqueleto className="w-32 h-6 rounded-2xl" /></td>
-                                        <td className="py-6 px-6">
+                                Array.from({ length: 8 }).map((_, i) => (
+                                    <tr key={i} className="animate-pulse relative z-10">
+                                        <td className="py-8 pl-14"><Esqueleto className="w-40 h-8 rounded-xl" /></td>
+                                        <td className="py-8 px-6">
                                             <div className="flex items-center gap-4">
-                                                <Esqueleto className="w-10 h-10 rounded-2xl" />
-                                                <div className="space-y-2">
-                                                    <Esqueleto className="w-40 h-3 shadow-none bg-slate-50" />
-                                                    <Esqueleto className="w-28 h-2 opacity-60 shadow-none bg-slate-50" />
+                                                <Esqueleto className="w-12 h-12 rounded-[1rem]" />
+                                                <div className="space-y-3">
+                                                    <Esqueleto className="w-48 h-3" />
+                                                    <Esqueleto className="w-32 h-2 opacity-40" />
                                                 </div>
                                             </div>
                                         </td>
-                                        <td colSpan={3} className="px-6 py-6"><Esqueleto className="w-full h-4 rounded-2xl" /></td>
+                                        <td colSpan={3} className="px-6 py-8"><Esqueleto className="w-full h-4 rounded-xl" /></td>
                                     </tr>
                                 ))
                             ) : logsPaginados.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-32 text-center relative z-10">
-                                        <div className="flex flex-col items-center justify-center gap-6">
-                                            <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-200 border border-slate-100">
-                                                <Activity size={48} />
-                                            </div>
-                                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Varredura concluída: Sem registros</span>
+                                    <td colSpan={5} className="py-40 text-center relative z-10">
+                                        <div className="flex flex-col items-center justify-center gap-8 opacity-20">
+                                            <Activity size={80} strokeWidth={1} />
+                                            <span className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-900">Nenhum rastro identificado</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
                                 (logsPaginados || []).map((log: any) => (
-                                    <tr key={log.id} className="group/row transition-all duration-300 hover:bg-slate-50/50 relative z-10">
-                                        <td className="pl-12 py-6 align-middle relative">
-                                            {/* Ponto da Timeline */}
-                                            <div className="absolute left-[30px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-slate-200 group-hover/row:border-eletrico group-hover/row:scale-125 transition-all duration-300 z-10" />
+                                    <tr key={log.id} className="group/row transition-all duration-300 hover:bg-white hover:shadow-xl hover:scale-[1.002] relative z-10">
+                                        <td className="pl-14 py-8 align-middle relative">
+                                            {/* Ponto da Timeline Glow */}
+                                            <div className="absolute left-[36px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-200 border-2 border-white group-hover/row:bg-indigo-500 group-hover/row:scale-150 group-hover/row:shadow-[0_0_10px_rgba(79,70,229,1)] transition-all duration-300 z-10" />
                                             
                                             <div className="flex items-center">
                                                 <StatusBadge action={log.acao} />
                                             </div>
                                         </td>
-                                        <td className="px-6 py-6 align-middle">
+                                        <td className="px-6 py-8 align-middle">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 shadow-inner group-hover/row:bg-white group-hover/row:text-eletrico transition-colors">
-                                                    <User size={18} strokeWidth={2.5} />
+                                                <div className="w-12 h-12 rounded-[1.2rem] bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-lg group-hover/row:scale-110 transition-transform">
+                                                    <User size={20} strokeWidth={2.5} />
                                                 </div>
                                                 <div className="flex flex-col text-left truncate">
-                                                    <span className="text-[13px] font-black text-slate-800 tracking-tight leading-tight uppercase">
+                                                    <span className="text-[14px] font-black text-slate-900 tracking-tight leading-tight uppercase group-hover/row:text-indigo-600 transition-colors">
                                                         {mapaUsuarios[log.usuario_email] || log.usuario_email.split('@')[0]}
                                                     </span>
-                                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1.5">
                                                         {mascararEmail(log.usuario_email)}
                                                     </span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-6 align-middle text-center">
-                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 bg-white px-3 py-1.5 rounded-2xl border border-slate-100 shadow-sm group-hover/row:border-slate-200 transition-all">
+                                        <td className="px-6 py-8 align-middle text-center">
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 bg-slate-100/50 px-4 py-1.5 rounded-full border border-slate-200/50 group-hover/row:bg-white transition-all">
                                                 {log.entidade_tipo}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-6 align-middle text-center">
-                                            <div className="flex flex-col items-center gap-1">
-                                                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-100 group-hover/row:bg-white transition-all">
-                                                    <Clock size={12} className="text-slate-400" />
-                                                    <span className="text-[11px] text-slate-700 font-black tracking-tight">
+                                        <td className="px-6 py-8 align-middle text-center">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="flex items-center gap-2.5 bg-slate-900 px-4 py-2 rounded-xl text-white shadow-lg">
+                                                    <Clock size={12} className="text-indigo-400" />
+                                                    <span className="text-[11px] font-black tracking-widest">
                                                         {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "HH:mm:ss")}
                                                     </span>
                                                 </div>
-                                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                                                    {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "dd/MM/yyyy", { locale: ptBR })}
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">
+                                                    {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "dd MMM yyyy", { locale: ptBR })}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-10 py-6 align-middle text-right">
-                                            <div className="flex justify-end gap-2 opactiy-80 group-hover/row:opacity-100 transition-all">
+                                        <td className="px-10 py-8 align-middle text-right">
+                                            <div className="flex justify-end gap-3 opacity-0 group-hover/row:opacity-100 transition-all transform translate-x-4 group-hover/row:translate-x-0">
                                                 <button
                                                     onClick={() => { definirLogSelecionado(log); definirMostrarRastroCompleto(false); }}
-                                                    className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-eletrico hover:border-eletrico/20 hover:shadow-lg hover:shadow-eletrico/10 transition-all duration-300"
+                                                    className="w-12 h-12 rounded-[1.2rem] bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-xl active:scale-90"
+                                                    title="Inspecionar Rastro"
                                                 >
-                                                    <Eye size={18} />
+                                                    <Eye size={20} />
                                                 </button>
 
                                                 {EH_ADMIN_SUPREMO && (
                                                     <button
                                                         onClick={() => excluirLog(log.id)}
-                                                        className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:shadow-lg hover:shadow-rose-500/10 transition-all duration-300"
+                                                        className="w-12 h-12 rounded-[1.2rem] bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-xl active:scale-90"
+                                                        title="Remover Registro"
                                                     >
-                                                        <Trash2 size={18} />
+                                                        <Trash2 size={20} />
                                                     </button>
                                                 )}
                                             </div>
@@ -354,72 +354,77 @@ export default function RegistroAuditoria() {
                     </table>
                 </div>
 
-                {/* Footer Pagination Premium */}
-                <div className="px-10 py-8 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
-                    <div className="flex items-center gap-8">
-                        <div className="flex items-center gap-3 bg-white border border-slate-100 px-5 py-2.5 rounded-2xl shadow-sm">
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] leading-none">Página</span>
-                            <span className="text-[12px] font-black text-eletrico uppercase tracking-widest leading-none">{pagina} <span className="text-slate-200 mx-2">/</span> {totalPaginas}</span>
+                {/* Footer Pagination Luxury */}
+                <div className="px-14 py-8 border-t border-white/20 bg-slate-900 flex items-center justify-between">
+                    <div className="flex items-center gap-10">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-1">Indexação</span>
+                            <span className="text-sm font-black text-white uppercase tracking-[0.2em]">Página {pagina} de {totalPaginas}</span>
                         </div>
-                        <div className="h-4 w-px bg-slate-200"></div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fluxo: {logsFiltrados.length} registros</span>
+                        <div className="h-10 w-px bg-white/10"></div>
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 bg-indigo-500 rounded-lg shadow-[0_0_15px_rgba(79,70,229,0.5)]">
+                                <Activity size={14} className="text-white" />
+                            </div>
+                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{logsFiltrados.length} Registros Forenses</span>
+                        </div>
                     </div>
 
-                    <div className="flex gap-3">
-                        <Botao
-                            variante="secundario"
+                    <div className="flex gap-4 p-2 bg-white/5 rounded-2xl">
+                        <button
                             disabled={pagina === 1}
                             onClick={() => definirPagina(p => p - 1)}
-                            className="bg-white border-slate-100 hover:border-eletrico/20 hover:text-eletrico shadow-sm w-11 h-11 p-0 flex items-center justify-center rounded-2xl transition-all"
+                            className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white hover:text-slate-900 disabled:opacity-20 transition-all active:scale-90 shadow-xl"
                         >
-                            <ChevronLeft size={20} strokeWidth={3} />
-                        </Botao>
-                        <Botao
-                            variante="secundario"
+                            <ChevronLeft size={22} strokeWidth={3} />
+                        </button>
+                        <button
                             disabled={pagina === totalPaginas}
                             onClick={() => definirPagina(p => p + 1)}
-                            className="bg-white border-slate-100 hover:border-eletrico/20 hover:text-eletrico shadow-sm w-11 h-11 p-0 flex items-center justify-center rounded-2xl transition-all"
+                            className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white hover:text-slate-900 disabled:opacity-20 transition-all active:scale-90 shadow-xl"
                         >
-                            <ChevronRight size={20} strokeWidth={3} />
-                        </Botao>
+                            <ChevronRight size={22} strokeWidth={3} />
+                        </button>
                     </div>
                 </div>
-            </CartaoConteudo>
+            </div>
 
             {logSelecionado && (
                 <ModalUniversal
-                    titulo="Detalhes da Atividade"
-                    subtitulo="Informações detalhadas sobre esta ação realizada no sistema"
+                    titulo="Inspecionar Evidência"
+                    subtitulo="Detalhamento forense do rastro de atividade selecionado"
                     icone={Terminal}
                     aoFechar={() => definirLogSelecionado(null)}
                     tamanho="lg"
                 >
-                    <div className="space-y-6 pb-6 pt-2">
-                        {/* Header do Modal */}
-                        <div className="flex items-center justify-between p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-200 text-slate-400">
-                                    <Fingerprint size={28} strokeWidth={1.5} />
+                    <div className="space-y-8 pb-8 pt-4">
+                        {/* Header do Inspetor */}
+                        <div className="flex flex-col md:flex-row items-center justify-between p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(43,89,255,0.1),transparent)] pointer-events-none" />
+                            
+                            <div className="flex items-center gap-6 relative z-10">
+                                <div className="p-4 bg-white/10 rounded-[1.5rem] backdrop-blur-md border border-white/10 text-indigo-400 shadow-2xl">
+                                    <Fingerprint size={32} strokeWidth={2} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ID do Rastro</span>
-                                    <span className="font-mono text-xs text-slate-700 bg-white px-2.5 py-1 rounded-2xl border border-slate-200">
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Protocolo de Rastro</span>
+                                    <span className="font-mono text-[11px] text-white bg-white/5 px-4 py-2 rounded-xl border border-white/10 tracking-widest shadow-inner">
                                         {logSelecionado.id}
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Registro Temporal</span>
-                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-200">
-                                    <Clock size={14} className="text-eletrico" />
-                                    <span className="text-xs font-bold text-slate-700">
+                            <div className="flex flex-col items-end mt-6 md:mt-0 relative z-10">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Registro Cronológico</span>
+                                <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+                                    <Clock size={16} className="text-emerald-400" />
+                                    <span className="text-[13px] font-black text-white tracking-widest">
                                         {format(new Date(logSelecionado.criado_em || logSelecionado.criado_at || logSelecionado.created_at || logSelecionado.data_criacao || logSelecionado.timestamp), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Comparação de Dados */}
+                        {/* Comparação de Dados Forense */}
                         {(() => {
                             let antStr = "// Nenhum dado anterior";
                             let novStr = "// Sem alterações";
@@ -432,9 +437,8 @@ export default function RegistroAuditoria() {
                                 let dadosNov = brutoNov && typeof brutoNov === 'string' ? JSON.parse(brutoNov) : brutoNov;
 
                                 if (mostrarRastroCompleto) {
-                                    // Mostra tudo que tem dentro das caixas sem realizar Diff
-                                    antStr = dadosAnt && Object.keys(dadosAnt).length > 0 ? JSON.stringify(dadosAnt, null, 2) : String(dadosAnt || "// Nenhum dado anterior");
-                                    novStr = dadosNov && Object.keys(dadosNov).length > 0 ? JSON.stringify(dadosNov, null, 2) : String(dadosNov || "// Sem dados novos");
+                                    antStr = dadosAnt && Object.keys(dadosAnt).length > 0 ? JSON.stringify(dadosAnt, null, 4) : String(dadosAnt || "// Nenhum dado anterior");
+                                    novStr = dadosNov && Object.keys(dadosNov).length > 0 ? JSON.stringify(dadosNov, null, 4) : String(dadosNov || "// Sem dados novos");
                                 } else if (dadosAnt || dadosNov) {
                                     const objAnt = typeof dadosAnt === 'object' && dadosAnt !== null ? dadosAnt : {};
                                     const objNov = typeof dadosNov === 'object' && dadosNov !== null ? dadosNov : {};
@@ -457,8 +461,8 @@ export default function RegistroAuditoria() {
                                         }
                                     });
 
-                                    antStr = Object.keys(diffAnterior).length > 0 ? JSON.stringify(diffAnterior, null, 2) : "// Nenhuma propriedade alterada";
-                                    novStr = Object.keys(diffNovo).length > 0 ? JSON.stringify(diffNovo, null, 2) : "// Nenhuma propriedade alterada";
+                                    antStr = Object.keys(diffAnterior).length > 0 ? JSON.stringify(diffAnterior, null, 4) : "// Nenhuma propriedade alterada";
+                                    novStr = Object.keys(diffNovo).length > 0 ? JSON.stringify(diffNovo, null, 4) : "// Nenhuma propriedade alterada";
                                 }
                             } catch (e) {
                                 antStr = String(logSelecionado.dados_anteriores || logSelecionado.dado_anterior || "// Dados corrompidos");
@@ -466,24 +470,32 @@ export default function RegistroAuditoria() {
                             }
 
                             return (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">
-                                            Estado Anterior {!mostrarRastroCompleto && <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span>}
-                                        </span>
-                                        <div className="bg-slate-900 rounded-2xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
-                                            <pre className="text-[11px] font-mono text-rose-300/80 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar flex-1">
+                                        <div className="flex items-center justify-between mb-4 px-2">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Snapshot Anterior</span>
+                                            {!mostrarRastroCompleto && <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">Divergências</span>}
+                                        </div>
+                                        <div className="bg-slate-900 rounded-[2rem] p-8 min-h-[350px] border border-slate-800 shadow-2xl relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
+                                                <div className="w-2 h-2 rounded-full bg-rose-500" />
+                                            </div>
+                                            <pre className="text-[12px] font-mono text-rose-300/60 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar-dark h-[300px]">
                                                 {antStr}
                                             </pre>
                                         </div>
                                     </div>
 
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">
-                                            Estado Novo {!mostrarRastroCompleto && <span className="opacity-50 lowercase tracking-normal font-medium">(apenas o que mudou)</span>}
-                                        </span>
-                                        <div className="bg-slate-900 rounded-2xl p-6 min-h-[250px] border border-slate-800 shadow-lg overflow-hidden flex flex-col">
-                                            <pre className="text-[11px] font-mono text-emerald-300/80 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar flex-1">
+                                        <div className="flex items-center justify-between mb-4 px-2">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Persistência Nova</span>
+                                            {!mostrarRastroCompleto && <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Atualizado</span>}
+                                        </div>
+                                        <div className="bg-slate-900 rounded-[2rem] p-8 min-h-[350px] border border-slate-800 shadow-2xl relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
+                                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                            </div>
+                                            <pre className="text-[12px] font-mono text-emerald-300/60 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar-dark h-[300px]">
                                                 {novStr}
                                             </pre>
                                         </div>
@@ -493,27 +505,24 @@ export default function RegistroAuditoria() {
                         })()}
 
 
-                        {/* Ações e Rastro Completo (Fallback) */}
-                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-                            <div className="flex-1">
-                                <button
-                                    onClick={() => definirMostrarRastroCompleto(!mostrarRastroCompleto)}
-                                    className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] cursor-pointer hover:opacity-80 transition-opacity list-none"
-                                    style={{ color: mostrarRastroCompleto ? '#2B59FF' : '#cbd5e1' }}
-                                >
-                                    <div className={`w-1.5 h-1.5 rounded-full ${mostrarRastroCompleto ? 'bg-eletrico animate-pulse' : 'bg-slate-200'}`}></div>
-                                    {mostrarRastroCompleto ? 'VER APENAS O QUE MUDOU' : 'VER OBJETO DE RASTRO COMPLETO'}
-                                </button>
-                            </div>
-
-                            <Botao
-                                variante="secundario"
-                                icone={ChevronLeft}
-                                onClick={() => { definirLogSelecionado(null); definirMostrarRastroCompleto(false); }}
-                                className="shrink-0 font-bold text-[11px] uppercase tracking-widest bg-slate-100 hover:bg-slate-200 text-slate-600 border-none px-6 py-3"
+                        {/* Ações e Rastro Completo (Luxury Controls) */}
+                        <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8">
+                            <button
+                                onClick={() => definirMostrarRastroCompleto(!mostrarRastroCompleto)}
+                                className="flex items-center gap-4 group cursor-pointer active:scale-95 transition-all"
                             >
-                                Fechar Detalhes
-                            </Botao>
+                                <div className={`w-3 h-3 rounded-full transition-all duration-500 ${mostrarRastroCompleto ? 'bg-indigo-500 shadow-[0_0_12px_rgba(79,70,229,1)] scale-125' : 'bg-slate-200'}`}></div>
+                                <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-colors ${mostrarRastroCompleto ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                    {mostrarRastroCompleto ? 'RESTRINGIR A DIVERGÊNCIAS' : 'RESTAURAR OBJETO COMPLETO'}
+                                </span>
+                            </button>
+
+                            <button
+                                onClick={() => { definirLogSelecionado(null); definirMostrarRastroCompleto(false); }}
+                                className="px-10 h-14 rounded-2xl bg-slate-900 text-white font-black text-[11px] uppercase tracking-[0.3em] hover:bg-indigo-600 transition-all shadow-2xl active:scale-95"
+                            >
+                                Finalizar Inspeção
+                            </button>
                         </div>
                     </div>
                 </ModalUniversal>

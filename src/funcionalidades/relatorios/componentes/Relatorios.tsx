@@ -17,7 +17,8 @@ import {
     CheckCircle2,
     Info,
     BarChart2,
-    ShieldCheck
+    ShieldCheck,
+    Search
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { relatorioServico } from '../servicos/relatorioServico';
@@ -67,77 +68,97 @@ export default function Relatorios() {
     );
 
     const gerarRelatorio = async (tipo: string) => {
-        const toastId = toast.loading(`Gerando relatório: ${tipo}...`);
+        const toastId = toast.loading(`Compilando rastro: ${tipo}...`);
         try {
-            if (tipo === 'Risco de Evasão' || tipo === 'Fechamento Mensal') {
+            const relatoriosEspeciais = [
+                'Risco de Evasão', 
+                'Fechamento Mensal', 
+                'Divergência de Turno', 
+                'Atrasos e Janelas', 
+                'Log de Auditoria'
+            ];
+
+            if (relatoriosEspeciais.includes(tipo)) {
                 await relatorioServico.gerarRelatorioEspecial(tipo, filtros);
             } else {
                 const dados = await relatorioServico.obterDadosFiltrados(filtros);
-                if (dados.length === 0) throw new Error('Nenhum dado localizado para o período selecionado');
+                if (dados.length === 0) throw new Error('Nenhum rastro localizado para o perímetro selecionado.');
                 relatorioServico.gerarPDF(dados, `Relatório de ${tipo}`, filtros);
             }
 
             await Registrador.registrar('EXPORTAR_RELATORIO', 'relatorio', tipo, { filtros, formato: 'PDF' });
-            toast.success('Relatório gerado com sucesso', { id: toastId });
+            toast.success('Documento compilado com sucesso', { id: toastId });
         } catch (e: any) {
-            log.error('Erro ao exportar relatório', e);
-            toast.error(e.message || 'Falha na geração do documento.', { id: toastId });
+            log.error('Erro ao exportar documento', e);
+            toast.error(e.message || 'Falha na compilação do rastro.', { id: toastId });
         }
     };
 
     const CARDS_RELATORIO = [
         {
+            id: 'frequencia',
             titulo: 'Frequência Diária',
-            descricao: 'Relatório detalhado de entrada e saída dos alunos para controle de portaria e sala de aula.',
+            descricao: 'Monitoramento detalhado de eventos cronológicos (entradas e saídas). Ideal para controle de portaria, verificação de presença em tempo real e relatórios de fluxo diário.',
             icone: Clock,
-            badgeTxt: 'Frequência',
-            badgeCor: 'bg-eletrico/10 text-eletrico border-eletrico/20',
-            iconeCor: 'bg-eletrico/10 text-eletrico',
+            badgeTxt: 'Cronologia',
+            badgeCor: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+            iconeCor: 'bg-emerald-50 text-emerald-600',
+            gradiente: 'from-emerald-500/10 to-transparent',
             acao: () => gerarRelatorio('Frequência Diária'),
         },
         {
+            id: 'fechamento',
             titulo: 'Ata de Fechamento',
-            descricao: 'Documento consolidado para fins de secretaria escolar e histórico institucional.',
+            descricao: 'Documento consolidado de frequência mensal. Essencial para fechamento de diários de classe, comprovação institucional e exportação para sistemas de secretaria acadêmica.',
             icone: FileSpreadsheet,
-            badgeTxt: 'Gestão',
-            badgeCor: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-            iconeCor: 'bg-emerald-50 text-emerald-500',
+            badgeTxt: 'Acadêmico',
+            badgeCor: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+            iconeCor: 'bg-indigo-50 text-indigo-600',
+            gradiente: 'from-indigo-500/10 to-transparent',
             acao: () => gerarRelatorio('Fechamento Mensal'),
         },
         {
+            id: 'evasao',
             titulo: 'Risco de Evasão',
-            descricao: 'Análise preventiva baseada em faltas consecutivas para atuação do SOE.',
+            descricao: 'Análise preditiva baseada em déficit de frequência nos últimos 30 dias. Identifica alunos com padrões de abandono para intervenção imediata do SOE e Coordenação.',
             icone: BarChart2,
-            badgeTxt: 'Preventivo',
-            badgeCor: 'bg-amber-50 text-amber-600 border-amber-100',
-            iconeCor: 'bg-amber-50 text-amber-500',
+            badgeTxt: 'Inteligência',
+            badgeCor: 'bg-rose-50 text-rose-600 border-rose-100',
+            iconeCor: 'bg-rose-50 text-rose-600',
+            gradiente: 'from-rose-500/10 to-transparent',
             acao: () => gerarRelatorio('Risco de Evasão'),
         },
         {
+            id: 'atrasos',
             titulo: 'Atrasos e Janelas',
-            descricao: 'Relatório de alunos que acessaram a escola fora da janela principal ou com atraso permitido.',
+            descricao: 'Relatório de anomalias temporais de acesso. Mapeia alunos que chegaram após o fechamento dos portões ou que transitaram pela portaria durante janelas de aula.',
             icone: Clock,
-            badgeTxt: 'Impontualidade',
+            badgeTxt: 'Disciplina',
             badgeCor: 'bg-amber-50 text-amber-600 border-amber-100',
-            iconeCor: 'bg-amber-50 text-amber-500',
+            iconeCor: 'bg-amber-50 text-amber-600',
+            gradiente: 'from-amber-500/10 to-transparent',
             acao: () => gerarRelatorio('Atrasos e Janelas'),
         },
         {
+            id: 'divergencia',
             titulo: 'Divergência de Turno',
-            descricao: 'Identifica alunos que realizaram acessos em turnos diferentes do matriculado.',
+            descricao: 'Segurança e Auditoria de Acesso. Detecta alunos que realizaram batidas de ponto em horários incompatíveis com o turno de matrícula cadastrado (ex: aluno matutino entrando à tarde).',
             icone: ShieldCheck,
             badgeTxt: 'Segurança',
-            badgeCor: 'bg-rose-50 text-rose-600 border-rose-100',
-            iconeCor: 'bg-rose-50 text-rose-500',
+            badgeCor: 'bg-slate-900/5 text-slate-900 border-slate-200',
+            iconeCor: 'bg-slate-100 text-slate-800',
+            gradiente: 'from-slate-500/10 to-transparent',
             acao: () => gerarRelatorio('Divergência de Turno'),
         },
         ...(podeVerLogs ? [{
+            id: 'auditoria',
             titulo: 'Auditoria de Acessos',
-            descricao: 'Registro técnico de todas as operações realizadas no sistema para segurança de dados.',
+            descricao: 'Rastro técnico de integridade. Histórico completo de operações realizadas no sistema, incluindo alterações em dados de alunos e logins realizados na plataforma.',
             icone: ShieldCheck,
-            badgeTxt: 'Segurança',
-            badgeCor: 'bg-slate-100 text-slate-600 border-slate-200',
-            iconeCor: 'bg-slate-100 text-slate-500',
+            badgeTxt: 'Sistemas',
+            badgeCor: 'bg-slate-100 text-slate-500 border-slate-200',
+            iconeCor: 'bg-slate-50 text-slate-400',
+            gradiente: 'from-slate-400/5 to-transparent',
             acao: () => gerarRelatorio('Log de Auditoria'),
         }] : []),
     ];
@@ -153,104 +174,154 @@ export default function Relatorios() {
 
     return (
         <LayoutAdministrativo
-            titulo="Relatórios"
-            subtitulo="Selecione um módulo para configurar e gerar documentos oficiais"
+            titulo="Bureau de Inteligência"
+            subtitulo="Configuração e extração estratégica de dados em alta fidelidade"
             acoes={null}
         >
-            <div className="flex flex-1 gap-6 min-h-0 overflow-hidden pb-4">
-                {/* Master: Lista de Relatórios */}
-                <div className="w-80 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 pt-4">
+            <div className="flex flex-1 gap-8 min-h-0 overflow-hidden pb-8">
+                
+                {/* --- MENU MASTER (CATÁLOGO LUXURY 2XL) --- */}
+                <div className="w-[340px] flex flex-col bg-white/40 backdrop-blur-3xl border border-slate-200/60 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+                    {/* Header do Menu */}
+                    <div className="p-8 pb-4">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-1.5 h-6 bg-slate-900 rounded-full" />
+                            <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.4em] leading-none">Módulos Analíticos</h3>
+                        </div>
+                    </div>
+
+                    {/* Lista de Módulos */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar px-5 pb-6 space-y-3">
                         {CARDS_RELATORIO.map((item, idx) => {
                             const Icone = item.icone;
-                            const estaSelecionado = relatorioSelecionado?.titulo === item.titulo;
+                            const estaSelecionado = relatorioSelecionado?.id === item.id;
+                            
                             return (
                                 <button
-                                    key={idx}
+                                    key={item.id}
                                     onClick={() => definirRelatorioSelecionado(item)}
-                                    className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all duration-200 text-left group ${estaSelecionado
-                                        ? 'bg-slate-50 text-slate-900 shadow-sm ring-1 ring-slate-200'
-                                        : 'hover:bg-slate-50/50 text-slate-400 hover:text-slate-600'
-                                        }`}
+                                    className={`
+                                        w-full p-4 rounded-[1.8rem] transition-all duration-500 text-left relative overflow-hidden group
+                                        ${estaSelecionado 
+                                            ? 'bg-slate-900 text-white shadow-[0_20px_40px_rgba(0,0,0,0.2)] scale-[1.02] border-none' 
+                                            : 'hover:bg-white/70 text-slate-400 hover:text-slate-600 border border-transparent'}
+                                    `}
                                 >
-                                    <div className={`p-2 rounded-2xl border shrink-0 transition-colors ${estaSelecionado
-                                        ? 'bg-white border-slate-200 text-eletrico shadow-sm'
-                                        : 'bg-transparent border-transparent text-slate-300 group-hover:text-slate-400'
-                                        }`}>
-                                        <Icone size={16} strokeWidth={2} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className={`text-[11px] font-bold tracking-tight truncate uppercase leading-none mb-1 ${estaSelecionado ? 'text-slate-800' : 'text-slate-500'}`}>
-                                            {item.titulo}
-                                        </p>
-                                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
-                                            {item.badgeTxt}
-                                        </p>
-                                    </div>
-                                    
+                                    {/* Efeito Glow no Hover/Seleção */}
                                     {estaSelecionado && (
-                                        <div className="w-1 h-3 rounded-full bg-eletrico" />
+                                        <div className={`absolute inset-0 bg-gradient-to-br opacity-20 ${item.gradiente}`} />
                                     )}
+
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        {/* Container do Ícone */}
+                                        <div className={`
+                                            w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500
+                                            ${estaSelecionado 
+                                                ? 'bg-white/10 text-white border border-white/20' 
+                                                : `bg-white border border-slate-100 ${item.iconeCor} group-hover:scale-105 shadow-sm`}
+                                        `}>
+                                            <Icone size={20} strokeWidth={2.5} />
+                                        </div>
+
+                                        {/* Textos */}
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-[11px] font-black tracking-widest uppercase mb-1 truncate ${estaSelecionado ? 'text-white' : 'text-slate-700'}`}>
+                                                {item.titulo}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-1 h-1 rounded-full ${estaSelecionado ? 'bg-indigo-400' : 'bg-slate-300'}`} />
+                                                <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${estaSelecionado ? 'text-indigo-300' : 'text-slate-400'}`}>
+                                                    {item.badgeTxt}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Seta de Indicação */}
+                                        <ArrowRight 
+                                            size={14} 
+                                            className={`transition-all duration-500 ${estaSelecionado ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} 
+                                        />
+                                    </div>
                                 </button>
                             );
                         })}
                     </div>
 
-                    <div className="p-5 border-t border-slate-100 flex items-center justify-between mt-auto">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                            {CARDS_RELATORIO.length} Módulos Disponíveis
-                        </span>
-                        <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                Online
-                            </span>
+                    {/* Footer do Menu */}
+                    <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400">
+                                <ShieldCheck size={14} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black text-slate-800 uppercase tracking-widest leading-none">Security Core</p>
+                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">AES-256 Enabled</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full border border-emerald-100">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                            <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Ativo</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Detail: Painel de Configuração */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col relative">
+                {/* --- CONSOLE DE DETALHE (COCKPIT LUXURY 2XL) --- */}
+                <div className="flex-1 bg-white border border-slate-200/60 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col relative">
                     {relatorioSelecionado ? (
                         <>
-                            {/* Header do Detalhe */}
-                            <div className="p-8 border-b border-slate-100 bg-white">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-5">
-                                        <div className={`p-4 rounded-2xl border border-slate-100 shadow-sm ${relatorioSelecionado.iconeCor}`}>
-                                            <relatorioSelecionado.icone size={28} strokeWidth={1.5} />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-xl font-bold text-slate-800 tracking-tight uppercase">
+                            {/* Area de Banner e Identidade do Relatório */}
+                            <div className="p-12 pb-16 relative overflow-hidden bg-slate-50/30">
+                                {/* Decorativos de Background */}
+                                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                                    <relatorioSelecionado.icone size={200} strokeWidth={1} />
+                                </div>
+                                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+
+                                <div className="flex flex-col md:flex-row md:items-center gap-10 relative z-10">
+                                    <div className={`
+                                        w-24 h-24 rounded-[2.2rem] border-4 border-white shadow-2xl flex items-center justify-center 
+                                        transition-all duration-700 hover:rotate-[10deg] hover:scale-105 shrink-0
+                                        ${relatorioSelecionado.iconeCor}
+                                    `}>
+                                        <relatorioSelecionado.icone size={42} strokeWidth={1.5} />
+                                    </div>
+                                    
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-4 flex-wrap">
+                                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">
                                                 {relatorioSelecionado.titulo}
                                             </h2>
-                                            <span className={`inline-block mt-1 text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-2xl border ${relatorioSelecionado.badgeCor}`}>
+                                            <span className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.4em] border ${relatorioSelecionado.badgeCor} shadow-sm backdrop-blur-sm`}>
                                                 {relatorioSelecionado.badgeTxt}
                                             </span>
                                         </div>
-                                    </div>
-                                    <div className="text-right hidden sm:block">
-                                        <div className="flex items-center gap-2 justify-end text-slate-400 font-bold text-[10px] uppercase tracking-widest">
-                                            <div className="w-1 h-1 rounded-full bg-slate-300" />
-                                            Módulo de Exportação
-                                        </div>
+                                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
+                                            <Info size={14} className="text-indigo-500" />
+                                            Parâmetros de Extração Analítica v3.0
+                                        </p>
                                     </div>
                                 </div>
-                                <p className="text-xs font-medium text-slate-500 leading-relaxed max-w-2xl">
-                                    {relatorioSelecionado.descricao}
-                                </p>
+
+                                <div className="mt-12 bg-white/80 backdrop-blur-md rounded-[2rem] p-8 border border-white shadow-xl max-w-3xl border-l-[6px] border-l-slate-900">
+                                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest leading-relaxed italic">
+                                        "{relatorioSelecionado.descricao}"
+                                    </p>
+                                </div>
                             </div>
 
-                            {/* Área de Filtros e Parâmetros */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-8 bg-white">
-                                <div className="max-w-2xl space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Ano Letivo */}
-                                        <div className="space-y-3">
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                                Ano de Referência
-                                            </div>
-                                            <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-100 h-10">
+                            {/* Área de Seleção de Parâmetros (Formulário High-End) */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-12 py-8 space-y-12">
+                                <section className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                    
+                                    {/* BLOCO 1: CRONOLOGIA */}
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-3 ml-2">
+                                            <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(79,70,229,0.5)]" />
+                                            <label className="text-[10px] font-black text-slate-900 uppercase tracking-[0.4em]">Cronologia de Varredura</label>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-3 gap-3 bg-slate-50 p-2.5 rounded-[1.8rem] border border-slate-100 shadow-inner">
                                                 {[anoAtual - 1, anoAtual, anoAtual + 1].map((ano) => (
                                                     <button
                                                         key={ano}
@@ -258,22 +329,19 @@ export default function Relatorios() {
                                                             const periodo = calcularPeriodo(ano, filtros.semestre);
                                                             definirFiltros({ ...filtros, anoLetivo: ano, ...periodo });
                                                         }}
-                                                        className={`flex-1 h-full rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all ${filtros.anoLetivo === ano
-                                                            ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
-                                                            : 'text-slate-400 hover:text-slate-500'}`}
+                                                        className={`
+                                                            h-12 rounded-[1.2rem] text-[11px] font-black uppercase tracking-widest transition-all duration-300
+                                                            ${filtros.anoLetivo === ano 
+                                                                ? 'bg-slate-900 text-white shadow-xl scale-[1.03]' 
+                                                                : 'text-slate-400 hover:text-slate-700 hover:bg-white'}
+                                                        `}
                                                     >
                                                         {ano}
                                                     </button>
                                                 ))}
                                             </div>
-                                        </div>
 
-                                        {/* Semestre */}
-                                        <div className="space-y-3">
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                                Período Letivo
-                                            </div>
-                                            <div className="flex items-center bg-slate-50 p-1 rounded-2xl border border-slate-100 h-10">
+                                            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-2.5 rounded-[1.8rem] border border-slate-100 shadow-inner">
                                                 {([1, 2] as const).map((sem) => (
                                                     <button
                                                         key={sem}
@@ -281,102 +349,173 @@ export default function Relatorios() {
                                                             const periodo = calcularPeriodo(filtros.anoLetivo, sem);
                                                             definirFiltros({ ...filtros, semestre: sem, ...periodo });
                                                         }}
-                                                        className={`flex-1 h-full rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all ${filtros.semestre === sem
-                                                            ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
-                                                            : 'text-slate-400 hover:text-slate-500'}`}
+                                                        className={`
+                                                            h-12 rounded-[1.2rem] text-[11px] font-black uppercase tracking-widest transition-all duration-300
+                                                            ${filtros.semestre === sem 
+                                                                ? 'bg-slate-900 text-white shadow-xl scale-[1.03]' 
+                                                                : 'text-slate-400 hover:text-slate-700 hover:bg-white'}
+                                                        `}
                                                     >
-                                                        {sem}º Sem.
+                                                        {sem}º Semestre
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Turma */}
-                                    <div className="space-y-3" ref={refDropdownTurma}>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                                            Filtrar por Turma
+                                    {/* BLOCO 2: PERÍMETRO (TURMA) */}
+                                    <div className="space-y-6" ref={refDropdownTurma}>
+                                        <div className="flex items-center gap-3 ml-2">
+                                            <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(79,70,229,0.5)]" />
+                                            <label className="text-[10px] font-black text-slate-900 uppercase tracking-[0.4em]">Perímetro da Unidade</label>
                                         </div>
-                                        <div className="relative">
+
+                                        <div className="relative group/input">
+                                            <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within/input:text-slate-900 transition-colors">
+                                                <Search size={20} />
+                                            </div>
                                             <input
                                                 type="text"
-                                                placeholder="Todas as turmas..."
+                                                placeholder="BUSCAR TURMA OU DEIXAR GERAL..."
                                                 onFocus={() => definirMostrarDropdownTurma(true)}
                                                 onBlur={() => setTimeout(() => definirMostrarDropdownTurma(false), 200)}
                                                 onChange={(e) => definirFiltros({ ...filtros, turma: e.target.value || 'Todas' })}
                                                 value={filtros.turma === 'Todas' ? '' : filtros.turma}
-                                                className="w-full pl-5 pr-12 py-3 bg-slate-50 border border-slate-100 focus:bg-white focus:border-eletrico focus:ring-4 focus:ring-eletrico/5 rounded-2xl text-xs font-bold text-slate-700 outline-none transition-all placeholder:text-slate-400"
+                                                className="w-full h-20 pl-16 pr-16 bg-slate-50 border-2 border-slate-100 rounded-[2rem] text-sm font-black text-slate-900 uppercase tracking-widest outline-none transition-all focus:bg-white focus:border-slate-900 focus:shadow-2xl focus:scale-[1.01] placeholder:text-slate-300"
                                             />
-                                            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300" />
-
+                                            
                                             {mostrarDropdownTurma && (() => {
                                                 const termo = filtros.turma === 'Todas' ? '' : filtros.turma.toLowerCase();
                                                 const sugestoes = (infoBase?.turmas ?? [])
                                                     .filter((t: string) => t.toLowerCase().includes(termo))
-                                                    .slice(0, 5);
+                                                    .slice(0, 6);
+                                                
                                                 return (
-                                                    <ul className="absolute top-[calc(100%+6px)] left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden p-1">
-                                                        <li
+                                                    <div className="absolute top-[calc(100%+12px)] left-0 right-0 bg-white border border-slate-200 rounded-[2.2rem] shadow-[0_30px_60px_rgba(0,0,0,0.2)] z-[60] overflow-hidden p-3">
+                                                        <button
                                                             onMouseDown={() => {
-                                                                 definirFiltros({ ...filtros, turma: 'Todas' });
-                                                                 definirMostrarDropdownTurma(false);
+                                                                definirFiltros({ ...filtros, turma: 'Todas' });
+                                                                definirMostrarDropdownTurma(false);
                                                             }}
-                                                            className="px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer rounded-2xl flex items-center justify-between"
+                                                            className={`
+                                                                w-full px-6 py-5 text-[11px] font-black rounded-2xl flex items-center justify-between transition-all uppercase tracking-widest mb-1
+                                                                ${filtros.turma === 'Todas' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50'}
+                                                            `}
                                                         >
-                                                            Geral (Toda Escola)
-                                                            {filtros.turma === 'Todas' && <CheckCircle2 size={14} className="text-eletrico" />}
-                                                        </li>
+                                                            <span>Radar Geral (Toda Instituição)</span>
+                                                            <CheckCircle2 size={18} className={filtros.turma === 'Todas' ? 'text-emerald-400' : 'opacity-0'} />
+                                                        </button>
+                                                        <div className="h-px bg-slate-100 my-2 mx-4" />
                                                         {sugestoes.map((t: string) => (
-                                                            <li
+                                                            <button
                                                                 key={t}
                                                                 onMouseDown={() => {
                                                                     definirFiltros({ ...filtros, turma: t });
                                                                     definirMostrarDropdownTurma(false);
                                                                 }}
-                                                                className="px-4 py-2.5 text-[10px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer rounded-2xl"
+                                                                className={`
+                                                                    w-full px-6 py-5 text-[11px] font-black rounded-2xl flex items-center justify-between transition-all uppercase tracking-widest mb-1
+                                                                    ${filtros.turma === t ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50'}
+                                                                `}
                                                             >
-                                                                {t}
-                                                            </li>
+                                                                <span>{t}</span>
+                                                                <CheckCircle2 size={18} className={filtros.turma === t ? 'text-emerald-400' : 'opacity-0'} />
+                                                            </button>
                                                         ))}
-                                                    </ul>
+                                                    </div>
                                                 );
                                             })()}
                                         </div>
                                     </div>
+                                </section>
 
-                                    {/* Resumo Discreto */}
-                                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-4">
-                                        <Info size={16} className="text-slate-300 shrink-0" />
-                                        <p className="text-[11px] font-medium text-slate-500">
-                                            O PDF incluirá <span className="text-slate-800 font-bold">{quantidadeAlunosPrevista} alunos</span> • 
-                                            <span className="text-slate-800 font-bold ml-1">{filtros.turma === 'Todas' ? 'Toda Instituição' : `Turma ${filtros.turma}`}</span>
-                                        </p>
+                                {/* DOSSIÊ DE VALIDAÇÃO (STATUS PANEL) */}
+                                <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+                                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full -ml-24 -mb-24 blur-3xl" />
+
+                                    <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
+                                        <div className="w-20 h-20 bg-white/10 rounded-[1.8rem] border border-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0 shadow-inner">
+                                            <BarChart2 size={36} strokeWidth={2} />
+                                        </div>
+                                        
+                                        <div className="flex-1 space-y-3 text-center md:text-left">
+                                            <h4 className="text-[12px] font-black text-indigo-300 uppercase tracking-[0.5em] leading-none mb-4">Inspeção Pré-Processamento</h4>
+                                            <div className="flex flex-wrap gap-x-8 gap-y-4 justify-center md:justify-start">
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] font-black text-white/40 uppercase tracking-widest">Base de Dados</p>
+                                                    <p className="text-xl font-black">{quantidadeAlunosPrevista} Alunos</p>
+                                                </div>
+                                                <div className="w-px h-10 bg-white/10 hidden md:block" />
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] font-black text-white/40 uppercase tracking-widest">Localização</p>
+                                                    <p className="text-xl font-black truncate max-w-[200px]">{filtros.turma === 'Todas' ? 'INSTITUIÇÃO' : filtros.turma}</p>
+                                                </div>
+                                                <div className="w-px h-10 bg-white/10 hidden md:block" />
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] font-black text-white/40 uppercase tracking-widest">Ciclo Atual</p>
+                                                    <p className="text-xl font-black">{filtros.anoLetivo} • {filtros.semestre}ºS</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-emerald-500/20 border border-emerald-500/30 px-6 py-4 rounded-2xl flex items-center gap-4 shrink-0">
+                                            <div className="flex flex-col items-end">
+                                                <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Integridade</p>
+                                                <p className="text-[11px] font-black text-white uppercase tracking-widest">Validada</p>
+                                            </div>
+                                            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,1)] animate-pulse" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Footer do Painel - Ação Principal */}
-                            <div className="p-8 border-t border-slate-100 bg-white flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                        Documento PDF • Padrão A4
+                            {/* Cockpit de Controle Final (Main Action) */}
+                            <div className="p-12 pt-8 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-8">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-slate-50 rounded-xl border border-slate-100 text-slate-400">
+                                            <Download size={16} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] leading-none mb-1">Criptografia em Trânsito</span>
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Arquivo PDF • Renderização em 300 DPI</span>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <button
                                     onClick={relatorioSelecionado.acao}
                                     disabled={carregandoBase}
-                                    className="inline-flex items-center gap-3 text-[10px] font-bold text-white bg-slate-800 hover:bg-slate-900 px-8 py-3.5 rounded-2xl transition-all shadow-sm active:scale-95 disabled:opacity-50 uppercase tracking-widest"
+                                    className="
+                                        group relative h-20 px-12 rounded-[1.8rem] bg-slate-900 text-white transition-all duration-500
+                                        hover:bg-black hover:shadow-[0_25px_50px_rgba(0,0,0,0.3)] hover:-translate-y-1 active:scale-95 disabled:opacity-50 overflow-hidden
+                                    "
                                 >
-                                    Gerar Relatório
-                                    <ArrowRight size={14} />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                                    <div className="flex items-center gap-6 relative z-10">
+                                        <span className="text-[12px] font-black uppercase tracking-[0.4em]">Compilar Documento</span>
+                                        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center transition-transform group-hover:translate-x-2">
+                                            <ArrowRight size={20} />
+                                        </div>
+                                    </div>
                                 </button>
                             </div>
                         </>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center opacity-40">
-                            <FileSpreadsheet size={32} className="text-slate-300 mb-4" />
-                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Selecione um Módulo</h3>
+                        <div className="flex-1 flex flex-col items-center justify-center p-20 text-center relative">
+                            {/* Grid de fundo decorativo */}
+                            <div className="absolute inset-0 grid grid-cols-12 grid-rows-12 gap-px opacity-[0.03] pointer-events-none">
+                                {Array.from({ length: 144 }).map((_, i) => <div key={i} className="bg-slate-900"></div>)}
+                            </div>
+                            
+                            <div className="relative p-16 bg-white border-4 border-dashed border-slate-100 rounded-[4rem] flex flex-col items-center shadow-inner">
+                                <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mb-10 border border-white shadow-xl">
+                                    <FileSpreadsheet size={48} strokeWidth={1} />
+                                </div>
+                                <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-[0.6em] mb-4 text-center">Protocolo de Bureau</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] max-w-xs text-center border-t border-slate-50 pt-6">Selecione uma diretiva no catálogo à esquerda para iniciar o processamento de dados.</p>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -384,4 +523,6 @@ export default function Relatorios() {
         </LayoutAdministrativo>
     );
 }
+
+
 

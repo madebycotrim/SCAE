@@ -187,118 +187,122 @@ export default function Alunos() {
 
     return (
         <LayoutAdministrativo
-            titulo="Gestão de Alunos"
-            subtitulo="Gerencie as matrículas e as informações dos estudantes"
+            titulo="Gestão de Matrículas"
+            subtitulo="Arquitetura de dados e controle gerencial do corpo discente"
             acoes={AcoesHeader}
         >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            {/* Métricas Vibrantes (Luxury 2xl) */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 <CardMetrica
-                    label="Alunos Matriculados"
+                    label="Volume de Matrículas"
                     valor={alunos.length}
                     icone={GraduationCap}
-                    bg="bg-indigo-50"
+                    bg="bg-indigo-50/50"
                     text="text-indigo-600"
                     border="border-indigo-100"
                 />
                 <CardMetrica
-                    label="Alunos Ativos"
+                    label="Status Operacional"
                     valor={alunos.filter(a => a.ativo !== false).length}
                     icone={CheckCircle2}
-                    bg="bg-emerald-50"
+                    bg="bg-emerald-50/50"
                     text="text-emerald-600"
                     border="border-emerald-100"
                 />
                 <CardMetrica
-                    label="Alunos Inativos"
+                    label="Registros Suspensos"
                     valor={alunos.filter(a => a.ativo === false).length}
                     icone={XCircle}
-                    bg="bg-rose-50"
+                    bg="bg-rose-50/50"
                     text="text-rose-600"
                     border="border-rose-100"
                 />
                 <CardMetrica
-                    label="Total de Turmas"
+                    label="Configuração Acadêmica"
                     valor={turmas.length}
                     icone={Layers}
-                    bg="bg-amber-50"
+                    bg="bg-amber-50/50"
                     text="text-amber-600"
                     border="border-amber-100"
                 />
             </div>
-            <BarraFiltro className="bg-white border-slate-200 shadow-suave p-3 rounded-2xl">
-                <div className="flex flex-col gap-2 flex-1 w-full">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Aluno</label>
-                    <InputBusca
-                        icone={Search}
-                        placeholder="Nome, matrícula ou turma..."
-                        value={termoBusca}
-                        onChange={(e) => definirTermoBusca(e.target.value)}
-                        className="w-full h-11"
-                    />
-                </div>
 
-                {/* Filtro de Ano Letivo */}
-                <div className="flex flex-col gap-2 shrink-0">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Ano Letivo</label>
-                    <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11 min-w-[180px]">
-                        {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
-                            <button
-                                key={ano}
-                                onClick={() => definirFiltroAnoLetivo(ano)}
-                                className={`flex-1 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border ${filtroAnoLetivo === ano
-                                    ? 'bg-white text-slate-900 border-slate-200 shadow-suave'
-                                    : 'text-slate-400 border-transparent hover:text-slate-600'
-                                    }`}
-                            >
-                                <Calendar size={12} /> {ano}
-                            </button>
-                        ))}
+            {/* Toolbar de Filtros SaaS Elite */}
+            <div className="bg-white/40 backdrop-blur-md border border-slate-200/60 shadow-xl p-4 rounded-[2.5rem]">
+                <BarraFiltro className="bg-transparent border-none shadow-none p-0 flex-wrap lg:flex-nowrap">
+                    <div className="flex flex-col gap-2 flex-1 w-full">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-3 leading-none">Radar de Pesquisa</label>
+                        <InputBusca
+                            icone={Search}
+                            placeholder="NOME, MATRÍCULA OU TURMA..."
+                            value={termoBusca}
+                            onChange={(e) => definirTermoBusca(e.target.value)}
+                            className="w-full h-14 bg-white border-slate-200 rounded-3xl text-sm font-black tracking-tight"
+                        />
                     </div>
-                </div>
 
-                {/* Filtro de Status */}
-                <div className="flex flex-col gap-2 shrink-0">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 leading-none">Situação</label>
-                    <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-200 h-11">
-                        {(['ativos', 'inativos', 'todos'] as const).map((status) => (
-                            <button
-                                key={status}
-                                onClick={() => definirFiltroStatus(status)}
-                                className={`px-4 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
-                                    ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
-                                    : 'text-slate-400 border-transparent hover:text-slate-600'
-                                    }`}
-                            >
-                                {status === 'ativos' && <CheckCircle2 size={12} />}
-                                {status === 'inativos' && <XCircle size={12} />}
-                                {status === 'todos' && <Grid size={12} />}
-                                {status === 'ativos' ? 'Ativos' : status === 'inativos' ? 'Inativos' : 'Todos'}
-                            </button>
-                        ))}
+                    <div className="flex flex-col gap-2 shrink-0">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-2 leading-none">Ciclo Letivo</label>
+                        <div className="flex items-center bg-slate-100/50 p-2 rounded-3xl border border-slate-200/50 h-14 min-w-[200px]">
+                            {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
+                                <button
+                                    key={ano}
+                                    onClick={() => definirFiltroAnoLetivo(ano)}
+                                    className={`flex-1 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border ${filtroAnoLetivo === ano
+                                        ? 'bg-slate-900 text-white border-slate-900 shadow-xl'
+                                        : 'text-slate-400 border-transparent hover:text-slate-600'
+                                        }`}
+                                >
+                                    <Calendar size={14} /> {ano}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </BarraFiltro>
 
-            <ListaAlunos
-                alunos={paginados}
-                alunosSelecionados={alunosSelecionados}
-                paginaAtual={paginaAtual}
-                totalPaginas={totalPaginas}
-                aoSelecionar={(m) => definirAlunosSelecionados(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])}
-                aoVerQRCode={(m) => { 
-                    const aluno = alunos.find(a => a.matricula === m);
-                    if (aluno) {
-                        definirAlunoParaQRCode(aluno); 
-                        definirModalQRCode(true); 
-                    }
-                }}
-                aoEditar={(a) => { definirAlunoEmEdicao(a); definirModalForm(true); }}
-                aoExcluir={excluirAluno}
-                aoMudarPagina={definirPaginaAtual}
-                obterCorAvatar={obterCorAvatar}
+                    <div className="flex flex-col gap-2 shrink-0">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-2 leading-none">Status de Registro</label>
+                        <div className="flex items-center bg-slate-100/50 p-2 rounded-3xl border border-slate-200/50 h-14">
+                            {(['ativos', 'inativos', 'todos'] as const).map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => definirFiltroStatus(status)}
+                                    className={`px-5 h-full rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-2 border ${filtroStatus === status
+                                        ? 'bg-white text-slate-900 border-slate-200 shadow-lg scale-[1.05]'
+                                        : 'text-slate-400 border-transparent hover:text-slate-600'
+                                        }`}
+                                >
+                                    {status === 'ativos' && <CheckCircle2 size={14} className="text-emerald-500" />}
+                                    {status === 'inativos' && <XCircle size={14} className="text-rose-500" />}
+                                    {status === 'todos' && <Grid size={14} className="text-indigo-500" />}
+                                    {status === 'ativos' ? 'Ativos' : status === 'inativos' ? 'Inativos' : 'Todos'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </BarraFiltro>
+            </div>
 
-                carregando={carregandoInicial}
-            />
+            <div className="mt-10">
+                <ListaAlunos
+                    alunos={paginados}
+                    alunosSelecionados={alunosSelecionados}
+                    paginaAtual={paginaAtual}
+                    totalPaginas={totalPaginas}
+                    aoSelecionar={(m) => definirAlunosSelecionados(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])}
+                    aoVerQRCode={(m) => { 
+                        const aluno = alunos.find(a => a.matricula === m);
+                        if (aluno) {
+                            definirAlunoParaQRCode(aluno); 
+                            definirModalQRCode(true); 
+                        }
+                    }}
+                    aoEditar={(a) => { definirAlunoEmEdicao(a); definirModalForm(true); }}
+                    aoExcluir={excluirAluno}
+                    aoMudarPagina={definirPaginaAtual}
+                    obterCorAvatar={obterCorAvatar}
+                    carregando={carregandoInicial}
+                />
+            </div>
 
             <BarraSelecaoLote
                 quantidade={alunosSelecionados.length}
@@ -326,8 +330,6 @@ export default function Alunos() {
                     variante="perigo"
                 />
             )}
-
-
         </LayoutAdministrativo>
     );
 }
