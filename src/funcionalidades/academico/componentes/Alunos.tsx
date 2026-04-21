@@ -23,6 +23,9 @@ import ImpressaoCredenciaisLote from './ImpressaoCredenciaisLote';
 
 import { api } from '@/compartilhado/servicos/api';
 
+/**
+ * Dashboard principal de gestão de alunos e matrículas.
+ */
 export default function Alunos() {
     const { adicionarNotificacao } = usarNotificacoes();
     const escola = usarEscola();
@@ -81,20 +84,20 @@ export default function Alunos() {
 
 
     const alunosFiltrados = useMemo(() => {
-        return alunos.filter(a => {
-            const termoLower = termoBusca.toLowerCase();
-            const matchNome = a.nome_completo.toLowerCase().includes(termoLower) ||
-                a.matricula.includes(termoBusca) ||
-                (a.turma_id || '').toLowerCase().includes(termoLower);
+        return alunos.filter(aluno => {
+            const termoMinusculo = termoBusca.toLowerCase();
+            const correspondeNome = aluno.nome_completo.toLowerCase().includes(termoMinusculo) ||
+                aluno.matricula.includes(termoBusca) ||
+                (aluno.turma_id || '').toLowerCase().includes(termoMinusculo);
 
-            const matchStatus = filtroStatus === 'todos'
+            const correspondeStatus = filtroStatus === 'todos'
                 ? true
-                : filtroStatus === 'ativos' ? a.ativo !== false : a.ativo === false;
+                : filtroStatus === 'ativos' ? aluno.ativo !== false : aluno.ativo === false;
 
-            const turmaDoAluno = turmas.find(t => t.id === a.turma_id);
-            const matchAno = turmaDoAluno ? turmaDoAluno.ano_letivo.toString() === filtroAnoLetivo : true;
+            const turmaDoAluno = turmas.find(t => t.id === aluno.turma_id);
+            const correspondeAno = turmaDoAluno ? turmaDoAluno.ano_letivo.toString() === filtroAnoLetivo : true;
 
-            return matchNome && matchAno && matchStatus;
+            return correspondeNome && correspondeAno && correspondeStatus;
         });
     }, [alunos, turmas, termoBusca, filtroAnoLetivo, filtroStatus]);
 
@@ -163,7 +166,7 @@ export default function Alunos() {
         return cores[parseInt(id.slice(-1)) % cores.length || 0];
     };
 
-    const AcoesHeader = (
+    const AcoesCabecalho = (
         <div className="flex gap-3">
             <Botao
                 variante="secundario"
@@ -189,7 +192,7 @@ export default function Alunos() {
         <LayoutAdministrativo
             titulo="Gestão de Matrículas"
             subtitulo="Arquitetura de dados e controle gerencial do corpo discente"
-            acoes={AcoesHeader}
+            acoes={AcoesCabecalho}
         >
             {/* Métricas Vibrantes (Luxury 2xl) */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">

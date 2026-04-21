@@ -45,6 +45,9 @@ ChartJS.register(
 /**
  * RadarIcon - Pequeno widget animado para indicar atividade real-time
  */
+/**
+ * Ícone de radar animado para indicação de atividade em tempo real.
+ */
 const RadarIcon = () => (
     <div className="relative flex items-center justify-center w-5 h-5">
         <div className="absolute w-full h-full bg-emerald-400 rounded-full animate-ping opacity-20" />
@@ -54,6 +57,11 @@ const RadarIcon = () => (
 
 /**
  * LiveAccessFeed - Monitor de acessos em tempo real via polling otimizado
+ */
+/**
+ * Monitor de acessos em tempo real com polling otimizado.
+ * @param alunos - Lista de alunos para cruzamento de dados
+ * @param aoReceberNovos - Callback disparado ao detectar novas entradas
  */
 export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoReceberNovos: () => void }) {
     const [registros, setRegistros] = useState<any[]>([]);
@@ -85,9 +93,9 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                     if (ultimaDataRef.current !== ultimaData) {
                         ultimaDataRef.current = ultimaData;
                         
-                        setRegistros(prev => {
+                        setRegistros(anterior => {
                             // Evita duplicados comparando IDs e garante que o ID existe
-                            const idsExistentes = new Set(prev.map(r => r.id).filter(id => !!id));
+                            const idsExistentes = new Set(anterior.map(r => r.id).filter(id => !!id));
                             const unicos = novos.filter((n: any) => n.id && !idsExistentes.has(n.id));
                             
                             if (unicos.length > 0) {
@@ -134,8 +142,8 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar scroll-smooth">
                 <AnimatePresence initial={false}>
                     {registros.map((reg) => {
-                        const alunoData = alunos?.find(a => a.matricula === reg.aluno_matricula);
-                        const isSaida = reg.tipo_movimentacao === 'SAIDA';
+                        const alunoPadrao = alunos?.find(a => a.matricula === reg.aluno_matricula);
+                        const ehSaida = reg.tipo_movimentacao === 'SAIDA';
 
                         return (
                             <motion.div
@@ -150,18 +158,18 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                     <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover/card:scale-110 ${
                                         reg.tipo_movimentacao === 'NEGADO' 
                                             ? 'bg-rose-50 text-rose-500' 
-                                            : isSaida ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'
+                                            : ehSaida ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'
                                     }`}>
-                                        {reg.tipo_movimentacao === 'NEGADO' ? <AlertTriangle size={20} /> : isSaida ? <LogOut size={20} /> : <Activity size={20} />}
+                                        {reg.tipo_movimentacao === 'NEGADO' ? <AlertTriangle size={20} /> : ehSaida ? <LogOut size={20} /> : <Activity size={20} />}
                                     </div>
                                     <div>
                                         <p className="text-[12px] font-black text-slate-800 uppercase leading-none mb-1">
-                                            {alunoData?.nome_completo || reg.aluno_nome || 'Acesso Identificado'}
+                                            {alunoPadrao?.nome_completo || reg.aluno_nome || 'Acesso Identificado'}
                                         </p>
                                         {reg.tipo_movimentacao !== 'NEGADO' && (
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-                                                    {reg.aluno_matricula} • {reg.turma_nome || alunoData?.turma_id || 'SEM TURMA'}
+                                                    {reg.aluno_matricula} • {reg.turma_nome || alunoPadrao?.turma_id || 'SEM TURMA'}
                                                 </span>
                                             </div>
                                         )}
@@ -179,7 +187,7 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${
                                             reg.tipo_movimentacao === 'NEGADO'
                                                 ? 'bg-rose-100 text-rose-700'
-                                                : isSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+                                                : ehSaida ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
                                         }`}>
                                             {reg.tipo_movimentacao}
                                         </span>
@@ -204,6 +212,9 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
     );
 }
 
+/**
+ * Painel administrativo principal (Dashboard) com métricas e monitoramento.
+ */
 export default function Painel() {
     const { dados: estatisticasRaw, recarregar: atualizarKPIs } = usarConsulta(
         ['estatisticas-dashboard-online'],
@@ -288,7 +299,7 @@ export default function Painel() {
                                     mensagem: '🚨 OPERAÇÃO CRÍTICA: Isso purgará permanentemente TODO o histórico de acessos da nuvem. Esta ação é irreversível e exige autorização administrativa.',
                                     variante: 'perigo',
                                     aoConfirmar: async () => {
-                                        setEstadoConfirmacao(prev => ({ ...prev, aberto: false }));
+                                        setEstadoConfirmacao(anterior => ({ ...anterior, aberto: false }));
                                         try {
                                             await dashboardServico.limparHistorico();
                                             window.location.reload();
@@ -529,7 +540,7 @@ export default function Painel() {
                     titulo={estadoConfirmacao.titulo}
                     mensagem={estadoConfirmacao.mensagem}
                     aoConfirmar={estadoConfirmacao.aoConfirmar}
-                    aoCancelar={() => setEstadoConfirmacao(prev => ({ ...prev, aberto: false }))}
+                    aoCancelar={() => setEstadoConfirmacao(anterior => ({ ...anterior, aberto: false }))}
                     variante={estadoConfirmacao.variante}
                 />
             )}

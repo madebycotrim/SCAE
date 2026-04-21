@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { servicoAgente, StatusAgente } from '../servicos/servicoAgente';
+import { agenteServico, EstadoAgenteLocal } from '../servicos/agente.servico';
 
 export interface EstadoConexao {
-    agente: StatusAgente;
+    agente: EstadoAgenteLocal;
     internet: boolean;
     carregando: boolean;
 }
@@ -19,7 +19,7 @@ export function usarStatusConexao() {
 
     useEffect(() => {
         const verificarConexao = async () => {
-            const statusAgente = await servicoAgente.ping();
+            const statusAgente = await agenteServico.verificarSaude();
             setEstado({
                 agente: statusAgente,
                 internet: navigator.onLine,

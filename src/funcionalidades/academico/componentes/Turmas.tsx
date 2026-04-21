@@ -37,6 +37,9 @@ import FormTurmaModal from './FormTurmaModal';
 import { turmaServico } from '../servicos/turma.servico';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
+/**
+ * Componente de gestão de turmas e controle de capacidade acadêmica.
+ */
 export default function Turmas() {
     const navegar = useNavigate();
     const { podeAcessar } = usarPermissoes();
@@ -72,38 +75,42 @@ export default function Turmas() {
         }
     }, [searchParams]);
 
-    // Mapeamento de Cores e Ãcones por Turno
-    const CONFIG_TURNO = {
+    // Configuração visual por Turno (Padrão Luxury 2xl)
+    const CONFIGURACAO_TURNO = {
         'Matutino': {
-            bg: 'bg-amber-50',
-            text: 'text-amber-700',
-            border: 'border-amber-200',
-            indicator: 'bg-amber-400',
+            fundo: 'bg-amber-50',
+            texto: 'text-amber-700',
+            borda: 'border-amber-200',
+            indicador: 'bg-amber-400',
             icone: Sun
         },
         'Vespertino': {
-            bg: 'bg-sky-50',
-            text: 'text-sky-700',
-            border: 'border-sky-200',
-            indicator: 'bg-sky-400',
+            fundo: 'bg-sky-50',
+            texto: 'text-sky-700',
+            borda: 'border-sky-200',
+            indicador: 'bg-sky-400',
             icone: CloudSun
         },
         'Noturno': {
-            bg: 'bg-slate-50',
-            text: 'text-slate-700',
-            border: 'border-slate-200',
-            indicator: 'bg-slate-600',
+            fundo: 'bg-slate-50',
+            texto: 'text-slate-700',
+            borda: 'border-slate-200',
+            indicador: 'bg-slate-600',
             icone: Moon
         },
         'Integral': {
-            bg: 'bg-emerald-50',
-            text: 'text-emerald-700',
-            border: 'border-emerald-200',
-            indicator: 'bg-emerald-500',
+            fundo: 'bg-emerald-50',
+            texto: 'text-emerald-700',
+            borda: 'border-emerald-200',
+            indicador: 'bg-emerald-500',
             icone: Zap
         }
     };
 
+    /**
+     * Persiste os dados da turma no serviço de backend.
+     * @param {Object} dadosTurma - Objeto contendo as informações da turma.
+     */
     const salvarTurma = async (dadosTurma: any) => {
         const { serie, letra, turno, ano_letivo, lotacao_maxima } = dadosTurma;
 
@@ -172,12 +179,12 @@ export default function Turmas() {
         definirModalAberto(true);
     };
 
-    const turmasFiltradas = turmas.filter(t => {
-        const matchBusca = t.id.toLowerCase().includes(termoBusca.toLowerCase()) ||
-            (t.professor_regente || '').toLowerCase().includes(termoBusca.toLowerCase());
-        const matchTurno = filtroTurno === 'TODOS' || t.turno === filtroTurno;
-        const matchAno = t.ano_letivo.toString() === filtroAnoLetivo;
-        return matchBusca && matchTurno && matchAno;
+    const turmasFiltradas = turmas.filter(turma => {
+        const correspondeBusca = turma.id.toLowerCase().includes(termoBusca.toLowerCase()) ||
+            (turma.professor_regente || '').toLowerCase().includes(termoBusca.toLowerCase());
+        const correspondeTurno = filtroTurno === 'TODOS' || turma.turno === filtroTurno;
+        const correspondeAno = turma.ano_letivo.toString() === filtroAnoLetivo;
+        return correspondeBusca && correspondeTurno && correspondeAno;
     });
 
     if (!podeAcessar('turmas', 'visualizar')) {
@@ -191,7 +198,7 @@ export default function Turmas() {
         );
     }
 
-    const AcoesHeader = (
+    const AcoesCabecalho = (
         <Botao
             variante="primario"
             tamanho="sm"
@@ -206,7 +213,7 @@ export default function Turmas() {
         <LayoutAdministrativo
             titulo="Engrenagem Acadêmica"
             subtitulo="Controle total sobre turmas, alocações e capacidade operacional da escola"
-            acoes={AcoesHeader}
+            acoes={AcoesCabecalho}
         >
             {/* Métricas Vibrantes (Luxury 2xl) */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
@@ -280,7 +287,7 @@ export default function Turmas() {
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1 leading-none">Regime de Turno</label>
                         <div className="flex items-center bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50 h-12">
                             {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
-                                const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIG_TURNO[filtro as keyof typeof CONFIG_TURNO]?.icone || Clock);
+                                const IconeTurno = filtro === 'TODOS' ? Grid : (CONFIGURACAO_TURNO[filtro as keyof typeof CONFIGURACAO_TURNO]?.icone || Clock);
                                 return (
                                     <button
                                         key={filtro}
@@ -333,8 +340,8 @@ export default function Turmas() {
                                     const lotacao = turma.lotacao_maxima || 40;
                                     const totalAlunos = turma.totalAlunos || 0;
                                     const ocupacao = (totalAlunos / lotacao) * 100;
-                                    const turnoCfg = CONFIG_TURNO[turma.turno as keyof typeof CONFIG_TURNO] || {
-                                        bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', indicator: 'bg-slate-500', icone: Clock
+                                    const turnoCfg = CONFIGURACAO_TURNO[turma.turno as keyof typeof CONFIGURACAO_TURNO] || {
+                                        fundo: 'bg-slate-100', texto: 'text-slate-700', borda: 'border-slate-200', indicador: 'bg-slate-500', icone: Clock
                                     };
 
                                     return (
@@ -363,8 +370,8 @@ export default function Turmas() {
                                                 </div>
                                             </td>
                                             <td className="py-6 px-8">
-                                                <span className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm ${turnoCfg.bg} ${turnoCfg.text} ${turnoCfg.border} active:scale-95 transition-transform`}>
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${turnoCfg.indicator} shadow-[0_0_8px_rgba(0,0,0,0.1)]`}></div>
+                                                <span className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm ${turnoCfg.fundo} ${turnoCfg.texto} ${turnoCfg.borda} active:scale-95 transition-transform`}>
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${turnoCfg.indicador} shadow-[0_0_8px_rgba(0,0,0,0.1)]`}></div>
                                                     <turnoCfg.icone size={12} />
                                                     {turma.turno}
                                                 </span>

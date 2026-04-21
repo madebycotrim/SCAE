@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { servicoAgente, StatusAgente } from '../servicos/servicoAgente';
+import { agenteServico, EstadoAgenteLocal } from '../servicos/agente.servico';
 
 interface ContextoAgenteTipo {
-    agente: StatusAgente;
+    agente: EstadoAgenteLocal;
     online: boolean;
     carregando: boolean;
     forcarVerificacao: () => Promise<boolean>;
@@ -15,12 +15,12 @@ const ContextoAgente = createContext<ContextoAgenteTipo | undefined>(undefined);
  * Evita múltiplas requisições paralelas e erros duplicados no console.
  */
 export const ProvedorAgente = ({ children }: { children: ReactNode }) => {
-    const [estado, setEstado] = useState<StatusAgente>({ online: false });
+    const [estado, setEstado] = useState<EstadoAgenteLocal>({ online: false });
     const [carregando, setCarregando] = useState(true);
 
     const verificar = async () => {
         try {
-            const status = await servicoAgente.ping();
+            const status = await agenteServico.verificarSaude();
             setEstado(status);
             return status.online;
         } catch {

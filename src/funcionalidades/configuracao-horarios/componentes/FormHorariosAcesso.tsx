@@ -34,6 +34,9 @@ import {
 import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
+/**
+ * Componente principal para configuração das janelas de horário de acesso (Portaria Inteligente).
+ */
 export default function FormHorariosAcesso() {
     const { id: idEscola } = usarEscola();
     const { regras, carregando: carregandoHorarios, erro: erroHorarios, salvar: salvarHorarios, usandoCache } = usarRegrasHorarios(idEscola);
@@ -58,7 +61,10 @@ export default function FormHorariosAcesso() {
         }
     }, [regras, carregandoHorarios, jaCarregou]);
 
-    const obterTurnoConfig = (hora: string, tipo: JanelaHorarioAcesso['tipoAcesso'] = 'ENTRADA') => {
+    /**
+     * Define a configuração visual e de texto baseada na hora e tipo de acesso.
+     */
+    const obterConfiguracaoTurno = (hora: string, tipo: JanelaHorarioAcesso['tipoAcesso'] = 'ENTRADA') => {
         if (!hora) return { label: 'Turno Indefinido', icone: Clock, cor: 'indigo', css: 'text-slate-400 bg-slate-50 border-slate-200' };
         const h = parseInt(hora.split(':')[0], 10);
         
@@ -76,6 +82,9 @@ export default function FormHorariosAcesso() {
         return { label: 'Turno Noturno', icone: Moon, cor: 'indigo', css: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
     };
 
+    /**
+     * Calcula o tempo de duração de uma janela em formato amigável.
+     */
     const calcularDuracao = (inicio: string, fim: string) => {
         if (!inicio || !fim) return '';
         const [h1, m1] = inicio.split(':').map(Number);
@@ -87,6 +96,9 @@ export default function FormHorariosAcesso() {
         return h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ''}` : `${m}m`;
     };
 
+    /**
+     * Adiciona uma nova janela de horário inteligente baseada nas existentes.
+     */
     const adicionarJanela = () => {
         const temEntradaMatutina = janelas.some(j => {
             const h = parseInt(j.horaInicio.split(':')[0], 10);
@@ -132,17 +144,23 @@ export default function FormHorariosAcesso() {
         definirJanelas([...janelas, novaJanela]);
     };
 
+    /**
+     * Remove uma janela da lista pelo índice.
+     */
     const removerJanela = (indice: number) => {
         definirJanelas(janelas.filter((_, i) => i !== indice));
     };
 
+    /**
+     * Atualiza um campo específico de uma janela.
+     */
     const atualizarJanela = (indice: number, campo: string, valor: string) => {
         const novasJanelas = [...janelas];
         novasJanelas[indice] = { ...novasJanelas[indice], [campo]: valor };
         
         // Se mudou a hora, recalcula o título inteligente
         if (campo === 'horaInicio') {
-            novasJanelas[indice].descricao = obterTurnoConfig(valor).label;
+            novasJanelas[indice].descricao = obterConfiguracaoTurno(valor).label;
         }
         
         definirJanelas(novasJanelas);
@@ -200,6 +218,9 @@ export default function FormHorariosAcesso() {
         return () => clearTimeout(timeout);
     }, [janelas, regras, salvarHorarios, carregandoHorarios]);
 
+    /**
+     * Solicita alteração na política de segurança (QR Code Dinâmico).
+     */
     const handleSolicitarMudanca = (dinamico: boolean) => {
         if (!ehAdmin && !ehCentral) {
             toast.error('Acesso Negado: Apenas administradores podem alterar as políticas de segurança crítica.');
@@ -209,6 +230,9 @@ export default function FormHorariosAcesso() {
         setConfirmandoQR({ dinamico });
     };
 
+    /**
+     * Confirma e executa a mudança na política de segurança.
+     */
     const confirmarMudancaQR = async () => {
         if (!confirmandoQR) return;
         try {
@@ -221,7 +245,7 @@ export default function FormHorariosAcesso() {
         }
     };
 
-    const StatusSync = (
+    const StatusSincronizacao = (
         <div className={`flex items-center gap-2.5 px-4 py-2 rounded-2xl border transition-all duration-500 ${
             statusSincronizacao === 'sincronizado' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' :
             statusSincronizacao === 'salvando' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' :
@@ -248,7 +272,7 @@ export default function FormHorariosAcesso() {
         <LayoutAdministrativo
             titulo="Gestão de Portaria Inteligente"
             subtitulo="Controle os períodos oficiais de fluxo escolar para automação de registros e segurança."
-            acoes={StatusSync}
+            acoes={StatusSincronizacao}
         >
             <div className="space-y-6 pb-16">
 
@@ -308,15 +332,15 @@ export default function FormHorariosAcesso() {
 
                         <div className="relative pl-8 space-y-12 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200/60">
                             {janelas.map((janela, indice) => {
-                                const isEntrada = janela.tipoAcesso === 'ENTRADA';
-                                const turno = obterTurnoConfig(janela.horaInicio, janela.tipoAcesso);
+                                const ehEntrada = janela.tipoAcesso === 'ENTRADA';
+                                const turno = obterConfiguracaoTurno(janela.horaInicio, janela.tipoAcesso);
                                 const duracao = calcularDuracao(janela.horaInicio, janela.horaFim);
 
                                 return (
                                     <div key={indice} className="relative group/item">
                                         {/* Marcador da Timeline */}
                                         <div className={`absolute -left-[31px] top-6 w-5 h-5 rounded-full border-4 border-white shadow-md z-10 transition-all duration-500 group-hover/item:scale-125 ${
-                                            isEntrada ? 'bg-amber-500' : 'bg-indigo-600'
+                                            ehEntrada ? 'bg-amber-500' : 'bg-indigo-600'
                                         }`}></div>
 
                                         <div className="bg-white rounded-2xl border border-slate-200/60 shadow-suave hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 overflow-hidden">
@@ -343,9 +367,9 @@ export default function FormHorariosAcesso() {
 
                                                 <div className="flex items-center gap-3">
                                                     <div className={`px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-dashed ${
-                                                        isEntrada ? 'text-amber-600 border-amber-200 bg-amber-50/30' : 'text-indigo-600 border-indigo-200 bg-indigo-50/30'
+                                                        ehEntrada ? 'text-amber-600 border-amber-200 bg-amber-50/30' : 'text-indigo-600 border-indigo-200 bg-indigo-50/30'
                                                     }`}>
-                                                        Fluxo de {isEntrada ? 'Entrada' : 'Saída'}
+                                                        Fluxo de {ehEntrada ? 'Entrada' : 'Saída'}
                                                     </div>
                                                     <button
                                                         onClick={() => setIndiceRemovendo(indice)}
@@ -394,7 +418,7 @@ export default function FormHorariosAcesso() {
                                                                 type="button"
                                                                 onClick={() => atualizarJanela(indice, 'tipoAcesso', 'ENTRADA')}
                                                                 className={`flex-1 flex flex-col justify-center items-center h-full rounded-2xl transition-all gap-1 ${
-                                                                    isEntrada ? 'bg-white text-amber-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
+                                                                    ehEntrada ? 'bg-white text-amber-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
                                                                 }`}
                                                             >
                                                                 <LogIn size={16} strokeWidth={3} />
@@ -404,7 +428,7 @@ export default function FormHorariosAcesso() {
                                                                 type="button"
                                                                 onClick={() => atualizarJanela(indice, 'tipoAcesso', 'SAIDA')}
                                                                 className={`flex-1 flex flex-col justify-center items-center h-full rounded-2xl transition-all gap-1 ${
-                                                                    !isEntrada ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
+                                                                    !ehEntrada ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
                                                                 }`}
                                                             >
                                                                 <LogOut size={16} strokeWidth={3} />
@@ -415,7 +439,7 @@ export default function FormHorariosAcesso() {
 
                                                     {/* Resumo Visual */}
                                                     <div className="flex flex-col items-center justify-center border-l border-slate-100 pl-8 h-20">
-                                                        <div className={`text-3xl font-black tracking-tighter flex items-baseline gap-1 ${isEntrada ? 'text-amber-500' : 'text-indigo-600'}`}>
+                                                        <div className={`text-3xl font-black tracking-tighter flex items-baseline gap-1 ${ehEntrada ? 'text-amber-500' : 'text-indigo-600'}`}>
                                                             {janela.horaInicio}
                                                             <span className="text-xs text-slate-300 uppercase">até</span>
                                                             {janela.horaFim}
@@ -449,7 +473,7 @@ export default function FormHorariosAcesso() {
             {indiceRemovendo !== null && (
                 <ModalConfirmacao
                     titulo="Excluir Janela de Horário?"
-                    mensagem={`Deseja realmente remover o ${obterTurnoConfig(janelas[indiceRemovendo].horaInicio, janelas[indiceRemovendo].tipoAcesso).label}? Isso pode afetar o fluxo de ${janelas[indiceRemovendo].tipoAcesso === 'ENTRADA' ? 'entrada' : 'saída'} da portaria.`}
+                    mensagem={`Deseja realmente remover o ${obterConfiguracaoTurno(janelas[indiceRemovendo].horaInicio, janelas[indiceRemovendo].tipoAcesso).label}? Isso pode afetar o fluxo de ${janelas[indiceRemovendo].tipoAcesso === 'ENTRADA' ? 'entrada' : 'saída'} da portaria.`}
                     variante="perigo"
                     aoConfirmar={() => {
                         removerJanela(indiceRemovendo);

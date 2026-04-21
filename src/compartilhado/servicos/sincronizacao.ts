@@ -11,7 +11,7 @@ export interface RespostaSincronizacao {
     id: string;
 }
 
-import { servicoAgente } from './servicoAgente';
+import { agenteServico } from './agente.servico';
 
 /**
  * SERVIÇO DE SINCRONIZAÇÃO (Versão Híbrida)
@@ -49,9 +49,9 @@ export const servicoSincronizacao = {
         const idRegistro = (registro as any).id || crypto.randomUUID();
         
         // 1. TENTATIVA: Agente Local (Hardware Bridge)
-        const statusAgente = await servicoAgente.ping();
+        const statusAgente = await agenteServico.verificarSaude();
         if (statusAgente.online) {
-            const okAgente = await servicoAgente.registrarAcesso({
+            const okAgente = await agenteServico.registrarAcessoExterno({
                 user_id: registro.aluno_matricula,
                 event: 31, // Evento "Soft" (via Software)
                 time: Math.floor(Date.now() / 1000)

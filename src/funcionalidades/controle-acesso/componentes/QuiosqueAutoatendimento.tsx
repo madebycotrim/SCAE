@@ -24,46 +24,59 @@ import { usarLeitorQRCode } from './LeitorQRCode';
 import { usarLeitorDigital } from './LeitorDigital';
 
 const log = criarRegistrador('ControleAcesso:Quiosque');
+/** ID do elemento HTML onde a câmera será renderizada */
 const ELEMENTO_CAMERA_ID = 'quiosque-camera';
 
+/**
+ * Estrutura de retorno para feedback visual de acesso.
+ */
 interface FeedbackAcesso {
+    /** Dados do aluno identificado */
     aluno?: DadosAluno;
+    /** Mensagem de status (sucesso/erro) */
     mensagem: string;
+    /** Hora formatada do registro */
     hora: string;
 }
 
+/**
+ * Componente de Quiosque para autoatendimento e controle de fluxo (Tablet/Totem).
+ * Suporta identificação via QR Code e Biometria Digital.
+ */
 export default function QuiosqueAutoatendimento() {
     const escola = usarEscola();
     const { metodoParam } = useParams<{ metodoParam?: string }>();
     const { usuarioAtual } = usarAutenticacao();
     const tipoAcessoAtual = usarTipoAcesso();
-    const confFila = usarModoFila();
+    const configuracaoFila = usarModoFila();
     const { acionarWorker } = usarControleAcessoWorker();
     const { podeInstalar, instalarApp } = usarInstalacaoPWA();
 
     const [ultimoAcesso, definirUltimoAcesso] = useState<FeedbackAcesso | null>(null);
     const [statusLeitura, definirStatusLeitura] = useState<'AGUARDANDO' | 'SUCESSO' | 'ERRO'>('AGUARDANDO');
-    const [dataHora, definirDataHora] = useState(new Date());
+    const [dataHoraAtual, definirDataHoraAtual] = useState(new Date());
 
     // Define qual método está ativo no tablet local
     const metodoAtivo = (metodoParam?.toUpperCase() || escola.metodosAcesso[0] || 'QRCODE') as 'QRCODE' | 'DIGITAL';
     const metodoPermitido = escola.metodosAcesso.includes(metodoAtivo) ? metodoAtivo : (escola.metodosAcesso[0] as 'QRCODE' | 'DIGITAL' || 'QRCODE');
 
-    // Relogio em tempo real
+    // Relógio em tempo real para o display
     useEffect(() => {
-        const timer = setInterval(() => definirDataHora(new Date()), 1000);
+        const timer = setInterval(() => definirDataHoraAtual(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
 
-    // ========================================================
-    // CALLBACK CENTRAL — chamado por qualquer filho
-    // ========================================================
+    /**
+     * Lógica central de registro de acesso no banco local/nuvem.
+     * @param matricula - Matrícula do aluno identificado
+     * @param metodoLeitura - Identificador do hardware (qr_carteirinha, digital, etc)
+     */
     const registrarAcesso = useCallback(async (matricula: string, metodoLeitura: string) => {
         if (alunoEstaRevogado(matricula)) {
             definirStatusLeitura('ERRO');
             definirUltimoAcesso({ mensagem: 'Acesso Revogado.', hora: format(Date.now(), 'HH:mm') });
             Registrador.registrar(ACOES_AUDITORIA.TENTATIVA_ACESSO_NEGADO, 'controle-acesso', 'quiosque', { matricula: '***' });
-            setTimeout(() => definirStatusLeitura('AGUARDANDO'), confFila.duracaoFeedbackMs * 1.5);
+            setTimeout(() => definirStatusLeitura('AGUARDANDO'), configuracaoFila.duracaoFeedbackMs * 1.5);
             return;
         }
 
@@ -71,7 +84,7 @@ export default function QuiosqueAutoatendimento() {
         if (!infoAluno) {
             definirStatusLeitura('ERRO');
             definirUltimoAcesso({ mensagem: 'Base local desatualizada.', hora: format(Date.now(), 'HH:mm') });
-            setTimeout(() => definirStatusLeitura('AGUARDANDO'), confFila.duracaoFeedbackMs * 1.5);
+            setTimeout(() => definirStatusLeitura('AGUARDANDO'), configuracaoFila.duracaoFeedbackMs * 1.5);
             return;
         }
 
@@ -101,26 +114,24 @@ export default function QuiosqueAutoatendimento() {
                 hora: format(momentoLeituraLocal, 'HH:mm')
             });
 
-            if (resposta.sucesso && confFila.ttsAtivado) {
+            if (resposta.sucesso && configuracaoFila.ttsAtivado) {
                 anunciarNome(infoAluno.nome_completo);
             }
             if (resposta.modo === 'OFFLINE') acionarWorker();
 
-        } catch (e) {
-            log.error('Erro ao registrar acesso', (e as Error).message);
+        } catch (erro: any) {
+            log.error('Erro ao registrar acesso', erro.message);
             definirStatusLeitura('ERRO');
-            definirUltimoAcesso({ mensagem: 'Falha tecnica.', hora: format(Date.now(), 'HH:mm') });
+            definirUltimoAcesso({ mensagem: 'Falha técnica.', hora: format(Date.now(), 'HH:mm') });
         }
 
         setTimeout(() => {
             definirStatusLeitura('AGUARDANDO');
-        }, confFila.duracaoFeedbackMs);
+        }, configuracaoFila.duracaoFeedbackMs);
 
-    }, [tipoAcessoAtual, confFila, escola, acionarWorker]);
+    }, [tipoAcessoAtual, configuracaoFila, escola, acionarWorker]);
 
-    // ========================================================
-    // CALLBACKS para os filhos
-    // ========================================================
+    /** Callbacks disparados pelos ganchos de hardware */
     const aoIdentificarQR = useCallback((matricula: string) => {
         registrarAcesso(matricula, 'qr_carteirinha');
     }, [registrarAcesso]);
@@ -133,19 +144,17 @@ export default function QuiosqueAutoatendimento() {
         definirStatusLeitura('ERRO');
         definirUltimoAcesso({ mensagem, hora: format(Date.now(), 'HH:mm') });
         Registrador.registrar(ACOES_AUDITORIA.TENTATIVA_ACESSO_NEGADO, 'controle-acesso', 'quiosque', { mensagem });
-        setTimeout(() => definirStatusLeitura('AGUARDANDO'), confFila.duracaoFeedbackMs * 1.5);
-    }, [confFila.duracaoFeedbackMs]);
+        setTimeout(() => definirStatusLeitura('AGUARDANDO'), configuracaoFila.duracaoFeedbackMs * 1.5);
+    }, [configuracaoFila.duracaoFeedbackMs]);
 
-    // ========================================================
-    // FILHOS — apenas o do metodo ativo roda
-    // ========================================================
-    const qr = usarLeitorQRCode({
+    /** Inicialização dos drivers de hardware baseados no método permitido */
+    const ganchoQRCode = usarLeitorQRCode({
         elementoId: metodoPermitido === 'QRCODE' ? ELEMENTO_CAMERA_ID : '__desativado_qr__',
         aoIdentificar: aoIdentificarQR,
         aoErro: aoErroDeteccao
     });
 
-    const digital = usarLeitorDigital({
+    const ganchoDigital = usarLeitorDigital({
         elementoId: metodoPermitido === 'DIGITAL' ? ELEMENTO_CAMERA_ID : '__desativado_digital__',
         escolaId: escola.id,
         aoIdentificar: aoIdentificarDigital
@@ -153,28 +162,26 @@ export default function QuiosqueAutoatendimento() {
 
     // Status unificado da camera
     const statusCamera = metodoPermitido === 'QRCODE'
-        ? qr.statusCamera
-        : digital.statusCamera;
-
-    const corDoDia = '#3b82f6';
+        ? ganchoQRCode.statusCamera
+        : ganchoDigital.statusCamera;
 
     const iconeMetodo = metodoPermitido === 'DIGITAL' ? Fingerprint : QrCode;
     const labelMetodo = metodoPermitido === 'DIGITAL'
-        ? 'IDENTIFICACAO DIGITAL ATIVA'
+        ? 'IDENTIFICAÇÃO DIGITAL ATIVA'
         : 'CATRAKI PRO FRAMEWORK';
     const mensagemAguardando = metodoPermitido === 'DIGITAL'
-        ? 'Apoie o dedo no leitor para identificacao'
-        : 'Aproxime o cartao para iniciar a identificacao';
+        ? 'Apoie o dedo no leitor para identificação'
+        : 'Aproxime o cartão para iniciar a identificação';
 
     return (
         <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col overflow-hidden text-slate-900 font-sans selection:bg-blue-100">
             <header className="h-[100px] border-b border-slate-200/60 bg-white/80 backdrop-blur-xl flex items-center justify-between px-10 md:px-16 z-20 shrink-0 relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[var(--cor-primaria)] to-transparent opacity-50"></div>
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
 
                 <div className="flex items-center gap-8">
                     {escola.logoUrl && (
                         <div className="relative group">
-                            <div className="absolute inset-0 bg-[var(--cor-primaria)] blur-2xl opacity-5 group-hover:opacity-15 transition-opacity duration-1000"></div>
+                            <div className="absolute inset-0 bg-blue-500 blur-2xl opacity-5 group-hover:opacity-15 transition-opacity duration-1000"></div>
                             <div className="relative flex items-center justify-center">
                                 <img
                                     src={escola.logoUrl}
@@ -200,11 +207,11 @@ export default function QuiosqueAutoatendimento() {
                 <div className="flex items-center gap-10 lg:gap-14">
                      <div className="text-right hidden md:flex flex-col items-end">
                         <div className="text-3xl lg:text-4xl font-black text-slate-900 leading-none tracking-tighter tabular-nums">
-                            {format(dataHora, 'HH:mm:ss')}
+                            {format(dataHoraAtual, 'HH:mm:ss')}
                         </div>
                         <div className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 mt-2 flex items-center gap-2">
                             <Clock size={12} strokeWidth={3} className="opacity-50" />
-                            {format(dataHora, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                            {format(dataHoraAtual, "EEEE, dd 'de' MMMM", { locale: ptBR })}
                         </div>
                      </div>
 
@@ -227,7 +234,7 @@ export default function QuiosqueAutoatendimento() {
                                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-20">
                                         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                            Iniciando Camera...
+                                            Iniciando Câmera...
                                         </p>
                                     </div>
                                 )}
@@ -238,7 +245,7 @@ export default function QuiosqueAutoatendimento() {
                                             <ShieldCheck size={32} className="text-rose-500" />
                                         </div>
                                         <h3 className="text-xl font-black uppercase tracking-tighter mb-2">Acesso Negado</h3>
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">O sistema precisa de permissao de camera para funcionar.</p>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">O sistema precisa de permissão de câmera para funcionar.</p>
                                     </div>
                                 )}
 
@@ -247,8 +254,8 @@ export default function QuiosqueAutoatendimento() {
                                         <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center mb-6">
                                             <UserX size={32} className="text-slate-400" />
                                         </div>
-                                        <h3 className="text-xl font-black uppercase tracking-tighter mb-2 text-slate-900">Hardware nao encontrado</h3>
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Nenhuma camera detectada.</p>
+                                        <h3 className="text-xl font-black uppercase tracking-tighter mb-2 text-slate-900">Hardware não encontrado</h3>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Nenhuma câmera detectada.</p>
                                     </div>
                                 )}
 
@@ -266,12 +273,11 @@ export default function QuiosqueAutoatendimento() {
                                 )}
                             </div>
 
-                            <div className="absolute inset-0 border-[10px] rounded-2xl pointer-events-none z-0 opacity-10"
-                                 style={{ borderColor: corDoDia }}></div>
+                            <div className="absolute inset-0 border-[10px] rounded-2xl pointer-events-none z-0 opacity-10 border-blue-500"></div>
 
                             {statusLeitura !== 'AGUARDANDO' && (
                                 <div className={`absolute inset-0 flex flex-col items-center justify-center transition-all z-30 backdrop-blur-sm
-                                    ${confFila.animacoesAtivadas ? 'duration-500 animate-in fade-in zoom-in-105' : 'duration-0'}
+                                    ${configuracaoFila.animacoesAtivadas ? 'duration-500 animate-in fade-in zoom-in-105' : 'duration-0'}
                                     ${statusLeitura === 'SUCESSO' ? 'bg-emerald-600/90' : 'bg-rose-600/90'}
                                     `}>
                                     <div className="w-40 h-40 rounded-2xl bg-white flex items-center justify-center mb-8 shadow-2xl">
@@ -307,7 +313,7 @@ export default function QuiosqueAutoatendimento() {
                                             {ultimoAcesso.aluno.nome_completo}
                                         </h2>
                                         <p className="text-[11px] font-black text-blue-500 uppercase tracking-[0.4em] mb-10">
-                                            Matricula {ultimoAcesso.aluno.matricula}
+                                            Matrícula {ultimoAcesso.aluno.matricula}
                                         </p>
 
                                         <div className="bg-slate-900 text-white px-10 py-5 rounded-[24px] inline-flex items-center gap-4 shadow-3xl hover:translate-y-[-2px] transition-transform">
@@ -321,7 +327,7 @@ export default function QuiosqueAutoatendimento() {
 
                                     <div className="grid grid-cols-2 gap-4 pt-8 border-t border-slate-50">
                                         <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-center">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Horario</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Horário</p>
                                             <p className="text-sm font-black text-slate-700">{ultimoAcesso.hora}</p>
                                         </div>
                                         <div className={`p-4 border rounded-2xl text-center ${statusLeitura === 'SUCESSO' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'}`}>
@@ -348,7 +354,7 @@ export default function QuiosqueAutoatendimento() {
                             )}
                         </div>
                     </div>
-                </aside>
+                </div>
             </main>
 
             <style dangerouslySetInnerHTML={{

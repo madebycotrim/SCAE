@@ -1,6 +1,6 @@
 import { api } from '@/compartilhado/servicos/api';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
-import { servicoAgente } from '@/compartilhado/servicos/servicoAgente';
+import { agenteServico } from '@/compartilhado/servicos/agente.servico';
 
 const log = criarRegistrador('DashboardServico');
 
@@ -41,7 +41,7 @@ export const dashboardServico = {
                 })(),
                 (async () => {
                     try {
-                        const logs = await servicoAgente.obterRegistrosRecentes(desde);
+                        const logs = await agenteServico.obterRegistrosRecentes(desde);
                         return Array.isArray(logs) ? logs : [];
                     } catch (e) {
                         console.warn('[Radar] Agente Local inacessível.');

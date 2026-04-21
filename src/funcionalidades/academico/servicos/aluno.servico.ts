@@ -2,6 +2,7 @@ import { api } from '@/compartilhado/servicos/api';
 import { Registrador } from '@/compartilhado/servicos/auditoria';
 import { criarRegistrador } from '@/compartilhado/utils/registrarLocal';
 import { Aluno, ResultadoImportacao } from '../tipos/academico';
+import { agenteServico } from '@/compartilhado/servicos/agente.servico';
 
 const log = criarRegistrador('AlunoServico');
 
@@ -68,10 +69,8 @@ export const alunoServico = {
             
             log.info(`Aluno ${ehEdicao ? 'atualizado' : 'cadastrado'} online com sucesso`);
 
-            fetch('http://127.0.0.1:1912/sync-now', { 
-                method: 'POST',
-                mode: 'no-cors' 
-            }).catch(() => {});
+            // Notifica o agente local para sincronizar as mudanças
+            agenteServico.forcarSincronia().catch(() => {});
         } catch (erro) {
             log.error('Falha ao salvar aluno online', erro);
             throw erro;
@@ -93,10 +92,8 @@ export const alunoServico = {
             await Registrador.registrar('DELETAR_ALUNO', 'aluno', matricula, { status: 'online_admin' });
             log.info('Aluno removido do servidor com sucesso');
 
-            fetch('http://127.0.0.1:1912/sync-now', { 
-                method: 'POST',
-                mode: 'no-cors' 
-            }).catch(() => {});
+            // Notifica o agente local para sincronizar as mudanças
+            agenteServico.forcarSincronia().catch(() => {});
             
         } catch (erro) {
             log.error('Falha ao remover aluno online', erro);
@@ -191,7 +188,8 @@ export const alunoServico = {
                 await api.enviar('/academico/alunos', novosAlunos);
                 log.info(`Importação concluída: ${novosAlunos.length} alunos salvos no servidor.`);
                 
-                fetch('http://127.0.0.1:1912/sync-now', { method: 'POST', mode: 'no-cors' }).catch(() => {});
+                // Notifica o agente local para sincronizar as mudanças
+                agenteServico.forcarSincronia().catch(() => {});
             } catch (erro) {
                 log.error('Falha ao importar lote no servidor', erro);
                 throw new Error('Falha ao salvar dados no servidor durante a importação.');

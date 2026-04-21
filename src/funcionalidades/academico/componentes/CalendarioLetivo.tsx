@@ -77,12 +77,12 @@ export default function CalendarioLetivo() {
             titulo="Calendário Letivo" 
             subtitulo="Configuração de dias não-letivos e feriados institucionais"
         >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 <CardMetrica
                     label="Dias Não-Letivos"
                     valor={dias.length}
                     icone={CalendarIcon}
-                    bg="bg-indigo-50"
+                    bg="bg-indigo-50/50"
                     text="text-indigo-600"
                     border="border-indigo-100"
                 />
@@ -90,7 +90,7 @@ export default function CalendarioLetivo() {
                     label="Feriados Oficiais"
                     valor={dias.filter(d => d.tipo === 'FERIADO').length}
                     icone={ShieldAlert}
-                    bg="bg-rose-50"
+                    bg="bg-rose-50/50"
                     text="text-rose-600"
                     border="border-rose-100"
                 />
@@ -98,7 +98,7 @@ export default function CalendarioLetivo() {
                     label="Recessos / Pontes"
                     valor={dias.filter(d => d.tipo === 'RECESSO').length}
                     icone={RefreshCw}
-                    bg="bg-amber-50"
+                    bg="bg-amber-50/50"
                     text="text-amber-600"
                     border="border-amber-100"
                 />
@@ -106,7 +106,7 @@ export default function CalendarioLetivo() {
                     label="Conselho / Outros"
                     valor={dias.filter(d => d.tipo === 'CONSELHO' || d.tipo === 'OUTROS').length}
                     icone={Layers}
-                    bg="bg-emerald-50"
+                    bg="bg-emerald-50/50"
                     text="text-emerald-600"
                     border="border-emerald-100"
                 />
@@ -115,43 +115,43 @@ export default function CalendarioLetivo() {
                 
                 {/* Coluna de Adição - Estilo Discreto */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white p-6 rounded-2xl border border-slate-200 sticky top-24 shadow-sm">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center border border-slate-100">
-                                <Plus size={16} />
+                    <div className="bg-white/70 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200/60 sticky top-24 shadow-2xl">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center border border-slate-700 shadow-lg">
+                                <Plus size={18} />
                             </div>
-                            <h2 className="text-[11px] font-bold text-slate-800 uppercase tracking-widest leading-none mt-0.5">Novo Registro</h2>
+                            <h2 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em] leading-none">Novo Registro</h2>
                         </div>
 
-                        <form onSubmit={aoSalvar} className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Data</label>
+                        <form onSubmit={aoSalvar} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-2">Data do Evento</label>
                                 <input 
                                     type="date" 
                                     value={novaData}
                                     onChange={e => definirNovaData(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold text-slate-700 focus:bg-white focus:border-slate-300 outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.5rem] text-sm font-black text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Descrição</label>
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-2">Descrição Oficial</label>
                                 <input 
                                     type="text" 
-                                    placeholder="Ex: Feriado Local"
+                                    placeholder="EX: FERIADO LOCAL"
                                     value={novaDescricao}
                                     onChange={e => definirNovaDescricao(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold text-slate-700 focus:bg-white focus:border-slate-300 outline-none transition-all placeholder:text-slate-300"
+                                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.5rem] text-sm font-black text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all placeholder:text-slate-200 uppercase"
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tipo de Evento</label>
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-2">Natureza do Dia</label>
                                 <select 
                                     value={novoTipo}
                                     onChange={e => definirNovoTipo(e.target.value as any)}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold text-slate-700 focus:bg-white focus:border-slate-300 outline-none transition-all appearance-none cursor-pointer"
+                                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.5rem] text-[11px] font-black text-slate-900 uppercase tracking-widest focus:ring-4 focus:ring-slate-900/5 outline-none transition-all appearance-none cursor-pointer"
                                 >
                                     <option value="FERIADO">Feriado</option>
                                     <option value="RECESSO">Recesso</option>
@@ -163,9 +163,9 @@ export default function CalendarioLetivo() {
                             <button 
                                 type="submit"
                                 disabled={mutationAdicionar.isPending}
-                                className="w-full py-3 bg-slate-800 text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-slate-900 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                                className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.4em] hover:bg-black hover:scale-[1.02] transition-all shadow-2xl active:scale-95 disabled:opacity-50"
                             >
-                                {mutationAdicionar.isPending ? 'Processando...' : 'Adicionar Dia'}
+                                {mutationAdicionar.isPending ? 'Sincronizando...' : 'Publicar Registro'}
                             </button>
                         </form>
 
@@ -178,31 +178,32 @@ export default function CalendarioLetivo() {
                     </div>
                 </div>
 
-                {/* Lista de Dias - Visual Limpo */}
+                {/* Lista de Dias - Visual SaaS High-End */}
                 <div className="lg:col-span-3">
-                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+                    <div className="bg-white/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-200/60 overflow-hidden shadow-2xl">
+                        <div className="p-10 border-b border-slate-100/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-white/40">
                             <div>
-                                <h3 className="text-sm font-bold text-slate-800 tracking-tight">Cronograma de Dias Não-Letivos</h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Ano Letivo 2026</span>
-                                    <div className="w-1 h-1 rounded-full bg-slate-200" />
-                                    <span className="text-[9px] text-emerald-600 font-bold uppercase tracking-widest">Base SEEDF Atualizada</span>
+                                <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2 leading-none">Cronograma Operacional</h3>
+                                <div className="flex items-center gap-3 mt-3">
+                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] bg-slate-100 px-3 py-1 rounded-full">Ciclo 2026</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                    <span className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em]">Sincronia SEEDF Ativa</span>
                                 </div>
                             </div>
                             
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
                                 <button 
                                     onClick={aoSincronizar}
                                     disabled={mutationSincronizar.isPending}
-                                    className="flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-2xl text-[9px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all outline-none active:scale-90 shadow-sm"
+                                    className="flex items-center gap-3 px-6 py-3 bg-slate-900 text-white border border-slate-800 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black transition-all outline-none active:scale-90 shadow-xl"
                                 >
-                                    <RefreshCw size={12} className={mutationSincronizar.isPending ? 'animate-spin' : ''} />
-                                    Sincronizar Base
+                                    <RefreshCw size={14} className={mutationSincronizar.isPending ? 'animate-spin' : ''} />
+                                    Importar Base SEEDF
                                 </button>
-                                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest px-3 py-1 bg-slate-50 rounded-2xl border border-slate-100">
-                                    {Array.isArray(dias) ? dias.length : 0} Dias
-                                </span>
+                                <div className="text-slate-900 text-[10px] font-black uppercase tracking-[0.2em] px-5 py-3 bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center gap-2">
+                                    <Layers size={14} className="text-indigo-500" />
+                                    {Array.isArray(dias) ? dias.length : 0} Registros
+                                </div>
                             </div>
                         </div>
 
@@ -214,15 +215,15 @@ export default function CalendarioLetivo() {
                                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nenhum evento cadastrado</h3>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 divide-x divide-y divide-slate-100 border-b border-slate-100">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 divide-x divide-y divide-slate-100/50 border-b border-slate-100/50">
                                 {dias.sort((a,b) => a.data.localeCompare(b.data)).map(dia => (
-                                    <div key={dia.data} className="p-5 flex flex-col hover:bg-slate-50/50 transition-colors group">
-                                        <div className="flex justify-between items-start mb-3">
+                                    <div key={dia.data} className="p-8 flex flex-col hover:bg-white hover:z-10 hover:shadow-2xl transition-all duration-300 group cursor-default">
+                                        <div className="flex justify-between items-start mb-6">
                                             <div className="flex flex-col">
-                                                <span className="text-[16px] font-black text-slate-800 leading-none">
+                                                <span className="text-[28px] font-black text-slate-900 leading-none tracking-tighter">
                                                     {format(parseISO(dia.data), 'dd')}
                                                 </span>
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                                                <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">
                                                     {format(parseISO(dia.data), 'MMMM', { locale: ptBR })}
                                                 </span>
                                             </div>
@@ -230,31 +231,35 @@ export default function CalendarioLetivo() {
                                                 onClick={() => {
                                                     definirConfirmacao({
                                                         aberto: true,
-                                                        titulo: 'Remover Dia',
-                                                        mensagem: 'Excluir registro do calendário?',
+                                                        titulo: 'Remover Registro',
+                                                        mensagem: `Deseja excluir permanentemente o dia ${format(parseISO(dia.data), 'dd/MM')} do calendário?`,
                                                         variante: 'perigo',
                                                         acao: () => mutationRemover.mutate(dia.data)
                                                     });
                                                 }}
-                                                className="p-1.5 text-slate-200 hover:text-rose-500 transition-all rounded-2xl"
+                                                className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-200 hover:text-rose-600 hover:bg-rose-50 transition-all rounded-xl border border-transparent hover:border-rose-100 opacity-0 group-hover:opacity-100"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
 
-                                        <div className="space-y-1 mt-auto">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className={`w-1 h-1 rounded-full ${
-                                                    dia.tipo === 'FERIADO' ? 'bg-rose-400' :
-                                                    dia.tipo === 'RECESSO' ? 'bg-amber-400' :
-                                                    'bg-slate-400'
+                                        <div className="space-y-4 mt-auto">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className={`w-2 h-2 rounded-full shadow-lg ${
+                                                    dia.tipo === 'FERIADO' ? 'bg-rose-500 shadow-rose-500/20' :
+                                                    dia.tipo === 'RECESSO' ? 'bg-amber-500 shadow-amber-500/20' :
+                                                    'bg-indigo-500 shadow-indigo-500/20'
                                                 }`} />
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                                    {dia.tipo} • {format(parseISO(dia.data), "EEE", { locale: ptBR })}
+                                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${
+                                                    dia.tipo === 'FERIADO' ? 'text-rose-600' :
+                                                    dia.tipo === 'RECESSO' ? 'text-amber-600' :
+                                                    'text-indigo-600'
+                                                }`}>
+                                                    {dia.tipo} • {format(parseISO(dia.data), "EEEE", { locale: ptBR })}
                                                 </span>
                                             </div>
-                                            <h4 className="font-bold text-slate-700 text-[11px] truncate uppercase tracking-tight">
-                                                {dia.descricao || "Evento Sem Descrição"}
+                                            <h4 className="font-black text-slate-900 text-sm uppercase tracking-tight leading-relaxed group-hover:text-indigo-600 transition-colors">
+                                                {dia.descricao || "IDENTIFICAÇÃO PENDENTE"}
                                             </h4>
                                         </div>
                                     </div>

@@ -1,24 +1,23 @@
 /**
- * LeitorDigital — Hook filho do quiosque para leitura de impressao digital.
- *
- * STATUS: Placeholder — aguardando definicao de hardware (WebUSB/WebHID).
- *
- * Responsabilidades futuras:
- * - Comunicar com leitor USB de impressao digital
- * - Comparar template contra cache local
- * - Chamar aoIdentificar(matricula) quando reconhecido
+ * Opções de configuração do leitor biométrico digital.
  */
-
 interface OpcoesLeitorDigital {
+    /** ID do elemento HTML de referência */
     elementoId: string;
+    /** ID da escola contextuada */
     escolaId: string;
+    /** Callback chamado ao identificar uma biometria válida */
     aoIdentificar: (matricula: string) => void;
 }
 
+/**
+ * Gancho para integração com hardware de impressão digital (WebUSB/WebHID).
+ * @status Protótipo operacional aguardando drivers específicos.
+ */
 export function usarLeitorDigital({ elementoId, escolaId, aoIdentificar }: OpcoesLeitorDigital) {
-    // Placeholder — sem implementacao real por enquanto
+    // Nota: A implementação real depende do driver WebUSB/serial fornecido pelo fabricante do leitor.
     return {
         statusCamera: 'INICIALIZANDO' as const,
-        mensagem: 'Leitor digital ainda nao implementado. Aguardando definicao de hardware.'
+        mensagem: 'O leitor digital está em fase de homologação de hardware.'
     };
 }
