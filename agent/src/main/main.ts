@@ -63,7 +63,8 @@ function enviarStatusParaUI() {
                 id: l.id,
                 nome: l.nome,
                 online: (l as any).online !== undefined ? (l as any).online : 'verificando',
-                ip: l.ip
+                ip: l.ip,
+                totalUsuarios: (l as any).totalUsuarios || 0
             }))
         });
     });
