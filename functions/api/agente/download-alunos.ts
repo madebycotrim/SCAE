@@ -1,8 +1,4 @@
-/**
- * api/agente/download-alunos.ts
- * Fornece a base de alunos da escola para o Agente Local fazer cache offline.
- * Versão Ultra-Resiliente: Verifica a existência de tabelas via sqlite_master antes de consultar.
- */
+
 import { ContextoCatraki } from '../../tipos/ambiente';
 import { validarAgente } from './_agente-seguranca';
 

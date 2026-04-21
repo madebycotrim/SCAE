@@ -206,7 +206,6 @@ export default function Turmas() {
             titulo="Lista de Turmas"
             subtitulo="Gerencie as turmas, professores e a ocupação das salas"
             acoes={AcoesHeader}
-            carregando={carregando}
         >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <CardMetrica

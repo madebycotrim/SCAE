@@ -1,9 +1,3 @@
-/**
- * infra/db.ts
- * Persistência local do Agente SCAE - Versão Assíncrona (SQLite3).
- * Persistência local do Agente SCAE - Versão Asíncrona (SQLite3).
- * VERSÃO 3.2: Suporte a Migrações Automáticas Garantidas.
- */
 
 const sqlite3 = require('@journeyapps/sqlcipher').verbose();
 import path from 'path';

@@ -74,9 +74,9 @@ export function PaginaConfiguracoes() {
     if (isLoading) {
         return (
             <LayoutAdministrativo titulo="Configurações">
-                <div className="flex flex-col items-center justify-center py-32 text-slate-400 gap-4">
-                    <Loader2 size={32} className="animate-spin text-indigo-500" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Carregando Preferências</span>
+                <div className="flex flex-col items-center justify-center py-32 gap-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-eletrico" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Carregando Preferências...</span>
                 </div>
             </LayoutAdministrativo>
         );

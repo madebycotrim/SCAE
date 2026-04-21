@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
     Search, Edit2, Ban, Plus, 
     ExternalLink, AlertTriangle, X, Zap,
-    Trash2, Users, Shield, Activity, Layers
+    Trash2, Users, Shield, Activity, Layers, Check
 } from 'lucide-react';
 import { api } from '@/compartilhado/servicos/api';
 import { toast } from 'react-hot-toast';
@@ -507,35 +507,77 @@ export function PaginaGestaoEscolas() {
                             </section>
 
                             {/* Sessão 4: Regras de Negócio */}
-                            <section className="space-y-4 pt-2">
-                                <div className="border-b border-slate-100 pb-2">
-                                    <h4 className="text-sm font-semibold text-slate-800">4. Funcionalidades e Regras de Negócio</h4>
-                                    <p className="text-xs text-slate-500 mt-1">Ative regras vitais de funcionamento da escola.</p>
+                            <section className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                <div className="border-b border-slate-200/60 pb-3 mb-4">
+                                    <h4 className="text-[13px] font-black text-slate-800 uppercase tracking-tight">4. Regras e Lógica de Negócio</h4>
+                                    <p className="text-[11px] text-slate-500 mt-0.5">Defina comportamentos do quiosque local para esta unidade.</p>
                                 </div>
-                                <div className="space-y-4">
-                                    <label className="flex items-start gap-3 cursor-pointer group">
-                                        <input type="checkbox" checked={form.tts_ativado} onChange={(e) => definirForm({...form, tts_ativado: e.target.checked})} className="w-4 h-4 mt-0.5 accent-slate-900 border-slate-300 rounded" />
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">Narração de Voz (TTS) na Portaria</span>
-                                            <p className="text-[11px] text-slate-500">O quiosque anunciará o nome do aluno em voz alta caso o acesso seja autorizado.</p>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {/* CARD TTS */}
+                                    <div 
+                                        className={`relative p-4 rounded-xl border transition-all cursor-pointer shadow-sm group ${form.tts_ativado ? 'bg-white border-eletrico ring-1 ring-eletrico/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                                        onClick={() => definirForm({...form, tts_ativado: !form.tts_ativado})}
+                                    >
+                                        <div className="flex gap-3">
+                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${form.tts_ativado ? 'bg-eletrico/10 text-eletrico' : 'bg-slate-100 text-slate-400 group-hover:text-slate-600'}`}>
+                                                <Zap size={18} />
+                                            </div>
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className={`text-[12px] font-black uppercase tracking-tight ${form.tts_ativado ? 'text-slate-900' : 'text-slate-600'}`}>Leitura TTS (Voz)</h3>
+                                                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${form.tts_ativado ? 'bg-eletrico border-eletrico' : 'border-slate-300'}`}>
+                                                        {form.tts_ativado && <Check size={8} className="text-white" strokeWidth={4} />}
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed">Narração em voz alta de boas-vindas na portaria.</p>
+                                            </div>
                                         </div>
-                                    </label>
-                                    
-                                    <label className="flex items-start gap-3 cursor-pointer group">
-                                        <input type="checkbox" checked={form.saida_obrigatoria} onChange={(e) => definirForm({...form, saida_obrigatoria: e.target.checked})} className="w-4 h-4 mt-0.5 accent-slate-900 border-slate-300 rounded" />
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">Registro de Saída Obrigatório</span>
-                                            <p className="text-[11px] text-slate-500">Força alunos a também registrarem as batidas de saída, computando a permanência na unidade.</p>
-                                        </div>
-                                    </label>
+                                    </div>
 
-                                    <label className="flex items-start gap-3 cursor-pointer group">
-                                        <input type="checkbox" checked={form.config_qr_dinamico} onChange={(e) => definirForm({...form, config_qr_dinamico: e.target.checked})} className="w-4 h-4 mt-0.5 accent-amber-600 border-slate-300 rounded" />
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">Segurança Avançada: QR Code Dinâmico</span>
-                                            <p className="text-[11px] text-slate-500">Exige autenticidade OTP, regerando o QR do aluno constantemente para coibir envios via WhatsApp.</p>
+                                    {/* CARD SAÍDA */}
+                                    <div 
+                                        className={`relative p-4 rounded-xl border transition-all cursor-pointer shadow-sm group ${form.saida_obrigatoria ? 'bg-white border-rose-500 ring-1 ring-rose-500/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                                        onClick={() => definirForm({...form, saida_obrigatoria: !form.saida_obrigatoria})}
+                                    >
+                                        <div className="flex gap-3">
+                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${form.saida_obrigatoria ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-400 group-hover:text-slate-600'}`}>
+                                                <Activity size={18} />
+                                            </div>
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className={`text-[12px] font-black uppercase tracking-tight ${form.saida_obrigatoria ? 'text-slate-900' : 'text-slate-600'}`}>Validar Saída</h3>
+                                                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${form.saida_obrigatoria ? 'bg-rose-500 border-rose-500' : 'border-slate-300'}`}>
+                                                        {form.saida_obrigatoria && <Check size={8} className="text-white" strokeWidth={4} />}
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed">Exigir batida na saída para relatórios precisos.</p>
+                                            </div>
                                         </div>
-                                    </label>
+                                    </div>
+
+                                    {/* CARD QR DINAMICO */}
+                                    <div 
+                                        className={`relative p-4 rounded-xl border transition-all cursor-pointer shadow-sm group sm:col-span-2 ${form.config_qr_dinamico ? 'bg-white border-emerald-500 ring-1 ring-emerald-500/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                                        onClick={() => definirForm({...form, config_qr_dinamico: !form.config_qr_dinamico})}
+                                    >
+                                        <div className="flex gap-3">
+                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${form.config_qr_dinamico ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400 group-hover:text-slate-600'}`}>
+                                                <Shield size={18} />
+                                            </div>
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className={`text-[12px] font-black uppercase tracking-tight ${form.config_qr_dinamico ? 'text-slate-900' : 'text-slate-600'}`}>Segurança OTP Híbrida (QR Dinâmico)</h3>
+                                                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${form.config_qr_dinamico ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}>
+                                                        {form.config_qr_dinamico && <Check size={8} className="text-white" strokeWidth={4} />}
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed max-w-sm">
+                                                    Gera um OTP mutável associado a chave da unidade para coibir o aluno de enviar print screen do App.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </section>
 
