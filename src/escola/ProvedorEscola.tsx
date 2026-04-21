@@ -30,11 +30,18 @@ export interface PerfilEscola {
 
 const EscolaContext = createContext<PerfilEscola | null>(null);
 
+/**
+ * Provedor de contexto que carrega os detalhes da escola baseado no slug da URL.
+ * Injeta as variáveis de estilo (Cores) e define o título da página.
+ */
 export function ProvedorEscola({ children }: { children: ReactNode }) {
     const [perfil, definirPerfil] = useState<PerfilEscola | null>(null);
     const [erro, definirErro] = useState(false);
 
     useEffect(() => {
+        /**
+         * Carrega as configurações da escola via API pública.
+         */
         const carregarPerfilEscola = async () => {
             const slug = resolverSlugDaUrl();
 
@@ -43,60 +50,60 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                 return;
             }
 
-            const apiUrl = '/api';
+            const URL_API = '/api';
 
             try {
-                const resposta = await fetch(`${apiUrl}/publico/detalhes?slug=${slug}`);
+                const resposta = await fetch(`${URL_API}/publico/detalhes?slug=${slug}`);
                 if (!resposta.ok) throw new Error('Escola não encontrada');
                 const json = await resposta.json();
-                const dados = json?.dados || json;
+                const dadosBrutos = json?.dados || json;
 
-                if (!dados || (!dados.id && !dados.nome_escola)) {
+                if (!dadosBrutos || (!dadosBrutos.id && !dadosBrutos.nome_escola)) {
                     throw new Error('Perfil da escola inválido ou incompleto');
                 }
 
-                const data: PerfilEscola = {
-                    id: dados.id,
-                    nomeEscola: dados.nome_escola || dados.nomeEscola,
-                    dominioEmail: dados.dominio_email || dados.dominioEmail,
-                    corPrimaria: dados.cor_primaria || dados.corPrimaria || '#2B59FF',
-                    corSecundaria: dados.cor_secundaria || dados.corSecundaria || '#1e293b',
-                    ttsAtivado: !!(dados.tts_ativado ?? dados.ttsAtivado),
-                    qrDinamico: !!(dados.config_qr_dinamico ?? dados.qrDinamico),
-                    ttsFraseSucesso: dados.config_tts_frase_sucesso || dados.ttsFraseSucesso,
-                    ttsFraseErro: dados.config_tts_frase_erro || dados.ttsFraseErro,
-                    saidaObrigatoria: dados.saida_obrigatoria ?? true,
-                    metodosAcesso: (dados.metodoAcesso || dados.metodo_acesso || 'QRCODE').split(',').map((s: string) => s.trim()).filter(Boolean),
-                    logoUrl: dados.logo_url || dados.logoUrl,
-                    nomeDPO: dados.nome_dpo || dados.nomeDPO || 'Encarregado SCAE',
-                    emailDPO: dados.email_dpo || dados.emailDPO || 'privacidade@catraki.com.br',
-                    provedorAuth: dados.provedorAuth || 'google',
-                    urlAgente: dados.url_agente || dados.urlAgente,
+                const dadosEscola: PerfilEscola = {
+                    id: dadosBrutos.id,
+                    nomeEscola: dadosBrutos.nome_escola || dadosBrutos.nomeEscola,
+                    dominioEmail: dadosBrutos.dominio_email || dadosBrutos.dominioEmail,
+                    corPrimaria: dadosBrutos.cor_primaria || dadosBrutos.corPrimaria || '#2B59FF',
+                    corSecundaria: dadosBrutos.cor_secundaria || dadosBrutos.corSecundaria || '#1e293b',
+                    ttsAtivado: !!(dadosBrutos.tts_ativado ?? dadosBrutos.ttsAtivado),
+                    qrDinamico: !!(dadosBrutos.config_qr_dinamico ?? dadosBrutos.qrDinamico),
+                    ttsFraseSucesso: dadosBrutos.config_tts_frase_sucesso || dadosBrutos.ttsFraseSucesso,
+                    ttsFraseErro: dadosBrutos.config_tts_frase_erro || dadosBrutos.ttsFraseErro,
+                    saidaObrigatoria: dadosBrutos.saida_obrigatoria ?? true,
+                    metodosAcesso: (dadosBrutos.metodoAcesso || dadosBrutos.metodo_acesso || 'QRCODE').split(',').map((s: string) => s.trim()).filter(Boolean),
+                    logoUrl: dadosBrutos.logo_url || dadosBrutos.logoUrl,
+                    nomeDPO: dadosBrutos.nome_dpo || dadosBrutos.nomeDPO || 'Encarregado SCAE',
+                    emailDPO: dadosBrutos.email_dpo || dadosBrutos.emailDPO || 'privacidade@catraki.com.br',
+                    provedorAuth: dadosBrutos.provedorAuth || 'google',
+                    urlAgente: dadosBrutos.url_agente || dadosBrutos.urlAgente,
                 };
 
                 // Aplica identidade visual da escola via CSS variables
-                document.documentElement.style.setProperty('--cor-primaria', data.corPrimaria);
-                document.documentElement.style.setProperty('--cor-secundaria', data.corSecundaria);
-                document.title = data.nomeEscola;
+                document.documentElement.style.setProperty('--cor-primaria', dadosEscola.corPrimaria);
+                document.documentElement.style.setProperty('--cor-secundaria', dadosEscola.corSecundaria);
+                document.title = dadosEscola.nomeEscola;
 
-                // Meta theme-color para mobile browsers
-                let metaTheme = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
-                if (!metaTheme) {
-                    metaTheme = document.createElement('meta');
-                    metaTheme.name = 'theme-color';
-                    document.head.appendChild(metaTheme);
+                // Meta theme-color para navegadores mobile
+                let metaTema = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement;
+                if (!metaTema) {
+                    metaTema = document.createElement('meta');
+                    metaTema.name = 'theme-color';
+                    document.head.appendChild(metaTema);
                 }
-                metaTheme.content = data.corPrimaria;
+                metaTema.content = dadosEscola.corPrimaria;
 
                 // Salvar escola_id para uso pelo interceptor da API
-                sessionStorage.setItem('escola_id', data.id);
+                sessionStorage.setItem('escola_id', dadosEscola.id);
                 
                 // Cache persistente para o servicoAgente (acesso via Localhost/Túnel)
-                storageEscola.set('perfil', data);
+                storageEscola.set('perfil', dadosEscola);
 
-                definirPerfil(data);
+                definirPerfil(dadosEscola);
             } catch (err) {
-                console.error('Erro ao carregar perfil da escola', err);
+                console.error('[Escola] Erro ao carregar perfil:', err);
                 definirErro(true);
             }
         };
@@ -127,8 +134,9 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
 }
 
 /**
- * Hook para acessar o perfil da escola atual.
- * Deve ser usado dentro de ProvedorEscola.
+ * Hook para acessar o perfil da escola atual que estiver no contexto.
+ * @returns PerfilEscola ou erro se usado fora do provedor.
+ * @throws {Error} Se usado fora do ProvedorEscola
  */
 export const usarEscola = (): PerfilEscola => {
     const ctx = useContext(EscolaContext);
@@ -136,6 +144,10 @@ export const usarEscola = (): PerfilEscola => {
     return ctx;
 };
 
+/**
+ * Hook para acessar o perfil da escola atual sem disparar erro se não existir.
+ * @returns PerfilEscola ou null
+ */
 export const usarEscolaOpcional = (): PerfilEscola | null => {
     return useContext(EscolaContext);
 };

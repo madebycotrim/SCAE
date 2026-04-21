@@ -4,21 +4,21 @@ import path from 'path';
 import { app } from 'electron';
 import fs from 'fs';
 
-let database: any = null;
-let dbPronto = false;
-let dbPromessa: Promise<any> | null = null;
+let instanciaBanco: any = null;
+let bancoOperacional = false;
+let promessaInicializacao: Promise<any> | null = null;
 
 /**
  * Fecha o banco e deleta o arquivo físico se solicitado.
  */
 export async function resetarBancoLocal() {
-    if (database) {
+    if (instanciaBanco) {
         return new Promise<void>((resolve) => {
-            database?.close((err: any) => {
+            instanciaBanco?.close((err: any) => {
                 if (err) console.error('[DB] Erro ao fechar para reset:', err.message);
-                database = null;
-                dbPronto = false;
-                dbPromessa = null;
+                instanciaBanco = null;
+                bancoOperacional = false;
+                promessaInicializacao = null;
                 
                 const dbDir = path.join(app.getPath('userData'), 'data');
                 const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
@@ -38,9 +38,9 @@ export async function resetarBancoLocal() {
  * Inicializa o banco de dados e garante que as tabelas/colunas estejam prontas.
  */
 export async function inicializarBanco(): Promise<any> {
-    if (dbPromessa) return dbPromessa;
+    if (promessaInicializacao) return promessaInicializacao;
 
-    dbPromessa = new Promise((resolve, reject) => {
+    promessaInicializacao = new Promise((resolve, reject) => {
         const dbDir = path.join(app.getPath('userData'), 'data');
         if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 
@@ -137,9 +137,9 @@ export async function inicializarBanco(): Promise<any> {
                     db.run(`CREATE INDEX IF NOT EXISTS idx_alunos_matricula ON alunos_cache (matricula)`);
                     db.run(`CREATE INDEX IF NOT EXISTS idx_registros_sinc ON registros_acesso (sincronizado)`);
 
-                    database = db;
-                    dbPronto = true;
-                    console.log('[DB] Base de dados operacional e cifrada.');
+                    instanciaBanco = db;
+                    bancoOperacional = true;
+                    console.info('[DB] Base de dados operacional e cifrada.');
                     resolve(db);
                 });
             });
@@ -148,24 +148,28 @@ export async function inicializarBanco(): Promise<any> {
         inicializarComSeguranca();
     });
 
-    return dbPromessa;
+    return promessaInicializacao;
 }
 
+/**
+ * Retorna a instância atual do banco (Singleton).
+ * @returns Instância do banco SQLite/SQLCipher
+ */
 export function getDb(): any {
-  if (!database) {
+  if (!instanciaBanco) {
       const dbDir = path.join(app.getPath('userData'), 'data');
       const dbPath = path.join(dbDir, 'catraki-agente-v3.db');
       
       try {
-          database = new sqlite3.Database(dbPath);
+          instanciaBanco = new sqlite3.Database(dbPath);
           const { config } = require('./config');
           const chaveMestra = config.agente_secret || 'catraki-secret-padrao';
-          database.run(`PRAGMA key = '${chaveMestra}'`);
+          instanciaBanco.run(`PRAGMA key = '${chaveMestra}'`);
       } catch (e) {
-          console.error('[DB] Erro fatal no fallback do banco. Tentando boot via inicializarBanco...');
+          console.error('[DB] Erro fatal no fallback do banco:', e);
       }
   }
-  return database;
+  return instanciaBanco;
 }
 
 /**
@@ -200,6 +204,12 @@ export async function getSql<T = any>(sql: string, params: any[] = []): Promise<
   });
 }
 
+/**
+ * Busca todas as linhas que satisfaçam a query.
+ * @param sql - Comando SELECT
+ * @param params - Parâmetros da query
+ * @returns Lista de registros
+ */
 export async function allSql<T = any>(sql: string, params: any[] = []): Promise<T[]> {
   const db = await inicializarBanco();
   return new Promise((resolve, reject) => {
@@ -210,6 +220,10 @@ export async function allSql<T = any>(sql: string, params: any[] = []): Promise<
   });
 }
 
+/**
+ * Remove registros sincronizados com mais de 30 dias para otimizar o banco.
+ * @returns Promessa resolvida após limpeza e VACUUM
+ */
 export async function limparRegistrosAntigos() {
   try {
       const db = await inicializarBanco();
@@ -219,6 +233,6 @@ export async function limparRegistrosAntigos() {
           });
       });
   } catch (e: any) {
-      console.error('[Gari Digital] Erro:', e.message);
+      console.error('[DB] Erro na limpeza de registros:', e.message);
   }
 }

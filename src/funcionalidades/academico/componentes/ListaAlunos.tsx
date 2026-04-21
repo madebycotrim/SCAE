@@ -17,7 +17,9 @@ interface ListaAlunosProps {
     obterCorAvatar: (id: string) => string;
     carregando?: boolean;
 }
-
+/**
+ * Lista de visualização de alunos com paginação e ações em lote.
+ */
 export default function ListaAlunos({
     alunos,
     alunosSelecionados,
@@ -205,20 +207,20 @@ export default function ListaAlunos({
 
                             <div className="flex gap-2 items-center">
                                 {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                                    let pageNum = i + 1;
+                                    let numeroPagina = i + 1;
                                     if (totalPaginas > 5 && paginaAtual > 3) {
-                                        pageNum = Math.min(paginaAtual - 2 + i, totalPaginas - 4 + i);
+                                        numeroPagina = Math.min(paginaAtual - 2 + i, totalPaginas - 4 + i);
                                     }
                                     return (
                                         <button
-                                            key={pageNum}
-                                            onClick={() => aoMudarPagina(pageNum)}
-                                            className={`w-11 h-11 rounded-xl text-[11px] font-black tracking-widest transition-all ${paginaAtual === pageNum
+                                            key={numeroPagina}
+                                            onClick={() => aoMudarPagina(numeroPagina)}
+                                            className={`w-11 h-11 rounded-xl text-[11px] font-black tracking-widest transition-all ${paginaAtual === numeroPagina
                                                 ? 'bg-white text-slate-900 shadow-2xl scale-[1.1] z-10'
                                                 : 'text-slate-400 hover:text-white hover:bg-white/10'
                                                 }`}
                                         >
-                                            {pageNum}
+                                            {numeroPagina}
                                         </button>
                                     );
                                 })}

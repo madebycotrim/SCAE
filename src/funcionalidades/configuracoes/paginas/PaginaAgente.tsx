@@ -48,6 +48,9 @@ interface StatusAgente {
 import { ModalComunicacaoVisual } from '@/funcionalidades/configuracoes/componentes/ModalComunicacaoVisual';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
+/**
+ * Dashboard de monitoramento e controle remoto do Catraki Edge Agent.
+ */
 export default function PaginaAgente() {
     const navegar = useNavigate();
     const escola = usarEscola();
@@ -98,6 +101,9 @@ export default function PaginaAgente() {
           ).slice(0, 5)
         : [];
 
+    /**
+     * Verifica o batimento cardíaco do agente na nuvem.
+     */
     const verificarSaudeGlobal = async () => {
         try {
             const res = await api.obter<any>('/agente/status');
@@ -105,16 +111,24 @@ export default function PaginaAgente() {
         } catch {} 
     };
 
+    /**
+     * Envia um comando remoto para a fila do agente.
+     * @param acao - Nome da ação (ex: REBOOT_AGENT)
+     * @param params - Parâmetros extras
+     */
     const enviarComandoRemoto = async (acao: string, params: any = {}) => {
-        const toastId = toast.loading('Enviando ordem para o Agente...');
+        const idAviso = toast.loading('Enviando ordem para o Agente...');
         try {
             await api.enviar('/agente/comandos', { acao, params });
-            toast.success('Comando enfileirado! O Agente executará em instantes.', { id: toastId });
+            toast.success('Comando enfileirado! O Agente executará em instantes.', { id: idAviso });
         } catch (e: any) {
-            toast.error(`Falha ao enviar: ${e.message}`, { id: toastId });
+            toast.error(`Falha ao enviar: ${e.message}`, { id: idAviso });
         }
     };
 
+    /**
+     * Tenta conexão direta com o agente rodando no localhost.
+     */
     const verificarAgenteLocal = async () => {
         try {
             // Tenta 127.0.0.1 primeiro
@@ -138,13 +152,18 @@ export default function PaginaAgente() {
         }
     };
 
+    /**
+     * Inicia o fluxo de captura de digital no hardware local.
+     * @param matricula - Protocolo do aluno
+     * @param nome - Nome completo do aluno
+     */
     const iniciarCadastroBiometrico = async (matricula: string, nome: string) => {
         if (!statusLocal?.ok) {
             toast.error('Agente offline localmente. Use o computador da portaria para cadastrar.');
             return;
         }
         setCadastrandoPara(matricula);
-        const toastId = toast.loading(`Aguardando digital de ${nome.split(' ')[0]} no leitor...`);
+        const idAviso = toast.loading(`Aguardando digital de ${nome.split(' ')[0]} no leitor...`);
         try {
             const res = await fetch('http://127.0.0.1:1912/enroll', {
                 method: 'POST',
@@ -154,29 +173,28 @@ export default function PaginaAgente() {
             const data = await res.json();
             if (data.ok) {
                 await api.enviar('/agente/confirmar-biometria', { matricula });
-                toast.success('Digital vinculada!', { id: toastId });
-                setBiometriasConfirmadas(prev => new Set(prev).add(matricula));
+                toast.success('Digital vinculada!', { id: idAviso });
+                setBiometriasConfirmadas(anterior => new Set(anterior).add(matricula));
                 setTimeout(atualizarAlunos, 1500);
             } else {
-                const msgErro = data.erro || 'Falha na captura.';
-                if (msgErro.includes('cadastrada')) {
-                    toast.dismiss(toastId);
+                const mensagemErro = data.erro || 'Falha na captura.';
+                if (mensagemErro.includes('cadastrada')) {
+                    toast.dismiss(idAviso);
                     setEstadoConfirmacao({
                         aberto: true,
                         titulo: 'Digital Já Cadastrada',
                         mensagem: 'O leitor identificou que esta digital já pertence a outro aluno ou já está vinculada a este registro em outro terminal. O processo foi cancelado para evitar duplicidade.',
                         variante: 'perigo',
                         semCancelar: true,
-                        // Apenas um botão de OK para fechar
-                        aoConfirmar: () => setEstadoConfirmacao(prev => ({ ...prev, aberto: false })),
+                        aoConfirmar: () => setEstadoConfirmacao(anterior => ({ ...anterior, aberto: false })),
                         textoConfirmar: 'Entendido'
                     });
                 } else {
-                    toast.error(msgErro, { id: toastId });
+                    toast.error(mensagemErro, { id: idAviso });
                 }
             }
         } catch (e) {
-            toast.error('Erro de conexão local.', { id: toastId });
+            toast.error('Erro de conexão local.', { id: idAviso });
         } finally {
             setCadastrandoPara(null);
         }
@@ -212,12 +230,12 @@ export default function PaginaAgente() {
         return () => clearInterval(interval);
     }, []);
 
-    const isOnlineNuvem = statusNuvem?.agente_online;
+    const nuvemConectada = statusNuvem?.agente_online;
 
     // Componente de Radar para o Cabeçalho
     const [radarAberto, setRadarAberto] = useState(false);
     const leitores = statusNuvem?.hardware || [];
-    const onlineCount = leitores.filter((l: any) => l.online).length;
+    const totalOnline = leitores.filter((l: any) => l.online).length;
 
     const BotoesAcao = (
         <div className="flex items-center gap-4">
@@ -230,8 +248,8 @@ export default function PaginaAgente() {
                 </div>
                 <div className="w-px h-3 bg-slate-200" />
                 <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${isOnlineNuvem ? 'bg-eletrico animate-pulse shadow-[0_0_8px_rgba(79,70,229,0.5)]' : 'bg-rose-500'}`} />
-                    <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Nuvem: {isOnlineNuvem ? 'Online' : 'Offline'}</span>
+                    <div className={`w-2 h-2 rounded-full ${nuvemConectada ? 'bg-eletrico animate-pulse shadow-[0_0_8px_rgba(79,70,229,0.5)]' : 'bg-rose-500'}`} />
+                    <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Nuvem: {nuvemConectada ? 'Online' : 'Offline'}</span>
                 </div>
             </div>
 
@@ -300,8 +318,8 @@ export default function PaginaAgente() {
                         `}
                     >
                         <div className="relative">
-                            <Radar size={16} className={radarAberto || onlineCount > 0 ? 'animate-pulse' : ''} />
-                            {onlineCount > 0 && (
+                            <Radar size={16} className={radarAberto || totalOnline > 0 ? 'animate-pulse' : ''} />
+                            {totalOnline > 0 && (
                                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white" />
                             )}
                         </div>
@@ -321,7 +339,7 @@ export default function PaginaAgente() {
                                     <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
                                         <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipamentos Ativos</h4>
                                         <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase">
-                                            {onlineCount} Online
+                                            {totalOnline} Online
                                         </span>
                                     </div>
                                     <div className="p-2 space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar">
@@ -530,8 +548,8 @@ export default function PaginaAgente() {
                             </div>
                             <div className="space-y-3">
                                 {(statusLocal?.stats?.ultimosEventos || []).map((ev, i) => {
-                                    const isErro = ev.tipo === 'NEGADO' || ev.tipo === 'TURNO_ERRADO' || ev.tipo === 'FORA_HORARIO';
-                                    const isSaida = ev.tipo === 'SAIDA';
+                                    const éErro = ev.tipo === 'NEGADO' || ev.tipo === 'TURNO_ERRADO' || ev.tipo === 'FORA_HORARIO';
+                                    const éSaída = ev.tipo === 'SAIDA';
 
                                     return (
                                         <motion.div 
@@ -541,8 +559,8 @@ export default function PaginaAgente() {
                                             className="p-3 bg-white border border-slate-100 rounded-2xl flex items-center justify-between group hover:border-eletrico/20 hover:shadow-sm transition-all"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${isErro ? 'bg-rose-50 text-rose-500' : isSaida ? 'bg-amber-50 text-amber-500' : 'bg-emerald-50 text-emerald-500'}`}>
-                                                    {isErro ? <XCircle size={16} /> : isSaida ? <Zap size={16} /> : <Activity size={16} />}
+                                                <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${éErro ? 'bg-rose-50 text-rose-500' : éSaída ? 'bg-amber-50 text-amber-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                                    {éErro ? <XCircle size={16} /> : éSaída ? <Zap size={16} /> : <Activity size={16} />}
                                                 </div>
                                                 <div>
                                                     <p className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">{ev.nome}</p>
@@ -558,7 +576,7 @@ export default function PaginaAgente() {
                                                 <p className="text-[11px] font-black text-slate-900 leading-none mb-1">
                                                     {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
-                                                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase ${isErro ? 'bg-rose-100 text-rose-600' : isSaida ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase ${éErro ? 'bg-rose-100 text-rose-600' : éSaída ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
                                                     {ev.tipo}
                                                 </span>
                                             </div>

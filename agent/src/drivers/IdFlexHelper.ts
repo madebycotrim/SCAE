@@ -37,7 +37,15 @@ export const IdFlexHelper = {
     return `${area},${numero}`;
   },
 
-  /** Realiza requisição REST para o iDFlex com gerenciamento de fila por IP */
+  /** 
+   * Realiza uma requisição REST para o iDFlex com gerenciamento de fila por IP.
+   * Garante que as requisições sejam enviadas sequencialmente para o hardware.
+   * @param cfg - Configurações do leitor (IP/Token)
+   * @param endpoint - Endpoint da API fcgi
+   * @param dados - Payload (JSON ou Buffer)
+   * @param msTimeout - Tempo limite em milissegundos
+   * @returns Resposta da API processada
+   */
   async requisitar(cfg: IdFlexConfig, endpoint: string, dados: any = {}, msTimeout = 5000): Promise<any> {
     const ip = cfg.ip;
 
@@ -136,10 +144,16 @@ export const IdFlexHelper = {
     });
   },
 
-  /** Autentica e retorna o token de sessão */
-  async login(cfg: IdFlexConfig, user = 'admin', pass = 'admin'): Promise<string> {
+  /** 
+   * Autentica no hardware e retorna o token de sessão.
+   * @param cfg - Configurações do leitor
+   * @param usuario - Login (padrão 'admin')
+   * @param senha - Password (padrão 'admin')
+   * @returns Token de sessão (session)
+   */
+  async login(cfg: IdFlexConfig, usuario = 'admin', senha = 'admin'): Promise<string> {
     try {
-      const res = await this.requisitar(cfg, 'login.fcgi', { login: user, password: pass });
+      const res = await this.requisitar(cfg, 'login.fcgi', { login: usuario, password: senha });
       if (!res.session) throw new Error('Falha na autenticação do iDFlex: Session não retornada');
       return res.session;
     } catch (e: any) {

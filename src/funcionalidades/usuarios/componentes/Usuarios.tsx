@@ -25,6 +25,9 @@ import type { UsuarioVisualizacao } from '../tipos/usuario.esquema';
 
 const log = criarRegistrador('Usuarios');
 
+/**
+ * Componente de gestão de usuários e permissões da unidade.
+ */
 export default function Usuarios() {
     const { usuarioAtual } = usarAutenticacao();
     const { ehCentral, pode } = usarPermissoes();
@@ -41,9 +44,9 @@ export default function Usuarios() {
     const [usuarioEmEdicao, definingUsuarioEmEdicao] = useState<UsuarioVisualizacao | null>(null);
     const [usuarioParaExcluir, definirUsuarioParaExcluir] = useState<UsuarioVisualizacao | null>(null);
 
-    const canAdd = pode('criar', 'usuarios');
-    const canEdit = pode('editar', 'usuarios');
-    const canDeleteOrToggle = pode('deletar', 'usuarios') || pode('desativar', 'usuarios');
+    const podeAdicionar = pode('criar', 'usuarios');
+    const podeEditar = pode('editar', 'usuarios');
+    const podeExcluirOuAlternar = pode('deletar', 'usuarios') || pode('desativar', 'usuarios');
 
     const salvarUsuario = async (dados: UsuarioVisualizacao) => {
         try {
@@ -111,7 +114,7 @@ export default function Usuarios() {
         );
     });
 
-    const PapeisDisponiveis = [
+    const PAPEIS_DISPONIVEIS = [
         { id: 'ADMIN', nome: 'Administrador', cor: 'indigo' },
         { id: 'COORDENACAO', nome: 'Coordenação', cor: 'emerald' },
         { id: 'SECRETARIA', nome: 'Secretaria', cor: 'amber' },
@@ -122,7 +125,7 @@ export default function Usuarios() {
     // --- Renderização de Segurança ---
     if (!pode('visualizar', 'usuarios')) return null;
 
-    const AcoesHeader = canAdd && (
+    const AcoesCabecalho = podeAdicionar && (
         <Botao variante="primario" tamanho="sm" icone={Plus} onClick={novoUsuario}>
             Novo Acesso
         </Botao>
@@ -132,7 +135,7 @@ export default function Usuarios() {
         <LayoutAdministrativo
             titulo="Gestão de Usuários"
             subtitulo="Gerencie quem pode acessar e operar o sistema na unidade"
-            acoes={AcoesHeader}
+            acoes={AcoesCabecalho}
         >
             <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
                 <div className="flex flex-col gap-2 flex-1 w-full text-left">
@@ -163,7 +166,7 @@ export default function Usuarios() {
                                 <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Funcionário</th>
                                 <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Permissão</th>
                                 <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Situação</th>
-                                { (canEdit || canDeleteOrToggle) && <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th> }
+                                { (podeEditar || podeExcluirOuAlternar) && <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th> }
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -195,9 +198,9 @@ export default function Usuarios() {
                                 </tr>
                             ) : (
                                 (usuariosFiltrados || []).map((u: UsuarioVisualizacao) => {
-                                    const papelInfo = PapeisDisponiveis.find(p => p.id === u.papel);
-                                    const papelNome = papelInfo?.nome || u.papel || 'Portaria';
-                                    const papelCor = papelInfo?.cor || 'slate';
+                                    const infoPapel = PAPEIS_DISPONIVEIS.find(p => p.id === u.papel);
+                                    const nomePapel = infoPapel?.nome || u.papel || 'Portaria';
+                                    const corPapel = infoPapel?.cor || 'slate';
 
                                     return (
                                         <tr key={u.email} className={`hover:bg-slate-50/50 transition-all group ${!u.ativo ? 'opacity-70 grayscale' : ''}`}>
@@ -218,13 +221,13 @@ export default function Usuarios() {
                                                 </div>
                                             </td>
                                             <td className="py-5 px-8 text-center">
-                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave ${papelCor === 'eletrico' ? 'bg-eletrico/10 text-eletrico border-eletrico/20' : 
-                                                    papelCor === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                        papelCor === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                                            papelCor === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-slate-200/60 shadow-suave ${corPapel === 'eletrico' ? 'bg-eletrico/10 text-eletrico border-eletrico/20' : 
+                                                    corPapel === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                        corPapel === 'amber' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                            corPapel === 'rose' ? 'bg-rose-50 text-rose-700 border-rose-200' :
                                                                 'bg-slate-50 text-slate-700 border-slate-200'
                                                     }`}>
-                                                    {papelNome}
+                                                    {nomePapel}
                                                 </span>
                                             </td>
                                             <td className="py-5 px-8">
@@ -232,7 +235,7 @@ export default function Usuarios() {
                                             </td>
                                             <td className="py-5 px-8 text-right">
                                                 <div className="flex items-center justify-end gap-3">
-                                                    {canEdit && (
+                                                    {podeEditar && (
                                                         <Botao
                                                             variante="ghost"
                                                             tamanho="sm"
@@ -244,7 +247,7 @@ export default function Usuarios() {
                                                         </Botao>
                                                     )}
 
-                                                    {canDeleteOrToggle && u.email !== usuarioAtual?.email && (
+                                                    {podeExcluirOuAlternar && u.email !== usuarioAtual?.email && (
                                                         <Botao
                                                             tamanho="sm"
                                                             variante={ehCentral ? 'perigo' : u.ativo ? 'secundario' : 'primario'}
@@ -287,6 +290,9 @@ export default function Usuarios() {
     );
 }
 
+/**
+ * Componente interno para exibição de status com badge semântico.
+ */
 function BadgeStatus({ ativo, pendente }: { ativo: boolean, pendente?: boolean }) {
     if (pendente) {
         return (

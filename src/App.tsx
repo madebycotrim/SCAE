@@ -96,8 +96,8 @@ function InicializadorSync() {
 }
 
 /**
- * Shell da escola — carrega perfil da escola e provê contextos.
- * Renderiza <Outlet /> para as rotas filhas.
+ * Shell da escola — carrega perfil da escola e provê contextos necessários.
+ * Renderiza o Outlet para as rotas filhas.
  */
 function EscolaShell() {
     return (
@@ -120,6 +120,9 @@ function EscolaShell() {
     );
 }
 
+/**
+ * Componente principal da aplicação (Roots e Router).
+ */
 function App() {
     return (
         <Router>

@@ -25,10 +25,19 @@ import { relatorioServico } from '../servicos/relatorioServico';
 
 const log = criarRegistrador('Relatorios');
 
+/**
+ * Dashboard de extração de relatórios e inteligência de dados.
+ */
 export default function Relatorios() {
     const { podeVerLogs } = usarPermissoes();
-    const anoAtual = new Date().getFullYear();
+    const ANO_ATUAL = new Date().getFullYear();
 
+    /**
+     * Calcula as datas de início e fim baseadas no ano e semestre selecionados.
+     * @param ano - Ano letivo
+     * @param semestre - 1º ou 2º semestre
+     * @returns Objeto com datas ISO 8601
+     */
     const calcularPeriodo = (ano: number, semestre: 1 | 2) => {
         if (semestre === 1) return { dataInicio: `${ano}-01-01`, dataFim: `${ano}-06-30` };
         return { dataInicio: `${ano}-07-01`, dataFim: `${ano}-12-31` };
@@ -36,7 +45,7 @@ export default function Relatorios() {
 
     const [filtros, definirFiltros] = useState(() => {
         const semestre = new Date().getMonth() < 6 ? 1 : 2;
-        return { anoLetivo: anoAtual, semestre: semestre as 1 | 2, ...calcularPeriodo(anoAtual, semestre as 1 | 2), turma: 'Todas' };
+        return { anoLetivo: ANO_ATUAL, semestre: semestre as 1 | 2, ...calcularPeriodo(ANO_ATUAL, semestre as 1 | 2), turma: 'Todas' };
     });
 
     const [mostrarDropdownTurma, definirMostrarDropdownTurma] = useState(false);
@@ -67,8 +76,12 @@ export default function Relatorios() {
         { staleTime: 5 * 60 * 1000 }
     );
 
+    /**
+     * Aciona o motor de geração de PDF para o relatório solicitado.
+     * @param tipo - Categoria do relatório (Frequência, Evasão, etc)
+     */
     const gerarRelatorio = async (tipo: string) => {
-        const toastId = toast.loading(`Compilando rastro: ${tipo}...`);
+        const idAviso = toast.loading(`Compilando rastro: ${tipo}...`);
         try {
             const relatoriosEspeciais = [
                 'Risco de Evasão', 
@@ -87,10 +100,10 @@ export default function Relatorios() {
             }
 
             await Registrador.registrar('EXPORTAR_RELATORIO', 'relatorio', tipo, { filtros, formato: 'PDF' });
-            toast.success('Documento compilado com sucesso', { id: toastId });
+            toast.success('Documento compilado com sucesso', { id: idAviso });
         } catch (e: any) {
-            log.error('Erro ao exportar documento', e);
-            toast.error(e.message || 'Falha na compilação do rastro.', { id: toastId });
+            console.error('[Relatorios] Falha na exportação:', { tipo, erro: e.message });
+            toast.error(e.message || 'Falha na compilação do rastro.', { id: idAviso });
         }
     };
 
@@ -322,7 +335,7 @@ export default function Relatorios() {
                                         
                                         <div className="space-y-4">
                                             <div className="grid grid-cols-3 gap-3 bg-slate-50 p-2.5 rounded-[1.8rem] border border-slate-100 shadow-inner">
-                                                {[anoAtual - 1, anoAtual, anoAtual + 1].map((ano) => (
+                                                {[ANO_ATUAL - 1, ANO_ATUAL, ANO_ATUAL + 1].map((ano) => (
                                                     <button
                                                         key={ano}
                                                         onClick={() => {

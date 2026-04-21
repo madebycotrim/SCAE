@@ -31,6 +31,10 @@ import { usarTermoBusca } from '@/compartilhado/contextos/ContextoBuscaGlobal';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
 import ModalConfirmacao from '@/compartilhado/componentes/ModalConfirmacao';
 
+/**
+ * Componente principal da Trilha de Auditoria.
+ * Permite visualizar, buscar e inspecionar logs de segurança do sistema.
+ */
 export default function RegistroAuditoria() {
     const { podeVerLogs, ehAdmin, ehCentral } = usarPermissoes();
     const { dados: logsBrutos, carregando, carregandoInicial, recarregar: carregarLogs } = usarConsulta(
@@ -53,8 +57,8 @@ export default function RegistroAuditoria() {
     const [mapaUsuarios, definirMapaUsuarios] = useState<Record<string, string>>({});
     const [confirmacao, definirConfirmacao] = useState<{ aberto: boolean, acao: () => void, titulo: string, mensagem: string, variante?: 'perigo' | 'padrao' } | null>(null);
 
-    const LOGS_PER_PAGE = 15;
-    const EH_ADMIN_SUPREMO = ehCentral; // << Mudança aqui: de ehAdmin para ehCentral
+    const LOGS_POR_PAGINA = 15;
+    const EH_ADMIN_CENTRAL = ehCentral;
 
     useEffect(() => {
         carregarUsuarios();
@@ -78,8 +82,12 @@ export default function RegistroAuditoria() {
         }
     };
 
+    /**
+     * Remove um registro de log de auditoria (Ação restrita).
+     * @param id - UUID do log a ser excluído
+     */
     const excluirLog = (id: string) => {
-        if (!EH_ADMIN_SUPREMO) return;
+        if (!EH_ADMIN_CENTRAL) return;
 
         definirConfirmacao({
             aberto: true,
@@ -95,7 +103,7 @@ export default function RegistroAuditoria() {
 
                     if (logSelecionado?.id === id) definirLogSelecionado(null);
                 } catch (e) {
-                    console.error(e);
+                    console.error('[Auditoria] Erro ao excluir log:', e);
                     toast.error("Erro ao remover registro.");
                 }
             }
@@ -128,36 +136,39 @@ export default function RegistroAuditoria() {
         return matchBusca && matchFiltro;
     });
 
-    const totalPaginas = Math.ceil(logsFiltrados.length / LOGS_PER_PAGE) || 1;
-    const logsPaginados = logsFiltrados.slice((pagina - 1) * LOGS_PER_PAGE, pagina * LOGS_PER_PAGE);
+    const totalPaginas = Math.ceil(logsFiltrados.length / LOGS_POR_PAGINA) || 1;
+    const logsPaginados = logsFiltrados.slice((pagina - 1) * LOGS_POR_PAGINA, pagina * LOGS_POR_PAGINA);
 
-    const StatusBadge = ({ action }: { action: string }) => {
-        const act = action?.toUpperCase() || '';
+    /**
+     * Componente interno para exibir o status da ação com badge semântico.
+     */
+    const BadgeStatus = ({ acao }: { acao: string }) => {
+        const act = acao?.toUpperCase() || '';
 
-        let colorClasses = 'text-slate-500 bg-slate-400/10 border-slate-200';
+        let classesCor = 'text-slate-500 bg-slate-400/10 border-slate-200';
         let Icone = Terminal;
 
         if (act.includes('SUCESSO') || act.includes('LOGIN')) {
-            colorClasses = 'text-emerald-600 bg-emerald-500/10 border-emerald-100';
+            classesCor = 'text-emerald-600 bg-emerald-500/10 border-emerald-100';
             Icone = Activity;
         }
         if (act.includes('CRIAR') || act.includes('ADICIONAR')) {
-            colorClasses = 'text-indigo-600 bg-indigo-500/10 border-indigo-100';
+            classesCor = 'text-indigo-600 bg-indigo-500/10 border-indigo-100';
             Icone = RefreshCw;
         }
         if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) {
-            colorClasses = 'text-rose-600 bg-rose-500/10 border-rose-100';
+            classesCor = 'text-rose-600 bg-rose-500/10 border-rose-100';
             Icone = ShieldOff;
         }
         if (act.includes('ATUALIZAR') || act.includes('EDITAR')) {
-            colorClasses = 'text-amber-600 bg-amber-500/10 border-amber-100';
+            classesCor = 'text-amber-600 bg-amber-500/10 border-amber-100';
             Icone = RefreshCw;
         }
 
         return (
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${colorClasses}`}>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${classesCor}`}>
                 <Icone size={12} strokeWidth={3} />
-                {action}
+                {acao}
             </div>
         );
     };
@@ -290,7 +301,7 @@ export default function RegistroAuditoria() {
                                             <div className="absolute left-[36px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-200 border-2 border-white group-hover/row:bg-indigo-500 group-hover/row:scale-150 group-hover/row:shadow-[0_0_10px_rgba(79,70,229,1)] transition-all duration-300 z-10" />
                                             
                                             <div className="flex items-center">
-                                                <StatusBadge action={log.acao} />
+                                                <BadgeStatus acao={log.acao} />
                                             </div>
                                         </td>
                                         <td className="px-6 py-8 align-middle">
@@ -336,7 +347,7 @@ export default function RegistroAuditoria() {
                                                     <Eye size={20} />
                                                 </button>
 
-                                                {EH_ADMIN_SUPREMO && (
+                                                {EH_ADMIN_CENTRAL && (
                                                     <button
                                                         onClick={() => excluirLog(log.id)}
                                                         className="w-12 h-12 rounded-[1.2rem] bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-xl active:scale-90"
