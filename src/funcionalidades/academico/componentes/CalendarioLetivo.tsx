@@ -82,40 +82,32 @@ export default function CalendarioLetivo() {
                     label="Dias Não-Letivos"
                     valor={dias.length}
                     icone={CalendarIcon}
-                    bg="bg-indigo-50/50"
-                    text="text-indigo-600"
-                    border="border-indigo-100"
+                    variante="indigo"
                 />
                 <CardMetrica
                     label="Feriados Oficiais"
                     valor={dias.filter(d => d.tipo === 'FERIADO').length}
                     icone={ShieldAlert}
-                    bg="bg-rose-50/50"
-                    text="text-rose-600"
-                    border="border-rose-100"
+                    variante="laranja"
                 />
                 <CardMetrica
                     label="Recessos / Pontes"
                     valor={dias.filter(d => d.tipo === 'RECESSO').length}
                     icone={RefreshCw}
-                    bg="bg-amber-50/50"
-                    text="text-amber-600"
-                    border="border-amber-100"
+                    variante="azul"
                 />
                 <CardMetrica
                     label="Conselho / Outros"
                     valor={dias.filter(d => d.tipo === 'CONSELHO' || d.tipo === 'OUTROS').length}
                     icone={Layers}
-                    bg="bg-emerald-50/50"
-                    text="text-emerald-600"
-                    border="border-emerald-100"
+                    variante="verde"
                 />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 
                 {/* Coluna de Adição - Estilo Discreto */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white/70 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-200/60 sticky top-24 shadow-2xl">
+                    <div className="bg-white border border-slate-200 p-8 rounded-2xl sticky top-24 shadow-sm">
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center border border-slate-700 shadow-lg">
                                 <Plus size={18} />
@@ -130,7 +122,7 @@ export default function CalendarioLetivo() {
                                     type="date" 
                                     value={novaData}
                                     onChange={e => definirNovaData(e.target.value)}
-                                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.5rem] text-sm font-black text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-black text-slate-900 focus:bg-white outline-none transition-all"
                                     required
                                 />
                             </div>
@@ -142,7 +134,7 @@ export default function CalendarioLetivo() {
                                     placeholder="EX: FERIADO LOCAL"
                                     value={novaDescricao}
                                     onChange={e => definirNovaDescricao(e.target.value)}
-                                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.5rem] text-sm font-black text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all placeholder:text-slate-200 uppercase"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-black text-slate-900 focus:bg-white outline-none transition-all placeholder:text-slate-200 uppercase"
                                 />
                             </div>
 
@@ -151,7 +143,7 @@ export default function CalendarioLetivo() {
                                 <select 
                                     value={novoTipo}
                                     onChange={e => definirNovoTipo(e.target.value as any)}
-                                    className="w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.5rem] text-[11px] font-black text-slate-900 uppercase tracking-widest focus:ring-4 focus:ring-slate-900/5 outline-none transition-all appearance-none cursor-pointer"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-black text-slate-900 uppercase tracking-widest focus:bg-white outline-none transition-all appearance-none cursor-pointer"
                                 >
                                     <option value="FERIADO">Feriado</option>
                                     <option value="RECESSO">Recesso</option>
@@ -163,7 +155,7 @@ export default function CalendarioLetivo() {
                             <button 
                                 type="submit"
                                 disabled={mutationAdicionar.isPending}
-                                className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.4em] hover:bg-black hover:scale-[1.02] transition-all shadow-2xl active:scale-95 disabled:opacity-50"
+                                className="w-full py-5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-black transition-all shadow-lg active:scale-95 disabled:opacity-50"
                             >
                                 {mutationAdicionar.isPending ? 'Sincronizando...' : 'Publicar Registro'}
                             </button>
@@ -180,8 +172,8 @@ export default function CalendarioLetivo() {
 
                 {/* Lista de Dias - Visual SaaS High-End */}
                 <div className="lg:col-span-3">
-                    <div className="bg-white/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-200/60 overflow-hidden shadow-2xl">
-                        <div className="p-10 border-b border-slate-100/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-white/40">
+                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div className="p-10 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-slate-50">
                             <div>
                                 <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.3em] mb-2 leading-none">Cronograma Operacional</h3>
                                 <div className="flex items-center gap-3 mt-3">

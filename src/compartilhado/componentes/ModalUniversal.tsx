@@ -37,14 +37,14 @@ export default function ModalUniversal({
     };
 
     const cores = {
-        indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-100', ring: 'border-indigo-200' },
-        blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100', ring: 'border-blue-200' },
-        red: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100', ring: 'border-red-200' },
-        emerald: { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-100', ring: 'border-green-200' },
-        amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100', ring: 'border-amber-200' },
-        rose: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100', ring: 'border-rose-200' },
-        violet: { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-100', ring: 'border-violet-200' },
-        slate: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-100', ring: 'border-gray-200' }
+        indigo: { bg: 'bg-blue-50/30', text: 'text-blue-600', border: 'border-blue-100/50', ring: 'border-blue-100' },
+        blue: { bg: 'bg-blue-50/30', text: 'text-blue-600', border: 'border-blue-100/50', ring: 'border-blue-100' },
+        red: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200', ring: 'border-rose-200' },
+        emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', ring: 'border-emerald-200' },
+        amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', ring: 'border-amber-200' },
+        rose: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200', ring: 'border-rose-200' },
+        violet: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', ring: 'border-slate-200' },
+        slate: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', ring: 'border-slate-200' }
     };
 
     const tema = cores[cor] || cores.indigo;
@@ -70,7 +70,7 @@ export default function ModalUniversal({
 
     return createPortal(
         <div
-            className="fixed inset-0 bg-slate-900/60 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 bg-slate-900/40 z-[9999] flex items-center justify-center p-4"
             onClick={(e) => {
                 if (e.target === e.currentTarget) aoFechar();
             }}
@@ -80,20 +80,20 @@ export default function ModalUniversal({
             aria-describedby={subtitulo ? "modal-subtitulo" : undefined}
         >
             <div className={`
-                bg-white rounded-2xl shadow-md w-full ${larguras[tamanho] || larguras.md} 
-                flex flex-col max-h-[90vh] border border-slate-100 ring-1 ring-black/5 overflow-hidden
-                animate-zoom-in relative transform transition-all
+                bg-white rounded-xl shadow-xl w-full ${larguras[tamanho] || larguras.md} 
+                flex flex-col max-h-[90vh] border border-slate-200 overflow-hidden
+                animate-in fade-in zoom-in-95 duration-200 relative
             `}>
                 {/* Header Universal - Sticky */}
                 <div className={`
                     shrink-0 p-5 flex items-center gap-4 border-b border-slate-100 
-                    ${tema.bg} bg-opacity-60 backdrop-blur-sm relative z-20
+                    ${tema.bg} relative z-20
                 `}>
                     <div className={`
-                        p-2.5 rounded-2xl bg-white ring-1 ${tema.ring} shrink-0 
+                        w-10 h-10 rounded-xl bg-white border border-slate-200 shrink-0 
                         ${tema.text} flex items-center justify-center
                     `}>
-                        <Icone size={24} strokeWidth={2} aria-hidden="true" />
+                        <Icone size={20} strokeWidth={2} aria-hidden="true" />
                     </div>
 
                     <div className="flex-1 pt-0.5 min-w-0">
@@ -111,12 +111,12 @@ export default function ModalUniversal({
                         onClick={aoFechar}
                         aria-label="Fechar diálogo"
                         className="
-                            group shrink-0 p-2 rounded-2xl transition-all duration-200
-                            text-slate-400 hover:text-rose-500 hover:bg-white hover:ring-1 hover:ring-rose-100
+                            group shrink-0 p-2 rounded-lg transition-all duration-150
+                            text-slate-400 hover:text-slate-900 hover:bg-slate-100
                         "
                         title="Fechar (ESC)"
                     >
-                        <X size={20} strokeWidth={2.5} aria-hidden="true" />
+                        <X size={18} strokeWidth={2} aria-hidden="true" />
                     </button>
                 </div>
 

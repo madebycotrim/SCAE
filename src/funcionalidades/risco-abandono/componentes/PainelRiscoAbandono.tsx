@@ -147,7 +147,7 @@ export default function PainelRiscoAbandono() {
                 </div>
 
                 {/* Toolbar de Filtros Premium */}
-                <div className="bg-white/40 backdrop-blur-md border border-slate-200/60 shadow-xl p-4 rounded-[2rem]">
+                <div className="bg-white border border-slate-200 shadow-sm p-4 rounded-2xl">
                     <BarraFiltro className="bg-transparent border-none shadow-none p-0">
                         <div className="flex flex-col gap-2 flex-1 w-full">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2 leading-none">Localizar Estudante</label>
@@ -159,7 +159,7 @@ export default function PainelRiscoAbandono() {
                                     definirTermoPesquisa(e.target.value);
                                     definirPaginaAtual(1);
                                 }}
-                                className="w-full h-12 bg-white/80 border-slate-200 rounded-2xl"
+                                className="w-full h-12 bg-slate-50 border-slate-200 rounded-2xl"
                             />
                         </div>
 
@@ -187,7 +187,7 @@ export default function PainelRiscoAbandono() {
                 </div>
 
                 {/* Tabela de Alertas Estilo SaaS Elite */}
-                <CartaoConteudo className="bg-white border-slate-200 shadow-2xl rounded-[1.5rem] overflow-hidden">
+                <CartaoConteudo className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
                     {carregando ? (
                         <div className="py-20 flex flex-col items-center gap-4 text-slate-300">
                              <Loader2 size={40} className="animate-spin text-indigo-500" />
@@ -282,7 +282,7 @@ export default function PainelRiscoAbandono() {
                 >
                     <div className="space-y-10 pb-6">
                         {/* Header do Estudante (Estilo Black Card) */}
-                        <div className="bg-slate-900 rounded-[2.5rem] p-10 border border-slate-800 shadow-2xl relative overflow-hidden group">
+                        <div className="bg-slate-900 rounded-2xl p-10 border border-slate-800 shadow-xl relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[120px] rounded-full group-hover:bg-rose-500/10 transition-colors duration-1000"></div>
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
                                 <div>
@@ -294,7 +294,7 @@ export default function PainelRiscoAbandono() {
                                         <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">{alertaFaltasAtivo.turma_nome}</span>
                                     </div>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 backdrop-blur-xl px-8 py-5 rounded-[2rem] text-center shadow-inner">
+                                <div className="bg-white/5 border border-white/10 px-8 py-5 rounded-2xl text-center shadow-inner">
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] block mb-2">Monitoramento</span>
                                     <BadgeStatus status={alertaFaltasAtivo.status} />
                                 </div>
@@ -302,8 +302,8 @@ export default function PainelRiscoAbandono() {
                         </div>
 
                         {/* Motivo do Alerta (Banner Rose) */}
-                        <div className="bg-rose-50/80 backdrop-blur-sm rounded-3xl p-8 border border-rose-100 flex items-start gap-8 shadow-xl shadow-rose-900/5">
-                            <div className="w-16 h-16 bg-rose-600 text-white rounded-[1.5rem] flex items-center justify-center border-4 border-rose-500/30 shadow-2xl shrink-0">
+                        <div className="bg-rose-50 rounded-2xl p-8 border border-rose-100 flex items-start gap-8 shadow-sm">
+                            <div className="w-16 h-16 bg-rose-600 text-white rounded-2xl flex items-center justify-center border-4 border-rose-500/30 shadow-lg shrink-0">
                                 <ShieldAlert size={32} strokeWidth={2.5} />
                             </div>
                             <div>
@@ -329,13 +329,13 @@ export default function PainelRiscoAbandono() {
                                         <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300">Acessando Database...</span>
                                     </div>
                                 ) : historicoAcessos.length === 0 ? (
-                                    <div className="text-center py-20 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center gap-4">
+                                    <div className="text-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center gap-4">
                                         <History size={48} className="text-slate-200" />
                                         <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] max-w-[250px] leading-relaxed">Nenhum registro de batida encontrado.</p>
                                     </div>
                                 ) : (
                                     historicoAcessos.map(registro => (
-                                        <div key={registro.id} className="flex justify-between items-center px-8 py-6 bg-white border border-slate-100 rounded-3xl hover:border-indigo-200 transition-all group">
+                                        <div key={registro.id} className="flex justify-between items-center px-8 py-6 bg-white border border-slate-100 rounded-2xl hover:border-indigo-200 transition-all group">
                                             <div className="flex items-center gap-6">
                                                 <div className={`w-3.5 h-3.5 rounded-full ${registro.tipo_movimentacao === 'ENTRADA' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
                                                 <span className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">{registro.tipo_movimentacao}</span>
@@ -356,7 +356,7 @@ export default function PainelRiscoAbandono() {
                                 fullWidth
                                 tamanho="lg"
                                 onClick={() => definirAlertaFaltasAtivo(null)}
-                                className="h-16 rounded-[2rem] text-xs font-black uppercase tracking-widest"
+                                className="h-16 rounded-2xl text-xs font-black uppercase tracking-widest"
                             >
                                 Fechar Dossiê
                             </Botao>
@@ -374,7 +374,7 @@ export default function PainelRiscoAbandono() {
 function BadgeStatus({ status }: { status: StatusRiscoAbandono }) {
     if (status === 'PENDENTE') {
         return (
-            <span className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white bg-rose-600 shadow-xl shadow-rose-600/20 border-b-4 border-rose-800 active:scale-95 transition-all">
+            <span className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white bg-rose-600 shadow-xl shadow-rose-600/20 border-b-4 border-rose-800 active:scale-95 transition-all">
                 <ShieldAlert size={14} /> Urgente
             </span>
         );
@@ -398,8 +398,8 @@ function BadgeStatus({ status }: { status: StatusRiscoAbandono }) {
  */
 function CardMetrica({ label, valor, icone: Icone, bg, text, border }: { label: string, valor: string | number, icone: any, bg: string, text: string, border: string }) {
     return (
-        <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl flex items-center gap-6 group transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
-            <div className={`w-16 h-16 rounded-3xl ${bg} ${text} flex items-center justify-center shrink-0 border-2 ${border} shadow-inner group-hover:scale-110 transition-transform duration-700`}>
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-6 group transition-all duration-500 hover:shadow-md hover:-translate-y-1">
+            <div className={`w-16 h-16 rounded-2xl ${bg} ${text} flex items-center justify-center shrink-0 border-2 ${border} shadow-inner group-hover:scale-110 transition-transform duration-700`}>
                 <Icone size={28} strokeWidth={2.5} />
             </div>
             <div className="flex flex-col gap-1 min-w-0">

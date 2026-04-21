@@ -103,7 +103,7 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                 if (inicializadoRef.current) aoReceberNovos(); // Notifica o pai para atualizar KPIs (Presentes Hoje, etc)
                             }
                             
-                            return [...unicos, ...prev].slice(0, 15);
+                            return [...unicos, ...anterior].slice(0, 15);
                         });
                     }
                 }
@@ -124,7 +124,7 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
     }, [aoReceberNovos]);
 
     return (
-        <CartaoConteudo className="h-full flex flex-col bg-white border border-slate-200 shadow-suave rounded-2xl overflow-hidden group">
+        <CartaoConteudo className="h-full flex flex-col bg-white border border-slate-200 shadow-suave rounded-xl overflow-hidden group">
             <div className="px-6 py-5 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <RadarIcon />
@@ -150,12 +150,12 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                                 key={reg.id}
                                 initial={{ opacity: 0, x: -20, scale: 0.95 }}
                                 animate={{ opacity: 1, x: 0, scale: 1 }}
-                                className={`p-4 bg-white border border-slate-100 rounded-2xl shadow-sm transition-colors flex items-center justify-between group/card ${
+                                className={`p-4 bg-white border border-slate-100 rounded-xl shadow-sm transition-colors flex items-center justify-between group/card ${
                                     reg.tipo_movimentacao === 'NEGADO' ? 'hover:border-rose-200' : 'hover:border-emerald-200'
                                 }`}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover/card:scale-110 ${
+                                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover/card:scale-110 ${
                                         reg.tipo_movimentacao === 'NEGADO' 
                                             ? 'bg-rose-50 text-rose-500' 
                                             : ehSaida ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'
@@ -309,7 +309,7 @@ export default function Painel() {
                                     }
                                 });
                             }}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95"
                         >
                             <Trash2 size={14} /> Purga de Histórico
                         </button>
@@ -319,65 +319,46 @@ export default function Painel() {
         >
             <div className="space-y-10 pb-16">
                 {/* --- LINHA DE KPIs LUXURY 2XL --- */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <CardMetrica
                         label="Fluxo Estudantil"
                         valor={estatisticas.presentesHoje}
-                        subtitulo={`${estatisticas.totalAlunos > 0 ? Math.round((estatisticas.presentesHoje / estatisticas.totalAlunos) * 100) : 0}% DA INSTITUIÇÃO`}
+                        subtitulo={`${estatisticas.totalAlunos > 0 ? Math.round((estatisticas.presentesHoje / estatisticas.totalAlunos) * 100) : 0}% da massa crítica`}
                         icone={CheckCircle}
-                        bg="bg-emerald-50/50"
-                        text="text-emerald-600"
-                        border="border-emerald-100"
                         tendencia={estatisticas.tendenciaFrequencia}
+                        variante="verde"
                     />
                     <CardMetrica
                         label="Alertas de Atraso"
                         valor={estatisticas.atrasosHoje}
-                        subtitulo="ANOMALIAS CRONOLÓGICAS"
+                        subtitulo="Anomalias Crônicas"
                         icone={Clock}
-                        bg="bg-amber-50/50"
-                        text="text-amber-600"
-                        border="border-amber-100"
                         inverterTendencia
+                        variante="laranja"
                     />
                     <CardMetrica
-                        label="Evasão Registrada"
+                        label="Saídas Registradas"
                         valor={estatisticas.saidasHoje}
-                        subtitulo="DESCOMPRESSÃO DE FLUXO"
+                        subtitulo="Descompressão de Fluxo"
                         icone={LogOut}
-                        bg="bg-indigo-50/50"
-                        text="text-indigo-600"
-                        border="border-indigo-100"
+                        variante="indigo"
                     />
                     <CardMetrica
-                        label="Risco de Abandono"
+                        label="Risco Acadêmico"
                         valor={estatisticas.alunosEmRisco}
-                        subtitulo="DÉFICIT DE FREQUÊNCIA"
+                        subtitulo="Déficit de Frequência"
                         icone={AlertTriangle}
-                        bg="bg-rose-50/50"
-                        text="text-rose-600"
-                        border="border-rose-100"
                         inverterTendencia
+                        variante="roxo"
                     />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-10 gap-10 items-start">
                     {/* Gráfico Analítico SaaS de Elite */}
-                    <div className="lg:col-span-6 bg-white/40 backdrop-blur-xl border border-slate-200/60 rounded-[2.5rem] overflow-hidden shadow-2xl p-10 min-h-[550px] flex flex-col relative group">
-                        <div className="absolute top-0 right-0 p-10">
-                            <div className="flex items-center gap-3 bg-slate-900 px-5 py-2.5 rounded-2xl shadow-xl">
-                                <TrendingUp size={16} className="text-emerald-400" />
-                                <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Média de Frequência</span>
-                            </div>
-                        </div>
-
-                        <div className="mb-12">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Activity size={18} className="text-indigo-500" />
-                                <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none">Análise Volumétrica</h3>
-                            </div>
-                            <h4 className="text-3xl font-black text-slate-900 uppercase tracking-tighter leading-none">Tendência de Acessos</h4>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">Dados processados em tempo real na rede SCAE</p>
+                    <div className="lg:col-span-6 bg-white border border-slate-200 rounded-xl p-8 min-h-[550px] flex flex-col relative">
+                        <div className="mb-10">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Frequência Semanal</h3>
+                            <h4 className="text-2xl font-bold text-slate-900 tracking-tight">Tendência de Acessos</h4>
                         </div>
 
                         <div className="flex-1 w-full relative min-h-[300px]">
@@ -387,24 +368,24 @@ export default function Painel() {
                                 plugins: { 
                                     legend: { display: false },
                                     tooltip: {
-                                        backgroundColor: '#0f172a',
+                                        backgroundColor: '#000',
                                         titleFont: { size: 10, weight: 'bold' },
-                                        bodyFont: { size: 12, weight: 'bold' },
-                                        padding: 12,
-                                        cornerRadius: 12,
+                                        bodyFont: { size: 11 },
+                                        padding: 10,
+                                        cornerRadius: 8,
                                         displayColors: false
                                     }
                                 },
                                 scales: {
                                     y: { 
                                         beginAtZero: true, 
-                                        grid: { color: 'rgba(241, 245, 249, 0.5)' },
+                                        grid: { color: '#f1f5f9' },
                                         border: { display: false },
-                                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+                                        ticks: { font: { size: 9 }, color: '#94a3b8' }
                                     },
                                     x: { 
                                         grid: { display: false },
-                                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+                                        ticks: { font: { size: 9 }, color: '#94a3b8' }
                                     }
                                 }
                             }} />
@@ -435,26 +416,14 @@ export default function Painel() {
 
                     {/* Live Radar Lateral (Elite surveillance Terminal) */}
                     <div className="lg:col-span-4 h-full">
-                        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl h-full min-h-[550px] flex flex-col relative">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(43,89,255,0.1),transparent)] pointer-events-none" />
-                            
-                            <div className="px-8 py-8 border-b border-white/5 flex items-center justify-between relative z-10">
+                        <div className="bg-[#0a0c10] border border-slate-800 rounded-xl overflow-hidden h-full min-h-[550px] flex flex-col relative">
+                            <div className="px-8 py-7 border-b border-white/5 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="relative flex items-center justify-center w-8 h-8">
-                                        <div className="absolute w-full h-full bg-indigo-500 rounded-full animate-ping opacity-20" />
-                                        <div className="absolute w-4 h-4 bg-indigo-500 rounded-full border-2 border-slate-900 shadow-xl" />
-                                    </div>
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                     <div>
-                                        <h4 className="text-[11px] font-black text-white uppercase tracking-[0.5em] leading-none mb-1.5">Live Radar</h4>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,1)]" />
-                                            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Monitoramento Ativo</span>
-                                        </div>
+                                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest leading-none mb-1">Live Radar</h4>
+                                        <p className="text-[8px] font-medium text-slate-500 uppercase tracking-tight">Sincronização em tempo real</p>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                                    <Wifi size={14} className="text-indigo-400" />
-                                    <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">Sinc v2</span>
                                 </div>
                             </div>
 
@@ -470,10 +439,10 @@ export default function Painel() {
                                                 key={reg.id}
                                                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                                                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                className={`p-5 bg-white/5 border border-white/10 rounded-[1.8rem] transition-all duration-300 flex items-center justify-between group/card hover:bg-white/10 hover:scale-[1.02] hover:border-white/20`}
+                                                className={`p-5 bg-white/5 border border-white/10 rounded-xl transition-all duration-300 flex items-center justify-between group/card hover:bg-white/10 hover:scale-[1.02] hover:border-white/20`}
                                             >
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                                                         reg.tipo_movimentacao === 'NEGADO' 
                                                             ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
                                                             : isSaida ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'

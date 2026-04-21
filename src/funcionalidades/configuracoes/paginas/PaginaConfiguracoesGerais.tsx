@@ -157,7 +157,7 @@ export function PaginaConfiguracoesGerais() {
                             className="bg-white/40 backdrop-blur-3xl border border-slate-200/60 rounded-[2.5rem] p-8 flex flex-col justify-between gap-8 shadow-xl"
                         >
                             <div className="flex gap-6">
-                                <div className={`w-14 h-14 rounded-[1.5rem] flex items-center justify-center shrink-0 shadow-lg ${metodoAcesso === 'QRCODE' ? 'bg-slate-900 text-white' : 'bg-emerald-500 text-white'}`}>
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${metodoAcesso === 'QRCODE' ? 'bg-slate-900 text-white' : 'bg-emerald-500 text-white'}`}>
                                     {metodoAcesso === 'QRCODE' ? <Smartphone size={28} /> : <Fingerprint size={28} />}
                                 </div>
                                 <div className="space-y-2">
@@ -181,7 +181,7 @@ export function PaginaConfiguracoesGerais() {
                             className="bg-white/40 backdrop-blur-3xl border border-slate-200/60 rounded-[2.5rem] p-8 flex flex-col justify-between gap-8 shadow-xl"
                         >
                             <div className="flex gap-6">
-                                <div className={`w-14 h-14 rounded-[1.5rem] flex items-center justify-center shrink-0 shadow-lg ${saidaObrigatoria ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${saidaObrigatoria ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
                                     {saidaObrigatoria ? <DoorClosed size={28} /> : <DoorOpen size={28} />}
                                 </div>
                                 <div className="space-y-2">
@@ -204,10 +204,10 @@ export function PaginaConfiguracoesGerais() {
                             <motion.div 
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="col-span-full bg-white/40 backdrop-blur-3xl border border-slate-200/60 rounded-[3rem] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl"
+                                className="col-span-full bg-white border border-slate-200 rounded-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-10 shadow-sm"
                             >
                                 <div className="flex gap-8 items-start">
-                                    <div className={`w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 transition-all shadow-xl ${qrDinamico ? 'bg-indigo-600 text-white ring-8 ring-indigo-500/10' : 'bg-slate-100 text-slate-400'}`}>
+                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-all shadow-sm ${qrDinamico ? 'bg-indigo-600 text-white ring-8 ring-indigo-50' : 'bg-slate-100 text-slate-400'}`}>
                                         <ShieldAlert size={32} />
                                     </div>
                                     <div className="space-y-3 pt-1">
@@ -224,7 +224,7 @@ export function PaginaConfiguracoesGerais() {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="p-2 bg-slate-900/5 rounded-3xl flex h-14 w-full md:w-[320px] shrink-0 border border-slate-200/50">
+                                <div className="p-2 bg-slate-50 rounded-2xl flex h-14 w-full md:w-[320px] shrink-0 border border-slate-100">
                                     <button onClick={() => definirQrDinamico(false)} className={`flex-1 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!qrDinamico ? 'bg-white text-slate-900 shadow-xl scale-[1.05]' : 'text-slate-400 hover:text-slate-500'}`}>
                                         Estático
                                     </button>
@@ -244,10 +244,10 @@ export function PaginaConfiguracoesGerais() {
                         <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Interface de Voz (TTS)</h2>
                     </div>
 
-                    <div className="bg-white/40 backdrop-blur-3xl border border-slate-200/60 rounded-[3rem] overflow-hidden shadow-2xl hover:border-pink-200 transition-all">
+                    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:border-pink-200 transition-all">
                         <div className="p-10 flex flex-col md:flex-row items-center justify-between gap-10">
                             <div className="flex gap-8 items-start">
-                                <div className={`w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 transition-all shadow-xl ${vozAtivada ? 'bg-pink-500 text-white ring-8 ring-pink-500/10' : 'bg-slate-100 text-slate-400'}`}>
+                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-all shadow-sm ${vozAtivada ? 'bg-pink-500 text-white ring-8 ring-pink-50' : 'bg-slate-100 text-slate-400'}`}>
                                     {vozAtivada ? <Volume2 size={32} /> : <VolumeX size={32} />}
                                 </div>
                                 <div className="space-y-3 pt-1">
@@ -284,7 +284,7 @@ export function PaginaConfiguracoesGerais() {
                                                 value={fraseSucesso} 
                                                 onChange={(e) => definirFraseSucesso(e.target.value)} 
                                                 placeholder="BEM-VINDO AO SCAE, {NOME}!" 
-                                                className="w-full bg-white border border-slate-200 rounded-[1.5rem] px-6 h-16 text-sm font-black text-slate-900 placeholder:text-slate-200 focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all uppercase tracking-tight" 
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 h-16 text-sm font-black text-slate-900 placeholder:text-slate-200 focus:bg-white outline-none transition-all uppercase tracking-tight" 
                                             />
                                         </div>
 
@@ -298,11 +298,11 @@ export function PaginaConfiguracoesGerais() {
                                                 value={fraseErro} 
                                                 onChange={(e) => definirFraseErro(e.target.value)} 
                                                 placeholder="ACESSO NEGADO. PROCURE A SECRETARIA." 
-                                                className="w-full bg-white border border-slate-200 rounded-[1.5rem] px-6 h-16 text-sm font-black text-slate-900 placeholder:text-slate-200 focus:ring-4 focus:ring-rose-500/5 outline-none transition-all uppercase tracking-tight" 
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 h-16 text-sm font-black text-slate-900 placeholder:text-slate-200 focus:bg-white outline-none transition-all uppercase tracking-tight" 
                                             />
                                         </div>
                                     </div>
-                                    <div className="mt-8 p-6 bg-slate-900 border border-slate-800 rounded-[1.5rem] flex items-center gap-5 shadow-2xl">
+                                    <div className="mt-8 p-6 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-5 shadow-lg">
                                         <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-indigo-400 shrink-0">
                                             <Smartphone size={20} />
                                         </div>
@@ -331,13 +331,13 @@ export function PaginaConfiguracoesGerais() {
                         )}
                     </div>
 
-                    <div className="bg-slate-950 rounded-[3rem] p-10 md:p-14 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] border border-slate-800 relative overflow-hidden group">
+                    <div className="bg-slate-950 rounded-2xl p-10 md:p-14 shadow-xl border border-slate-800 relative overflow-hidden group">
                         <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 4px)', backgroundSize: '100% 4px' }} />
 
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-14 relative z-10">
                             <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
                                 <div className="relative">
-                                    <div className={`w-28 h-28 rounded-[2rem] flex items-center justify-center transition-all duration-700 shadow-2xl ${
+                                    <div className={`w-28 h-28 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-xl ${
                                         agenteOnline 
                                             ? 'bg-indigo-600 text-white shadow-indigo-600/40' 
                                             : 'bg-slate-900 text-slate-700 border border-slate-800'

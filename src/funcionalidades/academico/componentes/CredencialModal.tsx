@@ -122,7 +122,7 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                     
                     {!modoDigital ? (
                         /* MODO QR CODE (PADRÃO) */
-                        <div id="area-impressao-credencial" className="relative group p-6 bg-white border border-slate-200 rounded-2xl shadow-suave flex flex-col items-center w-full max-w-[300px]">
+                        <div id="area-impressao-credencial" className="relative group p-6 bg-white border border-slate-200 rounded-xl flex flex-col items-center w-full">
                             {/* Cabeçalho da Escola */}
                             <div className="w-full flex justify-center items-center mb-6">
                                 <div className="flex items-center gap-3">
@@ -142,37 +142,37 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                             </div>
 
                             <div className="mt-6 text-center w-full">
-                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-1 truncate px-2">{aluno.nome_completo}</h3>
+                                <h3 className="text-lg font-bold text-slate-900 tracking-tight mb-1 truncate px-2">{aluno.nome_completo}</h3>
                                 <div className="flex flex-col items-center gap-1">
-                                    <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">MAT: {aluno.matricula}</span>
-                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Turma: {aluno.turma_id || 'NÃO ENTURMADO'}</span>
+                                    <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tighter">Mat: {aluno.matricula}</span>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Turma: {aluno.turma_id || 'NÃO ENTURMADO'}</span>
                                 </div>
                             </div>
                         </div>
                     ) : (
                         /* MODO BIOMETRIA (DIGITAL) */
-                        <div className="w-full space-y-6">
-                            <div className="p-8 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center">
-                                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 border-2 shadow-sm transition-all ${
-                                    statusBio === 'CADASTRADO' ? 'bg-emerald-50 border-emerald-500 text-emerald-600' : 
-                                    statusBio === 'HARDWARE_OFFLINE' ? 'bg-orange-50 border-orange-400 text-orange-500' :
-                                    statusBio === 'ERRO_AGENTE' ? 'bg-rose-50 border-rose-300 text-rose-500' :
+                        <div className="w-full space-y-4">
+                            <div className="p-8 bg-slate-50 border border-slate-200 rounded-xl flex flex-col items-center text-center">
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 border transition-all ${
+                                    statusBio === 'CADASTRADO' ? 'bg-emerald-50 border-emerald-200 text-emerald-500' : 
+                                    statusBio === 'HARDWARE_OFFLINE' ? 'bg-orange-50 border-orange-200 text-orange-500' :
+                                    statusBio === 'ERRO_AGENTE' ? 'bg-rose-50 border-rose-200 text-rose-500' :
                                     'bg-slate-100 border-slate-200 text-slate-400'
                                 }`}>
-                                    {statusBio === 'VERIFICANDO' ? <Loader2 size={32} className="animate-spin" /> : 
-                                     statusBio === 'CADASTRADO' ? <CheckCircle2 size={32} /> :
-                                     statusBio === 'ERRO_AGENTE' ? <ShieldAlert size={32} /> :
-                                     <Fingerprint size={32} />}
+                                    {statusBio === 'VERIFICANDO' ? <Loader2 size={24} className="animate-spin" /> : 
+                                     statusBio === 'CADASTRADO' ? <CheckCircle2 size={24} /> :
+                                     statusBio === 'ERRO_AGENTE' ? <ShieldAlert size={24} /> :
+                                     <Fingerprint size={24} />}
                                 </div>
                                 
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">
+                                <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest leading-none">
                                     {statusBio === 'VERIFICANDO' ? 'Consultando Hardware...' :
                                      statusBio === 'CADASTRADO' ? 'Digital Identificada' :
                                      statusBio === 'PENDENTE' ? 'Aguardando Cadastro' :
                                      statusBio === 'HARDWARE_OFFLINE' ? 'Hardware não Detectado' :
                                      'Agente não detectado'}
                                 </h3>
-                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-2 max-w-[200px]">
+                                 <p className="text-[9px] font-medium text-slate-400 uppercase tracking-tight mt-3 max-w-[200px] leading-relaxed">
                                     {statusBio === 'CADASTRADO' ? 'O aluno está pronto para acessar a unidade via biometria.' :
                                      statusBio === 'PENDENTE' ? 'Inicie o processo de captura para registrar este aluno.' :
                                      statusBio === 'HARDWARE_OFFLINE' ? 'O Agente está rodando, mas não encontrou leitores USB/IP.' :
@@ -181,13 +181,13 @@ export default function CredencialModal({ aluno, aoFechar }: CredencialModalProp
                                 </p>
                             </div>
 
-                            <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 flex gap-4 items-center">
-                                <div className="w-10 h-10 bg-white rounded-2xl border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                            <div className="bg-slate-100/50 border border-slate-200 rounded-xl p-4 flex gap-4 items-center">
+                                <div className="w-10 h-10 bg-white rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
                                     <User size={18} />
                                 </div>
                                 <div className="flex flex-col min-w-0">
-                                    <span className="text-[10px] font-black text-indigo-900 uppercase truncate">{aluno.nome_completo}</span>
-                                    <span className="text-[9px] font-bold text-indigo-600/60 uppercase">Matrícula: {aluno.matricula}</span>
+                                    <span className="text-[10px] font-bold text-slate-800 uppercase truncate leading-none mb-1">{aluno.nome_completo}</span>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Matrícula: {aluno.matricula}</span>
                                 </div>
                             </div>
                             

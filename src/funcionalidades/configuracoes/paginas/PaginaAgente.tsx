@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
-import { CartaoConteudo, Botao, CardMetrica } from '@/compartilhado/componentes/UI';
+import { CartaoConteudo, Botao, CardMetrica, InputBusca } from '@/compartilhado/componentes/UI';
 import { 
     Activity, ArrowUp, XCircle, Clock, 
     CheckCircle2, Search, Fingerprint, Trash2,
@@ -248,7 +248,7 @@ export default function PaginaAgente() {
                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-[50] overflow-hidden"
+                                    className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 z-[50] overflow-hidden"
                                 >
                                     <div className="p-4 bg-slate-50/50 border-b border-slate-100">
                                         <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Console Administrativo</h4>
@@ -308,7 +308,7 @@ export default function PaginaAgente() {
                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-100 z-[50] overflow-hidden"
+                                    className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-[50] overflow-hidden"
                                 >
                                     <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
                                         <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-none">Terminais de Leitura</h4>
@@ -324,7 +324,7 @@ export default function PaginaAgente() {
                                             </div>
                                         ) : (
                                             listaLeitores.map((leitor: any) => (
-                                                <div key={leitor.id} className="p-4 bg-slate-50 border border-slate-200/50 rounded-[1.5rem] flex items-center justify-between group transition-colors hover:bg-white hover:border-indigo-100">
+                                                <div key={leitor.id} className="p-4 bg-slate-50 border border-slate-200/50 rounded-2xl flex items-center justify-between group transition-colors hover:bg-white hover:border-indigo-100">
                                                     <div className="flex items-center gap-4">
                                                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${leitor.online ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-400'}`}>
                                                             {leitor.online ? <Wifi size={18} /> : <WifiOff size={18} />}
@@ -409,40 +409,32 @@ export default function PaginaAgente() {
                         label="Fluxo Registrado"
                         valor={estadoLocal?.stats?.entradas || 0}
                         icone={ArrowUp}
-                        bg="bg-emerald-50/50"
-                        text="text-emerald-600"
-                        border="border-emerald-100/50"
+                        variante="verde"
                     />
                     <CardMetrica
                         label="Divergências"
                         valor={estadoLocal?.stats?.negados || 0}
                         icone={XCircle}
-                        bg="bg-rose-50/50"
-                        text="text-rose-600"
-                        border="border-rose-100/50"
+                        variante="laranja"
                     />
                     <CardMetrica
                         label="Uptime Servidor"
                         valor={estadoNuvem?.uptime_seconds ? `${Math.floor(estadoNuvem.uptime_seconds / 3600)}h` : '--'}
                         icone={Clock}
-                        bg="bg-indigo-50/50"
-                        text="text-indigo-600"
-                        border="border-indigo-100/50"
+                        variante="indigo"
                     />
                     <CardMetrica
                         label="Latência Pulsar"
                         valor={estadoLocal?.stats?.ultimoAcesso || '--:--'}
                         icone={Activity}
-                        bg="bg-slate-100/50"
-                        text="text-slate-600"
-                        border="border-slate-200/50"
+                        variante="azul"
                     />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* BUSCA DE BIOMETRIA */}
                     <div className="lg:col-span-8 flex flex-col">
-                        <CartaoConteudo className="p-10 flex-1 bg-white/60 backdrop-blur-3xl shadow-2xl rounded-[2.5rem]">
+                        <CartaoConteudo className="p-10 flex-1 bg-white shadow-sm border border-slate-200 rounded-2xl">
                             <div className="flex items-center justify-between mb-10">
                                 <div className="space-y-1">
                                     <h4 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.4em] leading-none mb-2">Central de Identidade</h4>
@@ -453,17 +445,17 @@ export default function PaginaAgente() {
                                 </div>
                             </div>
 
-                            <div className="relative mb-8 group">
-                                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors">
-                                    <Search size={24} />
+                            <div className="bg-slate-50 border border-slate-100 p-6 rounded-2xl mb-8">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest ml-1 leading-none">Localizar Aluno (Nome ou Matrícula)</label>
+                                    <InputBusca 
+                                        icone={Search}
+                                        placeholder="EX: MATEUS COTRIM..."
+                                        value={termoBusca}
+                                        onChange={(e) => setTermoBusca(e.target.value)}
+                                        className="bg-white border-slate-200"
+                                    />
                                 </div>
-                                <input 
-                                    type="text"
-                                    placeholder="Localizar Aluno (Nome ou Matrícula)..."
-                                    value={termoBusca}
-                                    onChange={(e) => setTermoBusca(e.target.value)}
-                                    className="w-full pl-16 pr-6 h-16 bg-slate-50 border-2 border-slate-100 rounded-[1.8rem] font-bold text-sm outline-none focus:bg-white focus:border-slate-900 focus:shadow-2xl transition-all placeholder:text-slate-300 uppercase tracking-widest text-slate-900"
-                                />
                             </div>
 
                             <div className="space-y-4">
@@ -473,7 +465,7 @@ export default function PaginaAgente() {
                                             key={aluno.matricula} 
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="p-5 bg-white border border-slate-100 rounded-3xl flex items-center justify-between group hover:border-slate-900/10 hover:shadow-2xl transition-all"
+                                            className="p-5 bg-white border border-slate-100 rounded-2xl flex items-center justify-between group hover:border-slate-900/10 transition-all"
                                         >
                                             <div className="flex items-center gap-5">
                                                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${aluno.biometria_cadastrada ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-300 border border-slate-100'}`}>
@@ -500,7 +492,7 @@ export default function PaginaAgente() {
                                         </motion.div>
                                     ))
                                 ) : (
-                                    <div className="py-20 flex flex-col items-center justify-center text-center bg-slate-50/30 border-2 border-dashed border-slate-100 rounded-[2.5rem]">
+                                    <div className="py-20 flex flex-col items-center justify-center text-center bg-slate-50/30 border-2 border-dashed border-slate-100 rounded-2xl">
                                         <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl relative border border-slate-50">
                                             {termoBusca.length > 0 ? (
                                                 <Search size={32} className="text-slate-200" />
@@ -529,7 +521,7 @@ export default function PaginaAgente() {
 
                     {/* LIVE RADAR (DIREITA) */}
                     <div className="lg:col-span-4 flex flex-col">
-                        <CartaoConteudo className="p-8 flex-1 bg-white border border-slate-200 shadow-xl rounded-[2.5rem]">
+                        <CartaoConteudo className="p-8 flex-1 bg-white border border-slate-200 shadow-sm rounded-2xl">
                              <div className="flex items-center justify-between mb-8 px-2">
                                 <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.4em]">Live Radar</h4>
                                 <button onClick={solicitarLimpezaHistorico} className="text-[9px] font-black text-rose-500 hover:text-rose-600 transition-colors uppercase flex items-center gap-2 tracking-[0.2em]"><Trash2 size={14} /> Purgar</button>
@@ -545,7 +537,7 @@ export default function PaginaAgente() {
                                             layout
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
-                                            className="p-4 bg-white border border-slate-100 rounded-[1.5rem] flex items-center justify-between group hover:shadow-lg transition-all"
+                                            className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between group hover:border-slate-200 transition-all"
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${éAlerta ? 'bg-rose-50 text-rose-500' : éSaída ? 'bg-amber-50 text-amber-500' : 'bg-emerald-50 text-emerald-500'}`}>
@@ -570,7 +562,7 @@ export default function PaginaAgente() {
                                 })}
                                 {(!estadoLocal?.stats?.ultimosEventos || estadoLocal.stats.ultimosEventos.length === 0) && (
                                     <div className="py-24 text-center flex flex-col items-center">
-                                        <div className="w-16 h-16 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-6">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-6">
                                             <Clock className="text-slate-100" size={28} />
                                         </div>
                                         <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">Silêncio Operacional</p>

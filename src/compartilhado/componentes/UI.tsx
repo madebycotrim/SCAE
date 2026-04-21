@@ -45,19 +45,19 @@ export const Botao: React.FC<BotaoProps> = ({
     const estaCarregando = carregando;
     const cliqueFinal = aoClicar || onClick;
 
-    const estilosBase = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-tight transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer";
+    const estilosBase = "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-tight transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer";
 
     const variantes = {
-        primario: "bg-eletrico text-white hover:brightness-110 border-none shadow-premium focus:ring-eletrico/30",
-        secundario: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 focus:ring-slate-400",
-        perigo: "bg-white text-rose-600 border border-rose-200 hover:bg-rose-50 hover:border-rose-300 focus:ring-rose-500",
-        ghost: "bg-transparent text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 border-none px-2 focus:ring-slate-400 shadow-none font-black"
+        primario: "bg-blue-600 text-white hover:bg-blue-700 border-none focus:ring-blue-600/20",
+        secundario: "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 focus:ring-slate-100",
+        perigo: "bg-white text-rose-500 border border-rose-100 hover:bg-rose-50 hover:border-rose-200 focus:ring-rose-100",
+        ghost: "bg-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-none px-2 focus:ring-slate-100 shadow-none font-bold"
     };
 
     const tamanhos = {
-        sm: "h-8 px-3 text-[10px] tracking-widest rounded-2xl",
-        md: "h-11 px-4 text-[11px] rounded-2xl",
-        lg: "h-12 px-6 text-sm rounded-2xl"
+        sm: "h-9 px-4 text-[10px] rounded-lg",
+        md: "h-10 px-5 text-[11px] rounded-lg",
+        lg: "h-11 px-6 text-sm rounded-lg"
     };
 
     const estiloLargura = fullWidth ? "w-full" : "";
@@ -80,20 +80,17 @@ export const Botao: React.FC<BotaoProps> = ({
 
 // --- CARDS E CONTAINERS ---
 
-/**
- * Container básico com bordas arredondadas e sombra suave.
- */
 export const CartaoConteudo: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm ${className}`}>
         {children}
     </div>
 );
 
 /**
- * Barra horizontal para filtros e busca, fixa no topo durante o scroll.
+ * Barra horizontal para filtros e busca.
  */
 export const BarraFiltro: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-white/80 backdrop-blur-xl p-3 rounded-2xl border border-slate-200 mb-8 flex flex-col lg:flex-row lg:items-end gap-4 sticky top-4 z-20 ${className}`}>
+    <div className={`flex flex-col lg:flex-row lg:items-end gap-6 mb-10 ${className}`}>
         {children}
     </div>
 );
@@ -116,12 +113,8 @@ interface CardMetricaProps {
     tendencia?: number;
     /** Inverte o significado das cores de tendência (útil para métricas de erro/risco) */
     inverterTendencia?: boolean;
-    /** Cor de fundo do ring do ícone */
-    bg?: string;
-    /** Cor do texto/ícone dentro do ring */
-    text?: string;
-    /** Cor da borda do ring do ícone */
-    border?: string;
+    /** Variação cromática do card (azul, verde, laranja, roxo, indigo) */
+    variante?: 'azul' | 'verde' | 'laranja' | 'roxo' | 'indigo';
     /** Classes extras de estilo */
     className?: string;
 }
@@ -136,35 +129,48 @@ export const CardMetrica: React.FC<CardMetricaProps> = ({
     subtitulo,
     tendencia,
     inverterTendencia,
-    bg = 'bg-slate-50', 
-    text = 'text-slate-600', 
-    border = 'border-slate-100',
+    variante = 'azul',
     className = ''
 }) => {
     const ehPositivo = tendencia ? (inverterTendencia ? tendencia < 0 : tendencia > 0) : false;
 
-    return (
-        <div className={`bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5 group transition-all hover:shadow-md ${className}`}>
-            {/* Container do Ícone */}
-            <div className={`w-14 h-14 rounded-2xl ${bg} ${text} flex items-center justify-center shrink-0 border-2 ${border} shadow-inner group-hover:scale-110 transition-transform duration-500`}>
-                <Icone size={26} strokeWidth={2.5} />
-            </div>
+    // Definição explícita para garantir o funcionamento do Tailwind JIT
+    const obterEstilo = (v: string) => {
+        switch(v) {
+            case 'verde': return { texto: 'text-emerald-600', borda: 'border-emerald-200', barra: 'bg-emerald-500', fundo: 'bg-emerald-50' };
+            case 'laranja': return { texto: 'text-orange-600', borda: 'border-orange-200', barra: 'bg-orange-500', fundo: 'bg-orange-50' };
+            case 'roxo': return { texto: 'text-violet-600', borda: 'border-violet-200', barra: 'bg-violet-500', fundo: 'bg-violet-50' };
+            case 'indigo': return { texto: 'text-indigo-600', borda: 'border-indigo-200', barra: 'bg-indigo-500', fundo: 'bg-indigo-50' };
+            default: return { texto: 'text-blue-600', borda: 'border-blue-200', barra: 'bg-blue-600', fundo: 'bg-blue-50' };
+        }
+    };
 
-            {/* Conteúdo Informativo */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none truncate">{label}</span>
-                    {tendencia !== undefined && (
-                        <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[8px] font-black shrink-0 ${ehPositivo ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                            {ehPositivo ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                            {Math.abs(tendencia)}%
-                        </div>
-                    )}
+    const s = obterEstilo(variante);
+
+    return (
+        <div className={`bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4 relative overflow-hidden group hover:shadow-md transition-all duration-300 ${className}`}>
+            {/* Barra de cor superior mais presente */}
+            <div className={`absolute top-0 left-0 w-full h-[4px] ${s.barra} opacity-10`}></div>
+            <div className={`absolute top-0 left-0 w-1/3 h-[4px] ${s.barra} shadow-[0_1px_3px_rgba(0,0,0,0.1)]`}></div>
+            
+            <div className="flex items-start justify-between">
+                <div className={`p-2.5 ${s.fundo} ${s.texto} rounded-xl transition-all group-hover:scale-110 duration-300 shadow-sm border ${s.borda}`}>
+                    <Icone size={20} strokeWidth={2.5} />
                 </div>
-                <div className="flex items-baseline gap-2 overflow-hidden">
-                    <span className="text-xl font-black text-slate-900 leading-none truncate">{valor}</span>
+                {tendencia !== undefined && (
+                    <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${ehPositivo ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                        {ehPositivo ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                        {Math.abs(tendencia)}%
+                    </div>
+                )}
+            </div>
+            
+            <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+                <div className="flex items-baseline gap-2">
+                    <h3 className="text-2xl font-bold text-slate-900 tracking-tight leading-none">{valor}</h3>
                     {subtitulo && (
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter truncate">{subtitulo}</span>
+                        <span className="text-[10px] text-slate-400 font-medium truncate">{subtitulo.toUpperCase()}</span>
                     )}
                 </div>
             </div>
@@ -215,9 +221,9 @@ interface InputBuscaProps extends React.InputHTMLAttributes<HTMLInputElement> {
  */
 export const InputBusca: React.FC<InputBuscaProps> = ({ icone: Icone, className = '', ...props }) => (
     <div className="relative flex-1 group">
-        {Icone && <Icone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={16} aria-hidden="true" />}
+        {Icone && <Icone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors" size={14} aria-hidden="true" />}
         <input
-            className={`w-full ${Icone ? 'pl-11' : 'pl-5'} pr-5 h-11 bg-slate-50 border border-slate-100 focus:bg-white focus:border-eletrico focus:ring-4 focus:ring-eletrico/5 rounded-2xl text-xs font-bold outline-none transition-all placeholder:text-slate-400 text-slate-900 ${className}`}
+            className={`w-full ${Icone ? 'pl-11' : 'pl-5'} pr-5 h-10 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-xl text-xs font-medium outline-none transition-all placeholder:text-slate-400 text-slate-900 ${className}`}
             {...props}
         />
     </div>

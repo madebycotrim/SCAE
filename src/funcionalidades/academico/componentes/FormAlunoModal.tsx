@@ -14,6 +14,25 @@ interface FormAlunoModalProps {
     aoSalvar: (dados: Partial<Aluno>) => Promise<void>;
 }
 
+// Auxiliar de ícone
+const Edit2 = (props: any) => (
+    <svg
+        {...props}
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        <path d="m15 5 4 4" />
+    </svg>
+);
+
 export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: FormAlunoModalProps) {
     const escola = usarEscola();
     const temQR = escola.metodosAcesso.includes('QRCODE');
@@ -63,24 +82,24 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
             <div className="space-y-6">
                 {/* Stepper Visual (Apenas no Cadastro e se usar QR) */}
                 {!ehEdicao && temQR && (
-                    <div className="flex items-center gap-3 mb-8 px-2">
-                        <div className={`h-1.5 rounded-full transition-all duration-500 ${passo === 1 ? 'w-12 bg-slate-900' : 'w-4 bg-slate-200'}`}></div>
-                        <div className={`h-1.5 rounded-full transition-all duration-500 ${passo === 2 ? 'w-12 bg-slate-900' : 'w-4 bg-slate-200'}`}></div>
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${passo === 1 ? 'bg-slate-900' : 'bg-slate-100'}`}></div>
+                        <div className={`h-1 flex-1 rounded-full transition-all duration-300 ${passo === 2 ? 'bg-slate-900' : 'bg-slate-100'}`}></div>
                     </div>
                 )}
 
-                {(ehEdicao || passo === 1) ? (
-                    <div className="space-y-8 animate-in fade-in duration-500">
+                {passo === 1 ? (
+                    <div className="animate-in fade-in duration-500">
                         {/* Seção 1: Dados Institucionais */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                            <div className="md:col-span-2 relative group">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 transition-colors group-focus-within:text-slate-900">
-                                    <User size={14} /> Nome Completo
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                            <div className="md:col-span-2 group">
+                                <label className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
+                                    Nome Completo
                                 </label>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all placeholder:text-slate-300"
                                     value={dadosFormulario.nome_completo}
                                     onChange={(e) => definirDadosFormulario({ ...dadosFormulario, nome_completo: e.target.value })}
                                     placeholder="Ex: João da Silva"
@@ -88,80 +107,79 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
                             </div>
 
                             {/* Matrícula */}
-                            <div className="relative">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
-                                    <Hash size={14} /> Matrícula
+                            <div>
+                                <label className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
+                                    Matrícula
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all disabled:bg-slate-100 disabled:text-slate-500 placeholder:text-slate-400"
+                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:bg-white focus:border-slate-900 transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300"
                                     value={dadosFormulario.matricula}
                                     onChange={(e) => definirDadosFormulario({ ...dadosFormulario, matricula: e.target.value })}
                                     disabled={ehEdicao}
                                     placeholder="Ex: 20240001"
                                 />
-                                <p className="mt-1.5 ml-1 text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">ID único permanente</p>
                             </div>
 
                             {/* Turma Dropdown */}
-                            <div className="relative">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
-                                    <GraduationCap size={14} /> Turma Designada
+                            <div>
+                                <label className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">
+                                    Turma
                                 </label>
                                 <SelectComBusca
                                     options={turmas.map(t => ({ value: t.id, label: t.id }))}
                                     value={dadosFormulario.turma_id}
                                     onChange={(valor) => definirDadosFormulario({ ...dadosFormulario, turma_id: valor as string })}
                                     placeholder="Selecione..."
-                                    className={`w-full px-4 h-11 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold transition-all flex items-center justify-between ${dadosFormulario.turma_id ? 'text-slate-800 border-slate-300' : 'text-slate-400'}`}
+                                    className={`w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold transition-all flex items-center justify-between ${dadosFormulario.turma_id ? 'text-slate-800' : 'text-slate-400'}`}
                                 />
                             </div>
 
-                            {/* Data de Nascimento (Aparece direto no Editar) */}
+                            {/* Data de Nascimento (Credencial) */}
                             {ehEdicao && temQR && (
-                                <div className="relative md:col-span-2 p-6 bg-indigo-50/30 border border-indigo-100/50 rounded-2xl">
-                                    <label className="flex items-center gap-2 text-[10px] font-black text-indigo-600/60 uppercase tracking-widest mb-3 ml-1">
-                                        <Cake size={14} /> Credencial de Segurança (Nascimento)
+                                <div className="md:col-span-2 p-5 bg-slate-50 border border-slate-200 rounded-xl">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1 block">
+                                        Data de Nascimento (Credencial)
                                     </label>
                                     <input
                                         type="date"
                                         required
-                                        className="w-full md:w-1/2 px-4 h-11 bg-white border border-indigo-100 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all"
+                                        className="w-full md:w-1/2 px-4 h-10 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:border-slate-900 transition-all"
                                         value={dadosFormulario.data_nascimento}
                                         onChange={(e) => definirDadosFormulario({ ...dadosFormulario, data_nascimento: e.target.value })}
                                     />
-                                    <p className="mt-3 text-[9px] font-bold text-indigo-400 uppercase tracking-tight ml-1">
-                                        Esta data é usada pelo aluno para acessar o QR Code.
+                                    <p className="mt-3 text-[9px] font-medium text-slate-400 uppercase tracking-tighter ml-1">
+                                        Necessária para o aluno autenticar o acesso digital.
                                     </p>
                                 </div>
                             )}
 
                             {/* Status Toggle */}
                             {ehEdicao && (
-                                <div className="md:col-span-2 p-5 bg-slate-50 rounded-2xl border border-slate-200">
-                                    <label className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">
-                                        <Power size={12} /> Situação da Matrícula
+                                <div className="md:col-span-2 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">
+                                        Status da Matrícula
                                     </label>
-                                    <div className="flex gap-3">
+                                    <div className="flex gap-2">
                                         <button
                                             type="button"
                                             onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: true })}
-                                            className={`flex-1 h-10 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${dadosFormulario.ativo
-                                                ? 'bg-slate-900 text-white border-slate-900 shadow-suave'
-                                                : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
+                                            className={`flex-1 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${dadosFormulario.ativo
+                                                ? 'bg-slate-900 text-white'
+                                                : 'bg-white text-slate-400 border border-slate-200'
                                                 }`}
                                         >
-                                            Aluno Ativo
+                                            Ativo
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => definirDadosFormulario({ ...dadosFormulario, ativo: false })}
-                                            className={`flex-1 h-10 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${!dadosFormulario.ativo
-                                                ? 'bg-rose-600 text-white border-rose-600 shadow-suave'
-                                                : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
+                                            className={`flex-1 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${!dadosFormulario.ativo
+                                                ? 'bg-rose-500 text-white'
+                                                : 'bg-white text-slate-400 border border-slate-200'
                                                 }`}
                                         >
-                                            Trancado / Inativo
+                                            Inativo
                                         </button>
                                     </div>
                                 </div>
@@ -244,22 +262,4 @@ export default function FormAlunoModal({ aluno, turmas, aoFechar, aoSalvar }: Fo
         </ModalUniversal>
     );
 }
-
-const Edit2 = (props: any) => (
-    <svg
-        {...props}
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
-        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-        <path d="m15 5 4 4" />
-    </svg>
-);
 

@@ -309,7 +309,7 @@ export default function FormHorariosAcesso() {
 
                         {janelas.length === 0 && (
                             <CartaoConteudo className="text-center py-24 bg-white border-2 border-dashed border-slate-200/60 rounded-2xl group transition-all hover:border-indigo-200 hover:bg-indigo-50/30 overflow-hidden relative">
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full pointer-events-none"></div>
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-2xl pointer-events-none"></div>
                                 
                                 <div className="w-24 h-24 bg-gradient-to-br from-indigo-50 to-white rounded-2xl flex items-center justify-center mx-auto mb-8 border border-indigo-100 shadow-suave text-indigo-500 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 relative z-10">
                                     <Clock size={40} strokeWidth={1.5} />
@@ -339,7 +339,7 @@ export default function FormHorariosAcesso() {
                                 return (
                                     <div key={indice} className="relative group/item">
                                         {/* Marcador da Timeline */}
-                                        <div className={`absolute -left-[31px] top-6 w-5 h-5 rounded-full border-4 border-white shadow-md z-10 transition-all duration-500 group-hover/item:scale-125 ${
+                                        <div className={`absolute -left-[31px] top-6 w-5 h-5 rounded-2xl border-4 border-white shadow-md z-10 transition-all duration-500 group-hover/item:scale-125 ${
                                             ehEntrada ? 'bg-amber-500' : 'bg-indigo-600'
                                         }`}></div>
 
@@ -357,7 +357,7 @@ export default function FormHorariosAcesso() {
                                                         <div className="flex items-center gap-3">
                                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Janela #{indice + 1}</span>
                                                             {duracao && (
-                                                                <span className="flex items-center gap-1 text-[9px] font-black text-indigo-500/60 uppercase bg-indigo-50 px-2 py-0.5 rounded-full">
+                                                                <span className="flex items-center gap-1 text-[9px] font-black text-indigo-500/60 uppercase bg-indigo-50 px-2 py-0.5 rounded-2xl">
                                                                     <Timer size={10} /> {duracao}
                                                                 </span>
                                                             )}

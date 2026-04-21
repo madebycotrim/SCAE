@@ -212,7 +212,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
         return (
             <div className="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-md max-w-md w-full p-8 text-center border border-slate-100">
-                    <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-indigo-200">
+                    <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-4 ring-indigo-50">
                         <Crown size={40} className="text-indigo-600" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 mb-2">Bem-vindo(a) ao Catraki!</h2>
@@ -260,51 +260,40 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 aria-label="Menu Principal"
                 className={`
                     fixed lg:static inset-y-0 left-0 z-50
-                    border-r border-slate-800/40
+                    border-r border-slate-200
                     flex flex-col transition-all duration-300 ease-in-out shadow-none relative
                     ${sidebarAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     ${sidebarMinimizado ? 'lg:w-20' : 'lg:w-64'}
-                    w-64 bg-marinho
+                    w-64 bg-white
                 `}
             >
                 {/* Seção do Logo (Clean) */}
-                <div className={`
-                    h-14 flex items-center relative z-10 border-b border-slate-900
-                    ${sidebarMinimizado ? 'justify-center px-0' : 'justify-between px-6'}
-                `}>
-                    <div className="flex items-center gap-3.5 overflow-hidden">
-                        <ShieldCheck className="w-6 h-6 text-white shrink-0" strokeWidth={2.5} />
-
-                        {!sidebarMinimizado && (
-                            <div className="flex flex-col min-w-0">
-                                <h1 className="text-[17px] font-black text-white uppercase tracking-tighter leading-none">
-                                    CATRAKI<span className="text-eletrico">.</span>
-                                </h1>
-                                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.15em] mt-1.5 truncate leading-none">
-                                    {nomeEscola}
-                                </p>
-                            </div>
-                        )}
+                <div className="flex items-center px-8 border-b border-slate-100 shrink-0" style={{ height: '64px' }}>
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
+                            <Shield size={18} strokeWidth={2.5} />
+                        </div>
+                        {!sidebarMinimizado && <span className="text-lg font-black tracking-tighter text-slate-900 leading-none">SCAE</span>}
                     </div>
+                </div>
 
                     <button
                         onClick={() => definirSidebarMinimizado(!sidebarMinimizado)}
                         aria-label={sidebarMinimizado ? "Expandir menu" : "Recolher menu"}
                         className={`
                             absolute -right-3 top-1/2 -translate-y-1/2 
-                            w-6 h-6 bg-slate-950 border border-slate-800 rounded-full 
-                            flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800
-                            z-50 hidden lg:flex transition-colors
+                            w-6 h-6 bg-white border border-slate-100 rounded-full 
+                            flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white
+                            z-50 hidden lg:flex transition-colors shadow-sm
                         `}
                     >
                         {sidebarMinimizado ? <ChevronRight size={12} aria-hidden="true" /> : <ChevronLeft size={12} aria-hidden="true" />}
                     </button>
-                </div>
 
                 {/* Navegação */}
                 <nav className={`
                     flex-1 overflow-y-auto overflow-x-hidden py-4 z-10
-                    scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent
+                    scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent
                     ${sidebarMinimizado ? 'px-3' : 'px-4'}
                 `} aria-label="Atalhos do sistema">
                     <div className="mb-4">
@@ -312,7 +301,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             {gruposMenu.map((grupo, idx) => (
                                 <div key={idx} className="space-y-1">
                                     {!sidebarMinimizado && (
-                                        <p className="pl-3 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 mt-6 first:mt-0 leading-none">
+                                        <p className="pl-4 text-[9px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-4 mt-8 first:mt-2 leading-none">
                                             {grupo.titulo}
                                         </p>
                                     )}
@@ -327,20 +316,21 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                                     onClick={() => navegar(`${prefixoAdmin}${item.rota}`)}
                                                     className={`
                                                         w-full flex items-center transition-all duration-150 group
-                                                        ${sidebarMinimizado ? 'justify-center p-2' : 'gap-3 px-3 py-2'}
+                                                        ${sidebarMinimizado ? 'justify-center p-2' : 'gap-3 px-4 py-2.5'}
                                                         ${ativo
-                                                            ? 'bg-eletrico/10 border-l-2 border-eletrico text-white font-black rounded-r-2xl'
-                                                            : 'bg-transparent text-slate-400 font-bold hover:bg-white/5 hover:text-slate-200 rounded-2xl'
+                                                            ? 'text-blue-600 border-r-2 border-blue-600 bg-blue-50/50'
+                                                            : 'text-slate-500 hover:text-blue-600 hover:bg-blue-50/30'
                                                         }
                                                     `}
                                                     title={sidebarMinimizado ? item.texto : ""}
                                                 >
                                                     <Icone
-                                                        size={16}
-                                                        className={ativo ? 'text-eletrico' : 'text-slate-400 group-hover:text-slate-300 transition-colors'}
+                                                        size={18}
+                                                        strokeWidth={ativo ? 2.5 : 2}
+                                                        className={ativo ? 'text-blue-600' : 'text-slate-400 group-hover:text-blue-600 transition-colors'}
                                                     />
                                                     {!sidebarMinimizado && (
-                                                        <span className="text-sm">{item.texto}</span>
+                                                        <span className={`text-[13px] ${ativo ? 'font-bold' : 'font-medium'}`}>{item.texto}</span>
                                                     )}
                                                 </button>
                                             );
@@ -353,21 +343,21 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                 </nav>
 
                 {/* Perfil */}
-                <div className="p-4 border-t border-[rgba(255,255,255,0.06)] z-10">
+                <div className="p-4 border-t border-slate-50 z-10">
                     <div className={`flex items-center ${sidebarMinimizado ? 'justify-center flex-col gap-4' : 'justify-between px-1'}`}>
                         <div className={`flex items-center ${sidebarMinimizado ? 'flex-col gap-4' : 'gap-3 min-w-0'}`}>
                             <div className="relative shrink-0">
-                                <div className="w-9 h-9 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-inner overflow-hidden">
+                                <div className="w-9 h-9 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center text-slate-900 font-bold text-sm shadow-inner overflow-hidden">
                                     {usuarioAtual?.email?.[0]?.toUpperCase() || 'U'}
                                 </div>
-                                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-slate-950"></div>
+                                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></div>
                             </div>
                             {!sidebarMinimizado && (
                                 <div className="flex-1 min-w-0 pr-2">
-                                    <p className="text-[12px] font-black text-white truncate uppercase tracking-tight flex items-center gap-2">
+                                    <p className="text-[12px] font-black text-slate-800 truncate uppercase tracking-tight flex items-center gap-2">
                                         {usuario?.nome_completo || 'Usuário'}
                                         {ehCentral && (
-                                            <span className="px-1.5 py-0.5 bg-indigo-500 text-white text-[7px] font-black rounded-sm tracking-[0.15em] uppercase shadow-lg shadow-indigo-500/20 border border-indigo-400">
+                                            <span className="px-1.5 py-0.5 bg-slate-900 text-white text-[7px] font-black rounded-sm tracking-[0.15em] uppercase border border-slate-800">
                                                 Root
                                             </span>
                                         )}
@@ -390,7 +380,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             </aside>
 
             {/* Area de Conteúdo */}
-            <div className="flex-1 flex flex-col min-w-0 relative">
+            <div className="flex-1 flex flex-col min-w-0 relative bg-slate-50/50">
                 <header
                     role="banner"
                     className="bg-white border-b border-slate-200 sticky top-0 z-30 flex items-center justify-between px-8"
@@ -400,13 +390,13 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         <button
                             onClick={() => definirSidebarAberto(!sidebarAberto)}
                             aria-label="Abrir menu de navegação"
-                            className="lg:hidden p-2 -ml-1 text-slate-400 hover:bg-slate-50 rounded-2xl transition-colors"
+                            className="lg:hidden p-2 -ml-1 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors"
                         >
                             <Menu size={18} aria-hidden="true" />
                         </button>
                         <div className="flex flex-col justify-center">
-                            <h1 className="text-lg font-black text-slate-900 leading-none tracking-tight uppercase">{titulo}</h1>
-                            {subtitulo && <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 hidden sm:block">{subtitulo}</p>}
+                            <h1 className="text-sm font-bold text-slate-900 leading-none tracking-tight uppercase">{titulo}</h1>
+                            {subtitulo && <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1 hidden sm:block">{subtitulo}</p>}
                         </div>
                     </div>
 
@@ -433,7 +423,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                             {mostrarResultados && resultados.length > 0 && !localizacao.pathname.includes('/logs') && (
                                 <>
                                     <div className="fixed inset-0 z-[45]" onClick={() => definirMostrarResultados(false)} />
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-md border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 z-[50] overflow-hidden origin-top animate-in fade-in zoom-in-95 duration-200">
                                         <div className="max-h-[320px] overflow-y-auto p-1.5 flex flex-col gap-1">
                                             {resultados.map((res) => {
                                                 const Icone = res.icone;
@@ -491,7 +481,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 z-[50] overflow-hidden origin-top-right"
+                                            className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-[50] overflow-hidden origin-top-right"
                                         >
                                             <div className="px-5 py-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                                                 <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Notificações</h4>

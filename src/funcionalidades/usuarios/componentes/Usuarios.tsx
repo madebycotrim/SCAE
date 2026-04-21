@@ -137,36 +137,37 @@ export default function Usuarios() {
             subtitulo="Gerencie quem pode acessar e operar o sistema na unidade"
             acoes={AcoesCabecalho}
         >
-            <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
-                <div className="flex flex-col gap-2 flex-1 w-full text-left">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 leading-none">Buscar Funcionário</label>
-                    <InputBusca
-                        icone={Search}
-                        placeholder="Nome, e-mail ou cargo..."
-                        value={busca}
-                        onChange={(e) => definirBusca(e.target.value)}
-                        className="w-full h-11"
-                    />
-                </div>
-                
-                <div className="flex flex-col gap-2 shrink-0">
-                    <label className="text-[10px] font-black text-transparent uppercase tracking-[0.2em] ml-1 leading-none">Info</label>
-                    <div className="flex items-center gap-4 bg-white border border-slate-200 px-5 h-11 rounded-2xl shadow-sm">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total</span>
-                        <span className="text-[10px] font-black text-eletrico uppercase tracking-widest leading-none">{usuariosFiltrados.length} Registros</span>
+            <div className="bg-white border border-slate-200 p-6 rounded-xl mb-10">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                    <div className="flex flex-col gap-2 flex-1 w-full text-left">
+                        <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Buscar Funcionário</label>
+                        <InputBusca
+                            icone={Search}
+                            placeholder="Nome, e-mail ou cargo..."
+                            value={busca}
+                            onChange={(e) => definirBusca(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 shrink-0">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 leading-none text-transparent">Info</label>
+                        <div className="flex items-center gap-4 bg-slate-100/50 border border-slate-200/50 px-5 h-10 rounded-xl">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Total</span>
+                            <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none">{usuariosFiltrados.length} Registros</span>
+                        </div>
                     </div>
                 </div>
-            </BarraFiltro>
+            </div>
 
             <CartaoConteudo className="bg-white border-slate-200/60 shadow-md rounded-2xl overflow-hidden mt-8">
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-200">
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Funcionário</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Permissão</th>
-                                <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Situação</th>
-                                { (podeEditar || podeExcluirOuAlternar) && <th className="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th> }
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-900 uppercase tracking-widest">Funcionário</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-900 uppercase tracking-widest text-center">Permissão</th>
+                                <th className="py-5 px-8 text-[10px] font-black text-slate-900 uppercase tracking-widest">Situação</th>
+                                { (podeEditar || podeExcluirOuAlternar) && <th className="py-5 px-8 text-[10px] font-black text-slate-900 uppercase tracking-widest text-right">Ações</th> }
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">

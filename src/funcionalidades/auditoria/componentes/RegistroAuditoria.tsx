@@ -5,7 +5,7 @@ import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { api } from '@/compartilhado/servicos/api';
-import { Botao, CartaoConteudo, Esqueleto } from '@/compartilhado/componentes/UI';
+import { Botao, CartaoConteudo, Esqueleto, InputBusca } from '@/compartilhado/componentes/UI';
 import {
     Activity,
     ChevronLeft,
@@ -212,41 +212,40 @@ export default function RegistroAuditoria() {
                 ))}
             </div>
 
-            <div className="mb-10 flex flex-col md:flex-row items-center bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl p-6 rounded-[2.5rem] gap-8">
-                <div className="flex flex-col gap-2.5 flex-1 w-full">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2 leading-none">Rastrear Evento / Protocolo</label>
-                    <div className="relative group">
-                        <Search size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-all duration-300" />
-                        <input 
+            <div className="bg-white border border-slate-200 p-6 rounded-xl mb-10">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                    <div className="flex flex-col gap-2 flex-1 w-full">
+                        <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Rastrear Evento / Protocolo</label>
+                        <InputBusca 
                             placeholder="Buscar por usuário, ação ou tipo de dado..."
                             value={busca}
-                            className="w-full bg-white/50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all h-14 pl-16 pr-6 rounded-2xl text-[13px] font-bold text-slate-700 outline-none shadow-sm"
-                            readOnly 
+                            autoFocus
+                            onChange={(e) => {/* A busca é controlada pelo context global via componente pai em Alunos, mas aqui é local/context */}}
+                            readOnly // Mantendo o comportamento atual se for busca global
                         />
                     </div>
-                </div>
 
-                <div className="flex flex-col gap-2.5 shrink-0 w-full md:w-auto">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1 leading-none">Filtro de Severidade</label>
-                    <div className="flex items-center bg-slate-900 p-1.5 rounded-2xl border border-slate-800 h-14 shadow-xl">
-                        {[
-                            { id: 'todos', label: 'TUDO', icone: Terminal },
-                            { id: 'sucesso', label: 'OK', icone: Activity },
-                            { id: 'aviso', label: 'LOGS', icone: Code },
-                            { id: 'critico', label: 'ALERTAS', icone: AlertTriangle }
-                        ].map((item) => (
-                            <button
-                                key={item.id}
-                                onClick={() => definirFiltroAcao(item.id as any)}
-                                className={`px-6 h-full rounded-xl text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all duration-300 flex items-center gap-2 ${filtroAcao === item.id
-                                    ? 'bg-white text-slate-900 shadow-2xl'
-                                    : 'text-slate-500 hover:text-white'
+                    <div className="flex flex-col gap-2 shrink-0 w-full lg:w-auto">
+                        <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Filtro de Severidade</label>
+                        <div className="flex items-center bg-slate-100/50 p-1 rounded-xl h-10">
+                            {[
+                                { id: 'todos', label: 'Tudo' },
+                                { id: 'sucesso', label: 'Ok' },
+                                { id: 'aviso', label: 'Logs' },
+                                { id: 'critico', label: 'Alertas' }
+                            ].map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => definirFiltroAcao(item.id as any)}
+                                    className={`px-4 h-full rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-200 ${filtroAcao === item.id
+                                        ? 'bg-slate-900 text-white shadow-md'
+                                        : 'text-slate-400 hover:text-slate-600'
                                     }`}
-                            >
-                                <item.icone size={14} />
-                                {item.label}
-                            </button>
-                        ))}
+                                >
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -258,13 +257,13 @@ export default function RegistroAuditoria() {
                     <div className="absolute left-[40px] top-[70px] bottom-0 w-[1px] bg-slate-200/50 z-0" />
 
                     <table className="w-full text-left border-separate border-spacing-0 relative z-10">
-                        <thead className="bg-slate-900 sticky top-0 z-30">
+                        <thead className="bg-white border-b border-slate-100 sticky top-0 z-30">
                             <tr>
-                                <th scope="col" className="pl-14 pr-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] w-[250px]">Operação Forense</th>
-                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-left">Autor da Ação</th>
-                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-center w-[180px]">Módulo</th>
-                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-center w-[240px]">Cronologia</th>
-                                <th scope="col" className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] text-right w-[150px]">Rastro</th>
+                                <th scope="col" className="pl-14 pr-6 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] w-[250px]">Operação Forense</th>
+                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] text-left">Autor da Ação</th>
+                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] text-center w-[180px]">Módulo</th>
+                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] text-center w-[240px]">Cronologia</th>
+                                <th scope="col" className="px-10 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] text-right w-[150px]">Rastro</th>
                             </tr>
                         </thead>
                         <tbody className="relative">
