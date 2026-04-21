@@ -1,13 +1,16 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, parseISO, subDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { api } from '@/compartilhado/servicos/api';
 
+/**
+ * Serviço de Inteligência de Dados e Geração de Documentos Oficiais (ABNT)
+ */
 export const relatorioServico = {
     obterDadosFiltrados: async (filtros: any) => {
-        // No Admin Online, buscamos diretamente da API
         const [registrosResponse, alunosResponse] = await Promise.all([
-            api.obter<any[]>(`/acesso/registros?desde=${filtros.dataInicio}&limite=5000`),
+            api.obter<any[]>(`/acesso/registros?desde=${filtros.dataInicio}&limite=10000`),
             api.obter<any[]>('/academico/alunos')
         ]);
 
@@ -16,17 +19,11 @@ export const relatorioServico = {
 
         return registros.filter((r: any) => {
             const dataRegistro = r.timestamp.split('T')[0];
-            const dataValida = dataRegistro >= filtros.dataInicio && dataRegistro <= filtros.dataFim;
-            if (!dataValida) return false;
-            if (filtros.turma !== 'Todas') {
-                const aluno = alunos.find((a: any) => a.matricula === r.aluno_matricula);
-                return aluno && aluno.turma_id === filtros.turma;
-            }
-            return true;
+            return dataRegistro >= filtros.dataInicio && dataRegistro <= filtros.dataFim && 
+                   (filtros.turma === 'Todas' || alunos.find((a: any) => a.matricula === r.aluno_matricula)?.turma_id === filtros.turma);
         }).map((r: any) => {
             const aluno = alunos.find((a: any) => a.matricula === r.aluno_matricula);
             
-            // Mapeamento semântico dos novos tipos vindos do Agente
             let tipoLabel = r.tipo_movimentacao;
             if (tipoLabel === 'ENTRADA') tipoLabel = 'ENTRADA';
             else if (tipoLabel === 'SAIDA') tipoLabel = 'SAÍDA';
@@ -34,42 +31,115 @@ export const relatorioServico = {
             else if (tipoLabel === 'FORA_DE_HORARIO') tipoLabel = 'FORA DE JANELA';
             else if (tipoLabel === 'ATRASO') tipoLabel = 'ATRASO';
 
-            return {
-                data: format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm:ss'),
-                nome: aluno ? aluno.nome_completo : 'Aluno Removido/Desconhecido',
-                matricula: r.aluno_matricula,
-                turma: aluno ? aluno.turma_id : '-',
-                tipo: tipoLabel,
-                sincronizado: 'Online'
-            };
+            return [
+                format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm:ss'),
+                aluno ? aluno.nome_completo.toUpperCase() : 'ALUNO REMOVIDO/NÃO LOCALIZADO',
+                r.aluno_matricula,
+                aluno ? aluno.turma_id : '-',
+                tipoLabel,
+                'NUVEM'
+            ];
         });
     },
 
-    gerarPDF: (dados: any[], titulo: string, filtros: any) => {
-        const doc = new jsPDF();
-        doc.setFontSize(18);
-        doc.text('SEEDF - Sistema de Controle de Acesso Escolar', 14, 20);
-        doc.setFontSize(14);
-        doc.text(titulo, 14, 30);
-        doc.setFontSize(10);
-        doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 38);
-        doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, 14, 44);
-        doc.text(`Turma: ${filtros.turma}`, 14, 50);
-        
-        // Cores premium SCAE para PDFs
-        let headColor: [number, number, number] = [30, 41, 59]; // Slate 800 (Neutral High-End)
-        if (titulo.includes('Atrasos')) headColor = [180, 83, 9]; // Amber 700
-        if (titulo.includes('Divergência') || titulo.includes('Risco')) headColor = [190, 18, 60]; // Rose 700 (High Alert)
-        if (titulo.includes('Fechamento')) headColor = [79, 70, 229]; // Indigo 600
-
-        autoTable(doc, {
-            startY: 56,
-            head: [['Data/Hora', 'Nome do Aluno', 'Matrícula', 'Turma', 'Obs/Tipo', 'Fonte']],
-            body: dados.map(d => [d.data, d.nome, d.matricula, d.turma, d.tipo, d.sincronizado]),
-            theme: 'striped',
-            headStyles: { fillColor: headColor }
+    /**
+     * Motor de Renderização de PDF em Conformidade com Normas ABNT (Estilo Corporativo Premium)
+     */
+    gerarPDF: (dados: any[], titulo: string, filtros: any, colunasOverride?: string[][]) => {
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4',
+            putOnlyUsedFonts: true
         });
-        doc.save(`Relatorio_${titulo.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
+
+        const margemEsquerda = 30;
+        const margemDireita = 20;
+
+        // --- CABEÇALHO CORPORATIVO (SCAE ECOSYSTEM) ---
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text('SCAE - SISTEMA DE CONTROLE DE ACESSO ESCOLAR', 30, 20);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text('TECNOLOGIA PARA SEGURANÇA E GESTÃO ACADÊMICA', 30, 24);
+        
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.5);
+        doc.line(margemEsquerda, 28, 210 - margemDireita, 28);
+
+        // --- TÍTULO DO DOCUMENTO (ABNT FORMAL) ---
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text(titulo.toUpperCase(), 30, 40);
+
+        // --- DATA E EMISSÃO ---
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        const dataExtensa = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+        doc.text(`Emitido em: ${dataExtensa}`, 210 - margemDireita, 40, { align: 'right' });
+        
+        // --- PARÂMETROS DO RELATÓRIO ---
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text('IDENTIFICAÇÃO DOS PARÂMETROS:', margemEsquerda, 52);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(30, 41, 59);
+        doc.text(`Ciclo: ${filtros.anoLetivo} • ${filtros.semestre}ºS`, margemEsquerda, 57);
+        doc.text(`Unidade: ${filtros.turma === 'Todas' ? 'GERAL' : filtros.turma}`, margemEsquerda, 62);
+        doc.text(`Intervalo: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')}`, margemEsquerda, 67);
+
+        // --- TABELA DE DADOS (ABNT) ---
+        autoTable(doc, {
+            startY: 75,
+            margin: { left: margemEsquerda, right: margemDireita, bottom: 25 },
+            head: colunasOverride || [['DATA/HORA', 'NOME DO ALUNO', 'MATRÍCULA', 'TURMA', 'STATUS', 'ORIGEM']],
+            body: dados,
+            theme: 'striped',
+            headStyles: { 
+                fillColor: [30, 41, 59], 
+                fontSize: 8, 
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            bodyStyles: { 
+                fontSize: 7.5,
+                cellPadding: 2.5 
+            },
+            columnStyles: {
+                0: { cellWidth: 32 }, // Data
+                2: { cellWidth: 25 }, // Matrícula
+                3: { cellWidth: 15 }, // Turma
+                5: { cellWidth: 15 }  // Origem
+            },
+            styles: {
+                font: 'helvetica',
+                lineColor: [230, 230, 230],
+                lineWidth: 0.1
+            },
+            didDrawPage: (data) => {
+                // Rodapé de Página
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                const str = `Pag. ${data.pageNumber} de ${doc.getNumberOfPages()}`;
+                doc.text(str, 210 - margemDireita, 287, { align: 'right' });
+                doc.text('SCAE Intelligence Bureau - Gestão de Acesso Certificada', margemEsquerda, 287);
+            }
+        });
+
+        // --- CAMPO DE ASSINATURA (PARA ATAS E FECHAMENTOS) ---
+        if (titulo.includes('Ata') || titulo.includes('Fechamento') || titulo.includes('Auditoria')) {
+            const finalY = (doc as any).lastAutoTable.finalY + 35;
+            if (finalY < 265) {
+                doc.line(65, finalY, 145, finalY);
+                doc.setFontSize(8);
+                doc.text('ASSINATURA E CARIMBO DO RESPONSÁVEL', 105, finalY + 5, { align: 'center' });
+                doc.text('CHEFIA DE SECRETARIA / DIREÇÃO ESCOLAR', 105, finalY + 10, { align: 'center' });
+            }
+        }
+
+        doc.save(`${titulo.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
     },
 
     gerarRelatorioEspecial: async (tipo: string, filtros: any) => {
@@ -87,14 +157,14 @@ export const relatorioServico = {
                 return data >= filtros.dataInicio && data <= filtros.dataFim && r.tipo_movimentacao === 'TURNO_ERRADO';
             }).map((r: any) => {
                 const aluno = alunos.find((a: any) => a.matricula === r.aluno_matricula);
-                return {
-                    data: format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm'),
-                    nome: aluno?.nome_completo || 'N/A',
-                    matricula: r.aluno_matricula,
-                    turma: aluno?.turma_id || '-',
-                    tipo: 'TURNO INCORRETO',
-                    sincronizado: 'Online'
-                };
+                return [
+                    format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm'),
+                    aluno?.nome_completo.toUpperCase() || 'N/A',
+                    r.aluno_matricula,
+                    aluno?.turma_id || '-',
+                    'TURNO INCORRETO',
+                    'Online'
+                ];
             });
             relatorioServico.gerarPDF(dados, 'Relatório de Divergência de Turno', filtros);
         } else if (tipo === 'Atrasos e Janelas') {
@@ -103,14 +173,14 @@ export const relatorioServico = {
                 return data >= filtros.dataInicio && data <= filtros.dataFim && (r.tipo_movimentacao === 'ATRASO' || r.tipo_movimentacao === 'FORA_DE_HORARIO');
             }).map((r: any) => {
                 const aluno = alunos.find((a: any) => a.matricula === r.aluno_matricula);
-                return {
-                    data: format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm'),
-                    nome: aluno?.nome_completo || 'N/A',
-                    matricula: r.aluno_matricula,
-                    turma: aluno?.turma_id || '-',
-                    tipo: r.tipo_movimentacao,
-                    sincronizado: 'Online'
-                };
+                return [
+                    format(parseISO(r.timestamp), 'dd/MM/yyyy HH:mm'),
+                    aluno?.nome_completo.toUpperCase() || 'N/A',
+                    r.aluno_matricula,
+                    aluno?.turma_id || '-',
+                    r.tipo_movimentacao,
+                    'Online'
+                ];
             });
             relatorioServico.gerarPDF(dados, 'Relatório de Atrasos e Janelas', filtros);
         } else if (tipo === 'Risco de Evasão') {
@@ -123,55 +193,45 @@ export const relatorioServico = {
             });
             const dadosRelatorio = alunos.map((aluno: any) => {
                 const presencas = presencasPorAluno[aluno.matricula] || 0;
-                return { nome: aluno.nome_completo, matricula: aluno.matricula, turma: aluno.turma_id || '-', presencas_30d: presencas, status: presencas === 0 ? 'CRÍTICO (0)' : presencas < 10 ? 'ALERTA' : 'NORMAL' };
-            }).filter((d: any) => d.status !== 'NORMAL' && (filtros.turma === 'Todas' || d.turma === filtros.turma));
-            dadosRelatorio.sort((a: any, b: any) => a.presencas_30d - b.presencas_30d);
-            const doc = new jsPDF();
-            doc.setFontSize(16);
-            doc.text('Relatório de Risco de Evasão', 14, 20);
-            doc.setFontSize(10);
-            doc.text('Alunos com baixa frequência nos últimos 30 dias (Dados Online).', 14, 28);
-            autoTable(doc, { startY: 35, head: [['Nome do Aluno', 'Matrícula', 'Turma', 'Presenças (30d)', 'Status']], body: dadosRelatorio.map((d: any) => [d.nome, d.matricula, d.turma, d.presencas_30d, d.status]), theme: 'striped', headStyles: { fillColor: [220, 38, 38] } });
-            doc.save(`Risco_Abandono_${Date.now()}.pdf`);
+                return [
+                    aluno.nome_completo.toUpperCase(), 
+                    aluno.matricula, 
+                    aluno.turma_id || '-', 
+                    `${presencas} dias`, 
+                    presencas === 0 ? 'ALTO RISCO' : presencas < 10 ? 'ALERTA' : 'NORMAL'
+                ];
+            }).filter((d: any) => d[4] !== 'NORMAL' && (filtros.turma === 'Todas' || d[2] === filtros.turma));
+            
+            relatorioServico.gerarPDF(dadosRelatorio, 'Relatório de Risco de Evasão Escolar', filtros, [['NOME DO ALUNO', 'MATRÍCULA', 'TURMA', 'PRESENÇAS (30D)', 'STATUS DE RISCO']]);
         } else if (tipo === 'Fechamento Mensal') {
             const regsNoPeriodo = registros.filter((r: any) => { const data = r.timestamp.split('T')[0]; return data >= filtros.dataInicio && data <= filtros.dataFim; });
             const presencaGlobal: Record<string, number> = {};
             regsNoPeriodo.forEach((r: any) => { if (r.tipo_movimentacao === 'ENTRADA') presencaGlobal[r.aluno_matricula] = (presencaGlobal[r.aluno_matricula] || 0) + 1; });
-            const dadosRelatorio = alunos.filter((a: any) => filtros.turma === 'Todas' || a.turma_id === filtros.turma).map((aluno: any) => ({ nome: aluno.nome_completo, matricula: aluno.matricula, turma: aluno.turma_id || '-', total_presencas: presencaGlobal[aluno.matricula] || 0 })).sort((a: any, b: any) => a.nome.localeCompare(b.nome));
-            const doc = new jsPDF();
-            doc.setFontSize(16);
-            doc.text('Fechamento Mensal de Frequência', 14, 20);
-            doc.setFontSize(10);
-            doc.text(`Período: ${format(parseISO(filtros.dataInicio), 'dd/MM/yyyy')} a ${format(parseISO(filtros.dataFim), 'dd/MM/yyyy')} (Dados Online)`, 14, 28);
-            autoTable(doc, { startY: 35, head: [['Nome do Aluno', 'Matrícula', 'Turma', 'Total Presenças (Período)']], body: dadosRelatorio.map((d: any) => [d.nome, d.matricula, d.turma, d.total_presencas]), theme: 'grid', headStyles: { fillColor: [59, 130, 246] } });
-            doc.save(`Fechamento_Mensal_${Date.now()}.pdf`);
+            
+            const dadosMapeados = alunos.filter((a: any) => filtros.turma === 'Todas' || a.turma_id === filtros.turma)
+                .map((aluno: any) => [
+                    aluno.nome_completo.toUpperCase(), 
+                    aluno.matricula, 
+                    aluno.turma_id || '-', 
+                    `${presencaGlobal[aluno.matricula] || 0} Dias`,
+                    'Online'
+                ]).sort((a: any, b: any) => a[0].localeCompare(b[0]));
+            
+            relatorioServico.gerarPDF(dadosMapeados, 'Ata de Fechamento Mensal de Frequência', filtros, [['NOME DO ALUNO', 'MATRÍCULA', 'TURMA', 'TOTAL PRESENÇAS', 'FONTE']]);
         } else if (tipo === 'Log de Auditoria') {
             const logsAuditoria = await api.obter<any[]>(`/auditoria/logs?desde=${filtros.dataInicio}&limite=5000`) || [];
-            const dadosFiltrados = logsAuditoria.filter((l: any) => {
+            const dadosMapeados = logsAuditoria.filter((l: any) => {
                 const data = (l.criado_em || l.timestamp || '').split('T')[0];
                 return data >= filtros.dataInicio && data <= filtros.dataFim;
             }).map((l: any) => [
                 format(parseISO(l.criado_em || l.timestamp), 'dd/MM HH:mm'),
-                l.usuario_email.split('@')[0],
-                l.acao,
-                l.entidade_tipo,
-                'Online'
+                l.usuario_email.toUpperCase(),
+                l.acao.toUpperCase(),
+                l.entidade_tipo.toUpperCase(),
+                'NUVEM'
             ]);
 
-            const doc = new jsPDF();
-            doc.setFontSize(16);
-            doc.text('Log de Auditoria Técnica - SCAE', 14, 20);
-            doc.setFontSize(10);
-            doc.text(`Protocolo de Segurança: Ciclo ${filtros.anoLetivo}`, 14, 28);
-            autoTable(doc, { 
-                startY: 35, 
-                head: [['Timestamp', 'Usuário', 'Operação', 'Entidade', 'Fonte']], 
-                body: dadosFiltrados, 
-                theme: 'striped', 
-                headStyles: { fillColor: [30, 41, 59] } 
-            });
-            doc.save(`Auditoria_${Date.now()}.pdf`);
+            relatorioServico.gerarPDF(dadosMapeados, 'Relatório de Auditoria Técnica de Sistema', filtros, [['TIMESTAMP', 'USUÁRIO', 'AÇÃO', 'MÓDULO', 'FONTE']]);
         }
     }
 };
-
