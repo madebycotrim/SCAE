@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { resolverSlugDaUrl } from './resolverSlug';
 import { storageEscola } from '@/compartilhado/utils/utilidades-slug';
+import { TelaCarregamento } from '@/compartilhado/componentes/UI';
 
 export interface PerfilEscola {
     id: string; // Identificador/Slug da escola
@@ -115,14 +116,7 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
     }
 
     if (!perfil) {
-        return (
-            <div className="fixed inset-0 flex items-center justify-center bg-slate-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                    <p className="text-slate-500 font-medium">Carregando escola...</p>
-                </div>
-            </div>
-        );
+        return <TelaCarregamento mensagem="CARREGANDO ESCOLA..." />;
     }
 
     return (

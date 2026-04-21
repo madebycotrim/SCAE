@@ -451,40 +451,72 @@ export default function PaginaAgente() {
                     {/* COLUNA PRINCIPAL (ESQUERDA) */}
                     <div className="lg:col-span-2 space-y-4">
                         <CartaoConteudo className="p-6">
+                            <div className="flex items-center justify-between mb-6 px-2">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <Fingerprint size={14} className="text-eletrico" /> Central de Biometrias
+                                </h4>
+                                <span className="text-[9px] font-bold text-slate-400 bg-slate-50 border border-slate-100 px-2 py-1 rounded-md uppercase tracking-wider">Busca Ativa</span>
+                            </div>
+
                             <div className="relative mb-6">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                 <input 
                                     type="text"
-                                    placeholder="Cadastrar Biometria: Nome ou matrícula..."
+                                    placeholder="Cadastrar Biometria: Digite nome ou matrícula..."
                                     value={termoBusca}
                                     onChange={(e) => setTermoBusca(e.target.value)}
-                                    className="w-full pl-12 pr-4 h-14 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:border-eletrico transition-all"
+                                    className="w-full pl-12 pr-4 h-14 bg-slate-50/50 border border-slate-200 rounded-2xl font-bold outline-none focus:bg-white focus:border-eletrico focus:ring-4 focus:ring-eletrico/10 transition-all placeholder:text-slate-400 placeholder:font-medium text-slate-700"
                                 />
                             </div>
 
                             <div className="space-y-3">
-                                {alunosFiltrados.map((aluno) => (
-                                    <div key={aluno.matricula} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-eletrico/20 transition-all">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${aluno.biometria_cadastrada ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}>
-                                                {aluno.biometria_cadastrada ? <CheckCircle2 size={24} /> : <User size={24} />}
+                                {alunosFiltrados.length > 0 ? (
+                                    alunosFiltrados.map((aluno) => (
+                                        <div key={aluno.matricula} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-eletrico/20 hover:shadow-suave transition-all group">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors ${aluno.biometria_cadastrada ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500'}`}>
+                                                    {aluno.biometria_cadastrada ? <CheckCircle2 size={24} /> : <User size={24} />}
+                                                </div>
+                                                <div>
+                                                    <h5 className="text-[13px] font-black text-slate-800 uppercase group-hover:text-eletrico transition-colors">{aluno.nome_completo}</h5>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{aluno.matricula} • {aluno.turma_id || 'SEM TURMA'}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h5 className="text-[13px] font-black text-slate-800 uppercase">{aluno.nome_completo}</h5>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{aluno.matricula} • {aluno.turma_id || 'SEM TURMA'}</p>
-                                            </div>
+                                            <Botao 
+                                                variante={aluno.biometria_cadastrada ? 'secundario' : 'primario'}
+                                                onClick={() => iniciarCadastroBiometrico(aluno.matricula, aluno.nome_completo)}
+                                                carregando={cadastrandoPara === aluno.matricula}
+                                                disabled={!statusLocal}
+                                                icone={Fingerprint}
+                                            >
+                                                {aluno.biometria_cadastrada ? 'Recadastrar' : 'Capturar Digital'}
+                                            </Botao>
                                         </div>
-                                        <Botao 
-                                            variante={aluno.biometria_cadastrada ? 'secundario' : 'primario'}
-                                            onClick={() => iniciarCadastroBiometrico(aluno.matricula, aluno.nome_completo)}
-                                            carregando={cadastrandoPara === aluno.matricula}
-                                            disabled={!statusLocal}
-                                            icone={Fingerprint}
-                                        >
-                                            {aluno.biometria_cadastrada ? 'Recadastrar' : 'Cadastrar'}
-                                        </Botao>
+                                    ))
+                                ) : (
+                                    <div className="py-14 flex flex-col items-center justify-center text-center bg-slate-50/50 border border-slate-200 border-dashed rounded-2xl">
+                                        <div className="w-16 h-16 bg-white border border-slate-100 rounded-full flex items-center justify-center mb-4 shadow-sm relative">
+                                            {termoBusca.length > 0 ? (
+                                                <Search size={24} className="text-slate-300" />
+                                            ) : (
+                                                <>
+                                                    <Fingerprint size={28} className="text-slate-300" />
+                                                    <div className="absolute top-0 right-0 w-4 h-4 bg-eletrico rounded-full border-2 border-white flex items-center justify-center">
+                                                        <Zap size={8} className="text-white" />
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                        <h5 className="text-[12px] font-black text-slate-700 uppercase tracking-tight mb-1">
+                                            {termoBusca.length > 0 ? "Nenhum aluno localizado" : "Pronto para Captura"}
+                                        </h5>
+                                        <p className="text-[10px] font-medium text-slate-400 max-w-[260px] leading-relaxed">
+                                            {termoBusca.length > 0 
+                                                ? "Verifique se o nome possui acentos incorretos ou verifique a matrícula no sistema." 
+                                                : "Localize o aluno através da barra de pesquisas acima para iniciar a leitura de sua digital no hardware."}
+                                        </p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </CartaoConteudo>
                     </div>
