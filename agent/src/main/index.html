@@ -1279,10 +1279,16 @@
                         </div>
                     </div>
                     <div class="cloud-row">
-                        <span class="cloud-key">ALUNOS OFFLINE</span>
+                        <span class="cloud-key">ALUNOS EM CACHE</span>
                         <div style="display:flex; align-items:center; gap:8px">
-                            <span class="cloud-val" id="c-pendentes">0</span>
-                            <button class="btn accent" onclick="forcarSinc()" style="padding:4px 8px; font-size:10px; height:auto">SINCRONIZAR</button>
+                            <span class="cloud-val" id="c-cache-total">0</span>
+                        </div>
+                    </div>
+                    <div class="cloud-row">
+                        <span class="cloud-key">PENDÊNCIAS (SYNC)</span>
+                        <div style="display:flex; align-items:center; gap:8px">
+                            <span class="cloud-val" id="c-pendentes-sync">0</span>
+                            <button class="btn accent" onclick="forcarSinc()" style="padding:4px 8px; font-size:10px; height:auto">FORÇAR SYNC</button>
                         </div>
                     </div>
                     <div class="cloud-row">
@@ -1400,6 +1406,22 @@
 
     <script>
         // ══════════════════════════════════════
+        //  BLINDAGEM GLOBAL (UI)
+        // ══════════════════════════════════════
+        window.onerror = function(msg, url, line, col, error) {
+            if (typeof pushLog === 'function') {
+                pushLog(`🚨 ERRO UI: ${msg} (Linha: ${line})`, 'err');
+            }
+            return false;
+        };
+
+        window.onunhandledrejection = function(event) {
+            if (typeof pushLog === 'function') {
+                pushLog(`🚨 ERRO ASSÍNCRONO: ${event.reason}`, 'err');
+            }
+        };
+
+        // ══════════════════════════════════════
         //  ESTADO GLOBAL
         // ══════════════════════════════════════
         let configAtiva = [];
@@ -1407,14 +1429,12 @@
         const hwLatency = {}; // State para latência dos leitores
         const verificandoStart = {}; // Rastreio de tempo para conexão
 
-
-
         // Métricas do dia
         const metrics = { ok: 0, err: 0, horas: new Array(24).fill(0) };
         let metricsDay = new Date().getDate();
 
         // Log state
-        const MAX_LOG = 500;
+        const MAX_LOG = 700; // Aumentado para melhor auditoria local
         let logEntries = [];       // { el, ts, lv, txt }
         let activeFilters = new Set();
         let searchQuery = '';
@@ -1763,7 +1783,23 @@
 
             // Alunos no Cache Offline
             if (status.total_alunos !== undefined) {
-                document.getElementById('c-pendentes').textContent = status.total_alunos;
+                const el = document.getElementById('c-cache-total');
+                if (el) el.textContent = status.total_alunos;
+            }
+
+            // Batidas pendentes de envio
+            if (status.batidas_pendentes !== undefined) {
+                const el = document.getElementById('c-pendentes-sync');
+                if (el) {
+                    el.textContent = status.batidas_pendentes;
+                    if (status.batidas_pendentes > 0) {
+                        el.style.color = 'var(--acc)';
+                        el.style.fontWeight = 'bold';
+                    } else {
+                        el.style.color = 'var(--ok)';
+                        el.style.fontWeight = 'normal';
+                    }
+                }
             }
 
             // Indicador de Voz (TTS) + Frases na Sidebar
@@ -1832,12 +1868,16 @@
 
 
         // ACESSO
-        window.scaeApi.onNewAccess(data => {
-            registerAccess(data.sucesso);
+        window.scaeApi.onNewAccess((data = {}) => {
+            if (!data) return;
+            const nomeSucesso = data.nome || 'Visitante';
+            const sucesso = !!data.sucesso;
 
-            const tipo = data.sucesso ? 'ok' : 'err';
-            const label = data.sucesso ? 'ACESSO' : 'NEGADO';
-            showToast(`${label}: ${data.nome}`, tipo);
+            registerAccess(sucesso);
+
+            const tipo = sucesso ? 'ok' : 'err';
+            const label = sucesso ? 'ACESSO' : 'NEGADO';
+            showToast(`${label}: ${nomeSucesso}`, tipo);
 
             // TTS via fila
             if (data.ttsAtivo) {
@@ -1847,9 +1887,9 @@
                 };
                 
                 // 📢 RECADO PERSONALIZADO: Se houver mensagemAviso, ela tem prioridade sobre o padrão
-                const tpl = data.mensagemAviso || (data.sucesso ? ttsParams.sucesso : ttsParams.erro);
+                const tpl = data.mensagemAviso || (sucesso ? ttsParams.sucesso : ttsParams.erro);
                 
-                if (tpl && tpl.trim() !== '') {
+                if (tpl && tpl.trim() !== '' && tpl !== '(silêncio)') {
                     const frase = tpl.replace('{nome}', data.nomePuro || 'Visitante');
                     enqueueTTS(frase);
                 }

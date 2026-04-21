@@ -54,6 +54,7 @@ function enviarStatusParaUI() {
             versao: '2.0.0',
             nome_escola: config.nome_escola,
             total_alunos: config.total_alunos,
+            batidas_pendentes: pendentes,
             tts_ativado: config.tts_ativado,
             tts_sucesso: config.tts_sucesso,
             tts_erro: config.tts_erro,
@@ -112,10 +113,10 @@ function createWindow() {
             return;
         }
         if (req.url === '/sync-now') {
-            const { iniciarSync } = require('../services/sync');
-            iniciarSync(true); // Força sincronização imediata
+            const { forcarSincronizacaoImediata, sincronizarRegistrosPendentes } = require('../services/sync');
+            forcarSincronizacaoImediata().then(() => sincronizarRegistrosPendentes());
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true, mensagem: 'Sincronização disparada manualmente.' }));
+            res.end(JSON.stringify({ ok: true, mensagem: 'Sincronização total disparada.' }));
             return;
         }
 
@@ -200,95 +201,109 @@ function createWindow() {
         }
 
         if (req.url === '/enroll' && req.method === 'POST') {
-            const chunks = [];
-            for await (const chunk of req) chunks.push(chunk);
-            const { aluno_id } = JSON.parse(Buffer.concat(chunks).toString());
-            const leitor = obterLeitoresAtivos()[0];
-            if (!leitor || !leitor.iniciarCaptura) {
-                res.writeHead(400); res.end(JSON.stringify({ ok: false, erro: 'Hardware não suporta captura.' }));
-                return;
+            try {
+                const chunks = [];
+                for await (const chunk of req) chunks.push(chunk);
+                const corpoRaw = Buffer.concat(chunks).toString();
+                if (!corpoRaw) throw new Error('Corpo da requisição vazio');
+                
+                const { aluno_id } = JSON.parse(corpoRaw);
+                const leitor = obterLeitoresAtivos()[0];
+                if (!leitor || !leitor.iniciarCaptura) {
+                    res.writeHead(400); res.end(JSON.stringify({ ok: false, erro: 'Hardware não suporta captura ou não identificado.' }));
+                    return;
+                }
+                const resultado = await leitor.iniciarCaptura(Number(aluno_id));
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(resultado));
+            } catch (e: any) {
+                console.error('[Agente] 🚨 Erro no fluxo de ENROLL:', e.message);
+                res.writeHead(500); res.end(JSON.stringify({ ok: false, erro: 'Erro interno ao iniciar captura.' }));
             }
-            const resultado = await leitor.iniciarCaptura(Number(aluno_id));
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(resultado));
             return;
         }
 
         if (req.url === '/idflex-push' && req.method === 'POST') {
-            const chunks = [];
-            for await (const chunk of req) chunks.push(chunk);
-            const ev = JSON.parse(Buffer.concat(chunks).toString());
-            const clientIp = req.socket.remoteAddress?.replace('::ffff:', '').split(':')[0];
-            const leitor = obterLeitoresAtivos().find((l: any) => l.ip.split(':')[0] === clientIp) as any;
+            try {
+                const chunks = [];
+                for await (const chunk of req) chunks.push(chunk);
+                const corpoRaw = Buffer.concat(chunks).toString();
+                if (!corpoRaw) throw new Error('Corpo de PUSH vazio');
 
-            if (leitor && ev.event !== undefined) {
-                const idUsuario = ev.user_id !== undefined ? String(ev.user_id) : '0';
-                console.log(`[Agente] 📟 Push Recebido de ${leitor.nome} [IP ${leitor.ip}]: Evento ${ev.event}, Usuário ${idUsuario}`);
-                
-                let nomeParaExibir = 'ACESSO NÃO RECONHECIDO';
-                let matriculaParaExibir = '—';
+                const ev = JSON.parse(corpoRaw);
+                const clientIp = req.socket.remoteAddress?.replace('::ffff:', '').split(':')[0];
+                const leitor = obterLeitoresAtivos().find((l: any) => l.ip.split(':')[0] === clientIp) as any;
 
-                if (idUsuario !== '0' && idUsuario !== '') {
-                    const info = leitor.obterDadosUsuarioHardware(String(idUsuario));
-                    nomeParaExibir = info.nome;
-                    matriculaParaExibir = info.matricula;
-                }
-
-                const { runSql, getSql } = require('../infra/db');
-                const { classificarAcesso } = require('../services/classificador');
-
-                const aluno = (idUsuario !== '0' && idUsuario !== '') 
-                    ? await getSql('SELECT nome_completo, turma_id, turno, mensagem_aviso FROM alunos_cache WHERE matricula = ?', [matriculaParaExibir])
-                    : null;
-                
-                const classificacao = classificarAcesso(matriculaParaExibir, aluno?.turno);
-                const statusAcesso = [6, 7, 10, 11, 12, 14, 15, 16, 31].includes(ev.event) ? classificacao.tipo : 'NEGADO';
-                const turmaAcesso = aluno?.turma_id || '---';
-
-                if (statusAcesso !== 'NEGADO') leitor.emitirBeep();
-
-                const agoraIso = new Date().toISOString();
-                
-                // ⚡ ANTI-DUPLICIDADE: Gera um ID fixo baseado no ID do evento do hardware
-                // Se o hardware não enviou ID (raro), usa o timestamp + matricula como fallback
-                const idEventoHardware = ev.id || `${agoraIso}-${matriculaParaExibir}`;
-                const idRegistro = `${leitor.id}-${idEventoHardware}`;
-
-                try {
-                    await runSql(`
-                        INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
-                    `, [idRegistro, leitor.id, config.escola_id, String(matriculaParaExibir), nomeParaExibir, statusAcesso, statusAcesso !== 'NEGADO' ? 1 : 0, agoraIso]);
-                } catch (e: any) {
-                    if (e.message.includes('UNIQUE')) {
-                        // console.log(`[Agente] Registro duplicado ignorado: ${idRegistro}`);
-                        res.writeHead(200); res.end(); return;
-                    }
-                    throw e;
-                }
-
-                stats.registrarAcesso(nomeParaExibir, String(matriculaParaExibir), statusAcesso, turmaAcesso);
-
-                if (mainWindow) {
-                    mainWindow.webContents.send('new-access', { 
-                        nome: `${nomeParaExibir} (${matriculaParaExibir})`, 
-                        nomePuro: nomeParaExibir,
-                        turma: turmaAcesso,
-                        sucesso: statusAcesso !== 'NEGADO',
-                        mensagemAviso: aluno?.mensagem_aviso || null,
-                        ttsAtivo: config.tts_ativado,
-                        ttsParams: {
-                            sucesso: config.tts_sucesso,
-                            erro: config.tts_erro
-                        }
-                    });
-                    enviarStatusParaUI();
+                if (leitor && ev.event !== undefined) {
+                    const idUsuario = ev.user_id !== undefined ? String(ev.user_id) : '0';
+                    console.log(`[Agente] 📟 Push Recebido de ${leitor.nome} [IP ${leitor.ip}]: Evento ${ev.event}, Usuário ${idUsuario}`);
                     
-                    // 🚀 GATILHO TEMPO REAL: Tenta empurrar para a nuvem IMEDIATAMENTE após receber o push
-                    sincronizarRegistrosPendentes().catch(() => {});
+                    let nomeParaExibir = 'ACESSO NÃO RECONHECIDO';
+                    let matriculaParaExibir = '—';
+
+                    if (idUsuario !== '0' && idUsuario !== '') {
+                        const info = leitor.obterDadosUsuarioHardware(String(idUsuario));
+                        nomeParaExibir = info.nome;
+                        matriculaParaExibir = info.matricula;
+                    }
+
+                    const { runSql, getSql } = require('../infra/db');
+                    const { classificarAcesso } = require('../services/classificador');
+
+                    const aluno = (idUsuario !== '0' && idUsuario !== '') 
+                        ? await getSql('SELECT nome_completo, turma_id, turno, mensagem_aviso FROM alunos_cache WHERE matricula = ?', [matriculaParaExibir])
+                        : null;
+                    
+                    const classificacao = classificarAcesso(matriculaParaExibir, aluno?.turno);
+                    const statusAcesso = [6, 7, 10, 11, 12, 14, 15, 16, 31].includes(ev.event) ? classificacao.tipo : 'NEGADO';
+                    const turmaAcesso = aluno?.turma_id || '---';
+
+                    if (statusAcesso !== 'NEGADO') leitor.emitirBeep();
+
+                    const agoraIso = new Date().toISOString();
+                    
+                    // ⚡ ANTI-DUPLICIDADE: Gera um ID fixo baseado no ID do evento do hardware
+                    const idEventoHardware = ev.id || `${agoraIso}-${matriculaParaExibir}`;
+                    const idRegistro = `${leitor.id}-${idEventoHardware}`;
+
+                    try {
+                        await runSql(`
+                            INSERT INTO registros_acesso (id, leitor_id, escola_id, matricula, nome, tipo, autorizado, timestamp_acesso, sincronizado)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                        `, [idRegistro, leitor.id, config.escola_id, String(matriculaParaExibir), nomeParaExibir, statusAcesso, statusAcesso !== 'NEGADO' ? 1 : 0, agoraIso]);
+                    } catch (e: any) {
+                        if (e.message.includes('UNIQUE')) {
+                            res.writeHead(200); res.end(); return;
+                        }
+                        throw e;
+                    }
+
+                    stats.registrarAcesso(nomeParaExibir, String(matriculaParaExibir), statusAcesso, turmaAcesso);
+
+                    if (mainWindow) {
+                        mainWindow.webContents.send('new-access', { 
+                            nome: `${nomeParaExibir} (${matriculaParaExibir})`, 
+                            nomePuro: nomeParaExibir,
+                            turma: turmaAcesso,
+                            sucesso: statusAcesso !== 'NEGADO',
+                            mensagemAviso: aluno?.mensagem_aviso || null,
+                            ttsAtivo: config.tts_ativado,
+                            ttsParams: {
+                                sucesso: config.tts_sucesso,
+                                erro: config.tts_erro
+                            }
+                        });
+                        enviarStatusParaUI();
+                        
+                        // 🚀 GATILHO TEMPO REAL: Tenta empurrar para a nuvem IMEDIATAMENTE após receber o push
+                        sincronizarRegistrosPendentes().catch(() => {});
+                    }
                 }
+                res.writeHead(200); res.end('OK');
+            } catch (e: any) {
+                console.error('[Agente] 🚨 Erro processando PUSH do hardware:', e.message);
+                res.writeHead(200); res.end('FAIL_BUT_ACK');
             }
-            res.writeHead(200); res.end();
             return;
         }
 
