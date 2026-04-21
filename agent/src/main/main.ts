@@ -77,7 +77,8 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
-    title: 'Catraki Edge Agent'
+    title: 'Catraki Edge Agent',
+    icon: path.join(__dirname, 'CATRAKI.ico')
   });
 
   mainWindow.setMenuBarVisibility(false);
@@ -334,6 +335,15 @@ server.listen(config.porta_agente || 1912, () => {
           return { ok: true };
       }
       return { ok: false };
+  });
+
+  ipcMain.handle('listar-alunos', async (_event, leitorId) => {
+      const leitores = obterLeitoresAtivos();
+      const leitor = leitores.find(l => l.id === leitorId);
+      if (leitor && typeof (leitor as any).listarAlunos === 'function') {
+          return await (leitor as any).listarAlunos();
+      }
+      return [];
   });
 
   autoUpdater.checkForUpdatesAndNotify();

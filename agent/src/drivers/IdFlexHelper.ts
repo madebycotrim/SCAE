@@ -67,7 +67,7 @@ export const IdFlexHelper = {
         if (filasPorIp.get(ip) === novaPromessa) {
            // No-op ou limpeza futura
         }
-    });
+    }).catch(() => {});
 
     return novaPromessa;
   },

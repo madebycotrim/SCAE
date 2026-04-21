@@ -101,12 +101,8 @@ export class IdflexLeitor implements ILeitor {
       // Check online status with a light request
       const info = await this.requisitarComToken('system_information.fcgi', {}, 5000);
       
-      // Busca contagem real de usuários no hardware
-      let totalUsuarios = 0;
-      try {
-        const usersResp = await this.requisitarComToken('load_objects.fcgi', { object: 'users' }, 5000);
-        totalUsuarios = usersResp?.users?.length || 0;
-      } catch { /* Se falhar, fica 0 mesmo */ }
+      // Usa o cache sincronizado periodicamente em vez de travar o hardware a cada 5s
+      const totalUsuarios = this.cacheNomes.size || 0;
 
       return {
         online: true,
@@ -266,14 +262,14 @@ export class IdflexLeitor implements ILeitor {
         if (aluno.templates && aluno.templates.length > 0) {
           try {
             await this.requisitarComToken('destroy_objects.fcgi', {
-              object: 'fingerprints',
-              where: { fingerprints: { user_id: idExistente } }
+              object: 'templates',
+              where: { templates: { user_id: idExistente } }
             });
           } catch {}
 
           await this.requisitarComToken('create_objects.fcgi', {
             values: aluno.templates.map(t => ({ user_id: Number(idExistente), template: t })),
-            object: 'fingerprints'
+            object: 'templates'
           });
         }
 
@@ -298,7 +294,7 @@ export class IdflexLeitor implements ILeitor {
       if (aluno.templates && aluno.templates.length > 0) {
         await this.requisitarComToken('create_objects.fcgi', {
           values: aluno.templates.map(t => ({ user_id: Number(idPretendido), template: t })),
-          object: 'fingerprints'
+          object: 'templates'
         });
       }
 
@@ -388,8 +384,8 @@ export class IdflexLeitor implements ILeitor {
       // Isso evita duplicados se o hardware já tiver um template fantasma
       try {
         await this.requisitarComToken('destroy_objects.fcgi', {
-          object: 'fingerprints',
-          where: { fingerprints: { user_id: Number(userId) } }
+          object: 'templates',
+          where: { templates: { user_id: Number(userId) } }
         });
       } catch {}
 
@@ -480,8 +476,8 @@ export class IdflexLeitor implements ILeitor {
       // 2. Limpeza Preventiva: Remove biometrias antes do usuário
       try {
         await this.requisitarComToken('destroy_objects.fcgi', {
-          object: 'fingerprints',
-          where: { fingerprints: { user_id: idInterno } }
+          object: 'templates',
+          where: { templates: { user_id: idInterno } }
         });
       } catch {}
 
@@ -608,11 +604,11 @@ export class IdflexLeitor implements ILeitor {
 
       // 2. Verifica se tem digital (fingerprints) vinculada
       const respBio = await this.requisitarComToken('load_objects.fcgi', {
-        object: 'fingerprints',
-        where: { fingerprints: { user_id: userId } }
+        object: 'templates',
+        where: { templates: { user_id: userId } }
       });
 
-      return respBio.fingerprints && respBio.fingerprints.length > 0;
+      return respBio.templates && respBio.templates.length > 0;
     } catch {
       return false;
     }
