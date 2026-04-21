@@ -5,7 +5,7 @@ interface ContextoAgenteTipo {
     agente: StatusAgente;
     online: boolean;
     carregando: boolean;
-    forcarVerificacao: () => Promise<void>;
+    forcarVerificacao: () => Promise<boolean>;
 }
 
 const ContextoAgente = createContext<ContextoAgenteTipo | undefined>(undefined);

@@ -178,7 +178,6 @@ export default function RegistroAuditoria() {
             titulo="Trilha de Auditoria"
             subtitulo="Segurança total: rastro forense de todas as operações realizadas"
             acoes={<Botao variante="secundario" tamanho="sm" icone={RefreshCw} carregando={carregando} onClick={carregarLogs}>Atualizar</Botao>}
-            carregando={carregando}
         >
             {/* Quick Stats Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-2">

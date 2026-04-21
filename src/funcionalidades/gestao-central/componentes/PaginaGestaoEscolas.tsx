@@ -557,27 +557,29 @@ export function PaginaGestaoEscolas() {
                                     </div>
 
                                     {/* CARD QR DINAMICO */}
-                                    <div 
-                                        className={`relative p-4 rounded-xl border transition-all cursor-pointer shadow-sm group sm:col-span-2 ${form.config_qr_dinamico ? 'bg-white border-emerald-500 ring-1 ring-emerald-500/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}
-                                        onClick={() => definirForm({...form, config_qr_dinamico: !form.config_qr_dinamico})}
-                                    >
-                                        <div className="flex gap-3">
-                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${form.config_qr_dinamico ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400 group-hover:text-slate-600'}`}>
-                                                <Shield size={18} />
-                                            </div>
-                                            <div className="flex-1 space-y-1">
-                                                <div className="flex items-center justify-between">
-                                                    <h3 className={`text-[12px] font-black uppercase tracking-tight ${form.config_qr_dinamico ? 'text-slate-900' : 'text-slate-600'}`}>Segurança OTP Híbrida (QR Dinâmico)</h3>
-                                                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${form.config_qr_dinamico ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}>
-                                                        {form.config_qr_dinamico && <Check size={8} className="text-white" strokeWidth={4} />}
-                                                    </div>
+                                    {form.metodo_acesso.includes('QRCODE') && (
+                                        <div 
+                                            className={`relative p-4 rounded-xl border transition-all cursor-pointer shadow-sm group sm:col-span-2 ${form.config_qr_dinamico ? 'bg-white border-emerald-500 ring-1 ring-emerald-500/20' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+                                            onClick={() => definirForm({...form, config_qr_dinamico: !form.config_qr_dinamico})}
+                                        >
+                                            <div className="flex gap-3">
+                                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${form.config_qr_dinamico ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400 group-hover:text-slate-600'}`}>
+                                                    <Shield size={18} />
                                                 </div>
-                                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed max-w-sm">
-                                                    Gera um OTP mutável associado a chave da unidade para coibir o aluno de enviar print screen do App.
-                                                </p>
+                                                <div className="flex-1 space-y-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <h3 className={`text-[12px] font-black uppercase tracking-tight ${form.config_qr_dinamico ? 'text-slate-900' : 'text-slate-600'}`}>Segurança OTP Híbrida (QR Dinâmico)</h3>
+                                                        <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${form.config_qr_dinamico ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}>
+                                                            {form.config_qr_dinamico && <Check size={8} className="text-white" strokeWidth={4} />}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed max-w-sm">
+                                                        Gera um OTP mutável associado a chave da unidade para coibir o aluno de enviar print screen do App.
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </section>
 

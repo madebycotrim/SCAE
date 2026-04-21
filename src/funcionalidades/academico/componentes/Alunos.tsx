@@ -190,7 +190,6 @@ export default function Alunos() {
             titulo="Gestão de Alunos"
             subtitulo="Gerencie as matrículas e as informações dos estudantes"
             acoes={AcoesHeader}
-            carregando={carregando}
         >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <CardMetrica

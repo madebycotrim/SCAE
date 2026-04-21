@@ -133,7 +133,6 @@ export default function Usuarios() {
             titulo="Gestão de Usuários"
             subtitulo="Gerencie quem pode acessar e operar o sistema na unidade"
             acoes={AcoesHeader}
-            carregando={carregando}
         >
             <BarraFiltro className="bg-slate-50 border-slate-200/60 shadow-suave p-4 rounded-2xl">
                 <div className="flex flex-col gap-2 flex-1 w-full text-left">

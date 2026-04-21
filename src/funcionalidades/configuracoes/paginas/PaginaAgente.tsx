@@ -220,7 +220,24 @@ export default function PaginaAgente() {
     const onlineCount = leitores.filter((l: any) => l.online).length;
 
     const BotoesAcao = (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+            
+            {/* STATUS INLINE */}
+            <div className="hidden md:flex items-center gap-4 px-4 py-1.5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-2" title={statusLocal ? `Versão ${statusLocal.versao}` : ''}>
+                    <div className={`w-2 h-2 rounded-full ${statusLocal ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />
+                    <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Catraki Edge Agent: {statusLocal ? 'Online' : 'Offline'}</span>
+                </div>
+                <div className="w-px h-3 bg-slate-200" />
+                <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${isOnlineNuvem ? 'bg-eletrico animate-pulse shadow-[0_0_8px_rgba(79,70,229,0.5)]' : 'bg-rose-500'}`} />
+                    <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Nuvem: {isOnlineNuvem ? 'Online' : 'Offline'}</span>
+                </div>
+            </div>
+
+            <div className="w-px h-5 bg-slate-200 mx-1 hidden md:block" />
+
+            <div className="flex items-center gap-2">
             {/* BOTÃO CONFIGURAÇÕES (AGENTE) */}
             <div className="relative">
                 <button
@@ -382,6 +399,7 @@ export default function PaginaAgente() {
                 </AnimatePresence>
             </div>
         </div>
+        </div>
     );
 
     return (
@@ -392,25 +410,6 @@ export default function PaginaAgente() {
         >
             <div className="space-y-6">
                 
-                {/* STATUS BAR SIMPLIFICADA */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between overflow-hidden">
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${statusLocal ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Agente Local: {statusLocal ? 'Conectado' : 'Buscando...'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${isOnlineNuvem ? 'bg-eletrico animate-pulse' : 'bg-rose-500'}`} />
-                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Sincronia Nuvem: {isOnlineNuvem ? 'Ativo' : 'Desconectado'}</span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-slate-300">
-                        <span className="text-[9px] font-black uppercase tracking-tighter">Versão {statusLocal?.versao || '?.?'}</span>
-                        <div className="w-1 h-1 bg-slate-100 rounded-full" />
-                        <span className="text-[9px] font-black uppercase tracking-tighter truncate max-w-[150px]">{statusLocal?.escola || ''}</span>
-                    </div>
-                </div>
 
                 {/* MÉTRICAS (MISTO LOCAL/NUVEM - Padrão Luxury 2xl) */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
