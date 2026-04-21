@@ -330,7 +330,7 @@ export default function PaginaInicial() {
                             </div>
                             <h3 className={`text-xl font-bold mb-3 ${temaEscuro ? 'text-slate-200' : 'text-slate-800'}`}><span className="text-eletrico">3.</span> Radar 360º Central</h3>
                             <p className={`text-sm font-medium ${temaEscuro ? 'text-slate-400' : 'text-slate-500'}`}>
-                                Todos os acessos (Biometria ou QR) são canalizados para o seu Live Radar. Monitore a segurança da escola em tempo real, de qualquer lugar do mundo.
+                                Todos os acessos (Biometria ou QR) são canalizados para o card AO VIVO. Monitore a segurança da escola em tempo real, de qualquer lugar do mundo.
                             </p>
                         </div>
                     </div>

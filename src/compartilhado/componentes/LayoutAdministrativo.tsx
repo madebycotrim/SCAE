@@ -267,13 +267,32 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                     w-64 bg-white
                 `}
             >
-                {/* Seção do Logo (Clean) */}
-                <div className="flex items-center px-8 border-b border-slate-100 shrink-0" style={{ height: '64px' }}>
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
-                            <Shield size={18} strokeWidth={2.5} />
+                <div className="flex items-center px-6 border-b border-slate-100 shrink-0" style={{ height: '64px' }}>
+                    <div className="flex items-center gap-3 group px-2 py-1.5 rounded-2xl transition-all duration-500">
+                        <div className="relative">
+                            {/* Glow de fundo sutil */}
+                            <div className="absolute inset-0 bg-blue-500/10 blur-xl rounded-full scale-0 group-hover:scale-150 transition-transform duration-700 opacity-0 group-hover:opacity-100" />
+                            
+                            {/* Container do Logo Premium */}
+                            <div className={`
+                                flex items-center justify-center relative active:scale-95 transition-transform overflow-hidden
+                                ${sidebarMinimizado ? 'w-8 h-8 rounded-lg' : 'w-9 h-9 rounded-xl bg-white border border-slate-200 shadow-sm shadow-blue-900/5'}
+                            `}>
+                                <img src="/logo.png" alt="Catraki" className={`object-contain transition-all duration-500 ${sidebarMinimizado ? 'w-5 h-5' : 'w-6 h-6'}`} />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                            </div>
                         </div>
-                        {!sidebarMinimizado && <span className="text-lg font-black tracking-tighter text-slate-900 leading-none">SCAE</span>}
+                        
+                        {!sidebarMinimizado && (
+                            <div className="flex flex-col">
+                                <span className="text-xl font-bold tracking-tighter bg-gradient-to-br from-slate-900 via-slate-800 to-slate-600 bg-clip-text text-transparent leading-none">
+                                    Catraki
+                                </span>
+                                <span className="text-[8px] font-black text-blue-500 uppercase tracking-[0.2em] mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                                    Controle de Acesso
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -394,9 +413,16 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                         >
                             <Menu size={18} aria-hidden="true" />
                         </button>
-                        <div className="flex flex-col justify-center">
-                            <h1 className="text-sm font-bold text-slate-900 leading-none tracking-tight uppercase">{titulo}</h1>
-                            {subtitulo && <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1 hidden sm:block">{subtitulo}</p>}
+                        <div className="flex flex-col justify-center gap-0.5">
+                            <h1 className="text-lg md:text-xl font-bold text-slate-900 leading-tight tracking-tighter capitalize">
+                                {titulo.toLowerCase()}
+                            </h1>
+                            {subtitulo && (
+                                <p className="text-[11px] font-medium text-slate-400 mt-0.5 hidden sm:flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                                    {subtitulo}
+                                </p>
+                            )}
                         </div>
                     </div>
 

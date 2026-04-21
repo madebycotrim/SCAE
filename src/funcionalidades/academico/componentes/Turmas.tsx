@@ -189,7 +189,11 @@ export default function Turmas() {
 
     if (!podeAcessar('turmas', 'visualizar')) {
         return (
-            <LayoutAdministrativo titulo="Lista de Turmas" subtitulo="" acoes={null}>
+            <LayoutAdministrativo 
+                titulo="Turmas" 
+                subtitulo="Acesso Restrito — Permissões insuficientes" 
+                acoes={null}
+            >
                 <div className="flex flex-col items-center justify-center h-96 gap-4 text-slate-400 opacity-50 grayscale">
                     <BookOpen size={64} strokeWidth={1} />
                     <p className="font-black uppercase tracking-widest text-[11px]">Você não tem permissão para ver esta página</p>
@@ -211,8 +215,8 @@ export default function Turmas() {
 
     return (
         <LayoutAdministrativo
-            titulo="Gestão Acadêmica"
-            subtitulo="Controle de turmas, alocações e capacidade operacional."
+            titulo="Turmas"
+            subtitulo="Organização de turmas, ciclos letivos e capacidade de alocação"
             acoes={AcoesCabecalho}
         >
             {/* Métricas Minimalistas */}
@@ -221,82 +225,79 @@ export default function Turmas() {
                     label="Turmas"
                     valor={turmas.length}
                     icone={Grid}
-                    variante="azul"
+                    className="!shadow-none !border-slate-100"
                 />
                 <CardMetrica
                     label="Alunos"
                     valor={turmas.reduce((acc, t) => acc + (t.totalAlunos || 0), 0)}
                     icone={Users}
-                    variante="verde"
+                    className="!shadow-none !border-slate-100"
                 />
                 <CardMetrica
                     label="Assentos Livres"
                     valor={turmas.reduce((acc, t) => acc + (t.lotacao_maxima || 40), 0) - turmas.reduce((acc, t) => acc + (t.totalAlunos || 0), 0)}
                     subtitulo="Vagas Disponíveis"
                     icone={GraduationCap}
-                    variante="indigo"
+                    className="!shadow-none !border-slate-100"
                 />
                 <CardMetrica
                     label="Sem Professor"
                     valor={turmas.filter(t => !t.professor_regente).length}
                     subtitulo="Déficit de Regência"
                     icone={Activity}
-                    variante="laranja"
+                    className="!shadow-none !border-slate-100"
                 />
             </div>
 
-            <div className="bg-white border border-slate-200 p-4 rounded-xl">
-                <BarraFiltro className="bg-transparent border-none shadow-none p-0 flex-wrap lg:flex-nowrap gap-4">
-                    <div className="flex flex-col gap-1.5 flex-1 w-full">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pesquisar</label>
-                        <InputBusca
-                            icone={Search}
-                            placeholder="Série, professor..."
-                            value={termoBusca}
-                            onChange={(e) => definirTermoBusca(e.target.value)}
-                            className="w-full h-10 bg-slate-50 border-slate-200 rounded-xl"
-                        />
-                    </div>
+            <BarraFiltro>
+                <div className="flex flex-col gap-2 flex-1 w-full">
+                    <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Localizar Turma</label>
+                    <InputBusca
+                        icone={Search}
+                        placeholder="Série, professor..."
+                        value={termoBusca}
+                        onChange={(e) => definirTermoBusca(e.target.value)}
+                    />
+                </div>
 
-                    <div className="flex flex-col gap-2">
-                        <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Ano Letivo</label>
-                        <div className="flex items-center bg-slate-100/50 p-1 rounded-xl h-10">
-                            {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
+                <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Ano Letivo</label>
+                    <div className="flex items-center bg-slate-100/50 p-1 rounded-xl h-10 min-w-[140px]">
+                        {[new Date().getFullYear().toString(), (new Date().getFullYear() + 1).toString()].map((ano) => (
+                            <button
+                                key={ano}
+                                onClick={() => definirFiltroAnoLetivo(ano)}
+                                className={`flex-1 h-full rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${filtroAnoLetivo === ano
+                                    ? 'bg-slate-900 text-white shadow-sm'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                    }`}
+                            >
+                                {ano}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Filtro de Turno</label>
+                    <div className="flex items-center bg-slate-100/50 p-1 rounded-xl h-10 min-w-[400px]">
+                        {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
+                            return (
                                 <button
-                                    key={ano}
-                                    onClick={() => definirFiltroAnoLetivo(ano)}
-                                    className={`px-4 h-full rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${filtroAnoLetivo === ano
+                                    key={filtro}
+                                    onClick={() => definirFiltroTurno(filtro as any)}
+                                    className={`flex-1 h-full rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${filtroTurno === filtro
                                         ? 'bg-slate-900 text-white shadow-sm'
                                         : 'text-slate-400 hover:text-slate-600'
                                         }`}
                                 >
-                                    {ano}
+                                    {filtro === 'TODOS' ? 'Todos' : filtro}
                                 </button>
-                            ))}
-                        </div>
+                            );
+                        })}
                     </div>
-
-                    <div className="flex flex-col gap-2 flex-1">
-                    <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Buscar Turma (Série, Turno ou Sala)</label>
-                        <div className="flex items-center bg-slate-100/50 p-1 rounded-xl h-10">
-                            {['TODOS', 'Matutino', 'Vespertino', 'Noturno', 'Integral'].map((filtro) => {
-                                return (
-                                    <button
-                                        key={filtro}
-                                        onClick={() => definirFiltroTurno(filtro)}
-                                        className={`px-4 h-full rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${filtroTurno === filtro
-                                            ? 'bg-slate-900 text-white'
-                                            : 'text-slate-400 hover:text-slate-600'
-                                            }`}
-                                    >
-                                        {filtro === 'TODOS' ? 'Todos' : filtro}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </BarraFiltro>
-            </div>
+                </div>
+            </BarraFiltro>
 
             {/* Tabela SaaS High-End */}
             <CartaoConteudo className="mt-8 bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -318,12 +319,12 @@ export default function Turmas() {
                         <table className="w-full text-left border-collapse whitespace-nowrap">
                             <thead>
                                 <tr className="border-b border-slate-100">
-                                    <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight">Identificação</th>
-                                    <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight">Professor Regente</th>
-                                    <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight text-center">Localização</th>
-                                    <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight">Turno</th>
-                                    <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight">Ocupação</th>
-                                    <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight text-right">Ações</th>
+                                    <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Identificação</th>
+                                    <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Professor Regente</th>
+                                    <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">Localização</th>
+                                    <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Turno</th>
+                                    <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Ocupação</th>
+                                    <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100/60">
@@ -388,7 +389,7 @@ export default function Turmas() {
                                                     <Botao variante="ghost" tamanho="sm" icone={Edit2} onClick={() => abrirEdicao(turma)} className="hover:bg-slate-100 rounded-lg p-2" />
                                                     <Botao variante="ghost" tamanho="sm" icone={Trash2} onClick={() => excluirTurma(turma.id)} className="hover:bg-rose-50 hover:text-rose-600 rounded-lg p-2" />
                                                     <button 
-                                                        className="w-9 h-9 flex items-center justify-center bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all"
+                                                        className="w-9 h-9 flex items-center justify-center bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-lg active:scale-90"
                                                         onClick={() => navegar(`/${escola.id}/admin/alunos?turma=${turma.id}`)}
                                                     >
                                                         <ArrowRight size={14} />

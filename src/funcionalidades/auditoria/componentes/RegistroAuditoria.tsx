@@ -5,7 +5,7 @@ import { bancoLocal } from '@/compartilhado/servicos/bancoLocal';
 import { usarPermissoes } from '../../../compartilhado/autorizacao/ContextoPermissoes';
 import { usarAutenticacao } from '@/compartilhado/autenticacao/ContextoAutenticacao';
 import { api } from '@/compartilhado/servicos/api';
-import { Botao, CartaoConteudo, Esqueleto, InputBusca } from '@/compartilhado/componentes/UI';
+import { Botao, BarraFiltro, InputBusca, CardMetrica, Esqueleto } from '@/compartilhado/componentes/UI';
 import {
     Activity,
     ChevronLeft,
@@ -20,7 +20,8 @@ import {
     Terminal,
     Fingerprint,
     Search,
-    AlertTriangle
+    AlertTriangle,
+    ArrowRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -50,7 +51,7 @@ export default function RegistroAuditoria() {
     );
 
     const logs = logsBrutos || [];
-    const { termo: busca } = usarTermoBusca();
+    const { termo: busca, definirTermo } = usarTermoBusca();
     const [pagina, definirPagina] = useState(1);
     const [logSelecionado, definirLogSelecionado] = useState(null);
     const [mostrarRastroCompleto, definirMostrarRastroCompleto] = useState(false);
@@ -142,40 +143,60 @@ export default function RegistroAuditoria() {
     /**
      * Componente interno para exibir o status da ação com badge semântico.
      */
+    /**
+     * Componente interno para exibir o status da ação com design de pill e indicador (Estilo Turno).
+     */
     const BadgeStatus = ({ acao }: { acao: string }) => {
         const act = acao?.toUpperCase() || '';
 
-        let classesCor = 'text-slate-500 bg-slate-400/10 border-slate-200';
-        let Icone = Terminal;
+        let config = {
+            fundo: 'bg-slate-50',
+            texto: 'text-slate-700',
+            borda: 'border-slate-200',
+            indicador: 'bg-slate-400'
+        };
 
         if (act.includes('SUCESSO') || act.includes('LOGIN')) {
-            classesCor = 'text-emerald-600 bg-emerald-500/10 border-emerald-100';
-            Icone = Activity;
-        }
-        if (act.includes('CRIAR') || act.includes('ADICIONAR')) {
-            classesCor = 'text-indigo-600 bg-indigo-500/10 border-indigo-100';
-            Icone = RefreshCw;
-        }
-        if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) {
-            classesCor = 'text-rose-600 bg-rose-500/10 border-rose-100';
-            Icone = ShieldOff;
-        }
-        if (act.includes('ATUALIZAR') || act.includes('EDITAR')) {
-            classesCor = 'text-amber-600 bg-amber-500/10 border-amber-100';
-            Icone = RefreshCw;
+            config = {
+                fundo: 'bg-emerald-50',
+                texto: 'text-emerald-700',
+                borda: 'border-emerald-200',
+                indicador: 'bg-emerald-500'
+            };
+        } else if (act.includes('CRIAR') || act.includes('ADICIONAR') || act.includes('LOGIN')) {
+            config = {
+                fundo: 'bg-indigo-50',
+                texto: 'text-indigo-700',
+                borda: 'border-indigo-200',
+                indicador: 'bg-indigo-500'
+            };
+        } else if (act.includes('ERRO') || act.includes('DELETAR') || act.includes('EXCLUIR')) {
+            config = {
+                fundo: 'bg-rose-50',
+                texto: 'text-rose-700',
+                borda: 'border-rose-200',
+                indicador: 'bg-rose-500'
+            };
+        } else if (act.includes('ATUALIZAR') || act.includes('EDITAR')) {
+            config = {
+                fundo: 'bg-amber-50',
+                texto: 'text-amber-700',
+                borda: 'border-amber-200',
+                indicador: 'bg-amber-500'
+            };
         }
 
         return (
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${classesCor}`}>
-                <Icone size={12} strokeWidth={3} />
+            <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest border ${config.fundo} ${config.texto} ${config.borda}`}>
+                <div className={`w-1 h-1 rounded-full ${config.indicador}`}></div>
                 {acao}
-            </div>
+            </span>
         );
     };
 
     if (!podeVerLogs) {
         return (
-            <LayoutAdministrativo titulo="Registro de Segurança" subtitulo="Acompanhamento de ações realizadas no sistema" acoes={null}>
+            <LayoutAdministrativo titulo="Logs" subtitulo="Acesso restrito — permissões insuficientes" acoes={null}>
                 <div className="flex flex-col items-center justify-center h-96 gap-4 text-slate-400 opacity-50 grayscale">
                     <ShieldOff size={64} strokeWidth={1} />
                     <p className="text-[11px] font-black uppercase tracking-[0.2em]">Acesso restrito à direção e coordenação</p>
@@ -185,85 +206,91 @@ export default function RegistroAuditoria() {
     }
 
     return (
-        <LayoutAdministrativo
-            titulo="Trilha de Auditoria"
-            subtitulo="Segurança total: rastro forense de todas as operações realizadas no sistema"
+        <LayoutAdministrativo 
+            titulo="Logs"
+            subtitulo="Rastreabilidade completa de todas as operações realizadas no sistema"
             acoes={<Botao variante="secundario" tamanho="sm" icone={RefreshCw} carregando={carregando} onClick={carregarLogs}>Atualizar Cache</Botao>}
         >
-            {/* Quick Stats Summary Luxury */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10 mt-2">
-                {[
-                    { label: 'Fluxo Total', val: logsFiltrados.length, icon: Activity, col: 'indigo', glow: 'shadow-[0_0_20px_rgba(79,70,229,0.15)]' },
-                    { label: 'Operações Ok', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('SUCESSO') || l.acao?.toUpperCase().includes('LOGIN')).length, icon: Activity, col: 'emerald', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.15)]' },
-                    { label: 'Avisos/Edições', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ATUALIZAR') || l.acao?.toUpperCase().includes('EDITAR')).length, icon: Code, col: 'amber', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.15)]' },
-                    { label: 'Alertas Críticos', val: logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ERRO') || l.acao?.toUpperCase().includes('DELETAR')).length, icon: AlertTriangle, col: 'rose', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.15)]' }
-                ].map((stat, i) => (
-                    <div key={i} className={`bg-white/40 backdrop-blur-xl border border-white/60 p-6 rounded-[2rem] ${stat.glow} hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group`}>
-                        <div className="flex items-center gap-5">
-                            <div className={`w-14 h-14 rounded-[1.2rem] bg-${stat.col}-500 text-white flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform`}>
-                                <stat.icon size={24} strokeWidth={2.5} />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">{stat.label}</span>
-                                <span className="text-2xl font-black text-slate-900 tracking-tighter leading-none">{stat.val}</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 mt-2">
+                <CardMetrica 
+                    label="Fluxo Total"
+                    valor={logsFiltrados.length}
+                    icone={Activity}
+                    variante="indigo"
+                    className="!shadow-none !border-slate-100"
+                />
+                <CardMetrica 
+                    label="Operações Ok"
+                    valor={logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('SUCESSO') || l.acao?.toUpperCase().includes('LOGIN')).length}
+                    icone={Activity}
+                    variante="verde"
+                    className="!shadow-none !border-slate-100"
+                />
+                <CardMetrica 
+                    label="Logs / Edições"
+                    valor={logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ATUALIZAR') || l.acao?.toUpperCase().includes('EDITAR')).length}
+                    icone={Activity}
+                    variante="roxo"
+                    className="!shadow-none !border-slate-100"
+                />
+                <CardMetrica 
+                    label="Alertas Críticos"
+                    valor={logsFiltrados.filter((l: any) => l.acao?.toUpperCase().includes('ERRO') || l.acao?.toUpperCase().includes('DELETAR')).length}
+                    icone={AlertTriangle}
+                    variante="rosa"
+                    className="!shadow-none !border-slate-100"
+                />
             </div>
 
-            <div className="bg-white border border-slate-200 p-6 rounded-xl mb-10">
-                <div className="flex flex-col lg:flex-row items-center gap-8">
-                    <div className="flex flex-col gap-2 flex-1 w-full">
-                        <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Rastrear Evento / Protocolo</label>
-                        <InputBusca 
-                            placeholder="Buscar por usuário, ação ou tipo de dado..."
-                            value={busca}
-                            autoFocus
-                            onChange={(e) => {/* A busca é controlada pelo context global via componente pai em Alunos, mas aqui é local/context */}}
-                            readOnly // Mantendo o comportamento atual se for busca global
-                        />
-                    </div>
+            <BarraFiltro>
+                <div className="flex flex-col gap-2 flex-1 w-full text-left">
+                    <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Rastrear Evento / Protocolo</label>
+                    <InputBusca 
+                        placeholder="Buscar por usuário, ação ou tipo de dado..."
+                        value={busca}
+                        onChange={(e) => definirTermo(e.target.value)}
+                    />
+                </div>
 
-                    <div className="flex flex-col gap-2 shrink-0 w-full lg:w-auto">
-                        <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Filtro de Severidade</label>
-                        <div className="flex items-center bg-slate-100/50 p-1 rounded-xl h-10">
-                            {[
-                                { id: 'todos', label: 'Tudo' },
-                                { id: 'sucesso', label: 'Ok' },
-                                { id: 'aviso', label: 'Logs' },
-                                { id: 'critico', label: 'Alertas' }
-                            ].map((item) => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => definirFiltroAcao(item.id as any)}
-                                    className={`px-4 h-full rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-200 ${filtroAcao === item.id
-                                        ? 'bg-slate-900 text-white shadow-md'
-                                        : 'text-slate-400 hover:text-slate-600'
+                <div className="flex flex-col gap-2 shrink-0 w-full lg:w-auto text-left">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1 leading-none">Filtro de Severidade</label>
+                    <div className="flex items-center bg-slate-100/30 p-1 rounded-xl h-10 min-w-[320px] border border-slate-200/50">
+                        {[
+                            { id: 'todos', label: 'Tudo' },
+                            { id: 'sucesso', label: 'Ok' },
+                            { id: 'aviso', label: 'Logs' },
+                            { id: 'critico', label: 'Alertas' }
+                        ].map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => definirFiltroAcao?.(item.id as any)}
+                                className={`flex-1 h-full rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-200 ${filtroAcao === item.id
+                                    ? 'bg-slate-900 text-white shadow-sm'
+                                    : 'text-slate-400 hover:text-slate-600'
                                     }`}
-                                >
-                                    {item.label}
-                                </button>
-                            ))}
-                        </div>
+                            >
+                                {item.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
-            </div>
+            </BarraFiltro>
 
-            <div className="bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col h-[calc(100vh-320px)]">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden flex flex-col max-h-[calc(100vh-320px)]">
                 {/* Table Area */}
                 <div className="flex-1 overflow-auto relative custom-scrollbar">
                     {/* Linha da Timeline Forense */}
                     <div className="absolute left-[40px] top-[70px] bottom-0 w-[1px] bg-slate-200/50 z-0" />
 
                     <table className="w-full text-left border-separate border-spacing-0 relative z-10">
-                        <thead className="bg-white border-b border-slate-100 sticky top-0 z-30">
+                        <thead className="border-b border-slate-100 sticky top-0 z-30 bg-white">
                             <tr>
-                                <th scope="col" className="pl-14 pr-6 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] w-[250px]">Operação Forense</th>
-                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] text-left">Autor da Ação</th>
-                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] text-center w-[180px]">Módulo</th>
-                                <th scope="col" className="px-6 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] text-center w-[240px]">Cronologia</th>
-                                <th scope="col" className="px-10 py-6 text-[10px] font-black text-slate-900 uppercase tracking-[0.4em] text-right w-[150px]">Rastro</th>
+                                <th scope="col" className="pl-14 pr-6 py-5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Identificação</th>
+                                <th scope="col" className="px-6 py-5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Autor da Ação</th>
+                                <th scope="col" className="px-6 py-5 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">Módulo</th>
+                                <th scope="col" className="px-6 py-5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sinalização</th>
+                                <th scope="col" className="px-6 py-5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cronologia</th>
+                                <th scope="col" className="px-10 py-5 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="relative">
@@ -291,70 +318,75 @@ export default function RegistroAuditoria() {
                                             <span className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-900">Nenhum rastro identificado</span>
                                         </div>
                                     </td>
-                                </tr>
-                            ) : (
+                                </tr>                            ) : (
                                 (logsPaginados || []).map((log: any) => (
-                                    <tr key={log.id} className="group/row transition-all duration-300 hover:bg-white hover:shadow-xl hover:scale-[1.002] relative z-10">
-                                        <td className="pl-14 py-8 align-middle relative">
-                                            {/* Ponto da Timeline Glow */}
-                                            <div className="absolute left-[36px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-200 border-2 border-white group-hover/row:bg-indigo-500 group-hover/row:scale-150 group-hover/row:shadow-[0_0_10px_rgba(79,70,229,1)] transition-all duration-300 z-10" />
-                                            
-                                            <div className="flex items-center">
-                                                <BadgeStatus acao={log.acao} />
+                                    <tr key={log.id} className="hover:bg-slate-50/50 transition-all duration-150 group cursor-pointer border-b border-slate-100/60" onClick={() => { definirLogSelecionado(log); definirMostrarRastroCompleto(false); }}>
+                                        <td className="pl-14 py-6">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-sm font-bold text-slate-900 uppercase tracking-tight">{log.acao}</span>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">ID: {log.id.split('-')[0]}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-8 align-middle">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-[1.2rem] bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-lg group-hover/row:scale-110 transition-transform">
-                                                    <User size={20} strokeWidth={2.5} />
+                                        <td className="px-6 py-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-400 group-hover:bg-white transition-colors">
+                                                    <User size={16} />
                                                 </div>
-                                                <div className="flex flex-col text-left truncate">
-                                                    <span className="text-[14px] font-black text-slate-900 tracking-tight leading-tight uppercase group-hover/row:text-indigo-600 transition-colors">
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-bold text-slate-800 tracking-tight uppercase">
                                                         {mapaUsuarios[log.usuario_email] || log.usuario_email.split('@')[0]}
                                                     </span>
-                                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1.5">
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tight">
                                                         {mascararEmail(log.usuario_email)}
                                                     </span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-8 align-middle text-center">
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 bg-slate-100/50 px-4 py-1.5 rounded-full border border-slate-200/50 group-hover/row:bg-white transition-all">
-                                                {log.entidade_tipo}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-8 align-middle text-center">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="flex items-center gap-2.5 bg-slate-900 px-4 py-2 rounded-xl text-white shadow-lg">
-                                                    <Clock size={12} className="text-indigo-400" />
-                                                    <span className="text-[11px] font-black tracking-widest">
-                                                        {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "HH:mm:ss")}
-                                                    </span>
-                                                </div>
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">
-                                                    {format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "dd MMM yyyy", { locale: ptBR })}
-                                                </span>
+                                        <td className="px-6 py-6 text-center">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-50 text-slate-600 text-[10px] font-bold uppercase tracking-tight rounded-lg border border-slate-200 shadow-sm group-hover:bg-white transition-colors">
+                                                {log.entidade_tipo || 'SISTEMA'}
                                             </div>
                                         </td>
-                                        <td className="px-10 py-8 align-middle text-right">
-                                            <div className="flex justify-end gap-3 opacity-0 group-hover/row:opacity-100 transition-all transform translate-x-4 group-hover/row:translate-x-0">
+                                        <td className="px-6 py-6">
+                                            <BadgeStatus acao={log.acao} />
+                                        </td>
+                                        <td className="px-6 py-6">
+                                            <div className="flex flex-col gap-1.5 min-w-[120px]">
+                                                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tight">
+                                                    <span className="text-slate-900">{format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "HH:mm:ss")}</span>
+                                                    <span className="text-slate-400">{format(new Date(log.criado_em || log.criado_at || log.created_at || log.data_criacao || log.timestamp), "dd MMM yyyy", { locale: ptBR })}</span>
+                                                </div>
+                                                <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                                    <div className="h-full bg-slate-900 w-full opacity-20"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-10 py-6 text-right">
+                                            <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => { definirLogSelecionado(log); definirMostrarRastroCompleto(false); }}
-                                                    className="w-12 h-12 rounded-[1.2rem] bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-xl active:scale-90"
+                                                    className="w-9 h-9 flex items-center justify-center bg-slate-50 text-slate-400 border border-slate-100 rounded-lg hover:bg-slate-900 hover:text-white transition-all shadow-sm"
                                                     title="Inspecionar Rastro"
                                                 >
-                                                    <Eye size={20} />
+                                                    <Eye size={16} />
                                                 </button>
 
                                                 {EH_ADMIN_CENTRAL && (
                                                     <button
                                                         onClick={() => excluirLog(log.id)}
-                                                        className="w-12 h-12 rounded-[1.2rem] bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-xl active:scale-90"
+                                                        className="w-9 h-9 flex items-center justify-center bg-slate-50 text-rose-400 border border-slate-100 rounded-lg hover:bg-rose-600 hover:text-white transition-all shadow-sm"
                                                         title="Remover Registro"
                                                     >
-                                                        <Trash2 size={20} />
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 )}
+
+                                                <button
+                                                    className="w-9 h-9 flex items-center justify-center bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-lg active:scale-90"
+                                                    onClick={() => { definirLogSelecionado(log); definirMostrarRastroCompleto(false); }}
+                                                >
+                                                    <ArrowRight size={14} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -364,36 +396,36 @@ export default function RegistroAuditoria() {
                     </table>
                 </div>
 
-                {/* Footer Pagination Luxury */}
-                <div className="px-14 py-8 border-t border-white/20 bg-slate-900 flex items-center justify-between">
+                {/* Footer Pagination Minimalista */}
+                <div className="px-10 py-6 border-t border-slate-100 bg-white flex items-center justify-between">
                     <div className="flex items-center gap-10">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-1">Indexação</span>
-                            <span className="text-sm font-black text-white uppercase tracking-[0.2em]">Página {pagina} de {totalPaginas}</span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-none">Indexação</span>
+                            <span className="text-sm font-bold text-slate-900 tracking-tight leading-none uppercase">Página {pagina} de {totalPaginas}</span>
                         </div>
-                        <div className="h-10 w-px bg-white/10"></div>
+                        <div className="h-8 w-px bg-slate-100 hidden md:block"></div>
                         <div className="flex items-center gap-4">
-                            <div className="p-2 bg-indigo-500 rounded-lg shadow-[0_0_15px_rgba(79,70,229,0.5)]">
-                                <Activity size={14} className="text-white" />
+                            <div className="w-8 h-8 bg-slate-50 border border-slate-200 text-slate-400 rounded-lg flex items-center justify-center">
+                                <Activity size={14} />
                             </div>
-                            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{logsFiltrados.length} Registros Forenses</span>
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{logsFiltrados.length} Registros</span>
                         </div>
                     </div>
 
-                    <div className="flex gap-4 p-2 bg-white/5 rounded-2xl">
+                    <div className="flex gap-2">
                         <button
                             disabled={pagina === 1}
                             onClick={() => definirPagina(p => p - 1)}
-                            className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white hover:text-slate-900 disabled:opacity-20 transition-all active:scale-90 shadow-xl"
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-slate-900 hover:bg-white disabled:opacity-20 transition-all active:scale-90 shadow-sm"
                         >
-                            <ChevronLeft size={22} strokeWidth={3} />
+                            <ChevronLeft size={16} strokeWidth={2} />
                         </button>
                         <button
                             disabled={pagina === totalPaginas}
                             onClick={() => definirPagina(p => p + 1)}
-                            className="w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white hover:text-slate-900 disabled:opacity-20 transition-all active:scale-90 shadow-xl"
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-20 transition-all active:scale-90 shadow-md"
                         >
-                            <ChevronRight size={22} strokeWidth={3} />
+                            <ChevronRight size={16} strokeWidth={2} />
                         </button>
                     </div>
                 </div>
@@ -407,27 +439,25 @@ export default function RegistroAuditoria() {
                     aoFechar={() => definirLogSelecionado(null)}
                     tamanho="lg"
                 >
-                    <div className="space-y-8 pb-8 pt-4">
-                        {/* Header do Inspetor */}
-                        <div className="flex flex-col md:flex-row items-center justify-between p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(43,89,255,0.1),transparent)] pointer-events-none" />
-                            
+                    <div className="space-y-8 pt-4">
+                        {/* Header do Inspetor Minimalista */}
+                        <div className="flex flex-col md:flex-row items-center justify-between p-10 bg-slate-50 border border-slate-100 rounded-[2rem] relative overflow-hidden">
                             <div className="flex items-center gap-6 relative z-10">
-                                <div className="p-4 bg-white/10 rounded-[1.5rem] backdrop-blur-md border border-white/10 text-indigo-400 shadow-2xl">
-                                    <Fingerprint size={32} strokeWidth={2} />
+                                <div className="p-3 bg-white rounded-xl border border-slate-200 text-slate-400 shadow-sm">
+                                    <Fingerprint size={24} strokeWidth={2} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Protocolo de Rastro</span>
-                                    <span className="font-mono text-[11px] text-white bg-white/5 px-4 py-2 rounded-xl border border-white/10 tracking-widest shadow-inner">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Protocolo de Rastro</span>
+                                    <span className="font-mono text-[11px] text-slate-900 font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm tracking-tight">
                                         {logSelecionado.id}
                                     </span>
                                 </div>
                             </div>
                             <div className="flex flex-col items-end mt-6 md:mt-0 relative z-10">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Registro Cronológico</span>
-                                <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/10">
-                                    <Clock size={16} className="text-emerald-400" />
-                                    <span className="text-[13px] font-black text-white tracking-widest">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Registro Cronológico</span>
+                                <div className="flex items-center gap-2.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+                                    <Clock size={14} className="text-slate-400" />
+                                    <span className="text-[12px] font-bold text-slate-900 tracking-tight">
                                         {format(new Date(logSelecionado.criado_em || logSelecionado.criado_at || logSelecionado.created_at || logSelecionado.data_criacao || logSelecionado.timestamp), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
                                     </span>
                                 </div>
@@ -486,11 +516,11 @@ export default function RegistroAuditoria() {
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Snapshot Anterior</span>
                                             {!mostrarRastroCompleto && <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">Divergências</span>}
                                         </div>
-                                        <div className="bg-slate-900 rounded-[2rem] p-8 min-h-[350px] border border-slate-800 shadow-2xl relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
-                                                <div className="w-2 h-2 rounded-full bg-rose-500" />
+                                        <div className="bg-white rounded-[1.5rem] p-8 border border-slate-200 relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-20">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                                             </div>
-                                            <pre className="text-[12px] font-mono text-rose-300/60 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar-dark h-[300px]">
+                                            <pre className="text-[12px] font-mono text-slate-600 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar max-h-[350px]">
                                                 {antStr}
                                             </pre>
                                         </div>
@@ -501,11 +531,11 @@ export default function RegistroAuditoria() {
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Persistência Nova</span>
                                             {!mostrarRastroCompleto && <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Atualizado</span>}
                                         </div>
-                                        <div className="bg-slate-900 rounded-[2rem] p-8 min-h-[350px] border border-slate-800 shadow-2xl relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                        <div className="bg-white rounded-[1.5rem] p-8 border border-slate-200 relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-20">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                             </div>
-                                            <pre className="text-[12px] font-mono text-emerald-300/60 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar-dark h-[300px]">
+                                            <pre className="text-[12px] font-mono text-slate-600 leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar max-h-[350px]">
                                                 {novStr}
                                             </pre>
                                         </div>
@@ -522,14 +552,14 @@ export default function RegistroAuditoria() {
                                 className="flex items-center gap-4 group cursor-pointer active:scale-95 transition-all"
                             >
                                 <div className={`w-3 h-3 rounded-full transition-all duration-500 ${mostrarRastroCompleto ? 'bg-indigo-500 shadow-[0_0_12px_rgba(79,70,229,1)] scale-125' : 'bg-slate-200'}`}></div>
-                                <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-colors ${mostrarRastroCompleto ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                <span className={`text-[9px] font-bold uppercase tracking-widest transition-colors ${mostrarRastroCompleto ? 'text-indigo-600' : 'text-slate-400'}`}>
                                     {mostrarRastroCompleto ? 'RESTRINGIR A DIVERGÊNCIAS' : 'RESTAURAR OBJETO COMPLETO'}
                                 </span>
                             </button>
 
                             <button
                                 onClick={() => { definirLogSelecionado(null); definirMostrarRastroCompleto(false); }}
-                                className="px-10 h-14 rounded-2xl bg-slate-900 text-white font-black text-[11px] uppercase tracking-[0.3em] hover:bg-indigo-600 transition-all shadow-2xl active:scale-95"
+                                className="px-10 h-12 rounded-xl bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md active:scale-95"
                             >
                                 Finalizar Inspeção
                             </button>

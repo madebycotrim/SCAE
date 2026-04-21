@@ -27,10 +27,10 @@ export default function TelaAcesso() {
     useEffect(() => {
         const validarAcesso = async () => {
             if (!usuarioAtual || validando) return;
-            
+
             definirValidando(true);
             definirCarregando(true);
-            
+
             try {
                 const email = usuarioAtual.email?.toLowerCase() || '';
                 const ehMadeByCotrim = email.trim() === EMAIL_RAIZ.toLowerCase();
@@ -59,7 +59,7 @@ export default function TelaAcesso() {
                 }
 
                 toast.success('Login realizado com sucesso!');
-                
+
                 await Registrador.registrar('LOGIN_SUCESSO', 'sistema', 'auth', { email });
                 navegar(`/${slugEscola}/admin/painel`, { replace: true });
 
@@ -86,9 +86,9 @@ export default function TelaAcesso() {
             if (dominioEmail && tipo !== 'admin') {
                 params.hd = dominioEmail.replace('@', '');
             }
-            
+
             await entrar(params, provedorAuth);
-            
+
         } catch (error: any) {
             log.error('Erro ao iniciar login', error);
             definirErro('Não foi possível iniciar o login. Tente novamente.');
@@ -109,39 +109,39 @@ export default function TelaAcesso() {
 
     return (
         <div className="flex min-h-screen w-full font-sans overflow-hidden relative bg-[#F8FAFC] text-slate-900 selection:bg-blue-500/20">
-            
+
             {/* --- INSTITUTIONAL DYNAMIC BACKGROUND --- */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 {/* Clean Dot Grid */}
-                <div 
+                <div
                     className="absolute inset-0 opacity-[0.5]"
                     style={{
                         backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.04) 1px, transparent 0)',
                         backgroundSize: '32px 32px'
                     }}
                 />
-                
+
                 {/* Pure Corporate Soft Blobs (Blue/Indigo) */}
-                <motion.div 
-                    animate={{ 
+                <motion.div
+                    animate={{
                         scale: [1, 1.1, 1],
                         opacity: [0.15, 0.25, 0.15],
                         x: [0, 60, 0],
                         y: [0, -30, 0]
                     }}
                     transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-                    className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-blue-300 blur-[130px] rounded-full" 
+                    className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-blue-300 blur-[130px] rounded-full"
                 />
-                
-                <motion.div 
-                    animate={{ 
+
+                <motion.div
+                    animate={{
                         scale: [1, 1.2, 1],
                         opacity: [0.1, 0.2, 0.1],
                         x: [0, -40, 0],
                         y: [0, 50, 0]
                     }}
                     transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-                    className="absolute bottom-[10%] right-[5%] w-[40%] h-[40%] bg-indigo-300 blur-[130px] rounded-full" 
+                    className="absolute bottom-[10%] right-[5%] w-[40%] h-[40%] bg-indigo-300 blur-[130px] rounded-full"
                 />
             </div>
 
@@ -155,20 +155,20 @@ export default function TelaAcesso() {
                 >
                     {/* Left Column (Branding) */}
                     <div className="lg:w-[45%] p-10 lg:p-16 relative flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-100 overflow-hidden bg-slate-50/50">
-                        
+
                         {/* Brilho interno sutil p/ quebrar o tom sólido */}
                         <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-blue-50/50 to-transparent pointer-events-none" />
 
                         <div className="relative z-10">
                             {/* Logo */}
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.2 }}
                                 className="flex items-center gap-4"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md shadow-blue-900/5 border border-slate-200 relative overflow-hidden group">
-                                    <ShieldCheck className="w-6 h-6 text-blue-600 relative z-10" />
+                                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md shadow-blue-900/5 border border-slate-200 relative overflow-hidden group p-1.5">
+                                    <img src="/logo.png" alt="Catraki" className="w-full h-full object-contain relative z-10" />
                                     <div className="absolute inset-0 bg-blue-50 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />
                                 </div>
                                 <span className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic">
@@ -176,7 +176,7 @@ export default function TelaAcesso() {
                                 </span>
                             </motion.div>
 
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
@@ -200,7 +200,7 @@ export default function TelaAcesso() {
                         </div>
 
                         {/* Status Pills */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.6 }}
@@ -225,7 +225,7 @@ export default function TelaAcesso() {
 
                     {/* Right Column (Auth Action) */}
                     <div className="flex-1 p-10 lg:p-16 flex flex-col items-center justify-center relative bg-white">
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.3 }}
@@ -235,7 +235,7 @@ export default function TelaAcesso() {
                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-3">Portal Administrativo</h3>
                                 <div className="h-1 w-12 bg-blue-600 mx-auto rounded-full mb-4" />
                                 <p className="text-slate-500 text-sm font-medium leading-relaxed">
-                                    Utilize seu e-mail corporativo institucional {dominioEmail ? <span className="text-blue-600 font-bold">@{dominioEmail}</span> : ''} <br className="hidden sm:block"/>para validar as suas credenciais.
+                                    Utilize seu e-mail corporativo institucional {dominioEmail ? <span className="text-blue-600 font-bold">@{dominioEmail}</span> : ''} <br className="hidden sm:block" />para validar as suas credenciais.
                                 </p>
                             </div>
 
@@ -251,9 +251,9 @@ export default function TelaAcesso() {
                                         <Loader2 className="w-5 h-5 animate-spin text-white" />
                                     ) : (
                                         provedorAuth === 'microsoft' ? (
-                                            <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+                                            <svg width="20" height="20" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022" /><rect x="11" y="1" width="9" height="9" fill="#7fba00" /><rect x="1" y="11" width="9" height="9" fill="#00a4ef" /><rect x="11" y="11" width="9" height="9" fill="#ffb900" /></svg>
                                         ) : (
-                                            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                                            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
                                         )
                                     )}
                                     <span className="mt-0.5">{carregando ? 'Validando...' : `Entrar com ${provedorAuth === 'microsoft' ? 'Microsoft' : 'Google'}`}</span>
@@ -263,7 +263,7 @@ export default function TelaAcesso() {
 
                             <AnimatePresence>
                                 {erro && (
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ opacity: 0, height: 0, y: -10 }}
                                         animate={{ opacity: 1, height: 'auto', y: 0 }}
                                         exit={{ opacity: 0, height: 0, y: -10 }}
@@ -286,15 +286,6 @@ export default function TelaAcesso() {
                     </div>
                 </motion.div>
 
-                {/* Footer Brand */}
-                <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 opacity-40 hover:opacity-100 transition-opacity z-20">
-                    <span
-                        onClick={lidarComCliqueAdmin}
-                        className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] cursor-default select-none hover:text-slate-600 transition-colors"
-                    >
-                        Catraki Operational Edge v4.5
-                    </span>
-                </div>
             </div>
         </div>
     );

@@ -204,7 +204,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                                     </div>
                                     <p className={`font-medium text-lg ${temaEscuro ? 'text-slate-300' : 'text-slate-600'}`}>Nenhum resultado encontrado</p>
                                     <p className={`text-sm mt-2 max-w-sm mx-auto ${temaEscuro ? 'text-slate-500' : 'text-slate-400'}`}>
-                                        Se sua escola já utiliza o SCAE, digite o código fornecido pela instituição e clique em Acessar.
+                                        Se sua escola já utiliza o Catraki, digite o código fornecido pela instituição e clique em Acessar.
                                     </p>
                                     <button
                                         onClick={() => { definirEstaFocado(false); aoAbrirModalContato(); }}
@@ -213,7 +213,7 @@ export function BuscadorEscolas({ temaEscuro, aoSelecionarEscola, aoAbrirModalCo
                                                 ? 'bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 border border-sky-500/30 hover:border-sky-500/50'
                                                 : 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-100 hover:border-sky-200'}`}
                                     >
-                                        Indique o SCAE para sua escola!
+                                        Indique o Catraki para sua escola!
                                     </button>
                                 </div>
                             )}

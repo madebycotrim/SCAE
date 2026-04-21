@@ -56,10 +56,10 @@ export const relatorioServico = {
         const margemEsquerda = 30;
         const margemDireita = 20;
 
-        // --- CABEÇALHO CORPORATIVO (SCAE ECOSYSTEM) ---
+        // --- CABEÇALHO CORPORATIVO (CATRAKI ECOSYSTEM) ---
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
-        doc.text('SCAE - SISTEMA DE CONTROLE DE ACESSO ESCOLAR', 30, 20);
+        doc.text('CATRAKI - SISTEMA DE CONTROLE DE ACESSO ESCOLAR', 30, 20);
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
@@ -124,7 +124,7 @@ export const relatorioServico = {
                 doc.setTextColor(150, 150, 150);
                 const str = `Pag. ${data.pageNumber} de ${doc.getNumberOfPages()}`;
                 doc.text(str, 210 - margemDireita, 287, { align: 'right' });
-                doc.text('SCAE Intelligence Bureau - Gestão de Acesso Certificada', margemEsquerda, 287);
+                doc.text('Catraki Management Bureau - Gestão de Acesso Certificada', margemEsquerda, 287);
             }
         });
 

@@ -190,8 +190,8 @@ export default function Alunos() {
 
     return (
         <LayoutAdministrativo
-            titulo="Gestão de Matrículas"
-            subtitulo="Arquitetura de dados e controle gerencial do corpo discente"
+            titulo="Alunos"
+            subtitulo="Cadastro, matrículas e gerenciamento do corpo discente"
             acoes={AcoesCabecalho}
         >
             {/* Métricas Vibrantes (Luxury 2xl) */}

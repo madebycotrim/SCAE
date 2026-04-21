@@ -4,7 +4,7 @@ import { usarRiscoAbandono } from '../hooks/usarRiscoAbandono';
 import { AlertaRiscoAbandono, StatusRiscoAbandono } from '../types/riscoAbandono.tipos';
 import LayoutAdministrativo from '@/compartilhado/componentes/LayoutAdministrativo';
 import ModalUniversal from '@/compartilhado/componentes/ModalUniversal';
-import { Botao, BarraFiltro, InputBusca, CartaoConteudo } from '@/compartilhado/componentes/UI';
+import { Botao, BarraFiltro, InputBusca, CartaoConteudo, CardMetrica } from '@/compartilhado/componentes/UI';
 import {
     Activity,
     AlertCircle,
@@ -104,8 +104,8 @@ export default function PainelRiscoAbandono() {
 
     return (
         <LayoutAdministrativo
-            titulo="Gestão de Evasão Escolar"
-            subtitulo="Inteligência artificial monitorando o risco de abandono em tempo real"
+            titulo="Risco de Abandono"
+            subtitulo="Monitoramento preditivo de alunos com baixa frequência e risco de evasão"
             acoes={AcoesPainel}
         >
             <div className="space-y-10 pb-12">
@@ -116,75 +116,64 @@ export default function PainelRiscoAbandono() {
                         label="Alertas Ativos"
                         valor={metricasOperacionais.total}
                         icone={Activity}
-                        bg="bg-indigo-50/50"
-                        text="text-indigo-600"
-                        border="border-indigo-100"
+                        variante="indigo"
                     />
                     <CardMetrica
                         label="Urgência (Art. 70)"
                         valor={metricasOperacionais.criticos}
                         icone={ShieldAlert}
-                        bg="bg-rose-50/50"
-                        text="text-rose-600"
-                        border="border-rose-100"
+                        variante="rosa"
                     />
                     <CardMetrica
                         label="Em Tratativa"
                         valor={metricasOperacionais.emTratativa}
                         icone={Clock}
-                        bg="bg-amber-50/50"
-                        text="text-amber-600"
-                        border="border-amber-100"
+                        variante="laranja"
                     />
                     <CardMetrica
                         label="Casos Resolvidos"
                         valor={metricasOperacionais.resolvidos}
                         icone={CheckCircle2}
-                        bg="bg-emerald-50/50"
-                        text="text-emerald-600"
-                        border="border-emerald-100"
+                        variante="verde"
                     />
                 </div>
 
                 {/* Toolbar de Filtros Premium */}
-                <div className="bg-white border border-slate-200 shadow-sm p-4 rounded-2xl">
-                    <BarraFiltro className="bg-transparent border-none shadow-none p-0">
-                        <div className="flex flex-col gap-2 flex-1 w-full">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2 leading-none">Localizar Estudante</label>
-                            <InputBusca
-                                icone={Search}
-                                placeholder="Nome ou matrícula..."
-                                value={termoPesquisa}
-                                onChange={(e) => {
-                                    definirTermoPesquisa(e.target.value);
-                                    definirPaginaAtual(1);
-                                }}
-                                className="w-full h-12 bg-slate-50 border-slate-200 rounded-2xl"
-                            />
-                        </div>
+                <BarraFiltro>
+                    <div className="flex flex-col gap-2 flex-1 w-full">
+                        <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Localizar Estudante</label>
+                        <InputBusca
+                            icone={Search}
+                            placeholder="Nome ou matrícula..."
+                            value={termoPesquisa}
+                            onChange={(e) => {
+                                definirTermoPesquisa(e.target.value);
+                                definirPaginaAtual(1);
+                            }}
+                        />
+                    </div>
 
-                        <div className="flex flex-col gap-2 shrink-0">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-1 leading-none">Filtro de Gravidade</label>
-                            <div className="flex items-center bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50 h-12">
-                                {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
-                                    <button
-                                        key={status}
-                                        onClick={() => {
-                                            definirFiltroStatus(status);
-                                            definirPaginaAtual(1);
-                                        }}
-                                        className={`px-5 h-full rounded-xl text-[10px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center border ${filtroStatus === status
-                                            ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-105'
-                                            : 'text-slate-400 hover:text-slate-800 border-transparent'
-                                            }`}
-                                    >
-                                        {status === 'TODOS' ? 'Todos' : status === 'PENDENTE' ? 'Urgentes' : status === 'EM_ANALISE' ? 'Análise' : 'OK'}
-                                    </button>
-                                ))}
-                            </div>
+                    <div className="flex flex-col gap-2 shrink-0">
+                        <label className="text-[10px] font-bold text-slate-800 uppercase tracking-widest ml-1 leading-none">Filtro de Gravidade</label>
+                        <div className="flex items-center bg-slate-100/50 p-1 rounded-xl h-10 min-w-[320px]">
+                            {(['TODOS', 'PENDENTE', 'EM_ANALISE', 'RESOLVIDO'] as const).map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => {
+                                        definirFiltroStatus(status);
+                                        definirPaginaAtual(1);
+                                    }}
+                                    className={`flex-1 h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all outline-none flex items-center justify-center ${filtroStatus === status
+                                        ? 'bg-slate-900 text-white shadow-lg'
+                                        : 'text-slate-400 hover:text-slate-800'
+                                        }`}
+                                >
+                                    {status === 'TODOS' ? 'Todos' : status === 'PENDENTE' ? 'Urgentes' : status === 'EM_ANALISE' ? 'Análise' : 'OK'}
+                                </button>
+                            ))}
                         </div>
-                    </BarraFiltro>
-                </div>
+                    </div>
+                </BarraFiltro>
 
                 {/* Tabela de Alertas Estilo SaaS Elite */}
                 <CartaoConteudo className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
@@ -205,12 +194,12 @@ export default function PainelRiscoAbandono() {
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left border-collapse whitespace-nowrap">
                                 <thead>
-                                    <tr className="bg-slate-900 border-b border-slate-800">
-                                        <th className="py-6 px-10 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Estudante</th>
-                                        <th className="py-6 px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Turma / Alocação</th>
-                                        <th className="py-6 px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Evidência de Risco</th>
-                                        <th className="py-6 px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
-                                        <th className="py-6 px-10 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Diretrizes</th>
+                                    <tr className="border-b border-slate-100">
+                                        <th className="py-6 px-10 text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Estudante</th>
+                                        <th className="py-6 px-8 text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Turma / Alocação</th>
+                                        <th className="py-6 px-8 text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Evidência de Risco</th>
+                                        <th className="py-6 px-8 text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] text-center">Status</th>
+                                        <th className="py-6 px-10 text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] text-right">Diretrizes</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100/60">
@@ -227,7 +216,7 @@ export default function PainelRiscoAbandono() {
                                             <td className="py-7 px-8">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-black text-slate-600 uppercase tracking-tight">{alerta.turma_nome || 'SEM TURMA'}</span>
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">SCAE CORE CLOUD</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">CATRAKI CORE CLOUD</span>
                                                 </div>
                                             </td>
                                             <td className="py-7 px-8">
@@ -396,16 +385,3 @@ function BadgeStatus({ status }: { status: StatusRiscoAbandono }) {
 /**
  * Componente de Card de Métrica com estilo Luxury 2xl.
  */
-function CardMetrica({ label, valor, icone: Icone, bg, text, border }: { label: string, valor: string | number, icone: any, bg: string, text: string, border: string }) {
-    return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-6 group transition-all duration-500 hover:shadow-md hover:-translate-y-1">
-            <div className={`w-16 h-16 rounded-2xl ${bg} ${text} flex items-center justify-center shrink-0 border-2 ${border} shadow-inner group-hover:scale-110 transition-transform duration-700`}>
-                <Icone size={28} strokeWidth={2.5} />
-            </div>
-            <div className="flex flex-col gap-1 min-w-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none mb-1">{label}</span>
-                <span className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{valor}</span>
-            </div>
-        </div>
-    );
-}

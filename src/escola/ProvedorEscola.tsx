@@ -75,7 +75,7 @@ export function ProvedorEscola({ children }: { children: ReactNode }) {
                     saidaObrigatoria: dadosBrutos.saida_obrigatoria ?? true,
                     metodosAcesso: (dadosBrutos.metodoAcesso || dadosBrutos.metodo_acesso || 'QRCODE').split(',').map((s: string) => s.trim()).filter(Boolean),
                     logoUrl: dadosBrutos.logo_url || dadosBrutos.logoUrl,
-                    nomeDPO: dadosBrutos.nome_dpo || dadosBrutos.nomeDPO || 'Encarregado SCAE',
+                    nomeDPO: dadosBrutos.nome_dpo || dadosBrutos.nomeDPO || 'Encarregado Catraki',
                     emailDPO: dadosBrutos.email_dpo || dadosBrutos.emailDPO || 'privacidade@catraki.com.br',
                     provedorAuth: dadosBrutos.provedorAuth || 'google',
                     urlAgente: dadosBrutos.url_agente || dadosBrutos.urlAgente,

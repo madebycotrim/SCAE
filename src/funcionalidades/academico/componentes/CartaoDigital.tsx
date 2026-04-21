@@ -65,7 +65,7 @@ export default function CartaoDigital() {
         if (!canvas) return;
         const url = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.download = `SCAE-Cartao-${cartao?.dados?.matricula}.png`;
+        link.download = `Catraki-Cartao-${cartao?.dados?.matricula}.png`;
         link.href = url;
         link.click();
     };
@@ -100,12 +100,12 @@ export default function CartaoDigital() {
                             <Fingerprint className="w-16 h-16 text-white" strokeWidth={1} />
                         </div>
 
-                        {/* Logo SCAE */}
+                        {/* Logo Catraki */}
                         <div className="relative z-10 flex items-center gap-2.5">
-                            <div className="p-2 rounded-lg bg-white/[0.08] border border-white/[0.12]">
-                                <ShieldCheck className="w-5 h-5 text-white" />
+                            <div className="p-1 rounded-lg bg-white shadow-sm border border-white/20">
+                                <img src="/logo.png" alt="Catraki" className="w-6 h-6 object-contain" />
                             </div>
-                            <span className="text-xl font-bold text-white tracking-tight">SCAE<span className="text-sky-400">.</span></span>
+                            <span className="text-xl font-bold text-white tracking-tight">Catraki<span className="text-sky-400">.</span></span>
                         </div>
 
                         {/* Conteúdo Central */}
@@ -174,7 +174,7 @@ export default function CartaoDigital() {
                                         </div>
                                         <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Acesso do Aluno</h3>
                                         <p className="text-slate-500 text-sm font-medium mt-1.5 leading-relaxed">
-                                            Identifique-se para visualizar <br />seu Cartão Digital SCAE
+                                            Identifique-se para visualizar <br />seu Cartão Digital Catraki
                                         </p>
                                     </div>
 
@@ -318,11 +318,6 @@ export default function CartaoDigital() {
                     </div>
                 </motion.div>
 
-                <div className="absolute bottom-4 right-6 z-20">
-                    <span className="text-[10px] font-bold text-slate-400 transition-opacity uppercase tracking-[0.3em] opacity-10 cursor-default select-none">
-                        SCAE v 3.0
-                    </span>
-                </div>
             </div>
         </div>
     );

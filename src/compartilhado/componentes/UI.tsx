@@ -114,7 +114,7 @@ interface CardMetricaProps {
     /** Inverte o significado das cores de tendência (útil para métricas de erro/risco) */
     inverterTendencia?: boolean;
     /** Variação cromática do card (azul, verde, laranja, roxo, indigo) */
-    variante?: 'azul' | 'verde' | 'laranja' | 'roxo' | 'indigo';
+    variante?: 'azul' | 'verde' | 'laranja' | 'roxo' | 'indigo' | 'rosa';
     /** Classes extras de estilo */
     className?: string;
 }
@@ -141,6 +141,7 @@ export const CardMetrica: React.FC<CardMetricaProps> = ({
             case 'laranja': return { texto: 'text-orange-600', borda: 'border-orange-200', barra: 'bg-orange-500', fundo: 'bg-orange-50' };
             case 'roxo': return { texto: 'text-violet-600', borda: 'border-violet-200', barra: 'bg-violet-500', fundo: 'bg-violet-50' };
             case 'indigo': return { texto: 'text-indigo-600', borda: 'border-indigo-200', barra: 'bg-indigo-500', fundo: 'bg-indigo-50' };
+            case 'rosa': return { texto: 'text-rose-600', borda: 'border-rose-200', barra: 'bg-rose-500', fundo: 'bg-rose-50' };
             default: return { texto: 'text-blue-600', borda: 'border-blue-200', barra: 'bg-blue-600', fundo: 'bg-blue-50' };
         }
     };
@@ -148,7 +149,7 @@ export const CardMetrica: React.FC<CardMetricaProps> = ({
     const s = obterEstilo(variante);
 
     return (
-        <div className={`bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4 relative overflow-hidden group hover:shadow-md transition-all duration-300 ${className}`}>
+        <div className={`bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4 relative overflow-hidden group hover:shadow-md transition-all duration-300 ${className}`}>
             {/* Barra de cor superior mais presente */}
             <div className={`absolute top-0 left-0 w-full h-[4px] ${s.barra} opacity-10`}></div>
             <div className={`absolute top-0 left-0 w-1/3 h-[4px] ${s.barra} shadow-[0_1px_3px_rgba(0,0,0,0.1)]`}></div>
@@ -158,7 +159,7 @@ export const CardMetrica: React.FC<CardMetricaProps> = ({
                     <Icone size={20} strokeWidth={2.5} />
                 </div>
                 {tendencia !== undefined && (
-                    <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${ehPositivo ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                    <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full ${ehPositivo ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                         {ehPositivo ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                         {Math.abs(tendencia)}%
                     </div>
@@ -166,9 +167,9 @@ export const CardMetrica: React.FC<CardMetricaProps> = ({
             </div>
             
             <div className="space-y-1">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+                <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">{label}</p>
                 <div className="flex items-baseline gap-2">
-                    <h3 className="text-2xl font-bold text-slate-900 tracking-tight leading-none">{valor}</h3>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{valor}</h3>
                     {subtitulo && (
                         <span className="text-[10px] text-slate-400 font-medium truncate">{subtitulo.toUpperCase()}</span>
                     )}

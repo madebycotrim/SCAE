@@ -129,7 +129,7 @@ export function LiveAccessFeed({ alunos, aoReceberNovos }: { alunos: any[], aoRe
                 <div className="flex items-center gap-3">
                     <RadarIcon />
                     <div>
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Live Radar</h4>
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">AO VIVO</h4>
                         <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-tight">Monitorando Atividade</p>
                     </div>
                 </div>
@@ -285,9 +285,9 @@ export default function Painel() {
     };
 
     return (
-        <LayoutAdministrativo
-            titulo="Centro de Comando"
-            subtitulo="Monitoramento estratégico e inteligência de dados em tempo real"
+        <LayoutAdministrativo 
+            titulo="Painel"
+            subtitulo="Visão geral do fluxo de acessos e tendências do dia"
             acoes={
                 <div className="flex gap-3">
                     {ehCentral && (
@@ -317,7 +317,7 @@ export default function Painel() {
                 </div>
             }
         >
-            <div className="space-y-10 pb-16">
+            <div className="space-y-6">
                 {/* --- LINHA DE KPIs LUXURY 2XL --- */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <CardMetrica
@@ -355,7 +355,7 @@ export default function Painel() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-10 gap-10 items-start">
                     {/* Gráfico Analítico SaaS de Elite */}
-                    <div className="lg:col-span-6 bg-white border border-slate-200 rounded-xl p-8 min-h-[550px] flex flex-col relative">
+                    <div className="lg:col-span-6 bg-white border border-slate-200 rounded-xl p-8 flex flex-col relative">
                         <div className="mb-10">
                             <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Frequência Semanal</h3>
                             <h4 className="text-2xl font-bold text-slate-900 tracking-tight">Tendência de Acessos</h4>
@@ -414,14 +414,14 @@ export default function Painel() {
                         </div>
                     </div>
 
-                    {/* Live Radar Lateral (Elite surveillance Terminal) */}
+                    {/* AO VIVO Lateral (Elite surveillance Terminal) */}
                     <div className="lg:col-span-4 h-full">
-                        <div className="bg-[#0a0c10] border border-slate-800 rounded-xl overflow-hidden h-full min-h-[550px] flex flex-col relative">
+                        <div className="bg-[#0a0c10] border border-slate-800 rounded-xl overflow-hidden h-full flex flex-col relative">
                             <div className="px-8 py-7 border-b border-white/5 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                     <div>
-                                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest leading-none mb-1">Live Radar</h4>
+                                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest leading-none mb-1">AO VIVO</h4>
                                         <p className="text-[8px] font-medium text-slate-500 uppercase tracking-tight">Sincronização em tempo real</p>
                                     </div>
                                 </div>
@@ -494,10 +494,6 @@ export default function Painel() {
                                         </div>
                                     )}
                                 </AnimatePresence>
-                            </div>
-
-                            <div className="p-6 bg-white/5 border-t border-white/10 text-center">
-                                <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.4em]">SCAE Hardware Interface • v3.0.4</p>
                             </div>
                         </div>
                     </div>

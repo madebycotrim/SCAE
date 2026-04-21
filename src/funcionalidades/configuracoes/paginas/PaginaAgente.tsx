@@ -397,8 +397,8 @@ export default function PaginaAgente() {
 
     return (
         <LayoutAdministrativo 
-            titulo="Operação de Hardware" 
-            subtitulo="Monitoramento em tempo real do ecossistema local"
+            titulo="Agente"
+            subtitulo="Telemetria e controle do hardware de acesso da portaria"
             acoes={AcoesMaster}
         >
             <div className="space-y-8">
@@ -450,7 +450,7 @@ export default function PaginaAgente() {
                                     <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest ml-1 leading-none">Localizar Aluno (Nome ou Matrícula)</label>
                                     <InputBusca 
                                         icone={Search}
-                                        placeholder="EX: MATEUS COTRIM..."
+                                        placeholder="Digite o nome ou matrícula do aluno..."
                                         value={termoBusca}
                                         onChange={(e) => setTermoBusca(e.target.value)}
                                         className="bg-white border-slate-200"
@@ -519,11 +519,11 @@ export default function PaginaAgente() {
                         </CartaoConteudo>
                     </div>
 
-                    {/* LIVE RADAR (DIREITA) */}
+                    {/* AO VIVO (DIREITA) */}
                     <div className="lg:col-span-4 flex flex-col">
                         <CartaoConteudo className="p-8 flex-1 bg-white border border-slate-200 shadow-sm rounded-2xl">
                              <div className="flex items-center justify-between mb-8 px-2">
-                                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.4em]">Live Radar</h4>
+                                <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.4em]">AO VIVO</h4>
                                 <button onClick={solicitarLimpezaHistorico} className="text-[9px] font-black text-rose-500 hover:text-rose-600 transition-colors uppercase flex items-center gap-2 tracking-[0.2em]"><Trash2 size={14} /> Purgar</button>
                             </div>
                             <div className="space-y-4">

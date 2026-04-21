@@ -74,8 +74,8 @@ export default function CalendarioLetivo() {
 
     return (
         <LayoutAdministrativo 
-            titulo="Calendário Letivo" 
-            subtitulo="Configuração de dias não-letivos e feriados institucionais"
+            titulo="Calendário" 
+            subtitulo="Gerencie feriados, recessos e dias não-letivos do ano vigente"
         >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 <CardMetrica

@@ -270,8 +270,8 @@ export default function FormHorariosAcesso() {
 
     return (
         <LayoutAdministrativo
-            titulo="Gestão de Portaria Inteligente"
-            subtitulo="Controle os períodos oficiais de fluxo escolar para automação de registros e segurança."
+            titulo="Horários"
+            subtitulo="Defina os períodos de entrada e saída para automatizar o controle de acesso"
             acoes={StatusSincronizacao}
         >
             <div className="space-y-6 pb-16">

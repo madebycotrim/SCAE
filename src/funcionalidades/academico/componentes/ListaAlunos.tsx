@@ -69,11 +69,11 @@ export default function ListaAlunos({
                                         className="w-4 h-4 rounded-md border-slate-300 text-slate-900 focus:ring-slate-900/20 cursor-pointer transition-all"
                                     />
                                 </th>
-                                <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight">Identificação</th>
-                                <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight">Protocolo / ID</th>
-                                <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight">Turma</th>
-                                <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight">Status</th>
-                                <th className="py-5 px-8 text-[11px] font-bold text-slate-900 uppercase tracking-tight text-right">Ações</th>
+                                <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Identificação</th>
+                                <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Protocolo / ID</th>
+                                <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Turma</th>
+                                <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                                <th className="py-4 px-8 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -119,8 +119,8 @@ export default function ListaAlunos({
                                     </td>
                                     <td className="py-6 px-8">
                                         <div className="inline-flex items-center gap-2.5">
-                                            <div className="p-1 px-1.5 bg-blue-50 text-blue-500 rounded-md border border-blue-100/50">
-                                                <Fingerprint size={12} />
+                                            <div className={`p-1 px-1.5 rounded-md border ${temQR ? 'bg-blue-50 text-blue-500 border-blue-100/50' : 'bg-emerald-50 text-emerald-600 border-emerald-100/50'}`}>
+                                                {temQR ? <QrCode size={12} /> : <Fingerprint size={12} />}
                                             </div>
                                             <span className="text-[11px] font-mono font-bold text-slate-600 uppercase tracking-tight">
                                                 {aluno.matricula}
@@ -147,22 +147,30 @@ export default function ListaAlunos({
                                         )}
                                     </td>
                                     <td className="py-6 px-8 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => aoEditar(aluno)}
-                                                className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 rounded-lg transition-all shadow-sm"
-                                                title="Configurar Registro"
-                                            >
-                                                <Edit2 size={14} />
-                                            </button>
-                                            <button
-                                                onClick={() => aoExcluir(aluno)}
-                                                className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-300 rounded-lg transition-all shadow-sm"
-                                                title="Remover do Sistema"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => aoEditar(aluno)}
+                                                    className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 rounded-lg transition-all shadow-sm"
+                                                    title="Configurar Registro"
+                                                >
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                <button
+                                                    onClick={() => aoExcluir(aluno)}
+                                                    className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-300 rounded-lg transition-all shadow-sm"
+                                                    title="Remover do Sistema"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+
+                                                <button 
+                                                    className="w-9 h-9 flex items-center justify-center bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-lg active:scale-90"
+                                                    onClick={() => aoVerQRCode(aluno.matricula)}
+                                                    title={temQR ? 'Ver QR Code / Credencial' : 'Gerenciar Biometria'}
+                                                >
+                                                    {temQR ? <QrCode size={14} /> : <Fingerprint size={14} />}
+                                                </button>
+                                            </div>
                                     </td>
                                 </tr>
                             ))}

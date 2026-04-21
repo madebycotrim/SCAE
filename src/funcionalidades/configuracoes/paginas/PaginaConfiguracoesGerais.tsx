@@ -126,8 +126,8 @@ export function PaginaConfiguracoesGerais() {
 
     return (
         <LayoutAdministrativo
-            titulo="Configurações GERAIS"
-            subtitulo="Controle centralizado da arquitetura de acesso e comportamento do sistema"
+            titulo="Configurações"
+            subtitulo="Personalize o comportamento e a segurança do sistema para esta unidade"
             acoes={
                 houveAlteração ? (
                     <Botao variante="primario" tamanho="lg" onClick={salvarAlteracoes} carregando={salvando} className="rounded-2xl shadow-2xl">
@@ -283,7 +283,7 @@ export function PaginaConfiguracoesGerais() {
                                                 type="text" 
                                                 value={fraseSucesso} 
                                                 onChange={(e) => definirFraseSucesso(e.target.value)} 
-                                                placeholder="BEM-VINDO AO SCAE, {NOME}!" 
+                                                placeholder="BEM-VINDO AO CATRAKI, {NOME}!" 
                                                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 h-16 text-sm font-black text-slate-900 placeholder:text-slate-200 focus:bg-white outline-none transition-all uppercase tracking-tight" 
                                             />
                                         </div>
