@@ -206,21 +206,27 @@ export async function sincronizarRegistrosPendentes(): Promise<boolean> {
         console.log(`[Sync] 📊 Auditoria: ${totalRegistros?.total || 0} registros totais | ${pendentes.length} pendentes agora.`);
         console.log(`[Sync] 📤 ENVIANDO ${pendentes.length} BATIDAS PARA A NUVEM...`);
         estaSincronizandoBatidas = true;
+        
         const ok = await WorkerApi.enviarBatida(pendentes);
+        
         if (ok) {
-            for (const p of pendentes) await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
+            // Marca como sincronizado no banco local
+            for (const p of pendentes) {
+                await runSql('UPDATE registros_acesso SET sincronizado = 1 WHERE id = ?', [p.id]);
+            }
+            console.log(`[Sync] ✅ ${pendentes.length} BATIDAS SINCRONIZADAS COM SUCESSO.`);
             estaSincronizandoBatidas = false;
+            return true;
         } else {
+            console.error(`[Sync] ❌ FALHA AO SINCRONIZAR: A nuvem recusou o pacote ou está offline.`);
             estaSincronizandoBatidas = false;
             return false;
         }
     }
 
-
-
     return true; 
-  } catch (e) {
-      console.error('[Sync] Erro crítico na sincronização:', e);
+  } catch (e: any) {
+      console.error('[Sync] 🚨 Erro crítico na sincronização:', e.message);
       estaSincronizandoBatidas = false;
       return false;
   }

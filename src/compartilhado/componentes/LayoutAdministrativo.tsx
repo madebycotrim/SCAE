@@ -187,7 +187,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
     // Bloqueio para Usuários INATIVOS
     if (usuario && usuario.ativo === false) {
         return (
-            <div className="fixed inset-0 z-[9999] bg-slate-900 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[9999] bg-blue-600 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-md max-w-md w-full p-8 text-center border border-slate-100">
                     <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-rose-50/50">
                         <Lock size={40} className="text-rose-500" />
@@ -210,7 +210,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
 
     if (usuario?.pendente) {
         return (
-            <div className="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[9999] bg-blue-600/90 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-md max-w-md w-full p-8 text-center border border-slate-100">
                     <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-4 ring-indigo-50">
                         <Crown size={40} className="text-indigo-600" />
@@ -249,7 +249,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             {/* Sobreposição Mobile */}
             {sidebarAberto && (
                 <div
-                    className="fixed inset-0 bg-slate-900/60 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300"
+                    className="fixed inset-0 bg-blue-600/40 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300"
                     onClick={() => definirSidebarAberto(false)}
                 />
             )}
@@ -376,7 +376,7 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
                                     <p className="text-[12px] font-black text-slate-800 truncate uppercase tracking-tight flex items-center gap-2">
                                         {usuario?.nome_completo || 'Usuário'}
                                         {ehCentral && (
-                                            <span className="px-1.5 py-0.5 bg-slate-900 text-white text-[7px] font-black rounded-sm tracking-[0.15em] uppercase border border-slate-800">
+                                            <span className="px-1.5 py-0.5 bg-blue-500 text-white text-[7px] font-black rounded-sm tracking-[0.15em] uppercase border border-blue-400">
                                                 Root
                                             </span>
                                         )}

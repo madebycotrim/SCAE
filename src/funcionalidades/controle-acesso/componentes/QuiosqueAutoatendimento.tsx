@@ -240,7 +240,7 @@ export default function QuiosqueAutoatendimento() {
                                 )}
 
                                 {statusCamera === 'PERMISSAO_NEGADA' && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-20 p-8 text-center text-white">
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-blue-600 z-20 p-8 text-center text-white">
                                         <div className="w-20 h-20 rounded-full bg-rose-500/20 flex items-center justify-center mb-6 border border-rose-500/50">
                                             <ShieldCheck size={32} className="text-rose-500" />
                                         </div>
@@ -316,7 +316,7 @@ export default function QuiosqueAutoatendimento() {
                                             Matrícula {ultimoAcesso.aluno.matricula}
                                         </p>
 
-                                        <div className="bg-slate-900 text-white px-10 py-5 rounded-[24px] inline-flex items-center gap-4 shadow-3xl hover:translate-y-[-2px] transition-transform">
+                                        <div className="bg-blue-500 text-white px-10 py-5 rounded-[24px] inline-flex items-center gap-4 shadow-3xl hover:translate-y-[-2px] transition-transform">
                                             <ShieldCheck size={24} className="text-emerald-400" strokeWidth={3} />
                                             <div className="text-left leading-none">
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Turma Selecionada</p>
@@ -354,7 +354,7 @@ export default function QuiosqueAutoatendimento() {
                             )}
                         </div>
                     </div>
-                </div>
+                </aside>
             </main>
 
             <style dangerouslySetInnerHTML={{

@@ -134,7 +134,7 @@ export function PaginaConfiguracoesGerais() {
                         Aplicar Configurações
                     </Botao>
                 ) : (
-                    <div className="px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl border border-slate-700 shadow-xl flex items-center gap-2">
+                    <div className="px-6 py-3 bg-blue-500 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl border border-blue-400 shadow-xl flex items-center gap-2">
                         <CheckCircle2 size={14} className="text-emerald-400" />
                         Ambiente Sincronizado
                     </div>
@@ -157,7 +157,7 @@ export function PaginaConfiguracoesGerais() {
                             className="bg-white/40 backdrop-blur-3xl border border-slate-200/60 rounded-[2.5rem] p-8 flex flex-col justify-between gap-8 shadow-xl"
                         >
                             <div className="flex gap-6">
-                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${metodoAcesso === 'QRCODE' ? 'bg-slate-900 text-white' : 'bg-emerald-500 text-white'}`}>
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${metodoAcesso === 'QRCODE' ? 'bg-blue-500 text-white' : 'bg-emerald-500 text-white'}`}>
                                     {metodoAcesso === 'QRCODE' ? <Smartphone size={28} /> : <Fingerprint size={28} />}
                                 </div>
                                 <div className="space-y-2">
@@ -165,8 +165,8 @@ export function PaginaConfiguracoesGerais() {
                                     <p className="text-[11px] text-slate-500 font-bold leading-relaxed uppercase tracking-widest opacity-60">Define como os discentes serão identificados no terminal de entrada.</p>
                                 </div>
                             </div>
-                            <div className="p-2 bg-slate-900/5 rounded-3xl grid grid-cols-2 gap-2 border border-slate-200/50">
-                                <button onClick={() => definirMetodoAcesso('QRCODE')} className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${metodoAcesso === 'QRCODE' ? 'bg-slate-900 text-white shadow-2xl scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}>
+                            <div className="p-2 bg-slate-50 rounded-3xl grid grid-cols-2 gap-2 border border-slate-200/50">
+                                <button onClick={() => definirMetodoAcesso('QRCODE')} className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${metodoAcesso === 'QRCODE' ? 'bg-blue-500 text-white shadow-2xl scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}>
                                     QR Code / Cartão
                                 </button>
                                 <button onClick={() => definirMetodoAcesso('DIGITAL')} className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${metodoAcesso === 'DIGITAL' ? 'bg-white text-emerald-600 shadow-xl border border-slate-100 scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}>
@@ -189,11 +189,11 @@ export function PaginaConfiguracoesGerais() {
                                     <p className="text-[11px] text-slate-500 font-bold leading-relaxed uppercase tracking-widest opacity-60">Determina se o registro de saída é compulsório para baixa no sistema.</p>
                                 </div>
                             </div>
-                            <div className="p-2 bg-slate-900/5 rounded-3xl grid grid-cols-2 gap-2 border border-slate-200/50">
+                            <div className="p-2 bg-slate-50 rounded-3xl grid grid-cols-2 gap-2 border border-slate-200/50">
                                 <button onClick={() => definirSaidaObrigatoria(false)} className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!saidaObrigatoria ? 'bg-white text-amber-600 shadow-xl border border-slate-100 scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}>
                                     Livre Trânsito
                                 </button>
-                                <button onClick={() => definirSaidaObrigatoria(true)} className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${saidaObrigatoria ? 'bg-slate-900 text-white shadow-2xl scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}>
+                                <button onClick={() => definirSaidaObrigatoria(true)} className={`flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${saidaObrigatoria ? 'bg-blue-500 text-white shadow-2xl scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}>
                                     Baixa Obrigatória
                                 </button>
                             </div>
@@ -225,10 +225,10 @@ export function PaginaConfiguracoesGerais() {
                                     </div>
                                 </div>
                                 <div className="p-2 bg-slate-50 rounded-2xl flex h-14 w-full md:w-[320px] shrink-0 border border-slate-100">
-                                    <button onClick={() => definirQrDinamico(false)} className={`flex-1 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!qrDinamico ? 'bg-white text-slate-900 shadow-xl scale-[1.05]' : 'text-slate-400 hover:text-slate-500'}`}>
+                                    <button onClick={() => definirQrDinamico(false)} className={`flex-1 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!qrDinamico ? 'bg-white text-blue-500 shadow-xl scale-[1.05]' : 'text-slate-400 hover:text-slate-500'}`}>
                                         Estático
                                     </button>
-                                    <button onClick={() => definirQrDinamico(true)} className={`flex-1 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${qrDinamico ? 'bg-slate-900 text-white shadow-2xl scale-[1.05]' : 'text-slate-400 hover:text-slate-500'}`}>
+                                    <button onClick={() => definirQrDinamico(true)} className={`flex-1 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${qrDinamico ? 'bg-blue-500 text-white shadow-2xl scale-[1.05]' : 'text-slate-400 hover:text-slate-500'}`}>
                                         Dinâmico
                                     </button>
                                 </div>
@@ -255,8 +255,8 @@ export function PaginaConfiguracoesGerais() {
                                     <p className="text-[12px] text-slate-500 font-medium max-w-xl leading-relaxed uppercase tracking-wider opacity-80">O terminal narra o status do acesso em tempo real, humanizando a interação.</p>
                                 </div>
                             </div>
-                            <div className="p-2 bg-slate-900/5 rounded-3xl flex h-14 w-full md:w-[320px] shrink-0 border border-slate-200/50">
-                                <button onClick={() => definirVozAtivada(false)} className={`flex-1 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!vozAtivada ? 'bg-white text-slate-900 shadow-xl scale-[1.05]' : 'text-slate-400 hover:text-slate-500'}`}>
+                            <div className="p-2 bg-slate-50 rounded-3xl flex h-14 w-full md:w-[320px] shrink-0 border border-slate-200/50">
+                                <button onClick={() => definirVozAtivada(false)} className={`flex-1 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!vozAtivada ? 'bg-white text-blue-500 shadow-xl scale-[1.05]' : 'text-slate-400 hover:text-slate-500'}`}>
                                     Silencioso
                                 </button>
                                 <button onClick={() => definirVozAtivada(true)} className={`flex-1 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${vozAtivada ? 'bg-pink-600 text-white shadow-2xl scale-[1.05]' : 'text-slate-400 hover:text-slate-500'}`}>
@@ -302,8 +302,8 @@ export function PaginaConfiguracoesGerais() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="mt-8 p-6 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-5 shadow-lg">
-                                        <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-indigo-400 shrink-0">
+                                    <div className="mt-8 p-6 bg-blue-600 border border-blue-500 rounded-2xl flex items-center gap-5 shadow-lg">
+                                        <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-400 shrink-0">
                                             <Smartphone size={20} />
                                         </div>
                                         <p className="text-[11px] text-slate-400 font-bold leading-relaxed uppercase tracking-widest">
@@ -331,7 +331,7 @@ export function PaginaConfiguracoesGerais() {
                         )}
                     </div>
 
-                    <div className="bg-slate-950 rounded-2xl p-10 md:p-14 shadow-xl border border-slate-800 relative overflow-hidden group">
+                    <div className="bg-blue-900 rounded-2xl p-10 md:p-14 shadow-xl border border-blue-800 relative overflow-hidden group">
                         <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 4px)', backgroundSize: '100% 4px' }} />
 
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-14 relative z-10">
@@ -339,8 +339,8 @@ export function PaginaConfiguracoesGerais() {
                                 <div className="relative">
                                     <div className={`w-28 h-28 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-xl ${
                                         agenteOnline 
-                                            ? 'bg-indigo-600 text-white shadow-indigo-600/40' 
-                                            : 'bg-slate-900 text-slate-700 border border-slate-800'
+                                            ? 'bg-blue-500 text-white shadow-blue-500/40' 
+                                            : 'bg-blue-600 text-slate-400 border border-blue-500'
                                     }`}>
                                         <Cpu size={56} className={agenteOnline ? 'animate-pulse' : ''} />
                                     </div>

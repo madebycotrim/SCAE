@@ -11,32 +11,32 @@
     <link rel="icon" href="CATRAKI.ico" type="image/x-icon" />
     <style>
         :root {
-            --bg: #0e0f13;
-            --s1: #141519;
-            --s2: #1a1c22;
-            --s3: #20222a;
-            --s4: #272931;
-            --b1: rgba(255, 255, 255, 0.045);
-            --b2: rgba(255, 255, 255, 0.08);
-            --b3: rgba(255, 255, 255, 0.13);
-            --t1: #d6dae6;
-            --t2: #878fa2;
-            --t3: #4e5568;
-            --ok: #4d9e7c;
-            --ok-dim: rgba(77, 158, 124, 0.1);
-            --ok-glow: rgba(77, 158, 124, 0.25);
-            --warn: #a8934a;
-            --warn-dim: rgba(168, 147, 74, 0.1);
-            --err: #a85050;
-            --err-dim: rgba(168, 80, 80, 0.1);
-            --info: #4a6ea8;
-            --info-dim: rgba(74, 110, 168, 0.1);
-            --acc: #7a6fff;
-            --acc-dim: rgba(122, 111, 255, 0.1);
+            --bg: #f8fafc;
+            --s1: #ffffff;
+            --s2: #f1f5f9;
+            --s3: #e2e8f0;
+            --s4: #cbd5e1;
+            --b1: rgba(0, 0, 0, 0.04);
+            --b2: rgba(0, 0, 0, 0.08);
+            --b3: rgba(0, 0, 0, 0.12);
+            --t1: #0f172a;
+            --t2: #475569;
+            --t3: #94a3b8;
+            --ok: #059669;
+            --ok-dim: rgba(5, 150, 105, 0.1);
+            --ok-glow: rgba(5, 150, 105, 0.2);
+            --warn: #d97706;
+            --warn-dim: rgba(217, 119, 6, 0.1);
+            --err: #dc2626;
+            --err-dim: rgba(220, 38, 38, 0.1);
+            --info: #2563eb;
+            --info-dim: rgba(37, 99, 235, 0.1);
+            --acc: #4f46e5;
+            --acc-dim: rgba(79, 70, 229, 0.1);
             --mono: 'IBM Plex Mono', monospace;
             --sans: 'Poppins', sans-serif;
-            --r: 6px;
-            --r2: 10px;
+            --r: 8px;
+            --r2: 12px;
         }
 
         *,
@@ -211,7 +211,7 @@
             font-size: 0.62rem;
             font-weight: 700;
             letter-spacing: 0.06em;
-            color: #8c82ff; /* Tom claro de azul/roxo para combinar com o tema escuro */
+            color: #4f46e5; /* Indigo-600 */
         }
 
         .header-pill .dot {
@@ -772,28 +772,31 @@
 
         /* ── LOG HIGHLIGHTS ─── */
         .tag-base {
-            padding: 1px 5px;
+            padding: 1px 6px;
             border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.68rem;
-            margin-right: 4px;
-            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.62rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            margin-right: 6px;
+            font-family: var(--sans);
+            border: 1px solid transparent;
         }
 
-        .tag-sync     { background: rgba(122, 111, 255, 0.15); color: #9c92ff; border-color: rgba(122, 111, 255, 0.2); }
-        .tag-idflex   { background: rgba(255, 107, 107, 0.15); color: #ff8e8e; border-color: rgba(255, 107, 107, 0.2); }
-        .tag-hardware { background: rgba(255, 230, 0, 0.1);    color: #ffd900; border-color: rgba(255, 230, 0, 0.2); }
-        .tag-worker   { background: rgba(77, 158, 124, 0.15);  color: #72cfab; border-color: rgba(77, 158, 124, 0.2); }
-        .tag-gari     { background: rgba(135, 143, 162, 0.15); color: #d6dae6; border-color: rgba(135, 143, 162, 0.2); }
-        .tag-poller   { background: rgba(74, 110, 168, 0.15);  color: #7ea8f0; border-color: rgba(74, 110, 168, 0.2); }
-        .tag-watchdog { background: rgba(168, 147, 74, 0.15);  color: #f0d57e; border-color: rgba(168, 147, 74, 0.2); }
-        .tag-api      { background: rgba(168, 80, 80, 0.15);   color: #f07e7e; border-color: rgba(168, 80, 80, 0.2); }
+        .tag-sync     { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+        .tag-idflex   { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+        .tag-hardware { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+        .tag-worker   { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+        .tag-gari     { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+        .tag-poller   { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+        .tag-watchdog { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+        .tag-api      { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
 
-        .hl-ok    { color: var(--ok); font-weight: 600; text-shadow: 0 0 8px var(--ok-glow); }
-        .hl-err   { color: var(--err); font-weight: 600; text-decoration: underline wavy rgba(168, 80, 80, 0.3); }
-        .hl-url   { color: var(--acc); border-bottom: 1px dashed var(--acc-dim); }
-        .hl-ip    { color: #ffd900; font-family: var(--mono); }
-        .hl-id    { color: #72cfab; font-weight: 500; }
+        .hl-ok    { color: var(--ok); font-weight: 600; }
+        .hl-err   { color: var(--err); font-weight: 600; text-decoration: underline wavy rgba(220, 38, 38, 0.2); }
+        .hl-url   { color: var(--acc); text-decoration: underline; }
+        .hl-ip    { color: #b45309; font-family: var(--mono); }
+        .hl-id    { color: #059669; font-weight: 500; }
 
         .log-counter {
             background: var(--s4);
@@ -1389,6 +1392,25 @@
     </div>
 
 
+
+    <!-- MODAL: CONFIRMAR RESET -->
+    <div id="confirm-screen" class="modal-bg hidden">
+        <div class="modal" style="width:360px;">
+            <div class="confirm-icon">⚠</div>
+            <div class="confirm-title">Resetar Banco de Dados?</div>
+            <div class="confirm-desc">
+                Esta ação irá apagar todos os logs locais e o cache de alunos. 
+                Isso não afeta os dados na nuvem.
+                <br><br>
+                Digite <strong>RESETAR</strong> abaixo para confirmar:
+            </div>
+            <input type="text" class="confirm-input" id="confirm-text" placeholder="digite aqui..." autocomplete="off">
+            <div class="confirm-actions">
+                <button class="btn" onclick="closeConfirm()" style="flex:1">CANCELAR</button>
+                <button class="btn danger" id="btn-confirm-reset" onclick="doReset()" disabled style="flex:1">LIMPAR TUDO</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL: PIN DE SEGURANÇA -->
     <div id="pin-screen" class="modal-bg hidden">

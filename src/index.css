@@ -1,6 +1,26 @@
 @import "tailwindcss";
+@import "@fontsource/outfit/100.css";
+@import "@fontsource/outfit/300.css";
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/700.css";
+@import "@fontsource/outfit/900.css";
 
-@theme {
+:root {
+  font-family: 'Outfit', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: #0f172a;
+  background-color: #f8fafc;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Theme Radii */
   --radius-xs: 1rem;
   --radius-sm: 1rem;
   --radius-md: 1rem;
@@ -10,27 +30,16 @@
   --radius-3xl: 1rem;
   --radius-4xl: 1rem;
 
-  --color-marinho: #0A1121;
-  --color-eletrico: #2B59FF;
-}
-@import "@fontsource/outfit/100.css";
-@import "@fontsource/outfit/300.css";
-@import "@fontsource/outfit/400.css";
-@import "@fontsource/outfit/500.css";
-@import "@fontsource/outfit/700.css";
-@import "@fontsource/outfit/900.css";
+  /* Theme Colors */
+  --color-marinho: #2563eb;
+  --color-eletrico: #3b82f6;
 
-:root {
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --cor-primaria: #3b82f6;
+  --cor-secundaria: #2563eb;
 
-  --cor-primaria: #2B59FF;
-  --cor-secundaria: #0A1121;
-
-  --color-primary: #2B59FF;
-  --color-primary-dark: #1E40AF;
-  --color-secondary: #0A1121;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-secondary: #2563eb;
 
   --bg-app: #f8fafc;
   --bg-surface: #ffffff;

@@ -101,21 +101,19 @@ export class WorkerApi {
     
     // ⚡ MAPEAMENTO DE CAMPOS: O Servidor Cloudflare espera nomes de colunas do D1
     const registrosCloud = eventos.map(e => {
-        // Extrai o ID numérico final do ID único 
-        const partes = e.id.split('-');
+        // Extrai o ID numérico final do ID único (idflex-IP-LOGID)
+        const partes = String(e.id).split('-');
         const rawHardwareId = partes[partes.length - 1] || '0';
         const hardwareIdNum = parseInt(rawHardwareId, 10) || 0;
 
         // Garante que o timestamp esteja em formato ISO para o Worker (YYYY-MM-DDTHH:MM:SS)
-        // Removido o 'Z' para evitar que o worker aplique offset de timezone desnecessariamente
         let dataIso = e.timestamp_acesso;
-        if (dataIso && !dataIso.includes('T')) {
+        if (typeof dataIso === 'string' && !dataIso.includes('T')) {
             dataIso = dataIso.replace(' ', 'T');
         }
 
         // Sanitização total para evitar 500 na Nuvem (D1)
-        // O servidor espera exatamente: id, escola_id, aluno_matricula, tipo_movimentacao, metodo_leitura, timestamp_acesso, leitor_id, id_evento_hardware
-        const idLimpo = (e.id || `TEMP-${Date.now()}`).replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+        const idLimpo = String(e.id || `TEMP-${Date.now()}`).replace(/\s+/g, '-').replace(/[^\w-]/g, '');
 
         return {
             id: idLimpo,
@@ -148,26 +146,30 @@ export class WorkerApi {
       // Se deu erro, queremos ler o PORQUÊ antes de desistir
       const detalheErro = await resp.text().catch(() => 'Erro sem corpo');
       console.warn(`[WorkerApi] ❌ NUVEM RECUSOU SYNC (Status ${resp.status}): ${detalheErro.substring(0, 160)}`);
+      
       if (resp.status === 403 || resp.status === 401) {
           console.error(`[WorkerApi] ERRO DE AUTENTICAÇÃO: Verifique o AGENTE_SECRET e o ESCOLA_ID no .env.`);
       }
     } catch (e: any) { 
-        console.error(`[WorkerApi] 🌐 ERRO DE CONEXÃO COM A NUVEM: ${e.message}`);
+        console.error(`[WorkerApi] 🌐 ERRO DE REDE (NUVEM): ${e.name === 'AbortError' ? 'TIMEOUT DE 15s EXCEDIDO' : e.message}`);
     }
 
-    // Fallback: Tentativa via localhost (wrangler)
+    // Fallback: Tentativa via localhost (wrangler) para ambiente de dev ou redundância local
     try {
         const localResp = await fetch(urlLocal, options as any);
         if (localResp.ok) {
             console.log(`[WorkerApi] ✓ Batidas enviadas via Localhost de emergência.`);
             return true;
         } else {
-            const erroLocal = await localResp.text();
+            const erroLocal = await localResp.text().catch(() => 'Erro sem corpo');
             console.error(`[WorkerApi] ! Localhost recusou (Status ${localResp.status}): ${erroLocal.substring(0, 150)}`);
             return false;
         }
     } catch (err: any) {
-        console.error(`[WorkerApi] ✗ ERRO FATAL: Nuvem e Localhost falharam. (${err.message})`);
+        // Se ambos falharem, não logamos o erro do localhost como fatal se for apenas falta de conexão local
+        if (err.name !== 'AbortError' && !err.message.includes('ECONNREFUSED')) {
+            console.error(`[WorkerApi] ✗ ERRO FATAL: Falha ao tentar sincronizar com Localhost: ${err.message}`);
+        }
         return false;
     }
   }

@@ -107,7 +107,7 @@ export default function Relatorios() {
             await Registrador.registrar('EXPORTAR_RELATORIO', 'relatorio', tipo, { filtros, formato: 'PDF' });
             toast.success('Documento gerado com sucesso', { id: idAviso });
         } catch (erro: any) {
-            registrar.erro('Falha na exportação', { tipo, erro: erro.message });
+            registrar.error('Falha na exportação', { tipo, erro: erro.message });
             toast.error(erro.message || 'Falha ao gerar o documento.', { id: idAviso });
         }
     };
@@ -198,7 +198,7 @@ export default function Relatorios() {
                                 className={`
                                     w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all
                                     ${ativo
-                                        ? 'bg-slate-900 text-white shadow-sm'
+                                        ? 'bg-blue-500 text-white shadow-sm'
                                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                     }
                                 `}
@@ -246,7 +246,7 @@ export default function Relatorios() {
                                         }}
                                         className={`flex-1 h-9 rounded-lg text-[11px] font-bold transition-all
                                             ${filtros.anoLetivo === ano
-                                                ? 'bg-slate-900 text-white'
+                                                ? 'bg-blue-500 text-white shadow-sm'
                                                 : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
                                             }`}
                                     >
@@ -269,7 +269,7 @@ export default function Relatorios() {
                                         }}
                                         className={`flex-1 h-9 rounded-lg text-[11px] font-bold transition-all
                                             ${filtros.semestre === sem
-                                                ? 'bg-slate-900 text-white'
+                                                ? 'bg-blue-500 text-white shadow-sm'
                                                 : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
                                             }`}
                                     >
@@ -346,7 +346,7 @@ export default function Relatorios() {
                         <button
                             onClick={moduloAtivo.acao}
                             disabled={carregandoBase}
-                            className="flex items-center gap-3 px-6 h-11 bg-slate-900 text-white rounded-xl text-[12px] font-bold hover:bg-black transition-all disabled:opacity-40 active:scale-95 shrink-0"
+                            className="flex items-center gap-3 px-6 h-11 bg-blue-600 text-white rounded-xl text-[12px] font-bold hover:bg-blue-700 transition-all shadow-sm disabled:opacity-40 active:scale-95 shrink-0"
                         >
                             <Download size={15} />
                             Gerar PDF

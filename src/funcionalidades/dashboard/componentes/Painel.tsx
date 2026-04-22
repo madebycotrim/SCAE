@@ -223,6 +223,9 @@ export default function Painel() {
     );
 
     const { ehCentral } = usarPermissoes();
+    const [registrosAoVivo, setRegistrosAoVivo] = useState<any[]>([]);
+    const ultimaDataRef = useRef<string | null>(null);
+
     const [estadoConfirmacao, setEstadoConfirmacao] = useState<{
         aberto: boolean;
         titulo: string;
@@ -260,11 +263,74 @@ export default function Painel() {
         };
     }, [estatisticasRaw]);
 
+    // 🚀 ENGINE RADAR: Sincronização em Tempo Real (Feedback Instantâneo)
+    useEffect(() => {
+        let montado = true;
+        let timeoutId: any;
+
+        const sincronizarRadar = async () => {
+            try {
+                // Se for o primeiro ciclo, inicializa com o que veio no snapshot do dashboard
+                if (!ultimaDataRef.current) {
+                    const iniciais = estatisticas.registrosRecentes || [];
+                    setRegistrosAoVivo(iniciais);
+                    
+                    if (iniciais.length > 0) {
+                        ultimaDataRef.current = iniciais[0].timestamp || iniciais[0].timestamp_acesso;
+                    } else {
+                        const hoje = new Date();
+                        hoje.setHours(0, 0, 0, 0);
+                        ultimaDataRef.current = hoje.toISOString();
+                    }
+                }
+
+                const novos = await dashboardServico.buscarRegistrosRecentes(ultimaDataRef.current);
+                
+                if (montado && novos && novos.length > 0) {
+                    const ultimaData = novos[0].timestamp || novos[0].timestamp_acesso;
+                    
+                    // Só atualiza se houver mudança temporal real
+                    if (ultimaDataRef.current !== ultimaData) {
+                        ultimaDataRef.current = ultimaData;
+                        
+                        setRegistrosAoVivo(anterior => {
+                            const idsExistentes = new Set(anterior.map(r => r.id));
+                            const unicos = novos.filter((n: any) => !idsExistentes.has(n.id));
+                            
+                            if (unicos.length > 0) {
+                                console.log(`[Painel] Radar identificou ${unicos.length} novos acessos. Sincronizando KPIs...`);
+                                // Se entrou gente nova, força atualização dos contadores do topo (Presentes, Atrasos, etc)
+                                atualizarKPIs();
+                            }
+                            
+                            return [...unicos, ...anterior].slice(0, 20);
+                        });
+                    }
+                }
+            } catch (e) {
+                // Falhas silenciosas para não interromper a UX do dashboard
+            } finally {
+                if (montado) timeoutId = setTimeout(sincronizarRadar, 3000); // 3s = Sweet spot entre carga e percepção de tempo real
+            }
+        };
+
+        sincronizarRadar();
+
+        return () => {
+            montado = false;
+            clearTimeout(timeoutId);
+        };
+    }, [atualizarKPIs, estatisticas.registrosRecentes]);
+
+    const historicoCronologico = useMemo(() => 
+        [...estatisticas.historicoPresenca].reverse(), 
+    [estatisticas.historicoPresenca]);
+
     const dataLine = {
-        labels: estatisticas.historicoPresenca.map(h => h.data),
+        labels: historicoCronologico.map(h => h.data),
         datasets: [{
             label: 'Alunos Presentes',
-            data: estatisticas.historicoPresenca.map(h => h.total),
+            data: historicoCronologico.map(h => h.total),
             borderColor: '#2B59FF',
             borderWidth: 4,
             pointBackgroundColor: '#ffffff',
@@ -414,22 +480,22 @@ export default function Painel() {
                         </div>
                     </div>
 
-                    {/* AO VIVO Lateral (Elite surveillance Terminal) */}
+                    {/* AO VIVO Lateral (Elite surveillance Terminal - Modo Claro) */}
                     <div className="lg:col-span-4 h-full">
-                        <div className="bg-[#0a0c10] border border-slate-800 rounded-xl overflow-hidden h-full flex flex-col relative">
-                            <div className="px-8 py-7 border-b border-white/5 flex items-center justify-between">
+                        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden h-full flex flex-col relative">
+                            <div className="px-8 py-7 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
                                     <div>
-                                        <h4 className="text-[10px] font-bold text-white uppercase tracking-widest leading-none mb-1">AO VIVO</h4>
+                                        <h4 className="text-[10px] font-bold text-slate-900 uppercase tracking-widest leading-none mb-1">AO VIVO</h4>
                                         <p className="text-[8px] font-medium text-slate-500 uppercase tracking-tight">Sincronização em tempo real</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar-dark scroll-smooth relative z-10">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar scroll-smooth relative z-10 bg-white">
                                 <AnimatePresence initial={false}>
-                                    {estatisticas.registrosRecentes.map((reg) => {
+                                    {registrosAoVivo.map((reg) => {
                                         const alunoData = estatisticas.alunos?.find(a => a.matricula === reg.aluno_matricula);
                                         const isSaida = reg.tipo_movimentacao === 'SAIDA';
                                         const isLocal = reg.fonte === 'agente';
@@ -439,22 +505,22 @@ export default function Painel() {
                                                 key={reg.id}
                                                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                                                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                className={`p-5 bg-white/5 border border-white/10 rounded-xl transition-all duration-300 flex items-center justify-between group/card hover:bg-white/10 hover:scale-[1.02] hover:border-white/20`}
+                                                className={`p-5 bg-white border border-slate-100 rounded-xl transition-all duration-300 flex items-center justify-between group/card hover:bg-slate-50 hover:scale-[1.01] hover:border-slate-200 shadow-sm`}
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                                                         reg.tipo_movimentacao === 'NEGADO' 
-                                                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
-                                                            : isSaida ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                                            ? 'bg-rose-50 text-rose-500 border border-rose-100' 
+                                                            : isSaida ? 'bg-indigo-50 text-indigo-500 border border-indigo-100' : 'bg-emerald-50 text-emerald-500 border border-emerald-100'
                                                     }`}>
                                                         {reg.tipo_movimentacao === 'NEGADO' ? <AlertTriangle size={24} /> : isSaida ? <LogOut size={24} /> : <Activity size={24} />}
                                                     </div>
                                                     <div>
-                                                        <p className="text-[13px] font-black text-white uppercase tracking-tight leading-none mb-1.5">
+                                                        <p className="text-[13px] font-black text-slate-900 uppercase tracking-tight leading-none mb-1.5">
                                                             {alunoData?.nome_completo || reg.aluno_nome || 'ID INDEFINIDO'}
                                                         </p>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em]">
+                                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
                                                                 {reg.aluno_matricula} • {reg.turma_nome || alunoData?.turma_id || 'EXTERNO'}
                                                             </span>
                                                         </div>
@@ -462,19 +528,19 @@ export default function Painel() {
                                                 </div>
                                                 
                                                 <div className="text-right flex flex-col items-end gap-2">
-                                                    <p className="text-[11px] font-black text-white leading-none">
+                                                    <p className="text-[11px] font-black text-slate-700 leading-none">
                                                         {new Date(reg.timestamp || reg.timestamp_acesso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </p>
                                                     <div className="flex gap-1.5 items-center">
                                                         {isLocal && (
-                                                            <span className="text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest bg-indigo-500 text-white shadow-[0_0_12px_rgba(79,70,229,0.6)]">
+                                                            <span className="text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest bg-indigo-600 text-white shadow-sm">
                                                                 ⚡ Local
                                                             </span>
                                                         )}
                                                         <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${
                                                             reg.tipo_movimentacao === 'NEGADO'
-                                                                ? 'border border-rose-500/50 text-rose-400'
-                                                                : isSaida ? 'border border-indigo-500/50 text-indigo-400' : 'border border-emerald-500/50 text-emerald-400'
+                                                                ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                                                                : isSaida ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                                                         }`}>
                                                             {reg.tipo_movimentacao}
                                                         </span>
@@ -484,13 +550,13 @@ export default function Painel() {
                                         );
                                     })}
 
-                                    {estatisticas.registrosRecentes.length === 0 && (
-                                        <div className="h-full flex flex-col items-center justify-center py-24 opacity-30 text-center">
-                                            <div className="w-20 h-20 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center mb-6 animate-spin-slow">
-                                                <Wifi size={32} className="text-white" />
+                                    {registrosAoVivo.length === 0 && (
+                                        <div className="h-full flex flex-col items-center justify-center py-24 opacity-60 text-center">
+                                            <div className="w-20 h-20 rounded-full border-4 border-dashed border-slate-200 flex items-center justify-center mb-6 animate-spin-slow">
+                                                <Wifi size={32} className="text-slate-300" />
                                             </div>
-                                            <p className="text-[12px] font-black text-white uppercase tracking-[0.5em]">Scanning Flow...</p>
-                                            <p className="text-[9px] font-bold text-white/40 uppercase mt-2 tracking-widest">Aguatdando Batidas no Hardware</p>
+                                            <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.5em]">Scanning Flow...</p>
+                                            <p className="text-[9px] font-bold text-slate-300 uppercase mt-2 tracking-widest">Aguardando Batidas no Hardware</p>
                                         </div>
                                     )}
                                 </AnimatePresence>
