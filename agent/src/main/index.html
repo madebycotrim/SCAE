@@ -11,28 +11,28 @@
     <link rel="icon" href="CATRAKI.ico" type="image/x-icon" />
     <style>
         :root {
-            --bg: #f8fafc;
-            --s1: #ffffff;
-            --s2: #f1f5f9;
-            --s3: #e2e8f0;
-            --s4: #cbd5e1;
-            --b1: rgba(0, 0, 0, 0.04);
-            --b2: rgba(0, 0, 0, 0.08);
-            --b3: rgba(0, 0, 0, 0.12);
-            --t1: #0f172a;
-            --t2: #475569;
-            --t3: #94a3b8;
-            --ok: #059669;
-            --ok-dim: rgba(5, 150, 105, 0.1);
-            --ok-glow: rgba(5, 150, 105, 0.2);
-            --warn: #d97706;
-            --warn-dim: rgba(217, 119, 6, 0.1);
-            --err: #dc2626;
-            --err-dim: rgba(220, 38, 38, 0.1);
-            --info: #2563eb;
-            --info-dim: rgba(37, 99, 235, 0.1);
-            --acc: #4f46e5;
-            --acc-dim: rgba(79, 70, 229, 0.1);
+            --bg: #0b0f19;
+            --s1: #111827;
+            --s2: #1f2937;
+            --s3: #374151;
+            --s4: #4b5563;
+            --b1: rgba(255, 255, 255, 0.05);
+            --b2: rgba(255, 255, 255, 0.08);
+            --b3: rgba(255, 255, 255, 0.12);
+            --t1: #f9fafb;
+            --t2: #9ca3af;
+            --t3: #6b7280;
+            --ok: #10b981;
+            --ok-dim: rgba(16, 185, 129, 0.1);
+            --ok-glow: rgba(16, 185, 129, 0.2);
+            --warn: #f59e0b;
+            --warn-dim: rgba(245, 158, 11, 0.1);
+            --err: #ef4444;
+            --err-dim: rgba(239, 68, 68, 0.1);
+            --info: #3b82f6;
+            --info-dim: rgba(59, 130, 246, 0.1);
+            --acc: #6366f1;
+            --acc-dim: rgba(99, 102, 241, 0.1);
             --mono: 'IBM Plex Mono', monospace;
             --sans: 'Poppins', sans-serif;
             --r: 8px;
@@ -783,19 +783,19 @@
             border: 1px solid transparent;
         }
 
-        .tag-sync     { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
-        .tag-idflex   { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
-        .tag-hardware { background: #fffbeb; color: #b45309; border-color: #fde68a; }
-        .tag-worker   { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
-        .tag-gari     { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
-        .tag-poller   { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
-        .tag-watchdog { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
-        .tag-api      { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+        .tag-sync     { background: rgba(67, 56, 202, 0.15); color: #818cf8; border-color: rgba(129, 140, 248, 0.3); }
+        .tag-idflex   { background: rgba(190, 18, 60, 0.15); color: #fb7185; border-color: rgba(251, 113, 133, 0.3); }
+        .tag-hardware { background: rgba(180, 83, 9, 0.15);  color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
+        .tag-worker   { background: rgba(4, 120, 87, 0.15);  color: #34d399; border-color: rgba(52, 211, 153, 0.3); }
+        .tag-gari     { background: rgba(71, 85, 105, 0.15); color: #94a3b8; border-color: rgba(148, 163, 184, 0.3); }
+        .tag-poller   { background: rgba(3, 105, 161, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+        .tag-watchdog { background: rgba(194, 65, 12, 0.15);  color: #fb923c; border-color: rgba(251, 146, 60, 0.3); }
+        .tag-api      { background: rgba(220, 38, 38, 0.15); color: #f87171; border-color: rgba(248, 113, 113, 0.3); }
 
         .hl-ok    { color: var(--ok); font-weight: 600; }
         .hl-err   { color: var(--err); font-weight: 600; text-decoration: underline wavy rgba(220, 38, 38, 0.2); }
         .hl-url   { color: var(--acc); text-decoration: underline; }
-        .hl-ip    { color: #b45309; font-family: var(--mono); }
+        .hl-ip    { color: #fbbf24; font-family: var(--mono); }
         .hl-id    { color: #059669; font-weight: 500; }
 
         .log-counter {
