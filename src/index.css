@@ -30,16 +30,16 @@
   --radius-3xl: 1rem;
   --radius-4xl: 1rem;
 
-  /* Theme Colors */
-  --color-marinho: #2563eb;
-  --color-eletrico: #3b82f6;
+  /* Theme Colors — Sincronizados com a Logo Catraki */
+  --color-marinho: #0d1f3c;
+  --color-eletrico: #2b59ff;
 
-  --cor-primaria: #3b82f6;
-  --cor-secundaria: #2563eb;
+  --cor-primaria: #2b59ff;
+  --cor-secundaria: #0d1f3c;
 
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
-  --color-secondary: #2563eb;
+  --color-primary: #2b59ff;
+  --color-primary-dark: #0d1f3c;
+  --color-secondary: #0d1f3c;
 
   --bg-app: #f8fafc;
   --bg-surface: #ffffff;

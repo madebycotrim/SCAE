@@ -27,7 +27,6 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["src/*"],
-            "@tenant/*": ["src/tenant/*"],
             "@funcionalidades/*": ["src/funcionalidades/*"],
             "@compartilhado/*": ["src/compartilhado/*"],
             "@configuracoes/*": ["src/configuracoes/*"],

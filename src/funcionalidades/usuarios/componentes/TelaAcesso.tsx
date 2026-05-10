@@ -167,13 +167,14 @@ export default function TelaAcesso() {
                                 transition={{ delay: 0.2 }}
                                 className="flex items-center gap-4"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md shadow-blue-900/5 border border-slate-200 relative overflow-hidden group p-1.5">
-                                    <img src="/logo.png" alt="Catraki" className="w-full h-full object-contain relative z-10" />
-                                    <div className="absolute inset-0 bg-blue-50 translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300" />
+                                <div 
+                                    onClick={lidarComCliqueAdmin}
+                                    className="flex items-center justify-center p-0 cursor-pointer active:scale-95 transition-transform"
+                                >
+                                    <span className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic select-none">
+                                        Catraki<span className="text-blue-600 animate-pulse">.</span>
+                                    </span>
                                 </div>
-                                <span className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic">
-                                    Catraki<span className="text-blue-600 animate-pulse">.</span>
-                                </span>
                             </motion.div>
 
                             <motion.div
@@ -235,7 +236,7 @@ export default function TelaAcesso() {
                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-3">Portal Administrativo</h3>
                                 <div className="h-1 w-12 bg-blue-600 mx-auto rounded-full mb-4" />
                                 <p className="text-slate-500 text-sm font-medium leading-relaxed">
-                                    Utilize seu e-mail corporativo institucional {dominioEmail ? <span className="text-blue-600 font-bold">@{dominioEmail}</span> : ''} <br className="hidden sm:block" />para validar as suas credenciais.
+                                    Utilize seu e-mail corporativo institucional {dominioEmail ? <span className="text-blue-600 font-bold">@{dominioEmail.replace('@', '')}</span> : ''} <br className="hidden sm:block" />para validar as suas credenciais.
                                 </p>
                             </div>
 

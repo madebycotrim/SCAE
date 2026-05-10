@@ -269,27 +269,19 @@ export default function LayoutAdministrativo({ children, titulo, subtitulo, acoe
             >
                 <div className="flex items-center px-6 border-b border-slate-100 shrink-0" style={{ height: '64px' }}>
                     <div className="flex items-center gap-3 group px-2 py-1.5 rounded-2xl transition-all duration-500">
-                        <div className="relative">
-                            {/* Glow de fundo sutil */}
-                            <div className="absolute inset-0 bg-blue-500/10 blur-xl rounded-full scale-0 group-hover:scale-150 transition-transform duration-700 opacity-0 group-hover:opacity-100" />
-                            
-                            {/* Container do Logo Premium */}
-                            <div className={`
-                                flex items-center justify-center relative active:scale-95 transition-transform overflow-hidden
-                                ${sidebarMinimizado ? 'w-8 h-8 rounded-lg' : 'w-9 h-9 rounded-xl bg-white border border-slate-200 shadow-sm shadow-blue-900/5'}
-                            `}>
-                                <img src="/logo.png" alt="Catraki" className={`object-contain transition-all duration-500 ${sidebarMinimizado ? 'w-5 h-5' : 'w-6 h-6'}`} />
-                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                            </div>
-                        </div>
-                        
-                        {!sidebarMinimizado && (
-                            <div className="flex flex-col">
-                                <span className="text-xl font-bold tracking-tighter bg-gradient-to-br from-slate-900 via-slate-800 to-slate-600 bg-clip-text text-transparent leading-none">
-                                    Catraki
+                        {!sidebarMinimizado ? (
+                            <div className="flex flex-col -space-y-1">
+                                <span className="text-xl font-black text-slate-900 tracking-tighter uppercase italic select-none">
+                                    Catraki<span className="text-blue-600 animate-pulse">.</span>
                                 </span>
-                                <span className="text-[8px] font-black text-blue-500 uppercase tracking-[0.2em] mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                                <span className="text-[7px] font-black text-blue-500 uppercase tracking-[0.25em] opacity-60 group-hover:opacity-100 transition-opacity">
                                     Controle de Acesso
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="w-full flex justify-center">
+                                <span className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic select-none">
+                                    C<span className="text-blue-600 animate-pulse">.</span>
                                 </span>
                             </div>
                         )}

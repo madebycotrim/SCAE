@@ -259,33 +259,25 @@ export function PaginaGestaoEscolas() {
                     label="Total Unidades"
                     valor={listaEscolas.length}
                     icone={Layers}
-                    bg="bg-indigo-50"
-                    text="text-indigo-600"
-                    border="border-indigo-100"
+                    variante="indigo"
                 />
                 <CardMetrica
                     label="Escolas Ativas"
                     valor={listaEscolas.filter(e => e.status === 'ATIVA').length}
                     icone={Shield}
-                    bg="bg-emerald-50"
-                    text="text-emerald-600"
-                    border="border-emerald-100"
+                    variante="verde"
                 />
                 <CardMetrica
                     label="Alunos no Sistema"
                     valor={listaEscolas.reduce((acumulador, escola) => acumulador + (escola.totalAlunos || 0), 0)}
                     icone={Users}
-                    bg="bg-amber-50"
-                    text="text-amber-600"
-                    border="border-amber-100"
+                    variante="amarelo"
                 />
                 <CardMetrica
                     label="Cota Utilizada"
                     valor={`${Math.round((listaEscolas.reduce((acumulador, escola) => acumulador + (escola.totalAlunos || 0), 0) / (listaEscolas.reduce((acumulador, escola) => acumulador + (escola.limiteAlunos || 1000), 0) || 1)) * 100)}%`}
                     icone={Activity}
-                    bg="bg-rose-50"
-                    text="text-rose-600"
-                    border="border-rose-100"
+                    variante="rosa"
                 />
             </div>
 

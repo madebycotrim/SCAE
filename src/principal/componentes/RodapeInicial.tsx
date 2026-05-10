@@ -19,14 +19,14 @@ export function RodapeInicial({ temaEscuro }: RodapeInicialProps) {
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="flex items-center gap-2 mb-8 group cursor-default"
+                        className="flex items-center gap-2 mb-8 group cursor-pointer"
+                        onClick={() => window.location.href = '/'}
                     >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-500 group-hover:scale-110 ${temaEscuro ? 'bg-slate-800' : 'bg-[#0d1f3c]'}`}>
-                            <ShieldCheck className="w-4 h-4 text-white" />
+                        <div className="flex items-center">
+                            <span className={`text-xl font-black tracking-tighter uppercase italic transition-colors ${temaEscuro ? 'text-white' : 'text-marinho'}`}>
+                                Catraki
+                            </span>
                         </div>
-                        <span className={`text-lg font-bold tracking-tight ${temaEscuro ? 'text-white' : 'text-slate-900'}`}>
-                            Catraki<span className="text-sky-500">.</span>
-                        </span>
                     </motion.div>
 
                     {/* Texto Principal */}

@@ -6,7 +6,7 @@ export type PapelUsuario = typeof PAPEIS_PERMITIDOS[number];
 export const usuarioSchema = z.object({
     email: z.string().email('Formato de e-mail inválido').min(5, 'O e-mail é obrigatório'),
     papel: z.enum(PAPEIS_PERMITIDOS),
-    ativo: z.boolean().default(true),
+    ativo: z.coerce.boolean().default(true),
     nome_completo: z.string().optional().nullable()
 });
 

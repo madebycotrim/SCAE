@@ -114,7 +114,7 @@ interface CardMetricaProps {
     /** Inverte o significado das cores de tendência (útil para métricas de erro/risco) */
     inverterTendencia?: boolean;
     /** Variação cromática do card (azul, verde, laranja, roxo, indigo) */
-    variante?: 'azul' | 'verde' | 'laranja' | 'roxo' | 'indigo' | 'rosa';
+    variante?: 'azul' | 'verde' | 'laranja' | 'roxo' | 'indigo' | 'rosa' | 'amarelo';
     /** Classes extras de estilo */
     className?: string;
 }
@@ -142,6 +142,7 @@ export const CardMetrica: React.FC<CardMetricaProps> = ({
             case 'roxo': return { texto: 'text-violet-600', borda: 'border-violet-200', barra: 'bg-violet-500', fundo: 'bg-violet-50' };
             case 'indigo': return { texto: 'text-indigo-600', borda: 'border-indigo-200', barra: 'bg-indigo-500', fundo: 'bg-indigo-50' };
             case 'rosa': return { texto: 'text-rose-600', borda: 'border-rose-200', barra: 'bg-rose-500', fundo: 'bg-rose-50' };
+            case 'amarelo': return { texto: 'text-amber-600', borda: 'border-amber-200', barra: 'bg-amber-500', fundo: 'bg-amber-50' };
             default: return { texto: 'text-blue-600', borda: 'border-blue-200', barra: 'bg-blue-600', fundo: 'bg-blue-50' };
         }
     };

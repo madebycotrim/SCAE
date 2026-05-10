@@ -2,7 +2,7 @@
  * Variáveis de ambiente tipadas.
  * Centraliza acesso às env vars da aplicação.
  *
- * Nota: Config Firebase está em compartilhado/servicos/firebase.js
+ * Nota: Config Firebase está em compartilhado/servicos/firebase.config.ts
  */
 
 export const AMBIENTE = {
